@@ -1,0 +1,31 @@
+---
+name: governance-check
+description: "Audita estrutura, estado e rastreabilidade da governança usando as autoridades canônicas e o validador local."
+---
+
+# Governance Check
+
+Pode ser usado diretamente para uma auditoria ou chamado por outro workflow. Em ambos os modos, recebe o root auditado e o escopo da revisão; não pressupõe permissão de escrita.
+
+1. Leia `.agent/ai_behavior.md`, `_project/README.md`, `_project/cycles.md` e o artefato ativo.
+2. Execute `node --test scripts/validate-governance.test.mjs`.
+3. Execute `node scripts/validate-governance.mjs` ou use `--root` para outro workspace explicitamente auditado.
+4. Execute `git diff --check` e revise `git status --short`.
+5. Compare task, issue, PR e checks com seus estados reais, inclusive a declaração das barreiras G1 a G4 na task.
+6. Confira se o bloco "Próximo passo" do artefato ativo corresponde ao estado real e se o modo contínuo é coerente com o nível, com G1 e G2 e com a `Autorização inicial`.
+7. Revise manualmente o que o validador não cobre:
+   - referências documentais em `_project/`;
+   - ausência de dados do usuário em textos e fixtures (G3);
+   - semântica das barreiras;
+   - autenticidade das frases de autorização registradas.
+8. Relate separadamente erros bloqueantes, avisos e julgamentos manuais; não altere arquivos durante a auditoria sem pedido explícito.
+9. Para backlog, aplicar "Backlog de possibilidades" do README e observação de `retomar`, separadamente do artefato ativo: arquivo vazio é válido e não guarda bloco/handoff. Conferir fila externa única, Git comum, índice/diff, commits locais, lote/PR e integração; não adquirir trava ou reconciliar durante auditoria. Revisar manualmente equivalência, cobertura/Restante, síntese preservada no destino, reciprocidade e existência dos IDs em main antes de integrar destino; nenhum parser prova esses aspectos.
+10. Conferir G3 desde antes da captura, pedido explícito de manutenção/commit local, autorização separada do intervalo publicado e aprovação própria de merge. Não inferir efeitos pela última conversa nem autoria de trava desconhecida. Relatar falha de capacidade/permissão externa com orientação, sem fallback interno. Não ler outros dados privados de `local/`.
+
+## Handoff estruturado
+
+Retorne: root auditado, comandos executados, erros, avisos, itens manuais, estado do Git e conclusão `passou | falhou | bloqueado`.
+
+## Referência do bootstrap
+
+Para o ciclo `000`, consultar `_project/README.md` › `Bootstrap do ciclo 000`: escopo nominal, task excepcional, L1/C1/C2, limites locais e retomada antes de publicação. Nenhum outro ciclo herda essa exceção.

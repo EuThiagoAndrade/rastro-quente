@@ -1,0 +1,586 @@
+{
+  "$comment": "Regras estruturais do validador de governança. Adicionar um arquivo obrigatório exige editar só este manifesto (G6). A política vive em .agent/ai_behavior.md e _project/README.md.",
+  "requiredFiles": [
+    "README.md",
+    ".gitignore",
+    ".gitattributes",
+    "AGENTS.md",
+    "CLAUDE.md",
+    "GEMINI.md",
+    ".agent/ai_behavior.md",
+    ".agent/lessons_learned.md",
+    ".agent/task.md",
+    ".agent/workflows/idear.md",
+    ".agent/workflows/triar.md",
+    ".agent/workflows/retomar.md",
+    ".agent/workflows/rascunhar_plano.md",
+    ".agent/workflows/revisar_plano.md",
+    ".agent/workflows/criar_issues.md",
+    ".agent/workflows/implementar_issue.md",
+    ".agent/workflows/listar_issues.md",
+    ".agent/workflows/atualizar_docs.md",
+    ".agent/workflows/health_check.md",
+    ".agent/workflows/corrigir_trilha_curta.md",
+    ".agent/templates/ideacao.md",
+    ".agent/templates/plano_implementacao.md",
+    ".agent/templates/task.md",
+    ".agent/templates/adr.md",
+    ".agent/templates/kb.md",
+    ".agent/skills/governance-check/governance-check.md",
+    ".agent/skills/doc-updater/doc-updater.md",
+    "_project/README.md",
+    "_project/cycles.md",
+    "_project/backlog.md",
+    ".agent/templates/backlog_item.md",
+    ".agent/workflows/gerenciar_backlog.md",
+    "_project/decisions/ADR-001_governanca_agnostica_adapters.md",
+    "_project/decisions/ADR-002_requisitos_infraestrutura.md",
+    "_project/decisions/ADR-003_acesso_privacidade_publicacao.md",
+    "_project/decisions/ADR-004_governanca_proporcional_niveis.md",
+    "_project/knowledge/KB-001_proveniencia_ecossistema.md",
+    "_project/knowledge/KB-003_visao_produto_requisitos.md",
+    ".github/ISSUE_TEMPLATE/feature_request.yml",
+    ".github/ISSUE_TEMPLATE/bug_report.yml",
+    ".github/ISSUE_TEMPLATE/chore.yml",
+    ".github/ISSUE_TEMPLATE/config.yml",
+    ".github/pull_request_template.md",
+    ".github/workflows/governance.yml",
+    "package.json",
+    "scripts/governance-manifest.json",
+    "scripts/validate-governance.mjs",
+    "scripts/validate-governance.test.mjs",
+    ".vercelignore"
+  ],
+  "requiredText": {
+    ".agent/ai_behavior.md": [
+      "## Matriz de autoridade",
+      "## Princípios agnósticos",
+      "## Contrato de handoff (versão 2)",
+      "handoff_schema_version: 2",
+      "## Autorizações e pontos de aprovação",
+      "## Privacidade de dados territoriais e pessoais"
+    ],
+    "_project/README.md": [
+      "## Níveis e triagem",
+      "## Entrada",
+      "## Backlog de possibilidades",
+      "## Fluxo por nível",
+      "## Pontos de aprovação",
+      "## Situações e próximo passo",
+      "## Modo contínuo",
+      "## Revisão formal",
+      "## Encerramento prospectivo",
+      "## Estados válidos",
+      "## Trilha curta",
+      "## Barreiras de domínio",
+      "### G1",
+      "### G2",
+      "### G3",
+      "### G4",
+      "## Branches, commits e migrações",
+      "## Gates mínimos",
+      "## Glossário"
+    ],
+    ".agent/templates/task.md": [
+      "**Trilha:**",
+      "**Modo contínuo:**",
+      "**handoff_schema_version:** `2`",
+      "## Elegibilidade da trilha curta",
+      "## Barreiras de domínio",
+      "G1 —",
+      "G2 —",
+      "G3 —",
+      "G4 —",
+      "## Revisão da correção",
+      "## Encerramento",
+      "## Próximo passo"
+    ],
+    ".agent/templates/plano_implementacao.md": [
+      "**Nível:**",
+      "**Modo contínuo:**",
+      "**handoff_schema_version:** `2`",
+      "## Problema e contexto",
+      "### Pontos de aprovação",
+      "## Barreiras de domínio",
+      "## Próximo passo",
+      "## Revisão crítica"
+    ],
+    ".agent/workflows/health_check.md": [
+      "node scripts/validate-governance.mjs"
+    ],
+    ".github/pull_request_template.md": [
+      "Closes #",
+      "Nível:",
+      "Modo contínuo:",
+      "## Barreiras de domínio",
+      "G1 —",
+      "G2 —",
+      "G3 —",
+      "G4 —",
+      "Aprovar merge concedido"
+    ],
+    ".github/ISSUE_TEMPLATE/feature_request.yml": [
+      "[FEATURE]"
+    ],
+    ".github/ISSUE_TEMPLATE/bug_report.yml": [
+      "[FIX]",
+      "Curta (correção elegível)"
+    ],
+    ".github/ISSUE_TEMPLATE/chore.yml": [
+      "[CHORE]"
+    ],
+    ".github/ISSUE_TEMPLATE/config.yml": [
+      "blank_issues_enabled: false"
+    ],
+    ".github/workflows/governance.yml": [
+      "contents: read",
+      "fetch-depth: 0",
+      "package-manager-cache: false",
+      "node --test scripts/validate-governance.test.mjs",
+      "node scripts/validate-governance.mjs",
+      "supabase/migrations/"
+    ],
+    ".agent/templates/ideacao.md": [
+      "**handoff_schema_version:** `2`",
+      "## Próximo passo"
+    ]
+  },
+  "adapters": {
+    "files": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md"
+    ],
+    "reference": ".agent/ai_behavior.md"
+  },
+  "workflows": {
+    "dir": ".agent/workflows",
+    "frontmatter": [
+      "description"
+    ],
+    "mutating": [
+      "idear",
+      "rascunhar_plano",
+      "revisar_plano",
+      "criar_issues",
+      "implementar_issue",
+      "atualizar_docs",
+      "corrigir_trilha_curta",
+      "gerenciar_backlog"
+    ],
+    "mutatingText": [
+      "handoff_schema_version: 2",
+      "logical_key",
+      "## Situações de saída"
+    ],
+    "readOnly": [
+      "listar_issues",
+      "health_check",
+      "triar",
+      "retomar"
+    ],
+    "readOnlyText": [
+      "mutation",
+      "## Situações de saída"
+    ],
+    "exitHeading": "## Situações de saída"
+  },
+  "skills": {
+    "dir": ".agent/skills",
+    "frontmatter": [
+      "name",
+      "description"
+    ]
+  },
+  "cycles": {
+    "file": "_project/cycles.md",
+    "states": {
+      "Ideação": "ideations",
+      "Planejamento": "drafts",
+      "Em execução": "drafts",
+      "Concluído": "executed",
+      "Cancelado": null,
+      "Substituído": "archived"
+    }
+  },
+  "plans": {
+    "statesByLocation": {
+      "drafts": [
+        "Rascunho",
+        "Em Revisão",
+        "Aprovado",
+        "Em Execução"
+      ],
+      "executed": [
+        "Concluído"
+      ],
+      "archived": [
+        "Cancelado",
+        "Substituído"
+      ]
+    }
+  },
+  "tasks": {
+    "states": [
+      "Em andamento",
+      "Aguardando integração",
+      "Concluída",
+      "Bloqueada"
+    ],
+    "doneState": "Concluída"
+  },
+  "artifacts": {
+    "$comment": "Handoff versão 2 obrigatório; nenhum legado no destino.",
+    "versionField": "handoff_schema_version",
+    "version": "2",
+    "legacyV1": [],
+    "levels": [
+      "leve",
+      "completo"
+    ],
+    "continuousStates": [
+      "—",
+      "ativo",
+      "suspenso"
+    ],
+    "approvalPrefixes": {
+      "human": "Aprovada em",
+      "continuous": "Coberta pelo modo contínuo"
+    },
+    "approvalVerdicts": [
+      "APTO PARA APROVAÇÃO",
+      "APTO COM RESSALVAS"
+    ],
+    "continuousVerdict": "APTO PARA APROVAÇÃO",
+    "maxReviewRounds": 5,
+    "gateCodePattern": "\\bGates? [A-Z](?:-[A-Z])?\\b"
+  },
+  "nextStep": {
+    "heading": "## Próximo passo",
+    "readmeSection": "## Situações e próximo passo",
+    "title": "PRÓXIMO PASSO",
+    "targets": [
+      "ciclo NNN (leve)",
+      "ciclo NNN (completo)",
+      "correção da issue #N",
+      "backlog"
+    ],
+    "triageTarget": "correção \"[FIX] <título>\" (sem issue)",
+    "continuousSuffixes": [
+      " em modo contínuo com revisão externa",
+      " em modo contínuo"
+    ],
+    "doneSituation": "Concluído",
+    "backlogTarget": "backlog",
+    "backlogSituations": [
+      "Backlog atualizado",
+      "Aguardando merge",
+      "Parado",
+      "Concluído"
+    ],
+    "situations": [
+      {
+        "name": "Triagem proposta",
+        "who": "Responsável",
+        "check": "Nível proposto e motivo",
+        "say": [
+          {
+            "text": "confirmo o nível completo e autorizo a ideação do ciclo NNN"
+          },
+          {
+            "text": "confirmo o nível leve e autorizo o plano do ciclo NNN",
+            "continuous": true
+          },
+          {
+            "text": "confirmo a trilha curta e autorizo a correção da issue #N",
+            "continuous": true
+          },
+          {
+            "text": "confirmo a trilha curta e autorizo abrir e corrigir a issue [FIX] <título>",
+            "continuous": true
+          }
+        ]
+      },
+      {
+        "name": "Ideação registrada",
+        "who": "Responsável",
+        "check": "Perguntas e decisões da ideação",
+        "say": [
+          {
+            "text": "autorizo o rascunho do plano do ciclo NNN"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando revisão (rodada N)",
+        "who": "O responsável leva a vez a um revisor, que pode ser outra ferramenta",
+        "check": "—",
+        "say": [
+          {
+            "text": "revise o plano do ciclo NNN"
+          },
+          {
+            "text": "revise a correção da issue #N"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando correções (rodada N)",
+        "who": "O responsável leva a vez ao autor",
+        "check": "Achados da rodada",
+        "say": [
+          {
+            "text": "corrija o plano do ciclo NNN"
+          },
+          {
+            "text": "ajuste a correção da issue #N"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando aprovação do plano",
+        "who": "Responsável",
+        "check": "Veredito e ressalvas na seção de revisão",
+        "say": [
+          {
+            "text": "aprovo o plano do ciclo NNN"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando autorização de implementação",
+        "who": "Responsável",
+        "check": "Issue e escopo",
+        "say": [
+          {
+            "text": "autorizo a implementação da issue #N"
+          }
+        ]
+      },
+      {
+        "name": "Backlog atualizado",
+        "who": "Responsável",
+        "check": "IDs, síntese e alterações locais do backlog",
+        "targets": [
+          "backlog"
+        ],
+        "say": [
+          {
+            "text": "publique as alterações do backlog"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando merge",
+        "who": "Responsável",
+        "check": "Checks e diff da PR",
+        "say": [
+          {
+            "text": "aprovo o merge da PR #N"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando ação externa",
+        "who": "Responsável",
+        "check": "Roteiro indicado no plano",
+        "say": [
+          {
+            "text": "concluí a ação externa da issue #N"
+          }
+        ]
+      },
+      {
+        "name": "Aguardando verificação em produção",
+        "who": "Responsável",
+        "check": "Itens de verificação do plano",
+        "say": [
+          {
+            "text": "autorizo a verificação em produção do ciclo NNN"
+          }
+        ]
+      },
+      {
+        "name": "Pronto para continuar",
+        "who": "Qualquer ferramenta, a pedido do responsável",
+        "check": "—",
+        "say": [
+          {
+            "text": "continue o ciclo NNN"
+          },
+          {
+            "text": "continue a correção da issue #N"
+          }
+        ]
+      },
+      {
+        "name": "Parado",
+        "who": "Responsável",
+        "check": "A pergunta registrada",
+        "say": [
+          {
+            "text": "sua resposta à pergunta registrada",
+            "quoted": false
+          }
+        ]
+      },
+      {
+        "name": "Concluído",
+        "who": "—",
+        "check": "—",
+        "say": [
+          {
+            "text": "—",
+            "quoted": false
+          }
+        ]
+      }
+    ]
+  },
+  "backlog": {
+    "file": "_project/backlog.md",
+    "idPattern": "^BL-(?:00[1-9]|0[1-9]\\d|[1-9]\\d{2,})$",
+    "headers": [
+      "Criado em",
+      "Atualizado em",
+      "Estado"
+    ],
+    "sections": [
+      "Problema e benefício esperado",
+      "Contexto",
+      "Encaminhamentos",
+      "Restante",
+      "Registro"
+    ],
+    "nonEmptySections": [
+      "Problema e benefício esperado",
+      "Registro"
+    ],
+    "states": [
+      "Disponível",
+      "Encaminhado",
+      "Arquivado"
+    ],
+    "archivedState": "Arquivado",
+    "archiveReason": "Motivo do arquivamento",
+    "forwardedState": "Encaminhado",
+    "destinationsSection": "Encaminhamentos"
+  },
+  "naming": {
+    "cycleDir": "^\\d{3}_[a-z0-9_]+$",
+    "cycleFile": "^(?<cycle>\\d{3})_(plan|task_issue-\\d+|task_issues-\\d+(-\\d+)+|task_closure|research_[a-z0-9_-]+|validation_[a-z0-9_-]+|handoff[a-z0-9_-]*)\\.md$",
+    "ideation": "^\\d{3}_[a-z0-9_]+\\.md$",
+    "adr": "^ADR-\\d{3}_[a-z0-9_]+\\.md$",
+    "kb": "^KB-\\d{3}_[a-z0-9_]+\\.md$",
+    "fix": "^fix_task_issue-(?<issue>\\d+)\\.md$"
+  },
+  "shortTrack": {
+    "dir": "_project/fixes",
+    "eligibilityHeading": "## Elegibilidade da trilha curta",
+    "eligibilityCriteria": [
+      "Correção de comportamento já especificado",
+      "Sem mudança de escopo",
+      "Sem mudança de schema que altere semântica",
+      "Sem mudança de contrato visual"
+    ],
+    "barriers": [
+      "G1",
+      "G2",
+      "G3",
+      "G4"
+    ]
+  },
+  "siblingCheck": {
+    "roots": [
+      "AGENTS.md",
+      "CLAUDE.md",
+      "GEMINI.md",
+      ".agent",
+      ".github",
+      "scripts"
+    ],
+    "extensions": [
+      ".md",
+      ".yml",
+      ".yaml",
+      ".json",
+      ".mjs"
+    ],
+    "repositories": [
+      "Meus-Investimentos",
+      "mae-no-controle",
+      "euthiagoandrade-api",
+      "euthiagoandrade-site",
+      "euthiagoandrade-admin",
+      "saldo-futuro"
+    ]
+  },
+  "gitignoreRequired": [
+    ".env",
+    ".env.*",
+    "!.env.example",
+    "*.sqlite",
+    "*.db",
+    "local/",
+    "supabase/.temp/"
+  ],
+  "dataFiles": {
+    "extensions": [
+      ".sqlite",
+      ".sqlite3",
+      ".db",
+      ".csv",
+      ".xlsx"
+    ],
+    "allowedDirs": [
+      "tests/fixtures/"
+    ],
+    "sqlAllowedDirs": [
+      "supabase/migrations/",
+      "supabase/tests/",
+      "tests/fixtures/"
+    ],
+    "sqlAllowedFiles": [
+      "supabase/seed.sql"
+    ]
+  },
+  "scanExclusions": [
+    ".git/",
+    "node_modules/",
+    "local/",
+    "supabase/.temp/",
+    "supabase/.branches/",
+    ".next/",
+    "coverage/",
+    "test-results/",
+    "playwright-report/"
+  ],
+  "migrations": {
+    "dir": "supabase/migrations",
+    "namePattern": "^\\d{14}_[a-z0-9_]+\\.sql$"
+  },
+  "manualChecks": [
+    "Referências documentais em _project/ (fora do escopo do cenário 12) citam fontes por URL e commit, sem caminho local.",
+    "Textos, fixtures e prints não contêm dados do usuário (G3).",
+    "Semântica das barreiras declaradas nas tasks e PRs.",
+    "Frases de autorização registradas nos artefatos foram de fato ditas pelo responsável.",
+    "Backlog: equivalência, cobertura/Restante, origem, reciprocidade, fila externa e limites entre captura, publicação e merge são conferidos manualmente.",
+    "Conferir URL/commit de origem e matriz de reaproveitamento, sem depender de checkout irmão.",
+    "Vercel: somente inspeção estática de .vercelignore; exclusão remota não testada.",
+    "Confirmar independência do revisor e instrução humana real, incluindo a divergência de aprovação registrada na task."
+  ],
+  "bootstrap": {
+    "cycle": "000",
+    "branch": "chore/cycle-000-plan",
+    "plans": [
+      "_project/drafts/000_fundacao_governanca/000_plan.md",
+      "_project/executed/000_fundacao_governanca/000_plan.md"
+    ],
+    "tasks": [
+      "_project/drafts/000_fundacao_governanca/000_task_bootstrap.md",
+      "_project/executed/000_fundacao_governanca/000_task_bootstrap.md"
+    ],
+    "authorization": "autorizo a implementação local do ciclo 000",
+    "issue": "— (exceção de bootstrap do ciclo 000)"
+  }
+}
