@@ -2,7 +2,7 @@
 
 > **Ciclo:** `000`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Bloqueada`
 > **Tipo:** `chore`
 > **Issue:** `— (exceção de bootstrap do ciclo 000)`
 > **Plano:** `_project/drafts/000_fundacao_governanca/000_plan.md`
@@ -50,14 +50,14 @@ Não se aplica. Ciclo completo de governança.
 - [x] ADRs e KBs próprios; inventário técnico apenas documental.
 - [x] Design system, licença, CI de aplicação, ambiente e release adiados conforme inventário.
 - [x] Validações finais aprovadas; staging seletivo inspecionado antes de C1.
-- [ ] Registro documental C2 e formalização de L1.
+- [x] Registro exclusivo de C1 nesta task para C2 documental, com testes/validador/diff repetidos; L1 depende de C2 efetivado e árvore limpa, conferíveis no Git.
 
 ## Evidências
 
 | Validação | Resultado |
 | :-- | :-- |
 | Node.js | v24.15.0, tooling nativo sem instalação |
-| Testes do validador | 55 testes aprovados, zero falhas (Node.js 24.15.0) |
+| Testes do validador | 55 testes aprovados, zero falhas (Node.js 24.15.0); repetidos após registro de C1 para C2 |
 | Validador estrutural | Zero erros e zero avisos; nove verificações manuais declaradas |
 | Git local | Raiz `9cd9105` contém somente README mínimo, .gitignore, .vercelignore, .gitattributes |
 | Exclusões Git | `git check-ignore --no-index` confirmou exemplos sob local/ e arquivos .env/.env.local; conteúdo privado não lido |
@@ -66,6 +66,8 @@ Não se aplica. Ciclo completo de governança.
 | Inventário e referências | 49 arquivos obrigatórios, 12 workflows, seis templates, duas skills, quatro ADRs e duas KBs conferidos; links locais resolvidos |
 | Histórico de revisão | Rodadas anteriores preservadas; SHA-256 da seção: f5e0cb026510c76d62a68161c7c49c61a4f7c0fc005548e518bac291f77c3f7e |
 | Origem | Checkout de referência permanece sem alterações rastreadas |
+| C1 — entrega técnica | `d735cd2572d56f809f602a9d1a8d833ac50ce08c` na branch `chore/cycle-000-plan`, descendente da raiz `9cd9105` |
+| C2 — registro documental | Somente esta task; imediatamente posterior a C1. Confirmar SHA/ancestralidade e árvore limpa no Git após o commit; não há SHA autorreferente neste documento |
 | Checks remotos | Não executados; remoto/PR inexistentes e publicação não autorizada |
 
 ## Revisão da correção
@@ -81,29 +83,29 @@ Não se aplica à trilha normal. A revisão independente da v4 foi concluída po
 
 ## Encerramento
 
-Não se aplica ainda. Sem PR ou integração; plano/task permanecem em drafts e ciclo em execução. L1 não conclui o ciclo. C1 ainda será criado; seu SHA só será registrado depois na task, em C2 documental exclusivo.
+Não se aplica ainda. Sem PR ou integração; plano/task permanecem em drafts e ciclo em execução. L1 não conclui o ciclo. C1 está identificado nas evidências. Este registro exclusivo compõe C2; o commit documental imediatamente posterior a C1 e a árvore limpa formalizam L1. A confirmação posterior é somente leitura, sem inserir o SHA de C2 nele próprio. Depois desse marco, os workflows locais assumem.
 
 ## Pergunta de publicação
 
-Qual é a URL GitHub de destino, a visibilidade e a política de licença pretendidas, e autoriza publicar o lote local apresentado (commit raiz direto em main mais branch chore/cycle-000-plan, incluindo C1/C2) e abrir a PR do bootstrap? A decisão fica pendente até L1 ser formalizado e o lote concreto ser apresentado. Merge exigirá aprovação própria de PR real.
+Qual é a URL GitHub de destino, a visibilidade e a política de licença pretendidas, e autoriza publicar o lote local apresentado (commit raiz direto em main mais branch chore/cycle-000-plan, incluindo C1/C2) e abrir a PR do bootstrap? Lote preparado: raiz `9cd9105`, entrega C1 identificada acima e C2 documental imediatamente posterior, limitado a esta task. A autorização de publicação continua pendente; conferir o tip e o diff reais antes de qualquer envio. Merge exigirá aprovação própria de PR real.
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 000 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 000"
+Situação: Parado — ciclo 000 (completo)
+Quem: Responsável
+Conferir: A pergunta registrada sobre destino, visibilidade, licença e publicação do lote local
+Diga: sua resposta à pergunta registrada
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 000 + implementar_issue + bootstrap-local + v4`
+- `logical_key`: `rastro-quente + 000 + atualizar_docs + registro-L1 + d735cd2572d56f809f602a9d1a8d833ac50ce08c`
 - `effect_class`: `local_mutation`
-- `state_before`: plano v4 com parecer apto e aprovação separada não registrada; instrução humana local recebida; sem Git
-- `state_after`: entrega local validada em preparação de C1; falta registro exclusivo da task em C2 para formalizar L1; integração pendente
+- `state_before`: entrega técnica validada e gravada em C1; task em andamento; integração pendente
+- `state_after`: registro documental de L1 preparado para C2; task bloqueada pela decisão de publicação; plano/ciclo em execução e integração pendente
 - `result`: `executed`
 - `evidence`: esta task, plano, índice e commits locais; comandos e limitações nesta seção de evidências
 - `blockers`: destino, visibilidade, licença e autorização de publicação pendentes
