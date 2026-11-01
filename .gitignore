@@ -1,0 +1,20 @@
+# Brainstorm, protótipos e materiais privados de trabalho local.
+/local/
+
+# Credenciais e configurações locais; exemplos podem ser versionados sem valores reais.
+.env
+.env.*
+!.env.example
+.vercel/
+
+# Tooling, dados locais e resultados gerados.
+node_modules/
+*.sqlite
+*.sqlite3
+*.db
+supabase/.temp/
+supabase/.branches/
+coverage/
+test-results/
+playwright-report/
+.next/
