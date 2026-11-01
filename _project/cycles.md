@@ -4,4 +4,4 @@
 
 | Ciclo | Assunto | Estado | Ideação | Plano | Issues | Encerramento |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
-| `000` | Fundação da governança | `Em execução` | Exceção de bootstrap | [Plano](drafts/000_fundacao_governanca/000_plan.md) | Exceção nominal | Integração pendente |
+| `000` | Fundação da governança | `Em execução` | Exceção de bootstrap | [Plano](drafts/000_fundacao_governanca/000_plan.md) | Exceção nominal | PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) aberta; checks verdes; integração pendente |

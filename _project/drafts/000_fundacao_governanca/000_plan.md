@@ -304,7 +304,7 @@ As demais entregas seguem a relação normal plano → issue → task → PR, ap
 
 - Revisão independente concluída na Rodada 3, sobre v4: `APTO PARA APROVAÇÃO`, sem achados.
 - Instrução humana posterior em 2026-10-31: `autorizo a implementação local do ciclo 000`. Não foi localizada a frase separada de aprovação; a instrução explícita atual autoriza a execução local do escopo revisado, com a divergência registrada na task, sem inventar manifestação anterior.
-- Remoto GitHub, visibilidade, licença e autorização de publicação: pendentes. Impedem publicação e integração, não a execução local explicitamente autorizada.
+- Publicação autorizada e executada em repositório privado `EuThiagoAndrade/rastro-quente`, até C2 `6f9e220825dade7c635bb56d87e6e9efbcec352e`; PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) aberta e checks verdes. Licença aberta adiada, sem LICENSE. Merge e publicação de commits posteriores não autorizados.
 - Origem no commit fixado verificada por Git; decisões técnicas posteriores continuam fora do escopo.
 
 ## Riscos, suposições e rollback
@@ -361,21 +361,21 @@ Referências da intercambiabilidade, fixadas por URL e commit para consulta sem 
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | —; não criadas |
-| PR(s) | —; não criadas |
+| PR(s) | [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) — aberta; base/tip conferidos; integração pendente |
 | Branch(es) | `chore/cycle-000-plan`; raiz local em `main` |
 | Artefato ativo | Task nominal `000_task_bootstrap.md`; plano v4 em execução |
 | Destino após conclusão comprovada | `_project/executed/000_fundacao_governanca/000_plan.md` |
 
 ## Próximo passo
 
-A task `_project/drafts/000_fundacao_governanca/000_task_bootstrap.md` é o artefato ativo; consultar seu registro para evidências e pergunta de publicação.
+A task `_project/drafts/000_fundacao_governanca/000_task_bootstrap.md` é o artefato ativo; consultar seu registro para autorização, publicação e evidências da PR #1.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 000 (completo)
+Situação: Aguardando merge — ciclo 000 (completo)
 Quem: Responsável
-Conferir: A pergunta registrada na task do bootstrap sobre publicação
-Diga: sua resposta à pergunta registrada
+Conferir: Checks e diff da PR #1 (https://github.com/EuThiagoAndrade/rastro-quente/pull/1)
+Diga: "aprovo o merge da PR #1"
 ```
 
 ## Handoff de saída
@@ -384,10 +384,10 @@ Diga: sua resposta à pergunta registrada
 - `logical_key`: `rastro-quente + 000 + implementar_issue + bootstrap-local + v4`
 - `effect_class`: `local_mutation`
 - `state_before`: v4 em revisão concluída, parecer apto; autorização humana local recebida; sem Git
-- `state_after`: plano em execução; task nominal ativa; publicação e integração pendentes
+- `state_after`: plano em execução; task nominal aguardando integração da PR #1; publicação do lote C2 verificada
 - `result`: `executed`
 - `evidence`: task nominal, índice de ciclos, Git local e Rodada 3 preservada abaixo
-- `blockers`: destino, visibilidade, licença e autorização de publicação pendentes
+- `blockers`: aprovação específica de merge pendente; registros posteriores e encerramento não enviados no lote C2
 
 ## Revisão crítica
 

@@ -16,7 +16,7 @@ Aceito para implantação local pela instrução humana de 2026-10-31: `autorizo
 
 ## Contexto
 
-Existem materiais privados em `local/`; não há remoto, política de licença ou visibilidade definidos.
+No baseline existiam materiais privados em `local/`, sem remoto, política de licença ou visibilidade definidos. A decisão de publicação posterior consta da emenda abaixo.
 
 ## Decisão
 
@@ -39,3 +39,9 @@ Copiar licença/visibilidade, usuários ou concessões da origem foi rejeitado.
 ## Referências
 
 [Política de origem como referência estrutural](https://github.com/EuThiagoAndrade/saldo-futuro/blob/c31081d56d7ce0d0ff2f51de3db655f90db6b36b/.agent/ai_behavior.md). Regras locais em `.agent/ai_behavior.md` e `_project/README.md`.
+
+## Emenda — publicação privada autorizada em 2026-10-31
+
+O responsável definiu `EuThiagoAndrade/rastro-quente` privado, autorizou sua criação vazia se necessário e adiou a licença aberta, sem arquivo LICENSE. Autorizou somente o commit raiz em main e a branch chore/cycle-000-plan até C2 `6f9e220825dade7c635bb56d87e6e9efbcec352e`, com abertura de PR. O repositório privado foi criado, os SHAs conferidos e a PR #1 aberta com checks verdes. Manifestação literal e evidências na task do bootstrap. Merge continua sujeito à aprovação específica.
+
+Esta emenda é registro local posterior ao lote publicado; não foi enviada na PR #1. Não autoriza publicação de novos commits, dados privados ou serviços externos.

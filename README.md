@@ -13,4 +13,4 @@ node --test scripts/validate-governance.test.mjs
 node scripts/validate-governance.mjs
 ```
 
-Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Licença e visibilidade ainda não definidas; não há autorização de publicação.
+Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE. Lote até C2 publicado na PR #1; integração pendente. Este registro posterior permanece somente local, fora do lote enviado.

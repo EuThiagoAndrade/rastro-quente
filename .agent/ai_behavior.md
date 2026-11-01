@@ -131,7 +131,7 @@ O worktree externo e exclusivo do backlog é uma segunda árvore do mesmo reposi
 
 ## Privacidade de dados territoriais e pessoais
 
-A visibilidade e a licença de publicação permanecem pendentes (ADR-003). Trate qualquer commit como potencialmente publicável.
+O repositório GitHub é privado por decisão expressa do responsável (ADR-003). Licença aberta adiada, sem LICENSE. Publicação limitada ao lote autorizado; commits posteriores exigem autorização correspondente. Trate qualquer commit como potencialmente publicável.
 
 - Dados pessoais, credenciais, contatos, identificadores de pessoas, atributos sensíveis de imóveis e dados operacionais restritos não entram em commits, issues, PRs, logs, fixtures ou mensagens externas.
 - Materiais privados de trabalho ficam em `local/`, ignorado pelo Git e pelos uploads Vercel. A governança não lê `local/brainstorm/` ou `local/prototipo/`.
