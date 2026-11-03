@@ -1,7 +1,7 @@
 # Plano de Implementação — Prova de dados
 
 > **Ciclo:** `001`
-> **Status:** `Em Revisão`
+> **Status:** `Aprovado`
 > **Versão:** `v5`
 > **Data de criação:** 2026-11-03
 > **Última atualização:** 2026-11-03 (registro das decisões D1 a D9)
@@ -12,10 +12,10 @@
 > **Modo contínuo:** `—`
 > **Revisão formal:** `Concluída`
 > **Veredito da revisão:** `APTO COM RESSALVAS`
-> **Aprovação humana pós-revisão:** `Pendente`
+> **Aprovação humana pós-revisão:** `Aprovada em 2026-11-03`
 > **handoff_schema_version:** `2`
 
-Rascunho autorizado por "autorizo o rascunho do plano do ciclo 001" em 2026-11-03.
+Rascunho autorizado por "autorizo o rascunho do plano do ciclo 001" em 2026-11-03. Plano aprovado por "aprovo o plano do ciclo 001" em 2026-11-03, sobre a v5 (`444c059`), depois do parecer `APTO COM RESSALVAS` da rodada 4 e do registro das decisões D1 a D9 exigido pela ressalva R4-1. Uma manifestação idêntica anterior ao registro das decisões não foi tomada como aprovação.
 
 ## Problema e contexto
 
@@ -438,30 +438,30 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
-| Branch(es) | `chore/cycle-001-plan` (local, criada a partir de `chore/cycle-001-ideation`) |
+| PR(s) | [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3) (documental: ideação e plano) |
+| Branch(es) | `chore/cycle-001-plan` (publicada; inclui os commits da ideação) |
 | Destino após conclusão | `_project/executed/001_prova_de_dados/001_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando aprovação do plano — ciclo 001 (completo)
+Situação: Aguardando merge — ciclo 001 (completo)
 Quem: Responsável
-Conferir: Veredito e ressalvas na seção de revisão (rodada 4) e decisões D1 a D9 registradas em "Decisões registradas (2026-11-03)"
-Diga: "aprovo o plano do ciclo 001"
+Conferir: Checks e diff da PR [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3)
+Diga: "aprovo o merge da PR #3"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v5@3c8f9b1`
-- `effect_class`: `local_mutation`
-- `state_before`: plano `v4` em `Em Revisão`, rodada 4 com `APTO COM RESSALVAS` (R4-1: registrar D1 a D9 antes da aprovação); a rodada estava sem commit e foi preservada intacta no commit local `3c8f9b1`; a manifestação "aprovo o plano do ciclo 001" anterior ao registro das decisões não foi registrada como aprovação
-- `state_after`: plano `v5` em `Em Revisão`, com D1 a D9 registradas conforme as respostas do responsável de 2026-11-03, dentro das alternativas revisadas; demais seções inalteradas; aprovação humana pendente; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
+- `logical_key`: `rastro-quente + 001 + atualizar_docs + 001_plan/aprovacao-e-pr-documental + v5@444c059`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v5` em `Em Revisão`, `APTO COM RESSALVAS` na rodada 4, D1 a D9 registradas, aprovação pendente; branch `chore/cycle-001-plan` só local; nenhuma PR do ciclo 001 no GitHub
+- `state_after`: plano `Aprovado` (`Aprovada em 2026-11-03`); branch publicada e PR documental #3 aberta para `main`; ciclo `001` em `Planejamento`; issues ainda não criadas
 - `result`: `executed`
-- `evidence`: respostas do responsável citadas na seção de decisões; conferência da matriz de combinações válidas; rodadas 1 a 4 sem remoções no diff; testes e validador executados nesta branch
-- `blockers`: nenhum; falta somente a manifestação "aprovo o plano do ciclo 001" posterior a este registro
+- `evidence`: manifestação "aprovo o plano do ciclo 001" posterior ao registro das decisões; `gh pr list` sem PR anterior do ciclo; PR #3 criada; testes e validador executados nesta branch
+- `blockers`: nenhum; o merge exige checks verdes e "aprovo o merge da PR #3"; a criação das issues vem depois da integração, com payload confirmado
 
 ## Revisão crítica
 
