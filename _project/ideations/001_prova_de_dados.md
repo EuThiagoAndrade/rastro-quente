@@ -5,7 +5,7 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Criado em:** 2026-11-03
-> **Última atualização:** 2026-11-03
+> **Última atualização:** 2026-11-03 (decisões do responsável registradas)
 > **handoff_schema_version:** `2`
 
 ## Problema
@@ -58,15 +58,29 @@ Todas por verificar; nenhuma é decisão.
 
 ## Perguntas em aberto
 
-Decisões do responsável antes de planejar:
+As sete perguntas foram respondidas pelo responsável em 2026-11-03 (ver "Decisões do responsável"). Permanecem abertas, para o plano, apenas as verificações de fonte listadas ao final dessa seção.
 
-1. Qual território e qual período formam o recorte da prova?
-2. Quais tipos de dados entram: apenas detecções de calor, ou também camadas territoriais (quais)? Existe fonte preferida ou obrigatória?
-3. Só fontes públicas nesta etapa? Há dado privado ou restrito que o responsável pretende usar, e em que condições?
-4. O que conta como referência independente: outra fonte, contagem manual, resultado de outra ferramenta, avaliação de especialista?
-5. Quais saídas a prova deve produzir (relatório de viabilidade, scripts reproduzíveis, tabelas de contagem) e onde ficam, dado que dados não são versionados?
-6. Há critério de sucesso ou de descarte já conhecido (cobertura mínima, tolerância de divergência)? Se for regra analítica, a decisão é do responsável.
-7. Quem avalia os resultados, e há prazo ou restrição de custo para ferramentas ou serviços externos?
+## Decisões do responsável
+
+Respostas de 2026-11-03. Cada item foi proposto pelo agente e aceito, ou completado, pelo responsável.
+
+| # | Pergunta | Decisão |
+| :-- | :-- | :-- |
+| 1 | Recorte | Território de Mato Grosso, município de **Colniza**; período **agosto, setembro e outubro de 2026**, quando, segundo o responsável, os focos cresceram fortemente em Mato Grosso (afirmação do responsável, ainda não verificada com dados) |
+| 2 | Dados | Detecções de calor e limites municipais, para provar contagem e cobertura. Sobreposição com camadas de imóveis ou áreas protegidas fica para uma segunda fase |
+| 3 | Fontes | Somente fontes públicas nesta etapa; nenhum dado restrito |
+| 4 | Referência independente | Duas camadas: comparar contagens com uma segunda fonte ou segunda ferramenta; conferir manualmente de 10 a 20 casos escolhidos pelo responsável, com mapa ao lado. Sem especialista: avaliam o responsável e o agente |
+| 5 | Saídas | Relatório curto de viabilidade em Markdown e scripts reproduzíveis em Node.js. Dados brutos fora do Git, em `local/`; o repositório guarda relatório, scripts, contagens agregadas e proveniência (fonte, versão e data de obtenção) |
+| 6 | Critério de sucesso ou descarte | Sem limiares agora. O plano proporá alternativas com exemplos numéricos e o responsável decide (regra analítica, G1). Descarte: reavaliar o ciclo se nenhuma fonte pública viável for identificada |
+| 7 | Avaliação, prazo e custo | O responsável avalia, sem prazo fixo por ora; somente ferramentas gratuitas e dados públicos. Serviço pago exigiria decisão prévia do responsável |
+
+Limitação registrada: com avaliação feita só pelo responsável e pelo agente, os scripts e a revisão do agente não são independentes entre si. A independência vem da segunda fonte ou ferramenta e dos casos escolhidos pelo responsável.
+
+Verificações que ficam para o plano, sem decisão tomada:
+
+- Escolher e confirmar as fontes (candidatas do agente, não verificadas: BDQueimadas do INPE ou NASA FIRMS para os focos; malhas territoriais do IBGE para os limites), com licença, versão, cobertura e forma de obtenção.
+- Confirmar que as fontes cobrem Colniza em agosto a outubro de 2026 e que o crescimento de focos citado é observável nelas.
+- Definir qual é a "segunda fonte ou ferramenta" da referência independente.
 
 ## Fora do escopo
 
@@ -74,9 +88,9 @@ Aplicação, interface, autenticação, banco de produção, RLS, migrações, d
 
 ## Critérios para iniciar o planejamento
 
-- Perguntas 1 a 5 respondidas pelo responsável, ou decisão explícita de deixar alguma para a fase de plano.
-- Confirmação de que a prova usará somente dados públicos, ou política definida para dados restritos.
-- Autorização explícita: "autorizo o rascunho do plano do ciclo 001".
+- Perguntas 1 a 5 respondidas pelo responsável: atendido em 2026-11-03.
+- Confirmação de que a prova usará somente dados públicos: atendido em 2026-11-03.
+- Autorização explícita ainda pendente: "autorizo o rascunho do plano do ciclo 001".
 
 Critério de descarte: se nenhuma fonte pública viável for identificada, o ciclo é reavaliado (arquivado ou redefinido) antes de qualquer planejamento.
 
@@ -86,7 +100,7 @@ Critério de descarte: se nenhuma fonte pública viável for identificada, o cic
 PRÓXIMO PASSO
 Situação: Ideação registrada — ciclo 001 (completo)
 Quem: Responsável
-Conferir: Perguntas e decisões da ideação (recorte, fontes, referência independente, saídas e dados restritos)
+Conferir: Decisões do responsável (Colniza, ago a out de 2026, fontes públicas, referência, saídas) e verificações deixadas ao plano
 Diga: "autorizo o rascunho do plano do ciclo 001"
 ```
 
@@ -96,7 +110,7 @@ Diga: "autorizo o rascunho do plano do ciclo 001"
 - `logical_key`: `rastro-quente + 001 + idear + prova_de_dados + e3c785bb461e2246171918e41fac22d82d6cd8cd`
 - `effect_class`: `local_mutation`
 - `state_before`: ciclo 000 concluído em `main` (`e3c785b`); próximo ciclo `001` livre; nenhuma ideação
-- `state_after`: ideação criada em `_project/ideations/001_prova_de_dados.md` e ciclo `001` reservado como `Ideação` em `cycles.md`; commit local em `chore/cycle-001-ideation`; nada publicado
+- `state_after`: ideação criada em `_project/ideations/001_prova_de_dados.md` e ciclo `001` reservado como `Ideação` em `cycles.md`; respostas do responsável às sete perguntas registradas em 2026-11-03; commits locais em `chore/cycle-001-ideation`; nada publicado
 - `result`: `executed`
 - `evidence`: leitura de KB-003, ADR-002, ADR-003 e autoridades; testes e validador executados nesta branch
 - `blockers`: nenhum para a ideação; o plano exige as respostas do responsável e a frase de autorização do rascunho
