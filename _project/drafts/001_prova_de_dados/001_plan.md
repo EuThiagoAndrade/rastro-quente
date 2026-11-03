@@ -2,15 +2,15 @@
 
 > **Ciclo:** `001`
 > **Status:** `Em Revisão`
-> **Versão:** `v3`
+> **Versão:** `v4`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (correção da rodada 2)
+> **Última atualização:** 2026-11-03 (correção da rodada 3)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Concluída`
+> **Revisão formal:** `Em andamento`
 > **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
@@ -147,7 +147,7 @@ Em c, causas aceitas são as documentadas no relatório com evidência: produto 
 | b) QGIS (gratuito): ponto no polígono dos mesmos arquivos, feito pelo responsável | Ferramenta distinta, mesma fonte | Instalar e operar o QGIS |
 | c) Exportação do BDQueimadas (WebGIS do INPE) por área, com o mesmo período | Caminho de acesso distinto, mesma base | Exportar e entregar o arquivo em `local/` |
 
-Mais de uma alternativa pode ser escolhida. Sugestão do autor: a, com b se o responsável puder operar o QGIS.
+Mais de uma alternativa pode ser escolhida. D6 b sozinha só é compatível com D7 c (ver "Combinações válidas", depois de D9). Sugestão do autor: a, com b se o responsável puder operar o QGIS.
 
 **D7 — Critério de viabilidade.** Componentes: U, uso permitido da fonte (obrigatório em todas as alternativas); C, lacunas de disponibilidade da série principal (ver "Cobertura"); K, meses que concordam, agregados conforme D9; M, porcentagem de casos manuais que conferem, conforme D8.
 
@@ -166,7 +166,7 @@ Exemplo fictício de C, com dois satélites X e Y na série principal: no dia 12
 
 Em a e b, se K ou M forem indeterminados (D8 e D9), a conclusão é "evidência insuficiente", nunca viável ou inviável; a situação passa a "Parado", com a pergunta ao responsável entre uma nova decisão (por exemplo, outra alternativa de D6 ou mais casos) e o encerramento com essa conclusão. Em qualquer alternativa, dias sem registro e sem evidência de lacuna são relatados como "cobertura não comprovada", com sua quantidade. Se nenhuma fonte de focos tiver uso permitido, o ciclo é reavaliado (critério de descarte da ideação). Sem sugestão do autor.
 
-**D8 — Casos manuais inconclusivos.** Mínimo de 10 casos conclusivos e máximo de 20 casos no total, os limites decididos na ideação. Exemplo fictício 1: 18 casos, 16 conferem, 1 não confere, 1 inconclusivo. Exemplo fictício 2: 10 casos, todos inconclusivos (por exemplo, catálogo de versão diferente e mapa sem resolução para concluir).
+**D8 — Casos manuais inconclusivos.** A ideação decidiu de 10 a 20 casos escolhidos pelo responsável, sem fixar mínimo de casos conclusivos. As alternativas a e c usam um mínimo de 10 conclusivos, que é proposta do autor: o responsável o confirma ou indica outro valor ao decidir. A alternativa b calcula M sobre todos os casos escolhidos, mesmo com menos de 10 conclusivos. O máximo de 20 casos no total vem da ideação. Exemplo fictício 1: 18 casos, 16 conferem, 1 não confere, 1 inconclusivo. Exemplo fictício 2: 10 casos, todos inconclusivos (por exemplo, catálogo de versão diferente e mapa sem resolução para concluir).
 
 | Alternativa | Exemplo 1 | Exemplo 2 |
 | :-- | :-- | :-- |
@@ -176,7 +176,7 @@ Em a e b, se K ou M forem indeterminados (D8 e D9), a conclusão é "evidência 
 
 Em todas, os inconclusivos são relatados com o motivo e as evidências ficam preservadas. M indeterminado leva D7 a ou b a "evidência insuficiente". Só a alternativa b atribui valor a um inconclusivo, e por regra escolhida pelo responsável. Sem sugestão do autor.
 
-**D9 — Agregação de K.** Cada comparação de D6 a ou c classifica mês e satélite segundo D5; K conta meses. Duas partes a decidir.
+**D9 — Agregação de K.** Cada comparação de D6 a ou c classifica mês e satélite segundo D5; K conta meses. Três partes a decidir, dentro das "Combinações válidas" abaixo.
 
 Entre satélites, no mesmo mês e método. Exemplo fictício, igual nos três meses, com F1 e tolerância de 10%: SNPP `A = 400`, `B = 410` (2,5%); NOAA-20 `A = 380`, `B = 390` (2,6%); NOAA-21 `A = 300`, `B = 200` (33,3%).
 
@@ -184,16 +184,35 @@ Entre satélites, no mesmo mês e método. Exemplo fictício, igual nos três me
 | :-- | :-- |
 | S1) O mês concorda se todos os satélites concordam | 0 |
 | S2) O mês concorda se a maioria dos satélites concorda | 3 |
-| S3) O mês concorda se a soma dos satélites concorda pela fórmula de D5 (`A = 1.080`, `B = 1.000`, 7,4%) | 3 |
+| S3) O mês concorda se a soma dos satélites concorda pela fórmula de D5; só com D5 a ou b (`A = 1.080`, `B = 1.000`, 7,4%) | 3 |
 
-Entre métodos, quando D6 incluir a e c. Exemplo fictício: em setembro, a concorda e c diverge.
+Entre métodos, somente quando D6 incluir a e c. Exemplo fictício: em setembro, a concorda e c diverge.
 
 | Alternativa | Setembro |
 | :-- | :-- |
 | H1) O mês concorda só se todos os métodos concordam | diverge |
 | H2) K vem só do método indicado pelo responsável; os demais são informativos | conforme o método indicado |
 
-Regras comuns, sem decisão analítica: um satélite sem comparação disponível num mês sai da agregação daquele mês e é declarado; um mês sem nenhum satélite comparável tem K indeterminado; um método inteiro indisponível (por exemplo, FIRMS sem histórico para o período) sai de K e é declarado, e sem nenhum método disponível K é indeterminado e a situação passa a "Parado" para nova decisão de D6. D6 b não entra em K (ver "Contrato de comparação"). Sem sugestão do autor.
+Comparação indisponível, terceira parte a decidir. Exemplo fictício: num mês, SNPP e NOAA-20 concordam e NOAA-21 não tem comparação (produto do FIRMS sem dados para o mês). O mesmo vale para um método inteiro indisponível com H1 (por exemplo, FIRMS sem histórico para o período, com WebGIS disponível).
+
+| Alternativa | Mês do exemplo |
+| :-- | :-- |
+| E1) Satélite ou método sem comparação sai da agregação e é declarado | concorda (2 de 2 disponíveis) |
+| E2) Exige o conjunto completo; a falta de comparação deixa o mês com K indeterminado | indeterminado |
+
+Consequências que valem em E1 e em E2: um mês sem nenhum satélite comparável tem K indeterminado; sem nenhum método de K disponível, K é indeterminado e a situação passa a "Parado" para nova decisão de D6; com H2, se o método indicado estiver indisponível, K é indeterminado e a situação passa a "Parado", e o método informativo nunca é promovido a método de K sem nova decisão do responsável. D6 b não entra em K (ver "Contrato de comparação"). Sem sugestão do autor.
+
+**Combinações válidas.** Restrições propostas pelo autor para que toda escolha admitida produza K calculável ou uma saída explícita; o responsável decide dentro delas.
+
+| Combinação | Situação | Motivo |
+| :-- | :-- | :-- |
+| D7 a ou b com D6 sem a nem c (só b) | Não admitida | K não teria método; só b é verificação de correção. D6 b sozinha só se combina com D7 c, e o relatório expõe a igualdade entre QGIS e script como evidência de correção, sem K |
+| D9 S3 com D5 c | Não admitida | D5 c não tem fórmula nem tolerância para aplicar à soma, e diferenças de sinais contrários se cancelariam (exemplo fictício: SNPP +50 e NOAA-21 −50 dão soma 0, escondendo duas diferenças não explicadas). Com D5 c, só S1 ou S2, sobre a classificação explicada ou não explicada de cada satélite |
+| D9 H1 ou H2 com um só método de K (a ou c) | Dispensada | Não há o que agregar entre métodos |
+| D9 E1 ou E2 | Sempre necessária com D6 a ou c | Define o conjunto usado em K quando falta comparação |
+| D4 b | Exige nova versão do plano | Ver D4 |
+
+O script de comparação lê as decisões registradas e recusa combinação não admitida, sem escolher alternativa no lugar do responsável.
 
 ### Contrato de comparação
 
@@ -270,7 +289,8 @@ A coluna `Aplica-se?` aceita somente `Sim` ou `Não`; justificar cada linha.
 - Divergências de D2 como diferença simétrica dos conjuntos de `id`, com a fixture do exemplo de D2 (4 divergências).
 - Cobertura: atributos de detecção e disponibilidade por dia e satélite, com fixture que inclua o exemplo de D7 (dia com registro e lacuna parcial; lacuna em dois satélites no mesmo dia; incidência indeterminada), um aviso cuja faixa toca o retângulo mas não o polígono e um dia sem registro nem aviso; C-d = 3 e C-p = 4 no exemplo.
 - Concordância de D5: fórmulas F1 e F2, os dois casos de denominador zero e os valores do exemplo de D5.
-- Agregação de D9: S1, S2 e S3 e H1 e H2 com os valores dos exemplos de D9; satélite sem comparação; mês sem satélite comparável; método indisponível.
+- Agregação de D9: S1, S2 e S3, H1 e H2, E1 e E2 com os valores dos exemplos de D9; mês sem satélite comparável; nenhum método disponível; H2 com o método indicado indisponível (K indeterminado, sem promover outro método).
+- Combinações: recusa de D6 só b com D7 a ou b, de S3 com D5 c e de D4 b; S1 e S2 com D5 c sobre classificações explicada ou não explicada.
 - M de D8: alternativas a, b e c com os exemplos 1 e 2 de D8, incluindo M indeterminado; e a conclusão "evidência insuficiente" de D7 quando K ou M forem indeterminados.
 - Sanitização: nenhuma URL, log ou erro produzido pelos scripts contém o valor da chave usada no teste (chave fictícia).
 - Casos de referência: fixtures fictícias pequenas em `tests/fixtures/prova-dados/`, cujas contagens esperadas foram calculadas à mão e estão escritas no próprio teste.
@@ -327,13 +347,14 @@ Com D6 a, roteiro da ação externa: o responsável faz o cadastro gratuito no F
 **Critérios de aceite:**
 
 - [ ] Comparação registrada por mês e satélite, com fórmula, valores de `A` e `B` e a classificação de D5 (ou igualdade, em D6 b); diferenças explicadas citam a causa e a evidência.
-- [ ] K por mês com a regra de D9, satélites e métodos excluídos declarados; com D6 b, diferença zero ou causa e correção registradas.
+- [ ] K por mês com a regra de D9 (S, H quando houver dois métodos, e E), satélites e métodos excluídos ou ausentes declarados; com H2 e método indicado indisponível, K indeterminado e "Parado"; com D6 b, diferença zero ou causa e correção registradas.
+- [ ] Decisões D1 a D9 lidas de `scripts/prova-dados/decisoes.json`, transcritas do plano aprovado; combinação não admitida é recusada.
 - [ ] Cada caso registrado com todos os campos do roteiro, o resultado de P1, P2 e P3 e a classificação do caso; inconclusivos tratados conforme D8, com M indeterminado quando for o caso.
 - [ ] Relatório com U, C (na unidade de D7), K e M, conclusão de viabilidade segundo D7 (viável, inviável ou evidência insuficiente) e limitações explícitas, incluindo que focos não comprovam incêndio, dano, autoria ou infração.
 
 ## Arquivos afetados
 
-- `scripts/prova-dados/` (novo): `fontes.json`, `obter.mjs`, `contar.mjs`, `comparar.mjs`, módulos de apoio e `*.test.mjs`.
+- `scripts/prova-dados/` (novo): `fontes.json`, `decisoes.json` (transcrição das decisões do plano aprovado), `obter.mjs`, `contar.mjs`, `comparar.mjs`, módulos de apoio e `*.test.mjs`.
 - `tests/fixtures/prova-dados/` (novo): CSV e GeoJSON fictícios.
 - `_project/drafts/001_prova_de_dados/`: `001_plan.md`, tasks e `001_research_viabilidade.md`.
 - `_project/cycles.md`; no encerramento, `_project/knowledge/KB-003_visao_produto_requisitos.md` e a movimentação para `_project/executed/001_prova_de_dados/`.
@@ -405,22 +426,22 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando correções (rodada 3) — ciclo 001 (completo)
-Quem: O responsável leva a vez ao autor
-Conferir: Achados R3-1 e R3-2 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-3
-Diga: "corrija o plano do ciclo 001"
+Situação: Aguardando revisão (rodada 4) — ciclo 001 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-3 + v3@0db1159c2d978006cccd8564de069fbf59294a0c`
+- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v4@ad14faa`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v3` em `Em Revisão`, aguardando revisão (rodada 3), com respostas do autor à rodada 2, no commit local `0db1159c2d978006cccd8564de069fbf59294a0c`; ciclo `001` em `Planejamento`; árvore limpa
-- `state_after`: plano `v3` em `Em Revisão`, rodada 3 concluída com `REQUER NOVA RODADA`, aguardando correções (rodada 3); ciclo permanece em `Planejamento`; alteração local somente neste plano, sem commit ou publicação
+- `state_before`: plano `v3` em `Em Revisão`, rodada 3 com `REQUER NOVA RODADA` (R3-1 bloqueador, R3-2 ressalva), aguardando correções (rodada 3); a rodada estava sem commit e foi preservada intacta no commit local `ad14faa`
+- `state_after`: plano `v4` em `Em Revisão`, achados respondidos em "Resposta do autor à Rodada 3 — v4", aguardando revisão (rodada 4); `cycles.md` sincronizado com a v4; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
 - `result`: `executed`
-- `evidence`: rodada 3 abaixo; v3 e respostas do autor conferidas; histórico das rodadas 1 e 2 comparado com `51677ee` e preservado; gates e limites registrados na rodada
-- `blockers`: R3-1 impede parecer apto; R3-2 é ressalva; D1 a D9 continuam pendentes de decisão humana antes da aprovação
+- `evidence`: rodada 3 lida integralmente; rodadas 1 a 3 sem remoções no diff; testes e validador executados nesta branch
+- `blockers`: nenhum para a rodada 4; a aprovação exige as respostas do responsável a D1 a D9
 
 ## Revisão crítica
 
@@ -616,6 +637,21 @@ D9 chama de "sem decisão analítica" a exclusão de satélites ou métodos sem 
 **Progresso:** os bloqueadores diminuíram de três para um; R2-1 e R2-3 foram atendidos e R2-2 foi reduzido às combinações acima. Não houve contestação persistente ou reaparecimento de correção anteriormente aceita. A próxima revisão será a rodada 4, dentro do teto de cinco.
 
 **Veredito:** `REQUER NOVA RODADA` — corrigir R3-1 e responder R3-2, preservando rodadas e respostas anteriores. O revisor não altera os contratos nem incrementa a versão: ela permanece v3 até a correção do autor. Nenhuma decisão D1 a D9, aprovação ou implementação foi realizada.
+
+
+### Resposta do autor à Rodada 3 — v4
+
+**Autor:** Claude Code, modelo Opus 5.5 (`claude-opus-5-5`). **Data:** 2026-11-03. A rodada 3 estava sem commit; foi preservada sem alteração no commit `ad14faa` antes desta correção.
+
+| Achado | Resposta | Onde |
+| :-- | :-- | :-- |
+| R3-1.1 | Corrigido. D6 só b passa a ser combinação não admitida com D7 a ou b; só se combina com D7 c, em que a igualdade entre QGIS e script é exposta como evidência de correção, sem K | D6, "Combinações válidas" |
+| R3-1.2 | Corrigido. S3 restrita a D5 a ou b; com D5 c, só S1 ou S2, sobre a classificação explicada ou não explicada de cada satélite, com exemplo fictício de cancelamento de sinais | D9, "Combinações válidas" |
+| R3-1.3 | Corrigido. Com H2 e o método indicado indisponível, K é indeterminado e a situação passa a "Parado"; o método informativo nunca é promovido sem nova decisão do responsável | D9 |
+| R3-1 (testes e contrato) | Corrigido. Testes de recusa das combinações não admitidas e dos casos de indisponibilidade; decisões transcritas em `scripts/prova-dados/decisoes.json` e validadas pelo script, que recusa combinação não admitida sem escolher alternativa | Estratégia de testes, item 3, arquivos afetados |
+| R3-2 | Corrigido. D8 atribui à ideação só os 10 a 20 casos escolhidos; o mínimo de 10 conclusivos de a e c é apresentado como proposta do autor, ajustável pelo responsável, e b calcula M mesmo com menos de 10 conclusivos. Em D9, a política para comparação indisponível deixa de ser "sem decisão analítica" e vira a terceira parte da decisão (E1 ou E2), com exemplo | D8, D9 |
+
+Sem mudança de numeração: as decisões continuam D1 a D9; E1 e E2 são parte de D9.
 
 ## Pós-mortem
 
