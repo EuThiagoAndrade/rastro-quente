@@ -1,10 +1,10 @@
 # Plano de Implementação — Prova de dados
 
 > **Ciclo:** `001`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v5`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (registro das decisões D1 a D9)
+> **Última atualização:** 2026-11-03 (início da issue #4)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -437,7 +437,7 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
+| Issue(s) | [#4](https://github.com/EuThiagoAndrade/rastro-quente/issues/4) (item 1), [#5](https://github.com/EuThiagoAndrade/rastro-quente/issues/5) (item 2), [#6](https://github.com/EuThiagoAndrade/rastro-quente/issues/6) (item 3) |
 | PR(s) | [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3) (documental: ideação e plano) |
 | Branch(es) | `chore/cycle-001-plan` (publicada; inclui os commits da ideação) |
 | Destino após conclusão | `_project/executed/001_prova_de_dados/001_plan.md` |

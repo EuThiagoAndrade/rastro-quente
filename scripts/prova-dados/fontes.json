@@ -1,0 +1,253 @@
+{
+  "versao": 1,
+  "descricao": "Fontes públicas da prova de dados de Colniza (MT), ciclo 001. URLs sanitizadas; brutos em local/prova-dados/brutos/ (fora do Git). Obtenção e registro por scripts/prova-dados/obter.mjs.",
+  "intervalo": {
+    "inicio": "2026-08-01",
+    "fim": "2026-11-01",
+    "fuso": "GMT",
+    "fimExclusivo": true
+  },
+  "itens": [
+    {
+      "id": "inpe-mensal-202608",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202608.csv",
+      "destino": "inpe/focos_mensal_br_202608.csv",
+      "obtidoEm": "2026-11-03T19:05:25.826Z",
+      "tamanho": 103708076,
+      "sha256": "4574013b15b785f42078fe72dfa73b0b48a773666e88025ebe5ef440cc3694da",
+      "lastModified": "Tue, 01 Sep 2026 23:56:24 GMT",
+      "etag": "\"62e75ac-65a74aa87da00\""
+    },
+    {
+      "id": "inpe-mensal-202609",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202609.csv",
+      "destino": "inpe/focos_mensal_br_202609.csv",
+      "obtidoEm": "2026-11-03T19:05:31.809Z",
+      "tamanho": 123024987,
+      "sha256": "69ecef072d0e0db63698f7e3adc101cd68f593294eefc3dcd97eeaf554bd0248",
+      "lastModified": "Thu, 01 Oct 2026 23:56:29 GMT",
+      "etag": "\"755365b-65cd02a116540\""
+    },
+    {
+      "id": "inpe-mensal-202610",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202610.csv",
+      "destino": "inpe/focos_mensal_br_202610.csv",
+      "obtidoEm": "2026-11-03T19:05:39.285Z",
+      "tamanho": 144148591,
+      "sha256": "e8e09447152280c85935c83d65d818900593246070c96fbac61260a6ba94b64f",
+      "lastModified": "Sun, 01 Nov 2026 23:56:43 GMT",
+      "etag": "\"897886f-65f3fc7fba4c0\""
+    },
+    {
+      "id": "inpe-diario-20261101",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/focos_diario_br_20261101.csv",
+      "destino": "inpe/focos_diario_br_20261101.csv",
+      "obtidoEm": "2026-11-03T19:05:39.543Z",
+      "tamanho": 3799558,
+      "sha256": "4fe513730a99e3a73660d95d2ae6178824a48c38b8e9c46269899cca01e92474",
+      "lastModified": "Mon, 02 Nov 2026 12:05:03 GMT",
+      "etag": "\"39fa06-65f49f4b4b9c0\""
+    },
+    {
+      "id": "ibge-malha-5103254-v4",
+      "tipo": "ibge-malha",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/municipios/5103254?formato=application/vnd.geo+json&qualidade=maxima",
+      "destino": "ibge/malha_5103254_v4_maxima.geojson",
+      "obtidoEm": "2026-11-03T19:05:39.725Z",
+      "tamanho": 62339,
+      "sha256": "5e4ebe055569005c845f1f51a7d565585855a740988d34754537c2800d70b90c",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-metadados-5103254-v4",
+      "tipo": "ibge-metadados",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/municipios/5103254/metadados",
+      "destino": "ibge/metadados_5103254_v4.json",
+      "obtidoEm": "2026-11-03T19:05:39.768Z",
+      "tamanho": 314,
+      "sha256": "66de469735fc678427ce98717973e884bae3721990eaa5cd2850eea19b151c9e",
+      "lastModified": null,
+      "etag": null
+    }
+  ],
+  "levantamento": {
+    "levantadoEm": "2026-11-03",
+    "observacao": "Condições de uso lidas nas páginas citadas em 2026-11-03; não são parecer jurídico. Focos e malhas não comprovam incêndio, dano, autoria ou infração.",
+    "condicoesDeUso": [
+      {
+        "fonte": "INPE (Programa Queimadas)",
+        "uso": "permitido",
+        "resumo": "Dados abertos, de acesso livre e sem custo. Não foi encontrada licença formal explícita nem exigência de citação para os arquivos de focos; a conclusão vem do texto 'Dados Abertos para Uso Público' e da resposta do FAQ de que todos os dados e produtos ficam disponíveis para acesso livre sem nenhum custo.",
+        "links": [
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_downloads/dados-abertos/",
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/faq/"
+        ]
+      },
+      {
+        "fonte": "IBGE (malhas)",
+        "uso": "permitido com atribuição",
+        "resumo": "As notas metodológicas da Malha Municipal Digital 2024 declaram a MMD e os produtos derivados sob licença compatível com Creative Commons BY 4.0 (uso, adaptação e fins comerciais, com atribuição). As mesmas notas afirmam que o IBGE não tem atribuição legal para definir limites territoriais e que a malha é aproximada, não oficial. Licença própria da API de malhas não localizada; as notas da revisão 2025 não foram conferidas.",
+        "links": [
+          "https://biblioteca.ibge.gov.br/visualizacao/livros/liv102169.pdf",
+          "https://servicodados.ibge.gov.br/api/docs/malhas?versao=4"
+        ]
+      },
+      {
+        "fonte": "NASA FIRMS",
+        "uso": "permitido (a conferir nos termos do cadastro)",
+        "resumo": "A NASA declara compartilhamento pleno e aberto dos dados de ciência da Terra, sem período de acesso exclusivo. A API exige MAP_KEY gratuita, com limite de 5000 transações por intervalo de 10 minutos. Texto de citação ou termos específicos do FIRMS não foram localizados nas páginas da API; o responsável confere os termos exibidos no cadastro da MAP_KEY.",
+        "links": [
+          "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-information-policy",
+          "https://firms.modaps.eosdis.nasa.gov/api/area/",
+          "https://firms.modaps.eosdis.nasa.gov/api/data_availability/"
+        ]
+      }
+    ],
+    "inpe": {
+      "satelitePrincipal": {
+        "valor": "AQUA_M-T",
+        "descricao": "Satélite de referência desde 2002-07-04 (MODIS, passagem no início da tarde), segundo a pergunta 7 do FAQ. O aviso de 2026-08-12 chama o AQUA de satélite de referência sem distinguir AQUA_M-T de AQUA_M-M.",
+        "presenteEm": [
+          "inpe-mensal-202608",
+          "inpe-mensal-202609",
+          "inpe-mensal-202610",
+          "inpe-diario-20261101"
+        ],
+        "fonte": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/faq/"
+      },
+      "valoresDeSatelite": {
+        "metodo": "node scripts/prova-dados/satelites.mjs <arquivo>; registros por valor, país inteiro, sem filtro",
+        "tabelaDeSatelitesDoINPE": "FAQ, pergunta 44, com órbita, sensor e resolução de cada valor",
+        "porArquivo": {
+          "inpe-mensal-202608": {
+            "AQUA_M-M": 1567,
+            "AQUA_M-T": 20222,
+            "GOES-19": 201755,
+            "METOP-B": 5229,
+            "METOP-C": 4507,
+            "MSG-03": 2019,
+            "NOAA-20": 137400,
+            "NOAA-21": 128747,
+            "NPP-375": 100685,
+            "NPP-375D": 38218,
+            "TERRA_M-M": 6555,
+            "TERRA_M-T": 4339
+          },
+          "inpe-mensal-202609": {
+            "AQUA_M-M": 2202,
+            "AQUA_M-T": 24382,
+            "GOES-19": 195794,
+            "METOP-B": 8676,
+            "METOP-C": 9179,
+            "MSG-03": 3159,
+            "NOAA-20": 170398,
+            "NOAA-21": 170374,
+            "NPP-375": 128329,
+            "NPP-375D": 48855,
+            "TERRA_M-M": 8650,
+            "TERRA_M-T": 7216
+          },
+          "inpe-mensal-202610": {
+            "AQUA_M-M": 3644,
+            "AQUA_M-T": 32454,
+            "GOES-19": 205674,
+            "METOP-B": 16212,
+            "METOP-C": 15126,
+            "MSG-03": 3603,
+            "NOAA-20": 211977,
+            "NOAA-21": 207742,
+            "NPP-375": 139383,
+            "NPP-375D": 70730,
+            "TERRA_M-M": 11362,
+            "TERRA_M-T": 13888
+          },
+          "inpe-diario-20261101": {
+            "AQUA_M-M": 83,
+            "AQUA_M-T": 1254,
+            "GOES-19": 6359,
+            "METOP-B": 689,
+            "METOP-C": 913,
+            "MSG-03": 71,
+            "NOAA-20": 5878,
+            "NOAA-21": 4215,
+            "NPP-375": 4168,
+            "NPP-375D": 1744,
+            "TERRA_M-M": 80,
+            "TERRA_M-T": 760
+          }
+        },
+        "viirs": {
+          "valores": [
+            "NPP-375",
+            "NPP-375D",
+            "NOAA-20",
+            "NOAA-21"
+          ],
+          "observacao": "A tabela do FAQ lista NPP-375 e NPP-375D como VIIRS 375 m do Suomi-NPP. Nos arquivos, NPP-375 aparece de 15h a 19h GMT e NPP-375D de 02h a 07h GMT, e nenhuma chave (latitude, longitude, instante) é comum aos dois no arquivo de agosto: são passagens distintas, não duplicatas. O significado do sufixo D não foi encontrado na documentação lida; a leitura de passagem noturna é inferência dos horários.",
+          "aConfirmarNoItem2": "Série V (D6 a): o plano diz 'SNPP, NOAA-20, NOAA-21 com os valores identificados no item 1'. A leitura natural é SNPP = NPP-375 + NPP-375D, o que o responsável deve confirmar antes da contagem."
+        }
+      },
+      "avisosDoPeriodo": {
+        "fonte": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/",
+        "consultadoEm": "2026-11-03",
+        "avisos": [
+          {
+            "data": "2026-08-12",
+            "titulo": "Falta de imageamento do satélite AQUA",
+            "resumo": "O AQUA não imageou parte da América do Sul; não há dados do satélite de referência para as áreas não imageadas nessa data. Incidência sobre Colniza ainda por verificar nas imagens do aviso (item 2).",
+            "worldview": "https://worldview.earthdata.nasa.gov/?l=MODIS_Aqua_CorrectedReflectance_TrueColor&t=2026-08-12-T14%3A01%3A01Z"
+          }
+        ],
+        "semAvisosEm": "Nenhum outro aviso de agosto a outubro de 2026 consta na página. Os avisos de 2026-07-10 e 2026-07-22 são anteriores ao período."
+      }
+    },
+    "ibge": {
+      "versaoDaApi": "v4",
+      "revisaoDaMalha": "2025",
+      "fonteDoAno": "Notas de liberação de https://servicodados.ibge.gov.br/api/docs/malhas?versao=4: malhas atualizadas com a revisão de 2025 em 2026-04-27. A resposta da API não traz o ano.",
+      "qualidade": "maxima (valor padrão da API)",
+      "desvioDoPlano": "O plano cita v3 na verificação prévia. A v3 só recebeu as malhas até a revisão de 2022; a v4 traz a revisão 2025 e foi usada. Para Colniza (5103254) as duas têm o mesmo retângulo (-61.6334,-10.0495,-58.9384,-8.7966); a área nos metadados é 27960.237 km² (v3) e 27960.244 km² (v4); a v4 tem mais vértices (2986 contra 2643).",
+      "retangulo": "-61.6334,-10.0495,-58.9384,-8.7966"
+    },
+    "fuso": {
+      "conclusao": "Sem horário de verão de 2026-08-01 a 2026-11-01: America/Cuiaba é UTC−4 fixo.",
+      "evidencias": [
+        "Decreto nº 9.772, de 25/04/2019, encerrou a hora de verão: https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/decreto/d9772.htm",
+        "node scripts/prova-dados/fuso.mjs devolve [\"GMT-04:00\"] para o período (tzdata do Node 24); o teste prova que a mesma conferência detecta o horário de verão de 2018."
+      ]
+    },
+    "firms": {
+      "dayRange": "1 a 5 dias por consulta (https://firms.modaps.eosdis.nasa.gov/api/area/); 19 janelas consecutivas de 5 dias cobrem 2026-08-01 a 2026-10-31 (a última tem 2 dias), por produto.",
+      "produtosDisponiveis": "SP ou NRT de VIIRS_SNPP, VIIRS_NOAA20 e VIIRS_NOAA21 constam na API; a disponibilidade para o período só é consultável com a MAP_KEY (/api/data_availability/csv/{MAP_KEY}/ALL) e está pendente.",
+      "pendente": "Ação externa do responsável: cadastro gratuito e MAP_KEY em local/prova-dados/.env. Sem a chave, obter.mjs termina com código 3 e não consulta o FIRMS."
+    }
+  },
+  "firms": {
+    "decisao": "D6 a",
+    "retangulo": "-61.6334,-10.0495,-58.9384,-8.7966",
+    "ordemRetangulo": "oeste,sul,leste,norte",
+    "sensores": [
+      "VIIRS_SNPP",
+      "VIIRS_NOAA20",
+      "VIIRS_NOAA21"
+    ],
+    "intervalo": {
+      "inicio": "2026-08-01",
+      "fim": "2026-11-01"
+    },
+    "dayRange": 5,
+    "produtos": null,
+    "disponibilidade": null
+  }
+}
