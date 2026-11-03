@@ -10,7 +10,7 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
+> **Revisão formal:** `Concluída`
 > **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
@@ -366,22 +366,22 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 2) — ciclo 001 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 001"
+Situação: Aguardando correções (rodada 2) — ciclo 001 (completo)
+Quem: O responsável leva a vez ao autor
+Conferir: Achados R2-1 a R2-4 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-2
+Diga: "corrija o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v2@f61195e`
+- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-2 + v2@de95aaf078bc7d498fd88c5a9614178c9da28fcc`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v1` em `Em Revisão`, rodada 1 com `REQUER NOVA RODADA` (R1-1 a R1-5 bloqueadores, R1-6 e R1-7 ressalvas), aguardando correções (rodada 1); a rodada estava sem commit e foi preservada intacta no commit local `f61195e`
-- `state_after`: plano `v2` em `Em Revisão`, cada achado respondido em "Resposta do autor à Rodada 1 — v2", aguardando revisão (rodada 2); ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
+- `state_before`: plano `v2` em `Em Revisão`, aguardando revisão (rodada 2), com respostas do autor à rodada 1, no commit local `de95aaf078bc7d498fd88c5a9614178c9da28fcc`; ciclo `001` em `Planejamento`; árvore limpa
+- `state_after`: plano `v2` em `Em Revisão`, rodada 2 concluída com `REQUER NOVA RODADA`, aguardando correções (rodada 2); ciclo permanece em `Planejamento`; alteração local somente neste plano, sem commit ou publicação
 - `result`: `executed`
-- `evidence`: rodada 1 lida integralmente; aviso do INPE de 12/08/2026 e lista de produtos da API de área do FIRMS conferidos por consulta somente leitura em 2026-11-03; testes e validador executados nesta branch
-- `blockers`: nenhum para a rodada 2; a aprovação exige as respostas do responsável a D1 a D8
+- `evidence`: rodada 2 abaixo; conferência da preservação da rodada 1, das respostas do autor e da v2; consultas oficiais somente leitura a INPE, IBGE e FIRMS em 2026-11-03; resultados dos gates registrados na rodada
+- `blockers`: R2-1 a R2-3 impedem parecer apto; R2-4 é ressalva; D1 a D8 continuam pendentes de decisão humana antes da aprovação
 
 ## Revisão crítica
 
@@ -456,6 +456,66 @@ O manifesto versionado exige URL e a API FIRMS inclui a `MAP_KEY` no caminho. O 
 | R1-7 | Corrigido. Chave lida de `local/prova-dados/.env` só em memória; URL registrada com `{MAP_KEY}` em manifesto, relatório, logs e erros; teste de sanitização. `fontes.json` (versionado) passa a trazer data de obtenção, tamanho e SHA-256 | Escopo, G3, item 1, estratégia de testes |
 
 Mudança de numeração: as decisões pendentes passam a ser D1 a D8 (D8 nova, por R1-5). As referências a "D1 a D7" nas seções do plano foram atualizadas; as da rodada 1 foram preservadas.
+
+### Rodada 2
+
+**Data:** 2026-11-03.
+
+**Autor:** Claude Code, Opus 5.5 (`claude-opus-5-5`), conforme identificação na resposta do autor e coautoria do commit da v2.
+
+**Revisor:** Codex, GPT-6; variante exata não informada nesta sessão.
+
+**Base revisada:** `v2`, commit `de95aaf078bc7d498fd88c5a9614178c9da28fcc`, branch `chore/cycle-001-plan`, inicialmente limpa. Conferidos plano completo, resposta do autor, ideação, KB-003, autoridades, workflow `revisar_plano` e template `plano_implementacao`. Somente o plano mudou desde `f61195e`; a rodada 1 foi comparada com aquele commit e está preservada.
+
+#### Conferência dos achados anteriores
+
+| Achado | Resultado da revisão da v2 |
+| :-- | :-- |
+| R1-1 | Atendido: diário de 01/11 incluído, intervalos semiabertos e testes de transição previstos. Existência do diário confirmada nesta rodada |
+| R1-2 | Parcialmente atendido: a ausência de registros deixou de representar cobertura comprovada, mas a classificação ainda perde lacunas parciais em dias com registros; ver R2-1 |
+| R1-3 | Parcialmente atendido: séries VIIRS auxiliares, produtos, fórmulas e filtros explicitados; permanecem combinações territoriais contraditórias e falta a agregação para K; ver R2-2 |
+| R1-4 | Atendido: quatro divergências e diferença simétrica corretas |
+| R1-5 | Atendido quanto ao roteiro: P1/P2/P3, registro mínimo e classificação definidos. A nova D8 apresenta um caso de cálculo não definido, registrado em R2-3 |
+| R1-6 | Atendido: D4 b requer outra versão antes da aprovação; a implementação desta versão fica condicionada à confirmação humana de D4 a |
+| R1-7 | Atendido: URL sanitizada, chave somente em memória, teste específico e data de obtenção no manifesto versionado |
+
+#### R2-1 — Bloqueador: registros e lacunas de cobertura podem coexistir
+
+Em "Cobertura", todas as classes de lacuna exigem **sem registro**, enquanto qualquer detecção classifica o dia como **com registro**. Exemplo fictício: o satélite registra 1 foco pela manhã e há perda de imageamento que afeta parte de Colniza em outra passagem do mesmo dia. A regra atual só admite "com registro" e não leva a lacuna a C. A instrução de verificar todos os avisos no item 2 não resolve essa incompatibilidade entre as classes.
+
+Separar presença de detecção da evidência de disponibilidade, ou admitir explicitamente a coexistência de registro e lacuna conhecida/indeterminada. A incidência deve considerar interseção parcial com o território, não apenas ausência sobre todo o retângulo. Especificar também se C conta dias distintos ou pares dia/satélite quando D1 inclui vários satélites; exemplo fictício: lacuna em dois satélites no mesmo dia produz 1 dia ou 2 pares. Refletir as alternativas em D7, critérios de aceite e casos de teste, sem escolher a regra pelo responsável. Trata-se de atendimento incompleto de R1-2, não de reabertura de achado anteriormente aceito.
+
+#### R2-2 — Bloqueador: a comparação ainda não determina K nem todas as combinações de D2/D6
+
+D5 e o item 3 classificam **mês e satélite**, mas D7 usa K como **meses** concordantes. Não há regra para combinar os satélites, nem os métodos quando D6 inclui mais de uma alternativa. Exemplo fictício: em cada um dos três meses, SNPP e NOAA-20 concordam e NOAA-21 diverge. Exigir todos os satélites dá K = 0; aceitar ao menos um dá K = 3. A decisão de viabilidade muda com os mesmos resultados. Também não está definido o efeito de um defeito encontrado no QGIS quando outra comparação concorda.
+
+Além disso, D6 b chama de "série principal" uma série obrigatoriamente calculada por D2 b, embora D2 a permaneça elegível para a principal. No exemplo já aprovado matematicamente em D2, isso confunde a principal de 100 com a espacial de 98. D6 c apresenta a mesma ambiguidade antes do fallback municipal.
+
+Definir as séries principal e auxiliar por alternativa territorial, restringir explicitamente combinações incompatíveis e apresentar a regra de passagem das classificações por satélite/método para K. Incluir o comportamento diante de comparação indisponível e defeito confirmado. Fórmula, limiar e agregação devem ser apresentados para decisão humana antes da aprovação; não podem ficar a cargo da implementação. É a parte ainda não atendida de R1-3.
+
+#### R2-3 — Bloqueador: D8 a permite M indefinido
+
+Em D8 a, todos os inconclusivos saem do denominador. Com 10 casos escolhidos e os 10 inconclusivos, M é `0 / 0`; D7 a/b não consegue avaliar `M ≥ 90%`. O roteiro admite esse resultado, por exemplo quando o catálogo diverge de versão e o mapa não permite concluir os casos. D8 c também não define como encerrar a conferência se não for possível obter dez casos conclusivos.
+
+Apresentar o tratamento de denominador zero e de insuficiência de casos conclusivos nas alternativas de D8, com exemplo numérico e consequência explícita para D7 e para o aceite do relatório. Definir uma saída quando a reposição de casos não resolve a insuficiência, preservando as evidências e sem exigir tentativas ilimitadas. Não converter ausência de evidência em 0% ou 100% por decisão do agente. A definição deve ser submetida ao responsável junto com D8.
+
+#### R2-4 — Ressalva: registro de ciclos ainda descreve a v1
+
+`_project/cycles.md` continua apresentando o plano como "rascunho v1", embora o artefato seja v2 em revisão. Sincronizar o rótulo na próxima correção autorizada. O ciclo permanece corretamente em `Planejamento`; esta revisão não altera o registro de ciclos.
+
+#### Itens atendidos, evidências e limites
+
+- Escopo, sequência das três issues, pontos de aprovação e G1 a G4 continuam coerentes com a ideação e a KB-003. Nenhuma decisão D1 a D8 foi tomada nesta revisão; nenhuma aprovação anterior foi presumida.
+- O [diretório diário do INPE](https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/) lista `focos_diario_br_20261101.csv`; HEAD respondeu HTTP 200, tamanho 3.799.558 bytes, `Last-Modified` em 02/11/2026. Isso comprova disponibilidade atual, não imutabilidade ou retenção futura; valem o hash e a parada previstos no plano.
+- A [API FIRMS](https://firms.modaps.eosdis.nasa.gov/api/area/) confirma produtos, ordem oeste/sul/leste/norte e `DAY_RANGE` de 1 a 5 dias. Não foi usada chave nem consultado histórico autenticado.
+- Consultas somente leitura à [malha municipal do IBGE](https://servicodados.ibge.gov.br/api/v3/malhas/municipios/5103254?formato=application/vnd.geo+json) e aos [metadados](https://servicodados.ibge.gov.br/api/v3/malhas/municipios/5103254/metadados) responderam HTTP 200. Extremos calculados dos 2.643 vértices coincidem com o retângulo do plano; metadados confirmam área de 27.960,237 km². Ano/qualidade e condições de uso permanecem verificações do item 1.
+- O [aviso INPE de 12/08/2026](https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/) permanece disponível. Não foi determinada nesta rodada sua incidência sobre Colniza; R2-1 usa exemplo fictício, não afirma uma lacuna territorial observada.
+- Revisados texto e diff quanto a G3, sem credenciais ou dados pessoais encontrados. Nenhum arquivo de `local/` foi acessado ou criado; nenhum CSV completo foi baixado. Não há issue ou PR do ciclo declarada; não foi presumido estado remoto.
+- Gates executados em Node.js `v24.15.0`: 55 testes de governança aprovados, zero falhas; validador com zero erros, zero avisos e nove itens manuais; `git diff --check` sem erros antes do parecer. A validação estrutural não comprova a suficiência analítica de C, K ou M. Conferência final do diff e do bloco de saída registrada no handoff.
+
+**Progresso:** três dos cinco bloqueadores originais foram atendidos, dois foram atendidos parcialmente e uma lacuna foi identificada na nova D8. As duas ressalvas anteriores foram atendidas. Há progresso material, sem contestação persistente nem oscilação de correção já aceita; prosseguir para correção e rodada 3, dentro do teto de cinco rodadas.
+
+**Veredito:** `REQUER NOVA RODADA` — corrigir R2-1 a R2-3, responder R2-4 e preservar as rodadas e respostas anteriores. A versão continua v2 durante esta revisão; será incrementada pelo autor na correção. D1 a D8 continuam pendentes de decisão humana antes da aprovação. Efeito desta rodada limitado ao registro local da revisão e aos campos/blocos de estado correspondentes.
 
 ## Pós-mortem
 
