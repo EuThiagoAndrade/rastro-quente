@@ -1,0 +1,971 @@
+{
+  "versao": 1,
+  "descricao": "Fontes públicas da prova de dados de Colniza (MT), ciclo 001. URLs sanitizadas; brutos em local/prova-dados/brutos/ (fora do Git). Obtenção e registro por scripts/prova-dados/obter.mjs.",
+  "intervalo": {
+    "inicio": "2026-08-01",
+    "fim": "2026-11-01",
+    "fuso": "GMT",
+    "fimExclusivo": true
+  },
+  "itens": [
+    {
+      "id": "inpe-mensal-202608",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202608.csv",
+      "destino": "inpe/focos_mensal_br_202608.csv",
+      "obtidoEm": "2026-11-03T19:05:25.826Z",
+      "tamanho": 103708076,
+      "sha256": "4574013b15b785f42078fe72dfa73b0b48a773666e88025ebe5ef440cc3694da",
+      "lastModified": "Tue, 01 Sep 2026 23:56:24 GMT",
+      "etag": "\"62e75ac-65a74aa87da00\""
+    },
+    {
+      "id": "inpe-mensal-202609",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202609.csv",
+      "destino": "inpe/focos_mensal_br_202609.csv",
+      "obtidoEm": "2026-11-03T19:05:31.809Z",
+      "tamanho": 123024987,
+      "sha256": "69ecef072d0e0db63698f7e3adc101cd68f593294eefc3dcd97eeaf554bd0248",
+      "lastModified": "Thu, 01 Oct 2026 23:56:29 GMT",
+      "etag": "\"755365b-65cd02a116540\""
+    },
+    {
+      "id": "inpe-mensal-202610",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202610.csv",
+      "destino": "inpe/focos_mensal_br_202610.csv",
+      "obtidoEm": "2026-11-03T19:05:39.285Z",
+      "tamanho": 144148591,
+      "sha256": "e8e09447152280c85935c83d65d818900593246070c96fbac61260a6ba94b64f",
+      "lastModified": "Sun, 01 Nov 2026 23:56:43 GMT",
+      "etag": "\"897886f-65f3fc7fba4c0\""
+    },
+    {
+      "id": "inpe-diario-20261101",
+      "tipo": "inpe-focos",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/focos_diario_br_20261101.csv",
+      "destino": "inpe/focos_diario_br_20261101.csv",
+      "obtidoEm": "2026-11-03T19:05:39.543Z",
+      "tamanho": 3799558,
+      "sha256": "4fe513730a99e3a73660d95d2ae6178824a48c38b8e9c46269899cca01e92474",
+      "lastModified": "Mon, 02 Nov 2026 12:05:03 GMT",
+      "etag": "\"39fa06-65f49f4b4b9c0\""
+    },
+    {
+      "id": "ibge-malha-5103254-v4",
+      "tipo": "ibge-malha",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/municipios/5103254?formato=application/vnd.geo+json&qualidade=maxima",
+      "destino": "ibge/malha_5103254_v4_maxima.geojson",
+      "obtidoEm": "2026-11-03T19:05:39.725Z",
+      "tamanho": 62339,
+      "sha256": "5e4ebe055569005c845f1f51a7d565585855a740988d34754537c2800d70b90c",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-metadados-5103254-v4",
+      "tipo": "ibge-metadados",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/municipios/5103254/metadados",
+      "destino": "ibge/metadados_5103254_v4.json",
+      "obtidoEm": "2026-11-03T19:05:39.768Z",
+      "tamanho": 314,
+      "sha256": "66de469735fc678427ce98717973e884bae3721990eaa5cd2850eea19b151c9e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-01",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-01",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-01_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:08.393Z",
+      "tamanho": 2764,
+      "sha256": "8052a32a628d3781d518f0499153b8c49e4fcf06bbc3fd496bb48fa9b48aa13c",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-06",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-06",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-06_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:08.870Z",
+      "tamanho": 20402,
+      "sha256": "2fcbe1a36cf20eabc046a789d2236802d71b8c19062eb5e1b03429a0b2fcdbac",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-11",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-11",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-11_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:09.443Z",
+      "tamanho": 38223,
+      "sha256": "38e60baa1aa77e0c7f34e1c2dee44ba148728245d6f85cd25ca49bcfafe01131",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-16",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-16",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-16_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:10.067Z",
+      "tamanho": 126735,
+      "sha256": "d0421a034d42734b8e7ba9f8afe3864b456db66ee44df55ceeac645aa97dcc42",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-21",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-21",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-21_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:10.587Z",
+      "tamanho": 138870,
+      "sha256": "2b13de7e56e0542df54074433ba811c477060aefd9ebbe577aaa645c666bfb98",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-26",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-26",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-26_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:10.970Z",
+      "tamanho": 56133,
+      "sha256": "3597092253cdd9c4297513128635dd109dc439df32026ca84a3774f0e144cc95",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-08-31",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-31",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-08-31_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:11.380Z",
+      "tamanho": 47470,
+      "sha256": "e508983ea9cccf615a98559d471f8e90f3aeb5317ae081e60534a41ee6ad5ec1",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-05",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:11.692Z",
+      "tamanho": 15794,
+      "sha256": "645558beadccfbdb75bcbcf39d094818ae6721f158127f8c407569d30b0eaa4d",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-10",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:12.018Z",
+      "tamanho": 25497,
+      "sha256": "8edf2ef083a7147e8d8ae8fd831ac4f386f903cd9d066d1177f5888c6875de25",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-15",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:12.447Z",
+      "tamanho": 34427,
+      "sha256": "6729022865f0f00364c35ba98a33906dc79b7e47d6d91a915249dd554c9c9e49",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-20",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:12.779Z",
+      "tamanho": 53946,
+      "sha256": "e2e04a65e116e4c06b6f05e248b08598bbe21c2ab075bbb11437de56afc7ac20",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-25",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:13.068Z",
+      "tamanho": 19836,
+      "sha256": "b0029775f9eaa5f684f7ec77405cb650aa4f30cc802d15844ff02c107998eb2f",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-09-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-30",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-09-30_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:13.378Z",
+      "tamanho": 16164,
+      "sha256": "3de2313bf900fb5b7d6ef35d95dbd7c20b7148f86a978cb3040da9d430501332",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-05",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:13.682Z",
+      "tamanho": 15324,
+      "sha256": "679b722d24805d7d3c71834c1068d54bf393024d254b1072b067e23db427b948",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-10",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:13.993Z",
+      "tamanho": 24964,
+      "sha256": "1757824ec6986dd572709a04c1f20040ff2eee88d6e20fbc4c8e80ae0fcddfa1",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-15",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:14.302Z",
+      "tamanho": 5109,
+      "sha256": "74ee56460af4c035b7f0fdd004b42101224897d7e1477c13577eded978971cd8",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-20",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:14.618Z",
+      "tamanho": 8144,
+      "sha256": "1c851042bc044eff582e8fcc29e818f4f5e95a7be32ecef595b0562d89ec4661",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-25",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:14.940Z",
+      "tamanho": 4645,
+      "sha256": "e1207d607fb68e9c1d392b9a2fdd2a4e9a2ae5f96337f6e1b7224858940d6089",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_SNPP_NRT-2026-10-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_SNPP_NRT/-61.6334,-10.0495,-58.9384,-8.7966/2/2026-10-30",
+      "destino": "firms/VIIRS_SNPP_NRT_2026-10-30_2d.csv",
+      "obtidoEm": "2026-11-03T20:03:15.179Z",
+      "tamanho": 1116,
+      "sha256": "4925ca0bfab9e4d78f03cb41a6cb4374af661fc0e25c757165aeb64dc8946865",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-01",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-01",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-01_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:15.524Z",
+      "tamanho": 2305,
+      "sha256": "fec05e948a0b81ff036fe08ea39f4dc7e8d0692be98c7699214e83a464f5b9f5",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-06",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-06",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-06_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:16.027Z",
+      "tamanho": 22317,
+      "sha256": "0651cd3f1231931ba60f0b04d51b74776dced048a54cae68f0d672bf9b0c7b5a",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-11",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-11",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-11_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:16.537Z",
+      "tamanho": 55475,
+      "sha256": "14da1915210ffcd6279a2423bcaee728fcb36fdcfd332a48746e8467079a54eb",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-16",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-16",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-16_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:17.221Z",
+      "tamanho": 138492,
+      "sha256": "d37b4fcd794f01019c16e4a9bcadc40e5df86bbd94fa5db3c0e9181e8868f98e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-21",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-21",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-21_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:17.887Z",
+      "tamanho": 151438,
+      "sha256": "8d3e33098fbb765d109aa24c1477a5eb3d4794ee9888543924e9c44cebb26f73",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-26",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-26",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-26_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:18.525Z",
+      "tamanho": 66015,
+      "sha256": "9af16fc345d89a061e68fae663b144cc65bea146574f30fd79f7dfa0326ff9b7",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-08-31",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-31",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-08-31_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:19.037Z",
+      "tamanho": 35973,
+      "sha256": "a9038e7388423d6a9c13bf61e9c3ce112b610607e936ae4591b075c3caf513ef",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-05",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:19.357Z",
+      "tamanho": 16197,
+      "sha256": "37d65f88c74068fb4123d9e619c27f5a1e82f053c63efd8c29a6c6ed8c3ef9cf",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-10",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:19.664Z",
+      "tamanho": 26387,
+      "sha256": "935c8c3cfb9701876b2c92af50f28c674c358eac22afbd2ed90de1f65d882b7e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-15",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:20.006Z",
+      "tamanho": 37690,
+      "sha256": "18c7beb134f8b6147a4b462f7f064e030612ba2b35f7ea033a100f19bb155886",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-20",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:20.312Z",
+      "tamanho": 58555,
+      "sha256": "d4ed2b6118fd4b767a48d2a651694e3aacfce5e2eca6170856c73502e083f325",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-25",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:20.612Z",
+      "tamanho": 22539,
+      "sha256": "abb76ff987cbfdf63ec7c0ecd44da2a0193bdf22887620df0b0f6e73c25f00c6",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-09-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-30",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-09-30_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:20.890Z",
+      "tamanho": 16641,
+      "sha256": "167439acab9bbd3d6984f2588d0317771a813f86e1c6979bcf4f824cca454fd1",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-05",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:21.231Z",
+      "tamanho": 17250,
+      "sha256": "f7a791428e71db01b6681358f962ec2bf2cb3bd5c8a3618dc7ea1efdbea3708e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-10",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:21.527Z",
+      "tamanho": 22492,
+      "sha256": "04a496e40be8e95b19a8c9b6d0c1d0f5b3e56d662ae752e2b00c62f3b883c3c8",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-15",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:57.749Z",
+      "tamanho": 4594,
+      "sha256": "9df379905c6887fd65dd61af06e183ad577850c94dad380895a7532562a7ef3e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-20",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:58.078Z",
+      "tamanho": 6741,
+      "sha256": "1f356047a7c85ad99419ae60c65005e66ef0cd74863601857ff727bfa081db1e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-25",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:03:58.381Z",
+      "tamanho": 9146,
+      "sha256": "26b37dc247bc42fd9e2e319a657d6e2b2fd06d33b8ad059645a7a838b1217428",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA20_NRT-2026-10-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA20_NRT/-61.6334,-10.0495,-58.9384,-8.7966/2/2026-10-30",
+      "destino": "firms/VIIRS_NOAA20_NRT_2026-10-30_2d.csv",
+      "obtidoEm": "2026-11-03T20:03:58.607Z",
+      "tamanho": 1643,
+      "sha256": "a3a58e2d6a87c9dbbdebae7ec7d2eead67b69238840e4be8e611450ebe8d5263",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-01",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-01",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-01_5d.csv",
+      "obtidoEm": "2026-11-03T20:04:13.849Z",
+      "tamanho": 1712,
+      "sha256": "4ccff07b81e24afbb5954273dcf726e1459f09476ec60bfc4eab8b3fdce31451",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-06",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-06",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-06_5d.csv",
+      "obtidoEm": "2026-11-03T20:04:14.322Z",
+      "tamanho": 21344,
+      "sha256": "2201c11ccb9af9be5026e105c6b6ad082aaa4f84215ed42116f51fea1b81ce08",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-11",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-11",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-11_5d.csv",
+      "obtidoEm": "2026-11-03T20:04:14.792Z",
+      "tamanho": 49768,
+      "sha256": "1672792fa05e8507a06b5d07f86605093da6109239080f1898610410eb2fb912",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-16",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-16",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-16_5d.csv",
+      "obtidoEm": "2026-11-03T20:04:15.420Z",
+      "tamanho": 120636,
+      "sha256": "74c3e375f65316934d563a220543f3319950a961702752185ac8455199ab276b",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-21",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-21",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-21_5d.csv",
+      "obtidoEm": "2026-11-03T20:04:16.086Z",
+      "tamanho": 114592,
+      "sha256": "4944894623d8dcb277c124b0c8e2fe4ce29586e4a36d3d45ad7cfd319c8478e5",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-26",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-26",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-26_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:09.342Z",
+      "tamanho": 56643,
+      "sha256": "ccc702c365885f5808049bf00c05e2cda862a09370a9636b6a051b2fc1d20f1f",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-08-31",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-08-31",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-08-31_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:34.389Z",
+      "tamanho": 47588,
+      "sha256": "5ef4a76507db8df07af9963a6ea598a2c0134288f261d65aaf99871ddbae802b",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-05",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:34.728Z",
+      "tamanho": 11827,
+      "sha256": "6f2d318e0c111cabc53cc5113712377cd07bdd3ffae1498c60ea0cb32b0c35ca",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-10",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:35.145Z",
+      "tamanho": 24279,
+      "sha256": "db8b0e64b87b25de8c6e8b41cbc4bef53642570018a5b8d47236d11974641d12",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-15",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:35.666Z",
+      "tamanho": 39112,
+      "sha256": "3ab99a3b4f68d8027ea20d1725f15e888f0d75cb398520738b03f7ee9f702e31",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-20",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:36.166Z",
+      "tamanho": 51682,
+      "sha256": "5a6f953454ba0d4f196aacb30c85ff5c3169c10b9d2c3192274ab6a7873e3622",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-25",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:37.988Z",
+      "tamanho": 20154,
+      "sha256": "f72f11837428f991e50859d40476b830473264a4d612cff1522959a083b02e3c",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-09-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-09-30",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-09-30_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:38.321Z",
+      "tamanho": 12354,
+      "sha256": "803f136a8a914b65b6ab4b7f96d6d3e6989f3a0321678d54b366bd31c4ec044a",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-05",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-05",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-05_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:38.674Z",
+      "tamanho": 14396,
+      "sha256": "16d043bdf45eb519fcb3fb74678b9089c0519eb65c6e5e1e75901f4f48907edf",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-10",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-10",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-10_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:40.047Z",
+      "tamanho": 22187,
+      "sha256": "84e155a62615ab29e175c610be6a9f14fa9311ad3a560d703243cb20bebf8e56",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-15",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-15",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-15_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:40.490Z",
+      "tamanho": 4657,
+      "sha256": "3c581a132a5d7e232370443bb6cb8abfd06b004d430205a653c7171a3c761604",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-20",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-20",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-20_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:45.808Z",
+      "tamanho": 6575,
+      "sha256": "3abcd42f64e02cb5568e88ba56749f52c5b83e247e752bb1abcd662a8a607543",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-25",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/5/2026-10-25",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-25_5d.csv",
+      "obtidoEm": "2026-11-03T20:05:54.250Z",
+      "tamanho": 6025,
+      "sha256": "32a03cdd1722a1ee10eccb4e43e37d245fd7becc2f04d53a0aaf4917170a585e",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "firms-VIIRS_NOAA21_NRT-2026-10-30",
+      "tipo": "firms-area",
+      "fonte": "NASA FIRMS",
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/area/csv/{MAP_KEY}/VIIRS_NOAA21_NRT/-61.6334,-10.0495,-58.9384,-8.7966/2/2026-10-30",
+      "destino": "firms/VIIRS_NOAA21_NRT_2026-10-30_2d.csv",
+      "obtidoEm": "2026-11-03T20:05:54.532Z",
+      "tamanho": 718,
+      "sha256": "8039b55e1e2501fe765058995a23ba57e25d2985707413382e51c1b2adea81c4",
+      "lastModified": null,
+      "etag": null
+    }
+  ],
+  "levantamento": {
+    "levantadoEm": "2026-11-03",
+    "observacao": "Condições de uso lidas nas páginas citadas em 2026-11-03; não são parecer jurídico. Focos e malhas não comprovam incêndio, dano, autoria ou infração.",
+    "condicoesDeUso": [
+      {
+        "fonte": "INPE (Programa Queimadas)",
+        "uso": "permitido",
+        "resumo": "Dados abertos, de acesso livre e sem custo. Não foi encontrada licença formal explícita nem exigência de citação para os arquivos de focos; a conclusão vem do texto 'Dados Abertos para Uso Público' e da resposta do FAQ de que todos os dados e produtos ficam disponíveis para acesso livre sem nenhum custo.",
+        "links": [
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_downloads/dados-abertos/",
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/faq/"
+        ]
+      },
+      {
+        "fonte": "IBGE (malhas)",
+        "uso": "permitido com atribuição",
+        "resumo": "As notas metodológicas da Malha Municipal Digital 2024 declaram a MMD e os produtos derivados sob licença compatível com Creative Commons BY 4.0 (uso, adaptação e fins comerciais, com atribuição). As mesmas notas afirmam que o IBGE não tem atribuição legal para definir limites territoriais e que a malha é aproximada, não oficial. Licença própria da API de malhas não localizada; as notas da revisão 2025 não foram conferidas.",
+        "links": [
+          "https://biblioteca.ibge.gov.br/visualizacao/livros/liv102169.pdf",
+          "https://servicodados.ibge.gov.br/api/docs/malhas?versao=4"
+        ]
+      },
+      {
+        "fonte": "NASA FIRMS",
+        "uso": "permitido (a conferir nos termos do cadastro)",
+        "resumo": "A NASA declara compartilhamento pleno e aberto dos dados de ciência da Terra, sem período de acesso exclusivo. A API exige MAP_KEY gratuita, com limite de 5000 transações por intervalo de 10 minutos. Texto de citação ou termos específicos do FIRMS não foram localizados nas páginas da API; o responsável confere os termos exibidos no cadastro da MAP_KEY.",
+        "links": [
+          "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-information-policy",
+          "https://firms.modaps.eosdis.nasa.gov/api/area/",
+          "https://firms.modaps.eosdis.nasa.gov/api/data_availability/"
+        ]
+      }
+    ],
+    "inpe": {
+      "satelitePrincipal": {
+        "valor": "AQUA_M-T",
+        "descricao": "Satélite de referência desde 2002-07-04 (MODIS, passagem no início da tarde), segundo a pergunta 7 do FAQ. O aviso de 2026-08-12 chama o AQUA de satélite de referência sem distinguir AQUA_M-T de AQUA_M-M.",
+        "presenteEm": [
+          "inpe-mensal-202608",
+          "inpe-mensal-202609",
+          "inpe-mensal-202610",
+          "inpe-diario-20261101"
+        ],
+        "fonte": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/faq/"
+      },
+      "valoresDeSatelite": {
+        "metodo": "node scripts/prova-dados/satelites.mjs <arquivo>; registros por valor, país inteiro, sem filtro",
+        "tabelaDeSatelitesDoINPE": "FAQ, pergunta 44, com órbita, sensor e resolução de cada valor",
+        "porArquivo": {
+          "inpe-mensal-202608": {
+            "AQUA_M-M": 1567,
+            "AQUA_M-T": 20222,
+            "GOES-19": 201755,
+            "METOP-B": 5229,
+            "METOP-C": 4507,
+            "MSG-03": 2019,
+            "NOAA-20": 137400,
+            "NOAA-21": 128747,
+            "NPP-375": 100685,
+            "NPP-375D": 38218,
+            "TERRA_M-M": 6555,
+            "TERRA_M-T": 4339
+          },
+          "inpe-mensal-202609": {
+            "AQUA_M-M": 2202,
+            "AQUA_M-T": 24382,
+            "GOES-19": 195794,
+            "METOP-B": 8676,
+            "METOP-C": 9179,
+            "MSG-03": 3159,
+            "NOAA-20": 170398,
+            "NOAA-21": 170374,
+            "NPP-375": 128329,
+            "NPP-375D": 48855,
+            "TERRA_M-M": 8650,
+            "TERRA_M-T": 7216
+          },
+          "inpe-mensal-202610": {
+            "AQUA_M-M": 3644,
+            "AQUA_M-T": 32454,
+            "GOES-19": 205674,
+            "METOP-B": 16212,
+            "METOP-C": 15126,
+            "MSG-03": 3603,
+            "NOAA-20": 211977,
+            "NOAA-21": 207742,
+            "NPP-375": 139383,
+            "NPP-375D": 70730,
+            "TERRA_M-M": 11362,
+            "TERRA_M-T": 13888
+          },
+          "inpe-diario-20261101": {
+            "AQUA_M-M": 83,
+            "AQUA_M-T": 1254,
+            "GOES-19": 6359,
+            "METOP-B": 689,
+            "METOP-C": 913,
+            "MSG-03": 71,
+            "NOAA-20": 5878,
+            "NOAA-21": 4215,
+            "NPP-375": 4168,
+            "NPP-375D": 1744,
+            "TERRA_M-M": 80,
+            "TERRA_M-T": 760
+          }
+        },
+        "viirs": {
+          "valores": [
+            "NPP-375",
+            "NPP-375D",
+            "NOAA-20",
+            "NOAA-21"
+          ],
+          "observacao": "A tabela do FAQ lista NPP-375 e NPP-375D como VIIRS 375 m do Suomi-NPP. Nos arquivos, NPP-375 aparece de 15h a 19h GMT e NPP-375D de 02h a 07h GMT, e nenhuma chave (latitude, longitude, instante) é comum aos dois no arquivo de agosto: são passagens distintas, não duplicatas. O significado do sufixo D não foi encontrado na documentação lida; a leitura de passagem noturna é inferência dos horários.",
+          "aConfirmarNoItem2": "Série V (D6 a): o plano diz 'SNPP, NOAA-20, NOAA-21 com os valores identificados no item 1'. A leitura natural é SNPP = NPP-375 + NPP-375D, o que o responsável deve confirmar antes da contagem."
+        }
+      },
+      "avisosDoPeriodo": {
+        "fonte": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/",
+        "consultadoEm": "2026-11-03",
+        "avisos": [
+          {
+            "data": "2026-08-12",
+            "titulo": "Falta de imageamento do satélite AQUA",
+            "resumo": "O AQUA não imageou parte da América do Sul; não há dados do satélite de referência para as áreas não imageadas nessa data. Incidência sobre Colniza ainda por verificar nas imagens do aviso (item 2).",
+            "worldview": "https://worldview.earthdata.nasa.gov/?l=MODIS_Aqua_CorrectedReflectance_TrueColor&t=2026-08-12-T14%3A01%3A01Z"
+          }
+        ],
+        "semAvisosEm": "Nenhum outro aviso de agosto a outubro de 2026 consta na página. Os avisos de 2026-07-10 e 2026-07-22 são anteriores ao período."
+      }
+    },
+    "ibge": {
+      "versaoDaApi": "v4",
+      "revisaoDaMalha": "2025",
+      "fonteDoAno": "Notas de liberação de https://servicodados.ibge.gov.br/api/docs/malhas?versao=4: malhas atualizadas com a revisão de 2025 em 2026-04-27. A resposta da API não traz o ano.",
+      "qualidade": "maxima (valor padrão da API)",
+      "desvioDoPlano": "O plano cita v3 na verificação prévia. A v3 só recebeu as malhas até a revisão de 2022; a v4 traz a revisão 2025 e foi usada. Para Colniza (5103254) as duas têm o mesmo retângulo (-61.6334,-10.0495,-58.9384,-8.7966); a área nos metadados é 27960.237 km² (v3) e 27960.244 km² (v4); a v4 tem mais vértices (2986 contra 2643).",
+      "retangulo": "-61.6334,-10.0495,-58.9384,-8.7966"
+    },
+    "fuso": {
+      "conclusao": "Sem horário de verão de 2026-08-01 a 2026-11-01: America/Cuiaba é UTC−4 fixo.",
+      "evidencias": [
+        "Decreto nº 9.772, de 25/04/2019, encerrou a hora de verão: https://www.planalto.gov.br/ccivil_03/_ato2019-2022/2019/decreto/d9772.htm",
+        "node scripts/prova-dados/fuso.mjs devolve [\"GMT-04:00\"] para o período (tzdata do Node 24); o teste prova que a mesma conferência detecta o horário de verão de 2018."
+      ]
+    },
+    "firms": {
+      "dayRange": "1 a 5 dias por consulta (https://firms.modaps.eosdis.nasa.gov/api/area/); 19 janelas consecutivas de 5 dias cobrem 2026-08-01 a 2026-10-31 (a última tem 2 dias), por produto.",
+      "produtosDisponiveis": "Consultado em 2026-11-03 (resposta registrada em local/prova-dados/proveniencia.json e resumida em firms.disponibilidade): a versão SP vai só até 2026-07-31 nos três satélites; a NRT cobre todo o período (VIIRS_SNPP_NRT até 2026-11-02; VIIRS_NOAA20_NRT e VIIRS_NOAA21_NRT até 2026-11-03). Por isso foi escolhido NRT para os três satélites, sem misturar SP e NRT. Limitação: dados NRT podem ser reprocessados para SP depois; a proveniência por SHA-256 vale para o que foi obtido em 2026-11-03.",
+      "janelas": "57 arquivos (3 satélites x 19 janelas); por satélite, as janelas somam 92 dias e cobrem 2026-08-01 a 2026-10-31 sem lacuna nem sobreposição; nenhuma janela veio vazia.",
+      "acaoExterna": "Concluída pelo responsável em 2026-11-03: MAP_KEY em local/prova-dados/.env (não versionado). A chave não aparece em fontes.json nem em proveniencia.json."
+    }
+  },
+  "firms": {
+    "decisao": "D6 a",
+    "retangulo": "-61.6334,-10.0495,-58.9384,-8.7966",
+    "ordemRetangulo": "oeste,sul,leste,norte",
+    "sensores": [
+      "VIIRS_SNPP",
+      "VIIRS_NOAA20",
+      "VIIRS_NOAA21"
+    ],
+    "intervalo": {
+      "inicio": "2026-08-01",
+      "fim": "2026-11-01"
+    },
+    "dayRange": 5,
+    "produtos": {
+      "VIIRS_SNPP": "VIIRS_SNPP_NRT",
+      "VIIRS_NOAA20": "VIIRS_NOAA20_NRT",
+      "VIIRS_NOAA21": "VIIRS_NOAA21_NRT"
+    },
+    "disponibilidade": {
+      "url": "https://firms.modaps.eosdis.nasa.gov/api/data_availability/csv/{MAP_KEY}/ALL",
+      "consultadoEm": "2026-11-03T20:03:07.955Z",
+      "sensores": {
+        "VIIRS_SNPP_SP": {
+          "min": "2012-01-20",
+          "max": "2026-07-31"
+        },
+        "VIIRS_SNPP_NRT": {
+          "min": "2026-08-01",
+          "max": "2026-11-02"
+        },
+        "VIIRS_NOAA20_SP": {
+          "min": "2018-04-01",
+          "max": "2026-07-31"
+        },
+        "VIIRS_NOAA20_NRT": {
+          "min": "2026-08-01",
+          "max": "2026-11-03"
+        },
+        "VIIRS_NOAA21_SP": {
+          "min": "2023-03-01",
+          "max": "2026-07-31"
+        },
+        "VIIRS_NOAA21_NRT": {
+          "min": "2024-01-17",
+          "max": "2026-11-03"
+        }
+      }
+    }
+  }
+}
