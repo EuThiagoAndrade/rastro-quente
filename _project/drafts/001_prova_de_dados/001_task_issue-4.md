@@ -49,9 +49,9 @@ Não se aplica.
 - [x] Malha IBGE: versão v4, revisão 2025, qualidade máxima (ver decisões incidentais).
 - [x] Ausência de horário de verão: decreto e conferência por `fuso.mjs`.
 - [x] FIRMS: limite de `DAY_RANGE` (1 a 5), janelas (19 por produto, soma de 92 dias) e lógica SP ou NRT implementados e testados com resposta fictícia.
-- [ ] **Ação externa do responsável:** cadastro no FIRMS e `MAP_KEY` em `local/prova-dados/.env`.
-- [ ] Rodar `obter.mjs` com a chave: consultar a disponibilidade SP ou NRT, obter as janelas VIIRS dos três satélites, registrar produtos e janelas em `fontes.json`.
-- [ ] Conferir que nenhum arquivo de `local/` está no índice e que a chave não aparece em arquivo versionado.
+- [x] **Ação externa do responsável** ("concluí a ação externa da issue #4", 2026-11-03): `MAP_KEY` em `local/prova-dados/.env`; conferi só o formato (32 caracteres), sem imprimir a chave.
+- [x] `obter.mjs` com a chave: disponibilidade consultada; a versão SP termina em 2026-07-31, então NRT nos três satélites; 57 janelas obtidas (3 × 19, 92 dias cada, nenhuma vazia); produtos, disponibilidade e janelas registrados em `fontes.json`. Segunda execução: 63 `inalterado`, nada baixado.
+- [x] Nenhum arquivo de `local/` no índice; o valor da chave não aparece em `fontes.json`, em `proveniencia.json` nem em `git grep` do repositório.
 - [ ] PR da issue, checks e aprovação do merge.
 
 ## Evidências
@@ -71,7 +71,8 @@ Não se aplica.
 
 - **Malha IBGE v4 em vez de v3.** A verificação prévia do plano citou `v3/malhas/municipios/5103254`. A documentação da API informa que a v3 só recebeu as malhas até a revisão de 2022 e que a v4 foi atualizada com a revisão de 2025 em 2026-04-27. Usei a v4, que é a mais próxima do período. As duas têm o mesmo retângulo de Colniza (`-61.6334,-10.0495,-58.9384,-8.7966`, portanto o contrato do FIRMS não muda); a área dos metadados difere em 0,007 km² e a v4 tem mais vértices. Impacto: a lista de divergências de D2 (item 2) é calculada sobre a malha v4. Se o responsável preferir a v3, basta trocar a URL em `fontes.json` e reobter.
 - **INPE sem licença explícita.** O INPE declara dados abertos de acesso livre e sem custo, mas não encontrei licença formal nem regra de citação. Classifiquei como uso permitido (U atendido), com a ressalva registrada. O responsável confirma ou manda parar.
-- **FIRMS: termos a conferir.** Os termos específicos do FIRMS só são vistos no cadastro da `MAP_KEY`; a política aberta da NASA está registrada. O responsável confere ao se cadastrar.
+- **FIRMS: termos a conferir.** Os termos específicos do FIRMS só são vistos no cadastro da `MAP_KEY`; a política aberta da NASA está registrada. O responsável conferiu no cadastro e não relatou restrição.
+- **FIRMS só NRT.** A versão SP do FIRMS termina em 2026-07-31; o período (ago a out de 2026) só existe como NRT. Pela regra do contrato de comparação, usei NRT nos três satélites. A diferença NRT × SP e o algoritmo distinto entre distribuidores entram como causas a explicar na comparação (item 3), e o relatório deve declarar essa limitação.
 - **`NPP-375` e `NPP-375D` (pergunta ao responsável antes do item 2).** Ambos são VIIRS 375 m do Suomi-NPP segundo o FAQ do INPE. Nos arquivos, são passagens distintas (15h–19h GMT e 02h–07h GMT, sem registro em comum no arquivo de agosto). Para a série V de D6 a, a leitura natural é SNPP = `NPP-375` + `NPP-375D`. Não afeta P (D1 d usa só `AQUA_M-T`). Registrado como `aConfirmarNoItem2`.
 - **Comando de teste.** O plano escreve `node --test scripts/prova-dados/`; no Node 24 isso trata o diretório como arquivo. Usei o padrão `scripts/prova-dados/*.test.mjs`, exposto como `npm run test:prova-dados` (único script novo em `package.json`, como o plano prevê).
 - **Scripts de apoio além de `obter.mjs`.** `fuso.mjs` (ausência de horário de verão) e `satelites.mjs` (valores de `satelite`), com testes, para que o levantamento seja reproduzível. Não contam focos de Colniza.
