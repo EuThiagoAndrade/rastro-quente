@@ -2,12 +2,12 @@
 
 > **Ciclo:** `001`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#4`
 > **Plano:** `_project/drafts/001_prova_de_dados/001_plan.md`
 > **Branch:** `chore/issue-4`
-> **PR:** —
+> **PR:** https://github.com/EuThiagoAndrade/rastro-quente/pull/7
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #4" em 2026-11-03
 > **Modo contínuo:** `—`
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] **Ação externa do responsável** ("concluí a ação externa da issue #4", 2026-11-03): `MAP_KEY` em `local/prova-dados/.env`; conferi só o formato (32 caracteres), sem imprimir a chave.
 - [x] `obter.mjs` com a chave: disponibilidade consultada; a versão SP termina em 2026-07-31, então NRT nos três satélites; 57 janelas obtidas (3 × 19, 92 dias cada, nenhuma vazia); produtos, disponibilidade e janelas registrados em `fontes.json`. Segunda execução: 63 `inalterado`, nada baixado.
 - [x] Nenhum arquivo de `local/` no índice; o valor da chave não aparece em `fontes.json`, em `proveniencia.json` nem em `git grep` do repositório.
-- [ ] PR da issue, checks e aprovação do merge.
+- [x] PR #7 aberta (Closes #4). Faltam checks remotos e a aprovação do merge.
 
 ## Evidências
 
@@ -87,18 +87,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando ação externa — ciclo 001 (completo)
+Situação: Aguardando merge — ciclo 001 (completo)
 Quem: Responsável
-Conferir: Roteiro: cadastre-se (gratuito) em https://firms.modaps.eosdis.nasa.gov/api/ para obter a MAP_KEY, confira os termos exibidos e grave a linha MAP_KEY=<sua chave> em local/prova-dados/.env (arquivo ignorado pelo Git; não cole a chave no chat). Confirme também as decisões incidentais desta task (malha IBGE v4, uso do INPE, NPP-375D).
-Diga: "concluí a ação externa da issue #4"
+Conferir: Checks e diff da PR #7 (https://github.com/EuThiagoAndrade/rastro-quente/pull/7); decisões incidentais desta task (malha IBGE v4, uso do INPE, FIRMS só NRT, NPP-375D)
+Diga: "aprovo o merge da PR #7"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 001 + implementar_issue + 4 + 41f4786`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #4 aberta, plano `Aprovado`, `main` em `41f4786`, sem `local/prova-dados/` / branch `chore/issue-4` local com scripts, testes, `fontes.json` e brutos obtidos; plano `Em Execução`, ciclo `Em execução`; FIRMS pendente da `MAP_KEY`.
-- `result`: `executed` (parte local); FIRMS e PR pendentes.
-- `evidence`: `fontes.json` com SHA-256 dos seis itens; segunda execução de `obter.mjs` com seis `inalterado` e código de saída 3 (pendência do FIRMS); testes `npm run test:prova-dados`.
-- `blockers`: `MAP_KEY` do FIRMS (ação externa do responsável).
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #4 aberta, plano `Aprovado`, `main` em `41f4786`, sem `local/prova-dados/` / branch `chore/issue-4` publicada, PR #7 aberta, plano `Em Execução`, ciclo `Em execução`, 63 arquivos obtidos e registrados.
+- `result`: `executed`
+- `evidence`: `fontes.json` com SHA-256 de 63 itens; segunda execução de `obter.mjs` com 63 `inalterado` e código 0; `npm run test:prova-dados` 16/16; governança 55/55; validador 0 erros; PR #7.
+- `blockers`: `nenhum` (merge depende de checks verdes e da aprovação do responsável).
