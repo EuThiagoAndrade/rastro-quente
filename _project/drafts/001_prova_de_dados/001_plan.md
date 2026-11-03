@@ -1,7 +1,7 @@
 # Plano de Implementação — Prova de dados
 
 > **Ciclo:** `001`
-> **Status:** `Rascunho`
+> **Status:** `Em Revisão`
 > **Versão:** `v1`
 > **Data de criação:** 2026-11-03
 > **Última atualização:** 2026-11-03
@@ -10,8 +10,8 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Pendente`
-> **Veredito da revisão:** `Pendente`
+> **Revisão formal:** `Concluída`
+> **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
 
@@ -288,25 +288,80 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 1) — ciclo 001 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 001"
+Situação: Aguardando correções (rodada 1) — ciclo 001 (completo)
+Quem: O responsável leva a vez ao autor
+Conferir: Achados R1-1 a R1-7 em _project/drafts/001_prova_de_dados/001_plan.md#revisão-crítica
+Diga: "corrija o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v1`
+- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-1 + v1@c7388538da75a4993112dd8d691c0761757e2783`
 - `effect_class`: `local_mutation`
-- `state_before` / `state_after`: antes, ciclo `001` em `Ideação`, ideação com decisões registradas em `chore/cycle-001-ideation` (`e128bf5`), sem plano; depois, plano `v1` em `Rascunho` em `_project/drafts/001_prova_de_dados/001_plan.md`, ciclo `001` em `Planejamento` em `cycles.md`, commit local em `chore/cycle-001-plan`; nada publicado
+- `state_before`: plano `v1` em `Rascunho`, revisão e veredito pendentes, aguardando revisão (rodada 1), no commit local `c7388538da75a4993112dd8d691c0761757e2783`; ciclo `001` em `Planejamento`; árvore inicialmente limpa
+- `state_after`: plano `v1` em `Em Revisão`, rodada 1 concluída com `REQUER NOVA RODADA`, aguardando correções (rodada 1); ciclo permanece em `Planejamento`; alteração local somente neste plano, sem commit ou publicação
 - `result`: `executed`
-- `evidence`: leitura da ideação, das autoridades, do template e do validador; verificação somente leitura das fontes INPE, IBGE e FIRMS em 2026-11-03; testes e validador executados nesta branch
-- `blockers`: nenhum para a revisão; a aprovação exige as respostas do responsável a D1 a D7
+- `evidence`: revisão registrada abaixo, sobre a v1 identificada pelo commit de origem; autoridades, ideação e template conferidos; consultas oficiais somente leitura em 2026-11-03; resultados das validações na rodada
+- `blockers`: R1-1 a R1-5 impedem parecer apto; R1-6 e R1-7 são ressalvas; D1 a D7 continuam pendentes de decisão humana antes da aprovação
 
 ## Revisão crítica
 
-Nenhuma rodada registrada.
+### Rodada 1
+
+**Data:** 2026-11-03.
+
+**Autor:** Claude, modelo Opus 5.5, conforme trailer de coautoria do commit `c7388538da75a4993112dd8d691c0761757e2783`; interface de autoria não registrada.
+
+**Revisor:** Codex, GPT-6; variante exata não informada nesta sessão.
+
+**Base revisada:** `v1` no commit acima, branch local `chore/cycle-001-plan`. Não havia rodada anterior nem alteração preexistente. Conferidos `.agent/ai_behavior.md`, `_project/README.md`, `_project/cycles.md`, ideação, ADR-001 a ADR-004, KB-003, workflow `revisar_plano` e template `plano_implementacao`.
+
+#### R1-1 — Bloqueador: obtenção incompleta para D3 b/c
+
+O item 1 obtém somente os três CSV mensais de agosto a outubro. D3 b e a sensibilidade de D3 c precisam também de registros de novembro. Para UTC−4, o intervalo completo é `[2026-08-01T04:00:00Z, 2026-11-01T04:00:00Z)`. Com os três arquivos, perde-se o fim de outubro local. Corrigir obtenção, manifesto e dependências conforme as alternativas mantidas em D3; declarar limites inclusivo/exclusivo e testar as transições, inclusive o encerramento do trimestre. Não escolher o fuso pelo responsável.
+
+#### R1-2 — Bloqueador: dias sem registros não comprovam cobertura
+
+O item 2 mede dias sem detecção por satélite, enquanto D7 a/b exige cobertura sem lacunas. Um dia com zero registros em Colniza pode significar ausência de detecções ou falta de observação/processamento; o CSV de focos, sozinho, não distingue as situações. Há um aviso oficial de falta de imageamento AQUA em parte da América do Sul em **12/08/2026**, dentro do recorte; não foi verificado se Colniza foi afetada. Fonte: [avisos do INPE](https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/).
+
+Definir evidência de disponibilidade/cobertura separada das contagens, verificar a incidência territorial dos avisos e explicitar cobertura desconhecida. Ajustar os critérios de aceite e as alternativas de D7 para não converter ausência de registros em cobertura comprovada nem concluir viabilidade sem essa evidência. A decisão analítica permanece humana.
+
+#### R1-3 — Bloqueador: comparação independente sem contrato compatível
+
+D6 a compara VIIRS, mas D1 também permite contar apenas o satélite de referência ou todos os satélites. Não está garantida uma série VIIRS auxiliar nessas combinações. D6 c pode usar a atribuição municipal do INPE enquanto D2 b/c usa a malha IBGE, produzindo diferenças territoriais que não são erro do contador. Além disso, D5 c pede explicar diferenças sem definir "concorda", classificação consumida por D7 a/b.
+
+Especificar, para cada combinação admitida de D1/D2/D5/D6/D7, as séries efetivamente comparáveis, a atribuição territorial, o fuso, a unidade, os filtros, a fórmula percentual e o caso de denominador zero. Se FIRMS for mantido, identificar satélites/produtos equivalentes, versões NRT/SP, disponibilidade histórica e paginação temporal. A [API de área do FIRMS](https://firms.modaps.eosdis.nasa.gov/api/area/) distingue os produtos e limita cada consulta a 1–5 dias; a [API de disponibilidade](https://firms.modaps.eosdis.nasa.gov/api/data_availability/) permite conferir os períodos. Essas verificações não foram executadas com chave nesta revisão. Comparar os mesmos sensores por outro distribuidor valida o caminho de obtenção/processamento; não torna a observação física independente.
+
+#### R1-4 — Bloqueador: exemplo de D2 tem quatro divergências
+
+No exemplo, o filtro municipal contém 100 registros e a interseção com o polígono contém 97. Há `100 − 97 = 3` registros só no filtro municipal e mais 1 só no polígono: **4 divergências**, não 3. A contagem espacial de 98 está correta. Corrigir o exemplo e esclarecer o terceiro registro externo, pois só dois externos são descritos. Usar a diferença simétrica dos conjuntos na comparação e nas fixtures de referência.
+
+#### R1-5 — Bloqueador: conferência manual sem resultado esperado definido
+
+O item 3 pede anotar "confere ou não confere", mas não define se a conferência avalia presença no catálogo, localização, mês, sensor ou pertencimento ao município. D7 a/b usa a porcentagem desses resultados como critério de viabilidade. Sem um critério comum, os 10–20 casos não produzem uma medida interpretável nem reproduzível.
+
+Definir o roteiro e o registro mínimo: identificador público do caso, coordenadas, instante/satélite, fonte e versão do mapa/malha, propriedade verificada, resultado esperado obtido pelo caminho independente, resultado do script, responsável/data e motivo da divergência. Separar a comparação de versões/catálogos da validação de ponto no polígono e admitir caso inconclusivo, com tratamento proposto ao responsável antes da aprovação. A inspeção visual de um ponto não comprova ocorrência de incêndio.
+
+#### R1-6 — Ressalva: D4 b exige especificação adicional
+
+A contagem por célula de 1 km depende de projeção, origem da grade, regra de borda e combinação de satélites. Esses parâmetros não aparecem nos itens ou testes. Se D4 b continuar elegível, apresentar a especificação e os exemplos para decisão humana e refletir o resultado no escopo; caso contrário, retirar a alternativa na correção autorizada. A ressalva torna-se bloqueadora se b for escolhida sem esse detalhamento.
+
+#### R1-7 — Ressalva: proveniência do FIRMS pode conter a chave
+
+O manifesto versionado exige URL e a API FIRMS inclui a `MAP_KEY` no caminho. O plano proíbe expor a chave, mas não explicita como registrar a URL. Declarar URL parametrizada/sanitizada no manifesto, relatório e mensagens de erro, mantendo a chave carregada de `local/` somente em memória durante a requisição. Incluir a data de obtenção junto aos hashes nas evidências versionadas, como exige a ideação; o arquivo local de proveniência não basta para quem recebe somente o repositório.
+
+#### Itens atendidos e verificações
+
+- Objetivo, recorte Colniza/ago–out de 2026 e exclusões preservam a ideação e a KB-003; não há implementação, arquitetura ou seleção de áreas antecipadas.
+- Nível completo, modo contínuo desativado, três issues sequenciais, aprovação humana posterior ao parecer e merge específico por PR estão coerentes com as autoridades. D1 a D7 estão corretamente identificadas como decisões humanas ainda pendentes; esta revisão não as responde.
+- G1/G3 aplicáveis e G2/G4 não aplicáveis são coerentes com a prova sem banco/migração. Não foram encontrados dados pessoais, credenciais ou dados privados no texto revisado. Nenhum material de `local/` foi lido ou criado.
+- Baselines `e3c785b` e `e128bf5` conferidos no Git local. Sem issue associada ou PR do ciclo declarada; nenhum estado remoto foi presumido.
+- INPE: três URLs responderam HTTP 200 a HEAD, com tamanhos de 103.708.076, 123.024.987 e 144.148.591 bytes e modificação no dia 1 do mês seguinte. Leitura parcial HTTP 206 confirmou o cabeçalho CSV. [Diretório oficial](https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/). Não foram baixados os arquivos completos nem calculados seus hashes.
+- IBGE: consultas somente leitura confirmaram Colniza/MT, código `5103254`, e resposta GeoJSON do endpoint municipal. Ano, qualidade, condições de uso e área declarada não foram confirmados nesta revisão; continuam verificações do item 1. A página de documentação não respondeu à consulta pelo navegador de pesquisa.
+- Validações locais: Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes aprovados, zero falhas; `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais; `git diff --check`: sem erros. Diff inspecionado: somente status/veredito, rodada e blocos de próximo passo/handoff deste plano; `git status --short` mostra somente este arquivo modificado, sem staging. Os gates de governança verificam estrutura; não eliminam os bloqueadores analíticos deste parecer.
+
+**Veredito:** `REQUER NOVA RODADA` — corrigir R1-1 a R1-5, responder R1-6/R1-7, preservar esta rodada e incrementar a versão na correção. Nenhuma implementação, aprovação, publicação ou decisão analítica foi realizada. As decisões D1 a D7 continuam sendo precondição da futura aprovação humana.
 
 ## Pós-mortem
 
