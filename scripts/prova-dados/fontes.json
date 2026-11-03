@@ -889,8 +889,30 @@
           {
             "data": "2026-08-12",
             "titulo": "Falta de imageamento do satélite AQUA",
-            "resumo": "O AQUA não imageou parte da América do Sul; não há dados do satélite de referência para as áreas não imageadas nessa data. Incidência sobre Colniza ainda por verificar nas imagens do aviso (item 2).",
-            "worldview": "https://worldview.earthdata.nasa.gov/?l=MODIS_Aqua_CorrectedReflectance_TrueColor&t=2026-08-12-T14%3A01%3A01Z"
+            "resumo": "O AQUA não imageou parte da América do Sul; não há dados do satélite de referência para as áreas não imageadas nessa data. Incidência sobre Colniza verificada no item 2 (ver incidencia).",
+            "worldview": "https://worldview.earthdata.nasa.gov/?l=MODIS_Aqua_CorrectedReflectance_TrueColor&t=2026-08-12-T14%3A01%3A01Z",
+            "satelites": [
+              "AQUA_M-T"
+            ],
+            "satelitesFonte": "O aviso trata do satélite de referência, que o FAQ do INPE define como AQUA_M-T.",
+            "incidencia": {
+              "classe": "incidencia_indeterminada",
+              "evidencia": "Imagem indicada no aviso (camada MODIS_Aqua_CorrectedReflectance_TrueColor do Worldview/GIBS, 2026-08-12), obtida por WMS em 2026-11-03: a área não imageada fica a leste de uma faixa que, na latitude de Colniza, vai até cerca de 56°O; o retângulo de Colniza (-61.6334,-10.0495,-58.9384,-8.7966) fica dentro da faixa imageada (0 pixels sem dado em 1430 pixels do retângulo na vista ampla; 45 de 135540 pixels pretos isolados na vista aproximada, dispersos e sem forma de borda de faixa). Pela imagem, não haveria incidência. Contra a conclusão: no catálogo do INPE o AQUA_M-T tem só 5 registros no Brasil em 2026-08-12 (todos às 20:08–20:10 GMT, a oeste de 64.8°O), contra 271 a 794 nos dias vizinhos, enquanto NOAA-20 e NPP-375 seguem normais; o catálogo não tem dado do satélite de referência em Colniza nesse dia, e a causa não se distingue só pela imagem (nuvens densas sobre Colniza também reduzem detecções). Sem evidência conclusiva, a regra do plano manda classificar como incidência indeterminada.",
+              "verificadoEm": "2026-11-03",
+              "imagens": [
+                {
+                  "arquivoLocal": "local/prova-dados/evidencias/aqua_20260812_amsul.png",
+                  "bbox": "-80,-40,-30,10",
+                  "sha256Prefixo": "bed20d78c9d7fc54"
+                },
+                {
+                  "arquivoLocal": "local/prova-dados/evidencias/aqua_20260812_colniza.png",
+                  "bbox": "-62.5,-10.5,-58,-8.3",
+                  "sha256Prefixo": "3fca16bcaee3698e"
+                }
+              ],
+              "urlGibs": "https://gibs.earthdata.nasa.gov/wms/epsg4326/best/wms.cgi?SERVICE=WMS&REQUEST=GetMap&VERSION=1.1.1&SRS=EPSG:4326&FORMAT=image/png&TRANSPARENT=TRUE&STYLES=&LAYERS=MODIS_Aqua_CorrectedReflectance_TrueColor&TIME=2026-08-12&BBOX={bbox}&WIDTH={largura}&HEIGHT={altura}"
+            }
           }
         ],
         "semAvisosEm": "Nenhum outro aviso de agosto a outubro de 2026 consta na página. Os avisos de 2026-07-10 e 2026-07-22 são anteriores ao período."

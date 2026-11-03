@@ -1,0 +1,21 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "codarea": "9999999" },
+      "geometry": {
+        "type": "MultiPolygon",
+        "coordinates": [
+          [
+            [[0, 0], [10, 0], [10, 10], [0, 10], [0, 0]],
+            [[4, 4], [6, 4], [6, 6], [4, 6], [4, 4]]
+          ],
+          [
+            [[12, 0], [14, 0], [14, 2], [12, 2], [12, 0]]
+          ]
+        ]
+      }
+    }
+  ]
+}
