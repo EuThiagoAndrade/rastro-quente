@@ -2,15 +2,15 @@
 
 > **Ciclo:** `001`
 > **Status:** `Em Revisão`
-> **Versão:** `v2`
+> **Versão:** `v3`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (correção da rodada 1)
+> **Última atualização:** 2026-11-03 (correção da rodada 2)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Concluída`
+> **Revisão formal:** `Em andamento`
 > **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
@@ -58,7 +58,7 @@ Consequências para o plano: os arquivos brutos são grandes demais para o Git e
 - Testes `node --test` com fixtures fictícias em `tests/fixtures/prova-dados/`, incluindo casos de referência calculados à mão.
 - Manifesto de fontes versionado (`scripts/prova-dados/fontes.json`) com URL sanitizada, período e, após a obtenção, data de obtenção, tamanho e SHA-256 esperados.
 - Dados brutos e saídas intermediárias somente em `local/prova-dados/`.
-- Relatório `_project/drafts/001_prova_de_dados/001_research_viabilidade.md` com fontes, versões, cobertura, contagens agregadas, comparação, casos conferidos, limitações e conclusão de viabilidade nos termos decididos em D7 e D8.
+- Relatório `_project/drafts/001_prova_de_dados/001_research_viabilidade.md` com fontes, versões, cobertura, contagens agregadas, comparação, casos conferidos, limitações e conclusão de viabilidade nos termos decididos em D7 a D9.
 - Encerramento prospectivo do ciclo e atualização da documentação viva (KB-003).
 
 ### Fora do escopo
@@ -149,48 +149,84 @@ Em c, causas aceitas são as documentadas no relatório com evidência: produto 
 
 Mais de uma alternativa pode ser escolhida. Sugestão do autor: a, com b se o responsável puder operar o QGIS.
 
-**D7 — Critério de viabilidade.** Componentes: U, uso permitido da fonte (obrigatório em todas as alternativas); C, dias da série principal com lacuna conhecida ou de incidência indeterminada (ver "Cobertura"); K, meses que concordam segundo D5; M, porcentagem de casos manuais que conferem, conforme D8. Exemplo fictício: U atendido; no trimestre de 92 dias, 70 com registro, 1 com lacuna conhecida, 1 com incidência indeterminada e 20 sem registro com observação não comprovada (C = 2); K = 2 de 3; M = 94,1%.
+**D7 — Critério de viabilidade.** Componentes: U, uso permitido da fonte (obrigatório em todas as alternativas); C, lacunas de disponibilidade da série principal (ver "Cobertura"); K, meses que concordam, agregados conforme D9; M, porcentagem de casos manuais que conferem, conforme D8.
 
-| Alternativa | Resultado do exemplo |
+A decisão inclui a unidade de C, quando a série principal tiver mais de um satélite:
+
+- C-d: dias distintos com ao menos um satélite em lacuna conhecida ou incidência indeterminada;
+- C-p: pares dia e satélite nessa condição.
+
+Exemplo fictício de C, com dois satélites X e Y na série principal: no dia 12, X tem 1 registro de manhã e um aviso de falta de imageamento que atinge parte de Colniza em outra passagem; no dia 20, há lacuna conhecida em X e em Y; no dia 25, há aviso de incidência indeterminada para Y. C-d = 3 (dias 12, 20 e 25); C-p = 4 (12-X, 20-X, 20-Y, 25-Y). Exemplo fictício dos demais componentes: U atendido; K = 2 de 3; M = 94,1%.
+
+| Alternativa | Resultado com C-d | Resultado com C-p |
+| :-- | :-- | :-- |
+| a) U; C = 0; K = 3 de 3; M ≥ 90% | inviável (C e K) | inviável (C e K) |
+| b) U; C ≤ 3, todos declarados; K ≥ 2 de 3, com a divergência explicada; M ≥ 90% | viável | inviável (C = 4) |
+| c) Sem critério numérico: o relatório expõe U, C, K e M com as limitações, e o responsável conclui | decisão do responsável | decisão do responsável |
+
+Em a e b, se K ou M forem indeterminados (D8 e D9), a conclusão é "evidência insuficiente", nunca viável ou inviável; a situação passa a "Parado", com a pergunta ao responsável entre uma nova decisão (por exemplo, outra alternativa de D6 ou mais casos) e o encerramento com essa conclusão. Em qualquer alternativa, dias sem registro e sem evidência de lacuna são relatados como "cobertura não comprovada", com sua quantidade. Se nenhuma fonte de focos tiver uso permitido, o ciclo é reavaliado (critério de descarte da ideação). Sem sugestão do autor.
+
+**D8 — Casos manuais inconclusivos.** Mínimo de 10 casos conclusivos e máximo de 20 casos no total, os limites decididos na ideação. Exemplo fictício 1: 18 casos, 16 conferem, 1 não confere, 1 inconclusivo. Exemplo fictício 2: 10 casos, todos inconclusivos (por exemplo, catálogo de versão diferente e mapa sem resolução para concluir).
+
+| Alternativa | Exemplo 1 | Exemplo 2 |
+| :-- | :-- | :-- |
+| a) Inconclusivo sai do denominador; com menos de 10 conclusivos, M é indeterminado | 16 / 17 = 94,1% | indeterminado (0 conclusivos) |
+| b) Inconclusivo conta como não confere | 16 / 18 = 88,9% | 0 / 10 = 0% |
+| c) Como a, mas o responsável escolhe casos novos até haver 10 conclusivos ou 20 casos no total, o que vier primeiro; se ainda faltarem conclusivos, M é indeterminado | 16 / 17 = 94,1% (sem reposição) | até 10 casos novos; com 6 conclusivos, todos conferindo, 6 < 10 e M é indeterminado |
+
+Em todas, os inconclusivos são relatados com o motivo e as evidências ficam preservadas. M indeterminado leva D7 a ou b a "evidência insuficiente". Só a alternativa b atribui valor a um inconclusivo, e por regra escolhida pelo responsável. Sem sugestão do autor.
+
+**D9 — Agregação de K.** Cada comparação de D6 a ou c classifica mês e satélite segundo D5; K conta meses. Duas partes a decidir.
+
+Entre satélites, no mesmo mês e método. Exemplo fictício, igual nos três meses, com F1 e tolerância de 10%: SNPP `A = 400`, `B = 410` (2,5%); NOAA-20 `A = 380`, `B = 390` (2,6%); NOAA-21 `A = 300`, `B = 200` (33,3%).
+
+| Alternativa | K do exemplo |
 | :-- | :-- |
-| a) U; C = 0; K = 3 de 3; M ≥ 90% | inviável (C e K) |
-| b) U; C ≤ 3, todos declarados; K ≥ 2 de 3, com a divergência explicada; M ≥ 90% | viável |
-| c) Sem critério numérico: o relatório expõe U, C, K e M com as limitações, e o responsável conclui | decisão do responsável |
+| S1) O mês concorda se todos os satélites concordam | 0 |
+| S2) O mês concorda se a maioria dos satélites concorda | 3 |
+| S3) O mês concorda se a soma dos satélites concorda pela fórmula de D5 (`A = 1.080`, `B = 1.000`, 7,4%) | 3 |
 
-Em qualquer alternativa, dias sem registro nunca são relatados como cobertura comprovada, e a conclusão declara quantos são. Se nenhuma fonte de focos tiver uso permitido, o ciclo é reavaliado (critério de descarte da ideação). Sem sugestão do autor.
+Entre métodos, quando D6 incluir a e c. Exemplo fictício: em setembro, a concorda e c diverge.
 
-**D8 — Casos manuais inconclusivos.** Exemplo fictício: 18 casos, 16 conferem, 1 não confere, 1 inconclusivo.
-
-| Alternativa | M do exemplo |
+| Alternativa | Setembro |
 | :-- | :-- |
-| a) Inconclusivo sai do denominador | 16 / 17 = 94,1% |
-| b) Inconclusivo conta como não confere | 16 / 18 = 88,9% |
-| c) Inconclusivo sai do denominador e o responsável escolhe outro caso, até haver ao menos 10 casos conclusivos | depende do caso novo |
+| H1) O mês concorda só se todos os métodos concordam | diverge |
+| H2) K vem só do método indicado pelo responsável; os demais são informativos | conforme o método indicado |
 
-Em todas, os inconclusivos são relatados com o motivo. Sem sugestão do autor.
+Regras comuns, sem decisão analítica: um satélite sem comparação disponível num mês sai da agregação daquele mês e é declarado; um mês sem nenhum satélite comparável tem K indeterminado; um método inteiro indisponível (por exemplo, FIRMS sem histórico para o período) sai de K e é declarado, e sem nenhum método disponível K é indeterminado e a situação passa a "Parado" para nova decisão de D6. D6 b não entra em K (ver "Contrato de comparação"). Sem sugestão do autor.
 
 ### Contrato de comparação
 
-O que se compara em cada alternativa de D6, para que diferenças territoriais ou de regra não sejam tomadas por erro do contador.
+Séries calculadas, para que nenhuma comparação seja apresentada como validação de uma série que ela não testa:
 
-| D6 | Série do INPE | Série comparada | Território | Fuso | Unidade e filtros |
-| :-- | :-- | :-- | :-- | :-- | :-- |
-| a | Registros VIIRS por satélite (SNPP, NOAA-20, NOAA-21), com os valores de `satelite` identificados no item 1, calculada qualquer que seja D1 | FIRMS `VIIRS_SNPP_*`, `VIIRS_NOAA20_*`, `VIIRS_NOAA21_*`; SP quando a API de disponibilidade cobrir todo o período, senão NRT; nunca SP e NRT misturados no mesmo satélite e mês. Consulta pelo retângulo de Colniza dos metadados IBGE (`-61.6334,-10.0495,-58.9384,-8.7966`), em janelas consecutivas sem sobreposição do tamanho máximo de `DAY_RANGE` conferido no item 1 | As duas séries pelo polígono IBGE (D2 b), independentemente da escolha de D2 para a contagem principal | O fuso principal de D3; `acq_date` e `acq_time` do FIRMS interpretados em UTC | Registro publicado (D4 a); nenhum filtro de confiança em nenhuma série. A diferença de algoritmo entre distribuidores é causa a explicar, não ajuste |
-| b | A série principal (D1, D2 b, D3, D4 a) | A mesma regra executada no QGIS pelo responsável, com os mesmos arquivos e a mesma malha | Polígono IBGE | O fuso principal | Igual. D5 não se aplica: as contagens devem ser idênticas, e qualquer diferença é defeito de uma das ferramentas, a investigar |
-| c | A série principal | Exportação do WebGIS pelo retângulo acima, satélites de D1 e período do fuso principal, filtrada pelo mesmo polígono | Polígono IBGE. Se o WebGIS só permitir filtro municipal, a comparação é feita contra a série de D2 a, e isso é declarado | O fuso principal | Igual à série principal |
+- **P, principal:** satélites de D1 (em d, o de referência), território de D2 (em a, `municipio_id`; em b ou c, polígono IBGE), fuso principal de D3, unidade de D4 a.
+- **E, espacial:** como P, mas sempre pelo polígono IBGE. Com D2 b ou c, E = P.
+- **Mu, municipal:** como P, mas sempre por `municipio_id`. Com D2 a, Mu = P.
+- **V, VIIRS:** satélites VIIRS (SNPP, NOAA-20, NOAA-21, com os valores de `satelite` identificados no item 1), por satélite, polígono IBGE, fuso principal, unidade registro. Calculada somente com D6 a, qualquer que seja D1.
+
+E e Mu são sempre calculadas, e a ligação entre elas é a lista de divergências de D2 (diferença simétrica). Assim, quando P = Mu, as comparações abaixo validam E, e P se liga a E pela lista de divergências; o relatório diz, para cada comparação, qual série ela valida.
+
+| D6 | Série do INPE | Série comparada | Território | Fuso | Unidade e filtros | Papel |
+| :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| a | V | FIRMS `VIIRS_SNPP_*`, `VIIRS_NOAA20_*`, `VIIRS_NOAA21_*`; SP quando a API de disponibilidade cobrir todo o período, senão NRT; nunca SP e NRT misturados no mesmo satélite e mês. Consulta pelo retângulo de Colniza dos metadados IBGE (`-61.6334,-10.0495,-58.9384,-8.7966`, oeste, sul, leste, norte), em janelas consecutivas sem sobreposição de até 5 dias (`DAY_RANGE` de 1 a 5) | Polígono IBGE nas duas séries | Fuso principal; `acq_date` e `acq_time` do FIRMS interpretados em UTC | Registro publicado; nenhum filtro de confiança em nenhuma série. Diferença de algoritmo entre distribuidores é causa a explicar, não ajuste | Entra em K |
+| b | E | A mesma regra executada no QGIS pelo responsável, com os mesmos arquivos e a mesma malha | Polígono IBGE | Fuso principal | Igual. D5 não se aplica: as contagens devem ser idênticas | Verificação de correção; não entra em K |
+| c | E | Exportação do WebGIS pelo retângulo acima, satélites de D1 e período do fuso principal, filtrada pelo mesmo polígono | Polígono IBGE. Se o WebGIS só permitir filtro municipal, compara-se Mu com a exportação municipal, e isso é declarado | Fuso principal | Igual a E (ou a Mu) | Entra em K |
+
+Em D6 b, qualquer diferença é investigada. Defeito confirmado no script: corrigir na própria issue, com teste que o reproduza, e reexecutar todas as séries e comparações. Defeito no procedimento do QGIS: registrar e refazer. Diferença sem causa encontrada: K fica indeterminado até a resolução e a situação passa a "Parado". O relatório registra a diferença, a causa e a correção.
 
 Comparar os mesmos sensores por outro distribuidor ou ferramenta valida o caminho de obtenção e de processamento; não torna a observação física independente. Essa limitação vai para o relatório.
 
 ### Cobertura
 
-Cada dia do trimestre, no fuso principal, recebe por satélite da série principal uma destas classes:
+Para cada dia do trimestre, no fuso principal, e cada satélite de P, registram-se dois atributos independentes:
 
-- **com registro:** ao menos um registro em Colniza;
-- **sem registro, lacuna conhecida:** há aviso do INPE (ou indisponibilidade na API do FIRMS, se D6 a) cuja área inclui Colniza, com a evidência citada;
-- **sem registro, incidência indeterminada:** há aviso para a data, mas não foi possível determinar se atingiu Colniza;
-- **sem registro, observação não comprovada:** nenhum aviso; a fonte não permite distinguir ausência de fogo de ausência de observação.
+- **Detecção:** com registro (ao menos um registro em Colniza) ou sem registro.
+- **Disponibilidade:**
+  - **lacuna conhecida:** aviso do INPE (ou indisponibilidade na API do FIRMS, se D6 a) cuja faixa sem dados intersecta o polígono de Colniza, total ou parcialmente, com a evidência citada;
+  - **incidência indeterminada:** há aviso para a data, mas não foi possível determinar se a faixa intersecta o polígono;
+  - **sem evidência de lacuna:** nenhum aviso aplicável. Não significa cobertura comprovada.
 
-A incidência de um aviso é verificada pelas imagens indicadas no próprio aviso (por exemplo, o link para o Worldview), conferindo se a faixa sem imageamento cobre o retângulo de Colniza; a evidência fica no relatório. Sem evidência conclusiva, a classe é "incidência indeterminada". Um dia com registro de outro satélite não muda a classe do satélite principal.
+Todas as combinações são possíveis: um dia pode ter registro e lacuna conhecida parcial. C conta lacuna conhecida e incidência indeterminada independentemente da detecção, na unidade escolhida em D7. A incidência é verificada pelas imagens indicadas no próprio aviso (por exemplo, o link para o Worldview): se a faixa sem imageamento não toca o retângulo de Colniza, não há incidência; se toca, confere-se contra o polígono, e a interseção parcial basta. Sem evidência conclusiva, a classe é "incidência indeterminada". O relatório traz a tabela cruzada detecção × disponibilidade e declara os dias "sem registro, sem evidência de lacuna" como cobertura não comprovada. Um registro de outro satélite não muda os atributos de um satélite de P.
 
 ### Roteiro da conferência manual
 
@@ -209,13 +245,13 @@ Registro mínimo por caso, no relatório: `id` público do INPE, coordenadas, in
 | Ponto | Precondição | Cobre | Não cobre | Conferir |
 | :-- | :-- | :-- | :-- | :-- |
 | Autorizar o rascunho do plano ("autorizo o rascunho do plano do ciclo 001") | Ideação registrada | Este rascunho, a branch local `chore/cycle-001-plan` e a reserva do plano em `cycles.md` | Revisão, aprovação, publicação, issues | Concedido em 2026-11-03 |
-| Aprovar plano ("aprovo o plano do ciclo 001") | Veredito apto na revisão formal; D1 a D8 respondidas pelo responsável e registradas no plano | Push de `chore/cycle-001-plan` e abertura da PR documental (ideação e plano); depois da integração, apresentação do payload e criação das três issues; encerramento prospectivo do ciclo | Merges, implementação, ação externa, qualquer mudança de D1 a D8 | Veredito, ressalvas e decisões registradas |
+| Aprovar plano ("aprovo o plano do ciclo 001") | Veredito apto na revisão formal; D1 a D9 respondidas pelo responsável e registradas no plano | Push de `chore/cycle-001-plan` e abertura da PR documental (ideação e plano); depois da integração, apresentação do payload e criação das três issues; encerramento prospectivo do ciclo | Merges, implementação, ação externa, qualquer mudança de D1 a D9 | Veredito, ressalvas e decisões registradas |
 | Aprovar merge da PR documental ("aprovo o merge da PR #N") | Checks verdes | Squash da PR documental | Issues ainda não confirmadas | Checks e diff |
 | Autorizar implementação ("autorizo a implementação da issue #N"), uma por issue | Plano aprovado e integrado, issue criada, issue anterior integrada | Branch, task, scripts, testes, obtenção dos dados públicos em `local/`, commits, push e PR da issue | Merge, outra issue, nova dependência, serviço pago, mudança de regra | Issue e escopo |
 | Ação humana externa ("concluí a ação externa da issue #N") | Issue 1 (obter a `MAP_KEY`, se D6 incluir a) e issue 3 (escolher e conferir os casos pelo roteiro; contar no QGIS, se D6 incluir b) | Retomada da issue depois da ação | Leitura ou registro da chave em arquivo versionado | Roteiro do item correspondente |
 | Aprovar merge ("aprovo o merge da PR #N"), uma por PR | Checks verdes, gates locais registrados na task | Squash daquela PR | Qualquer outra PR | Checks e diff |
 
-Não há verificação em produção neste ciclo. Toda cadeia autorizada para em "Parado" quando: uma fonte se mostrar de uso não permitido; um dado pessoal ou restrito aparecer; for necessária nova dependência, serviço pago ou cadastro não previsto; os dados contradisserem uma premissa de D1 a D8 (por exemplo, o satélite de referência não existir nos arquivos); ou o SHA-256 de um arquivo mudar entre execuções.
+Não há verificação em produção neste ciclo. Toda cadeia autorizada para em "Parado" quando: uma fonte se mostrar de uso não permitido; um dado pessoal ou restrito aparecer; for necessária nova dependência, serviço pago ou cadastro não previsto; os dados contradisserem uma premissa de D1 a D9 (por exemplo, o satélite de referência não existir nos arquivos); ou o SHA-256 de um arquivo mudar entre execuções.
 
 ## Barreiras de domínio
 
@@ -223,7 +259,7 @@ A coluna `Aplica-se?` aceita somente `Sim` ou `Não`; justificar cada linha.
 
 | Barreira | Aplica-se? | Como o ciclo a atende ou justificativa |
 | :-- | :-- | :-- |
-| G1 — exatidão analítica e interpretação geoespacial | Sim | Contagens, janelas temporais e ponto no polígono. Regras decididas pelo responsável (D1 a D8); casos de referência fictícios calculados à mão nos testes; proveniência com SHA-256; comparação com segunda fonte ou ferramenta (D6); 10 a 20 casos conferidos em mapa; limitações no relatório. Modo contínuo proibido |
+| G1 — exatidão analítica e interpretação geoespacial | Sim | Contagens, janelas temporais e ponto no polígono. Regras decididas pelo responsável (D1 a D9); casos de referência fictícios calculados à mão nos testes; proveniência com SHA-256; comparação com segunda fonte ou ferramenta (D6); 10 a 20 casos conferidos em mapa; limitações no relatório. Modo contínuo proibido |
 | G2 — autenticação, autorização e isolamento por RLS | Não | Não há banco, tabela, autenticação nem usuário neste ciclo |
 | G3 — privacidade de dados | Sim | Somente fontes públicas, em nível de ponto e município, sem atributos de pessoas ou imóveis. Brutos só em `local/`; CSV só em `tests/fixtures/` com dados fictícios; a `MAP_KEY`, se houver, só em `local/prova-dados/.env`, lida em memória e substituída por `{MAP_KEY}` em manifesto, relatório, logs e mensagens de erro, nunca em task ou PR; o relatório guarda agregados e coordenadas apenas dos casos conferidos, que são de fonte pública |
 | G4 — migrações só acrescentam | Não | Nenhuma migração é criada ou alterada |
@@ -232,8 +268,10 @@ A coluna `Aplica-se?` aceita somente `Sim` ou `Não`; justificar cada linha.
 
 - Unitários com `node --test scripts/prova-dados/`: leitura do CSV do INPE (aspas, espaços antes dos números, linhas vazias), filtro por satélite (D1), ponto no polígono por ray casting com polígono fictício e casos de borda (vértice, divisa, buraco, multipolígono), atribuição de mês em GMT e em UTC−4 (D3), com as transições `03:59:59Z`/`04:00:00Z` e `23:59:59Z`/`00:00:00Z` no início do trimestre, em cada virada de mês e no fim, e contagem (D4 a).
 - Divergências de D2 como diferença simétrica dos conjuntos de `id`, com a fixture do exemplo de D2 (4 divergências).
-- Classes de cobertura por dia, com fixture que inclua um dia com aviso que atinge o retângulo, um com aviso de incidência indeterminada e um sem aviso nem registro.
+- Cobertura: atributos de detecção e disponibilidade por dia e satélite, com fixture que inclua o exemplo de D7 (dia com registro e lacuna parcial; lacuna em dois satélites no mesmo dia; incidência indeterminada), um aviso cuja faixa toca o retângulo mas não o polígono e um dia sem registro nem aviso; C-d = 3 e C-p = 4 no exemplo.
 - Concordância de D5: fórmulas F1 e F2, os dois casos de denominador zero e os valores do exemplo de D5.
+- Agregação de D9: S1, S2 e S3 e H1 e H2 com os valores dos exemplos de D9; satélite sem comparação; mês sem satélite comparável; método indisponível.
+- M de D8: alternativas a, b e c com os exemplos 1 e 2 de D8, incluindo M indeterminado; e a conclusão "evidência insuficiente" de D7 quando K ou M forem indeterminados.
 - Sanitização: nenhuma URL, log ou erro produzido pelos scripts contém o valor da chave usada no teste (chave fictícia).
 - Casos de referência: fixtures fictícias pequenas em `tests/fixtures/prova-dados/`, cujas contagens esperadas foram calculadas à mão e estão escritas no próprio teste.
 - Reprodutibilidade: rodar a contagem duas vezes sobre os arquivos com o mesmo SHA-256 e obter saída idêntica byte a byte.
@@ -270,27 +308,28 @@ Com D6 a, roteiro da ação externa: o responsável faz o cadastro gratuito no F
 
 **Contexto:** depende das regras D1 a D4 e dos arquivos do item 1.
 
-**Ação técnica:** criar `scripts/prova-dados/contar.mjs` e módulos de apoio para ler os CSV em fluxo (sem carregar 144 MB de uma vez), aplicar D1 a D4, calcular ponto no polígono e emitir JSON determinístico com: contagens por mês e por satélite; com D6 a, a série VIIRS de comparação; divergências entre `municipio_id` e polígono como diferença simétrica (D2); classes de cobertura por dia e satélite da série principal, conforme a seção "Cobertura"; e a sensibilidade de fuso (D3), quando escolhida. A incidência territorial de cada aviso é verificada pelas imagens do aviso e registrada com evidência.
+**Ação técnica:** criar `scripts/prova-dados/contar.mjs` e módulos de apoio para ler os CSV em fluxo (sem carregar 144 MB de uma vez), aplicar D1 a D4, calcular ponto no polígono e emitir JSON determinístico com: as séries P, E e Mu (e V, com D6 a) do "Contrato de comparação", por mês e satélite; divergências entre `municipio_id` e polígono como diferença simétrica (D2); os atributos de detecção e disponibilidade por dia e satélite de P e o valor de C nas duas unidades, conforme a seção "Cobertura"; e a sensibilidade de fuso (D3), quando escolhida. A incidência territorial de cada aviso é verificada pelas imagens do aviso e registrada com evidência.
 
 **Critérios de aceite:**
 
 - [ ] Testes com os casos de referência fictícios passam.
 - [ ] Duas execuções sobre os mesmos arquivos produzem saída idêntica.
-- [ ] Contagens por mês e satélite, classes de cobertura e divergências registradas em rascunho no relatório, com o SHA-256 dos insumos.
-- [ ] Nenhum dia sem registro é relatado como coberto; cada aviso do período tem incidência classificada com evidência ou como indeterminada.
+- [ ] Séries P, E e Mu (e V), tabela cruzada detecção × disponibilidade, C-d, C-p e divergências registradas em rascunho no relatório, com o SHA-256 dos insumos.
+- [ ] Nenhum dia sem registro e sem evidência de lacuna é relatado como coberto; cada aviso do período tem incidência sobre o polígono classificada com evidência ou como indeterminada, inclusive em dias com registro.
 - [ ] O crescimento de focos citado pelo responsável é relatado como observado ou não observado, sem interpretação causal.
 
 ### Item 3 — Referência independente e relatório de viabilidade
 
-**Contexto:** depende de D5 a D8 e do item 2.
+**Contexto:** depende de D5 a D9 e do item 2.
 
-**Ação técnica:** criar `scripts/prova-dados/comparar.mjs`, que aplica o contrato de comparação da alternativa escolhida em D6 e classifica cada mês e satélite segundo D5. Preparar a planilha de registro dos casos (em Markdown, no relatório) com os campos do roteiro da conferência manual. Ação externa: o responsável escolhe os casos e confere P1, P2 e P3 conforme o roteiro; com D6 b, também executa a contagem no QGIS. Consolidar o relatório `001_research_viabilidade.md` com fontes, versões, cobertura, contagens, comparação, casos, limitações (inclusive a não independência entre scripts e revisão do agente, e a não independência física de sensores iguais) e a conclusão nos termos de D7 e D8.
+**Ação técnica:** criar `scripts/prova-dados/comparar.mjs`, que aplica o contrato de comparação da alternativa escolhida em D6, classifica cada mês e satélite segundo D5 e calcula K segundo D9, declarando qual série cada comparação valida. Preparar a planilha de registro dos casos (em Markdown, no relatório) com os campos do roteiro da conferência manual. Ação externa: o responsável escolhe os casos e confere P1, P2 e P3 conforme o roteiro; com D6 b, também executa a contagem no QGIS. Consolidar o relatório `001_research_viabilidade.md` com fontes, versões, cobertura, contagens, comparação, casos, limitações (inclusive a não independência entre scripts e revisão do agente, e a não independência física de sensores iguais) e a conclusão nos termos de D7 a D9.
 
 **Critérios de aceite:**
 
 - [ ] Comparação registrada por mês e satélite, com fórmula, valores de `A` e `B` e a classificação de D5 (ou igualdade, em D6 b); diferenças explicadas citam a causa e a evidência.
-- [ ] Cada caso registrado com todos os campos do roteiro, o resultado de P1, P2 e P3 e a classificação do caso; inconclusivos tratados conforme D8.
-- [ ] Relatório com U, C, K e M, conclusão de viabilidade segundo D7 e limitações explícitas, incluindo que focos não comprovam incêndio, dano, autoria ou infração.
+- [ ] K por mês com a regra de D9, satélites e métodos excluídos declarados; com D6 b, diferença zero ou causa e correção registradas.
+- [ ] Cada caso registrado com todos os campos do roteiro, o resultado de P1, P2 e P3 e a classificação do caso; inconclusivos tratados conforme D8, com M indeterminado quando for o caso.
+- [ ] Relatório com U, C (na unidade de D7), K e M, conclusão de viabilidade segundo D7 (viável, inviável ou evidência insuficiente) e limitações explícitas, incluindo que focos não comprovam incêndio, dano, autoria ou infração.
 
 ## Arquivos afetados
 
@@ -308,14 +347,14 @@ Com D6 a, roteiro da ação externa: o responsável faz o cadastro gratuito no F
 | — | PR documental (ideação e plano), sem issue | — | branch `chore/cycle-001-plan` | Aprovação do plano |
 | 1 | Fontes e proveniência da prova de dados | `[CHORE]`, `chore.yml` | `chore/issue-N` | PR documental integrada |
 | 2 | Contagem e cobertura de Colniza | `[FEATURE]`, `feature_request.yml` | `feature/issue-N` | Issue 1 integrada; D1 a D4 |
-| 3 | Referência independente e relatório de viabilidade | `[CHORE]`, `chore.yml` | `chore/issue-N` | Issue 2 integrada; D5 a D8; ação externa |
+| 3 | Referência independente e relatório de viabilidade | `[CHORE]`, `chore.yml` | `chore/issue-N` | Issue 2 integrada; D5 a D9; ação externa |
 | — | Encerramento, sem issue | — | `chore/cycle-001-closure` | Issue 3 integrada |
 
 Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige aprovação de merge própria.
 
 ## Dependências e blockers
 
-- D1 a D8 respondidas pelo responsável antes da aprovação do plano.
+- D1 a D9 respondidas pelo responsável antes da aprovação do plano.
 - Acesso de rede aos servidores do INPE, IBGE e, se escolhido, FIRMS.
 - `MAP_KEY` do FIRMS obtida pelo responsável, se D6 incluir a.
 - Nenhuma dependência de pacote; se uma se mostrar necessária, a situação passa a "Parado".
@@ -327,7 +366,7 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 - **Condições de uso incompatíveis:** critério de descarte da ideação.
 - **Malha IBGE de ano diferente do período:** divergências em D2. Mitigação: registrar o ano e listar divergências.
 - **FIRMS sem histórico acessível pela `MAP_KEY` para o período:** D6 a falha. Mitigação: alternativas b e c de D6, com nova decisão do responsável.
-- **Dias sem registro confundidos com cobertura:** o CSV não distingue ausência de fogo de ausência de observação. Mitigação: classes de cobertura separadas e proibição de relatar dia sem registro como coberto.
+- **Dias sem registro confundidos com cobertura:** o CSV não distingue ausência de fogo de ausência de observação. Mitigação: detecção e disponibilidade registradas à parte, com coexistência de registro e lacuna, e proibição de relatar dia sem registro como coberto.
 - **Arquivo diário de 2026-11-01 diferente do recorte equivalente do mensal de novembro:** possível com D3 b ou c. Mitigação: registrar o SHA-256 do diário e declarar a limitação.
 - **Vazamento da `MAP_KEY` por URL:** a chave vai no caminho da API. Mitigação: URL montada só em memória, forma sanitizada em todo registro e teste de sanitização.
 - **Volume:** cerca de 370 MB de CSV. Mitigação: leitura em fluxo; nada versionado.
@@ -337,7 +376,7 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ## Sequência recomendada
 
-1. Revisão formal deste plano; o responsável responde D1 a D8 (pode fazê-lo durante as rodadas).
+1. Revisão formal deste plano; o responsável responde D1 a D9 (pode fazê-lo durante as rodadas).
 2. Aprovação do plano, push de `chore/cycle-001-plan` e PR documental; merge com aprovação própria.
 3. Criação das três issues, depois da confirmação do payload.
 4. Issue 1, depois issue 2, depois issue 3, cada uma com autorização, PR e merge próprios.
@@ -366,22 +405,22 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando correções (rodada 2) — ciclo 001 (completo)
-Quem: O responsável leva a vez ao autor
-Conferir: Achados R2-1 a R2-4 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-2
-Diga: "corrija o plano do ciclo 001"
+Situação: Aguardando revisão (rodada 3) — ciclo 001 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-2 + v2@de95aaf078bc7d498fd88c5a9614178c9da28fcc`
+- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v3@51677ee`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v2` em `Em Revisão`, aguardando revisão (rodada 2), com respostas do autor à rodada 1, no commit local `de95aaf078bc7d498fd88c5a9614178c9da28fcc`; ciclo `001` em `Planejamento`; árvore limpa
-- `state_after`: plano `v2` em `Em Revisão`, rodada 2 concluída com `REQUER NOVA RODADA`, aguardando correções (rodada 2); ciclo permanece em `Planejamento`; alteração local somente neste plano, sem commit ou publicação
+- `state_before`: plano `v2` em `Em Revisão`, rodada 2 com `REQUER NOVA RODADA` (R2-1 a R2-3 bloqueadores, R2-4 ressalva), aguardando correções (rodada 2); a rodada estava sem commit e foi preservada intacta no commit local `51677ee`
+- `state_after`: plano `v3` em `Em Revisão`, cada achado respondido em "Resposta do autor à Rodada 2 — v3", nova decisão D9, aguardando revisão (rodada 3); `cycles.md` sincronizado com a v3; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
 - `result`: `executed`
-- `evidence`: rodada 2 abaixo; conferência da preservação da rodada 1, das respostas do autor e da v2; consultas oficiais somente leitura a INPE, IBGE e FIRMS em 2026-11-03; resultados dos gates registrados na rodada
-- `blockers`: R2-1 a R2-3 impedem parecer apto; R2-4 é ressalva; D1 a D8 continuam pendentes de decisão humana antes da aprovação
+- `evidence`: rodada 2 lida integralmente; rodadas 1 e 2 sem remoções no diff; testes e validador executados nesta branch
+- `blockers`: nenhum para a rodada 3; a aprovação exige as respostas do responsável a D1 a D9
 
 ## Revisão crítica
 
@@ -516,6 +555,20 @@ Apresentar o tratamento de denominador zero e de insuficiência de casos conclus
 **Progresso:** três dos cinco bloqueadores originais foram atendidos, dois foram atendidos parcialmente e uma lacuna foi identificada na nova D8. As duas ressalvas anteriores foram atendidas. Há progresso material, sem contestação persistente nem oscilação de correção já aceita; prosseguir para correção e rodada 3, dentro do teto de cinco rodadas.
 
 **Veredito:** `REQUER NOVA RODADA` — corrigir R2-1 a R2-3, responder R2-4 e preservar as rodadas e respostas anteriores. A versão continua v2 durante esta revisão; será incrementada pelo autor na correção. D1 a D8 continuam pendentes de decisão humana antes da aprovação. Efeito desta rodada limitado ao registro local da revisão e aos campos/blocos de estado correspondentes.
+
+
+### Resposta do autor à Rodada 2 — v3
+
+**Autor:** Claude Code, modelo Opus 5.5 (`claude-opus-5-5`). **Data:** 2026-11-03. A rodada 2 estava sem commit; foi preservada sem alteração no commit `51677ee` antes desta correção.
+
+| Achado | Resposta | Onde |
+| :-- | :-- | :-- |
+| R2-1 | Corrigido. "Cobertura" passa a registrar dois atributos independentes por dia e satélite de P, detecção e disponibilidade, com coexistência explícita de registro e lacuna. A incidência considera interseção total ou parcial com o polígono (o retângulo é só triagem). C conta lacuna conhecida e incidência indeterminada independentemente da detecção, e a unidade (C-d, dias distintos, ou C-p, pares dia e satélite) passa a ser parte da decisão D7, com o exemplo do revisor (C-d = 3, C-p = 4) mudando o resultado de D7 b. Testes e critérios do item 2 atualizados | D7, "Cobertura", item 2, estratégia de testes |
+| R2-2 | Corrigido. O contrato define as séries P, E, Mu e V e diz qual série cada comparação valida; com D2 a, as comparações validam E, e P se liga a E pela lista de divergências de D2. Nenhuma combinação é proibida, mas nenhuma é apresentada como validação de série que não testa. Nova decisão D9 para a agregação de K entre satélites (S1, S2, S3, com o exemplo K = 0 ou 3) e entre métodos (H1, H2). D6 b deixa de entrar em K e vira verificação de correção, com tratamento de defeito confirmado no script, no procedimento do QGIS e de diferença sem causa. Regras para satélite sem comparação, mês sem satélite comparável e método indisponível. `DAY_RANGE` de 1 a 5, conferido pelo revisor, fixado nas janelas | D9, "Contrato de comparação", item 3, estratégia de testes |
+| R2-3 | Corrigido. D8 explicita o mínimo de 10 conclusivos e o máximo de 20 casos (limites da ideação); a e c produzem M indeterminado quando faltam conclusivos, com o exemplo de 10 inconclusivos; c limita a reposição a 20 casos no total. M ou K indeterminado leva D7 a ou b a "evidência insuficiente" e a "Parado", com a pergunta registrada, sem converter ausência de evidência em 0% ou 100% (só D8 b atribui valor, por regra do responsável) | D7, D8, item 3 |
+| R2-4 | Corrigido. `cycles.md` mostra "v3 em revisão" | `_project/cycles.md` |
+
+Mudança de numeração: as decisões pendentes passam a ser D1 a D9 (D9 nova, por R2-2). As referências nas seções do plano foram atualizadas; as das rodadas anteriores foram preservadas.
 
 ## Pós-mortem
 
