@@ -10,8 +10,8 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
-> **Veredito da revisão:** `REQUER NOVA RODADA`
+> **Revisão formal:** `Concluída`
+> **Veredito da revisão:** `APTO COM RESSALVAS`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
 
@@ -426,22 +426,22 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 4) — ciclo 001 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 001"
+Situação: Aguardando aprovação do plano — ciclo 001 (completo)
+Quem: Responsável
+Conferir: Veredito da rodada 4 e ressalva R4-1 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-4; responder e registrar D1 a D9 antes da aprovação
+Diga: "aprovo o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v4@ad14faa`
+- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-4 + v4@0dfe99e98a22ab7814bd966aecd57a53c3c63836`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v3` em `Em Revisão`, rodada 3 com `REQUER NOVA RODADA` (R3-1 bloqueador, R3-2 ressalva), aguardando correções (rodada 3); a rodada estava sem commit e foi preservada intacta no commit local `ad14faa`
-- `state_after`: plano `v4` em `Em Revisão`, achados respondidos em "Resposta do autor à Rodada 3 — v4", aguardando revisão (rodada 4); `cycles.md` sincronizado com a v4; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
+- `state_before`: plano `v4` em `Em Revisão`, aguardando revisão (rodada 4), com respostas do autor à rodada 3, no commit local `0dfe99e98a22ab7814bd966aecd57a53c3c63836`; ciclo `001` em `Planejamento`; árvore limpa
+- `state_after`: plano `v4` permanece em `Em Revisão`, rodada 4 concluída com `APTO COM RESSALVAS`, aguardando aprovação do plano, condicionada ao registro de D1 a D9; ciclo permanece em `Planejamento`; aprovação humana pendente; alteração local somente neste plano, sem commit ou publicação
 - `result`: `executed`
-- `evidence`: rodada 3 lida integralmente; rodadas 1 a 3 sem remoções no diff; testes e validador executados nesta branch
-- `blockers`: nenhum para a rodada 4; a aprovação exige as respostas do responsável a D1 a D9
+- `evidence`: rodada 4 abaixo; v4, diff e respostas do autor conferidos; histórico das rodadas 1 a 3 comparado com `ad14faa` e preservado; gates e limites registrados na rodada
+- `blockers`: nenhum bloqueador de revisão identificado; R4-1 registra a precondição ainda pendente para aprovação: respostas humanas a D1 a D9 e seu registro no plano
 
 ## Revisão crítica
 
@@ -652,6 +652,57 @@ D9 chama de "sem decisão analítica" a exclusão de satélites ou métodos sem 
 | R3-2 | Corrigido. D8 atribui à ideação só os 10 a 20 casos escolhidos; o mínimo de 10 conclusivos de a e c é apresentado como proposta do autor, ajustável pelo responsável, e b calcula M mesmo com menos de 10 conclusivos. Em D9, a política para comparação indisponível deixa de ser "sem decisão analítica" e vira a terceira parte da decisão (E1 ou E2), com exemplo | D8, D9 |
 
 Sem mudança de numeração: as decisões continuam D1 a D9; E1 e E2 são parte de D9.
+
+### Rodada 4
+
+**Data:** 2026-11-03.
+
+**Autor:** Claude Code, Opus 5.5 (`claude-opus-5-5`), conforme identificação na resposta do autor e coautoria do commit da v4.
+
+**Revisor:** Codex, GPT-6; variante exata não informada nesta sessão.
+
+**Base revisada:** `v4`, commit `0dfe99e98a22ab7814bd966aecd57a53c3c63836`, branch `chore/cycle-001-plan`, inicialmente limpa. Conferidos plano completo, diff da v4, respostas à rodada 3, autoridades, workflow `revisar_plano` e template `plano_implementacao`. Desde `ad14faa`, mudaram somente o plano e `cycles.md`. Histórico das rodadas 1 a 3 e respostas anteriores comparado com aquele commit e preservado.
+
+#### Conferência da rodada 3
+
+| Achado | Resultado da revisão da v4 |
+| :-- | :-- |
+| R3-1.1 | Atendido: somente QGIS é admitido com D7 c, sem K; a combinação com D7 a/b foi explicitamente excluída |
+| R3-1.2 | Atendido: S3 exige D5 a/b; D5 c admite S1/S2 sobre classificações por satélite; cancelamento de diferenças foi exemplificado |
+| R3-1.3 | Atendido: com H2 e método indicado indisponível, K fica indeterminado e há parada, sem promover o método informativo |
+| R3-1, contrato e testes | Atendido: combinações válidas declaradas, decisões transcritas do plano aprovado em `decisoes.json` e recusa das combinações não admitidas prevista nos critérios e testes |
+| R3-2 | Atendido: mínimo de conclusivos identificado como proposta de D8; exceção de b explícita; exclusão ou exigência do conjunto completo apresentada para decisão humana em D9 E1/E2 |
+
+**Bloqueadores de revisão:** nenhum identificado nesta rodada. Os achados técnicos e documentais das rodadas anteriores foram atendidos; não há necessidade identificada de outra correção técnica do plano antes da decisão humana.
+
+#### R4-1 — Ressalva: registrar as escolhas analíticas antes de aprovar
+
+D1 a D9 continuam como alternativas, sem respostas do responsável. O próprio ponto "Aprovar plano" exige essas respostas registradas. O parecer apto não escolhe alternativas nem transforma sugestões do autor em decisões humanas. Antes da aprovação, registrar:
+
+- D1: conjunto de satélites e série principal.
+- D2: atribuição municipal e tratamento do ponto sobre a divisa.
+- D3: fuso principal e eventual sensibilidade.
+- D4: confirmação de registro publicado; agrupamento por célula continua exigindo outra versão do plano.
+- D5: critério de concordância e fórmula, quando aplicável aos métodos escolhidos.
+- D6: fonte(s) ou ferramenta(s) de comparação, observadas as combinações válidas.
+- D7: critério de viabilidade e unidade de C, quando aplicável.
+- D8: tratamento dos inconclusivos e mínimo de conclusivos nas alternativas a/c.
+- D9: agregação S, H quando houver dois métodos, método indicado em H2 e política E1/E2, quando houver método de K.
+
+As respostas devem respeitar a matriz de combinações válidas e ser registradas antes de promover o plano. Escolhas que introduzam regra ou escopo fora das alternativas revisadas exigem reavaliação do trecho alterado. A ressalva é uma precondição de decisão humana já prevista no plano; não é autorização de implementação nem um novo bloqueador técnico. O revisor não registra respostas em nome do responsável.
+
+#### Itens atendidos, validação e limites
+
+- Objetivo e recorte permanecem os da ideação: Colniza, ago–out de 2026, fontes públicas, prova reproduzível, comparação independente e conferência manual. Aplicação, banco, migrações, seleção de áreas e serviços pagos continuam fora do escopo.
+- A sequência das três issues, os pontos de aprovação, G1 a G4, a proveniência e a sanitização da chave permanecem coerentes. O script de decisões é transcrição do plano aprovado, sem autoridade para inventar regras.
+- Cobertura e detecção estão separadas; casos inconclusivos têm saída definida; as combinações apontadas na rodada 3 têm restrição ou comportamento explícito. O resultado da prova de dados continua desconhecido: o parecer avalia o plano, não certifica fontes, contagens ou viabilidade do produto.
+- Os fatos externos e endpoints não foram alterados pela v4. Esta rodada usa a evidência das consultas das rodadas anteriores e inspeção local das novas regras; não realizou downloads, consultas autenticadas ou verificação de cobertura real. Licença/condições de uso, versões e disponibilidade dos produtos continuam verificações previstas no item 1, com as paradas declaradas.
+- Texto e diff conferidos quanto a G3, sem credenciais ou dados pessoais encontrados. Nenhum material de `local/` foi lido ou criado; nenhuma issue, PR ou publicação foi realizada ou presumida.
+- Node.js `v24.15.0`: 55 testes de governança aprovados, zero falhas; validador com zero erros, zero avisos e nove itens manuais; `git diff --check` sem erros antes do parecer. Esses gates verificam governança, não substituem os testes e a prova analítica futuros.
+
+**Progresso:** bloqueadores reduzidos de um para zero; R3-1 e R3-2 atendidos, sem oscilação ou contestação persistente. Quatro rodadas registradas, dentro do teto de cinco.
+
+**Veredito:** `APTO COM RESSALVAS` — o plano está tecnicamente apto, com R4-1 pendente antes da aprovação. Situação: `Aguardando aprovação do plano`. Status permanece `Em Revisão`, versão v4, aprovação humana `Pendente` e ciclo em `Planejamento`. Nenhuma promoção, decisão analítica, implementação ou publicação decorre deste parecer.
 
 ## Pós-mortem
 
