@@ -10,7 +10,7 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 001" em 2026-11-03
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
+> **Revisão formal:** `Concluída`
 > **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
@@ -405,22 +405,22 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 3) — ciclo 001 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 001"
+Situação: Aguardando correções (rodada 3) — ciclo 001 (completo)
+Quem: O responsável leva a vez ao autor
+Conferir: Achados R3-1 e R3-2 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-3
+Diga: "corrija o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v3@51677ee`
+- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-3 + v3@0db1159c2d978006cccd8564de069fbf59294a0c`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v2` em `Em Revisão`, rodada 2 com `REQUER NOVA RODADA` (R2-1 a R2-3 bloqueadores, R2-4 ressalva), aguardando correções (rodada 2); a rodada estava sem commit e foi preservada intacta no commit local `51677ee`
-- `state_after`: plano `v3` em `Em Revisão`, cada achado respondido em "Resposta do autor à Rodada 2 — v3", nova decisão D9, aguardando revisão (rodada 3); `cycles.md` sincronizado com a v3; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
+- `state_before`: plano `v3` em `Em Revisão`, aguardando revisão (rodada 3), com respostas do autor à rodada 2, no commit local `0db1159c2d978006cccd8564de069fbf59294a0c`; ciclo `001` em `Planejamento`; árvore limpa
+- `state_after`: plano `v3` em `Em Revisão`, rodada 3 concluída com `REQUER NOVA RODADA`, aguardando correções (rodada 3); ciclo permanece em `Planejamento`; alteração local somente neste plano, sem commit ou publicação
 - `result`: `executed`
-- `evidence`: rodada 2 lida integralmente; rodadas 1 e 2 sem remoções no diff; testes e validador executados nesta branch
-- `blockers`: nenhum para a rodada 3; a aprovação exige as respostas do responsável a D1 a D9
+- `evidence`: rodada 3 abaixo; v3 e respostas do autor conferidas; histórico das rodadas 1 e 2 comparado com `51677ee` e preservado; gates e limites registrados na rodada
+- `blockers`: R3-1 impede parecer apto; R3-2 é ressalva; D1 a D9 continuam pendentes de decisão humana antes da aprovação
 
 ## Revisão crítica
 
@@ -569,6 +569,53 @@ Apresentar o tratamento de denominador zero e de insuficiência de casos conclus
 | R2-4 | Corrigido. `cycles.md` mostra "v3 em revisão" | `_project/cycles.md` |
 
 Mudança de numeração: as decisões pendentes passam a ser D1 a D9 (D9 nova, por R2-2). As referências nas seções do plano foram atualizadas; as das rodadas anteriores foram preservadas.
+
+### Rodada 3
+
+**Data:** 2026-11-03.
+
+**Autor:** Claude Code, Opus 5.5 (`claude-opus-5-5`), conforme identificação na resposta do autor e coautoria do commit da v3.
+
+**Revisor:** Codex, GPT-6; variante exata não informada nesta sessão.
+
+**Base revisada:** `v3`, commit `0db1159c2d978006cccd8564de069fbf59294a0c`, branch `chore/cycle-001-plan`, inicialmente limpa. Plano completo, resposta do autor à rodada 2, diff da v3, ideação, KB-003, autoridades, workflow `revisar_plano` e template `plano_implementacao` conferidos. Desde `51677ee`, mudaram somente o plano e `cycles.md`; o histórico das rodadas 1 e 2 e a resposta à rodada 1 foram comparados com aquele commit e preservados.
+
+#### Conferência da rodada 2
+
+| Achado | Resultado da revisão da v3 |
+| :-- | :-- |
+| R2-1 | Atendido: detecção e disponibilidade independentes, interseção parcial com o polígono, C-d/C-p apresentados para decisão humana e exemplos/testes coerentes |
+| R2-2 | Parcialmente atendido: séries P/E/Mu/V, alternativas S1/S2/S3 e H1/H2, tratamento de defeitos no QGIS e identificação da série validada foram definidos; restam combinações sem cálculo coerente de K, detalhadas em R3-1 |
+| R2-3 | Atendido quanto ao cálculo e à saída: D8 a/c não dividem por zero, há limite de reposição e conclusão de evidência insuficiente. A atribuição do mínimo de conclusivos à ideação precisa ser corrigida; ver R3-2 |
+| R2-4 | Atendido: `cycles.md` apresenta v3 em revisão e mantém o ciclo em `Planejamento` |
+
+#### R3-1 — Bloqueador: combinações ainda admitidas não têm regra completa para K
+
+A nova D9 resolve os exemplos centrais de agregação, mas três combinações continuam elegíveis sem resultado consistente:
+
+1. **Somente D6 b (QGIS).** D6 permite escolher b sem a ou c; D9 e o contrato retiram b de K. Exemplo fictício: QGIS e script coincidem nos três meses, U atendido, C = 0 e M = 100%. Mesmo assim, não existe método elegível para K, que fica indeterminado e leva D7 a/b a uma parada inevitável. O sucesso da ferramenta escolhida não permite avaliar o critério. Ou essa combinação precisa de regra expressa, ou deve ser apresentada como incompatível com as alternativas de D7 que exigem K, antes da escolha humana.
+2. **D5 c com D9 S3.** S3 manda aplicar a fórmula de D5 às somas, mas D5 c não escolhe fórmula nem tolerância: exige explicar toda a diferença. No exemplo de D9, somas 1.080 e 1.000 deixam diferença 80; não está definido como agregar as explicações por satélite, inclusive quando diferenças de sinais contrários se cancelam na soma. Especificar o resultado dessa combinação ou restringir S3 às opções numéricas de D5, sem escolher uma delas pelo responsável.
+3. **D9 H2 com o método indicado indisponível.** H2 reserva K ao método indicado e torna os demais informativos; as regras comuns retiram métodos indisponíveis, mas só determinam parada quando nenhum método está disponível. Se o responsável indicou FIRMS e apenas WebGIS está disponível, não há autorização para promover automaticamente o método informativo, nem regra expressa para o K do método indicado. Definir a saída sem substituição tácita.
+
+Apresentar as combinações válidas e os comportamentos correspondentes nas decisões, no contrato e nos testes do item 3. São lacunas remanescentes de R2-2; não se pede uma nova capacidade nem se reabre achado já aceito. O autor pode propor as restrições e alternativas; a escolha continua do responsável.
+
+#### R3-2 — Ressalva: distinguir propostas analíticas de decisões humanas já registradas
+
+D8 afirma que "mínimo de 10 casos conclusivos" é um dos limites decididos na ideação. A decisão 4 da ideação registra **10 a 20 casos escolhidos**, sem mínimo de conclusivos. O mínimo pode ser proposto nas alternativas a/c, mas não atribuído a uma decisão anterior. O cabeçalho também deve explicitar que a alternativa b admite percentual mesmo sem dez conclusivos, conforme seu próprio exemplo.
+
+D9 chama de "sem decisão analítica" a exclusão de satélites ou métodos sem comparação disponível. Isso altera o conjunto usado para K: exemplo fictício, dois satélites concordam e um não tem comparação; excluir o terceiro permite concordância dos disponíveis, enquanto exigir o conjunto completo deixa evidência insuficiente. Corrigir a qualificação e apresentar essa política como parte da regra proposta de D9, a ser confirmada pelo responsável. Esta revisão não escolhe mínimo de amostra, exclusão ou substituição de método.
+
+#### Itens atendidos, validação e limites
+
+- Os exemplos de cobertura estão coerentes: três dias distintos e quatro pares dia/satélite. Os exemplos de D8 evitam divisão por zero e limitam a reposição; a classificação como evidência insuficiente está refletida no aceite do relatório.
+- Escopo, exclusões, sequência das três issues, aprovação posterior ao parecer, merge por PR e G1 a G4 continuam coerentes com as autoridades. Modo contínuo permanece desativado e aprovação humana pendente. D1 a D9 seguem como propostas não respondidas.
+- Fontes, endpoints e comportamento externo já conferidos nas rodadas anteriores não mudaram nesta correção, exceto pela incorporação textual do limite de `DAY_RANGE` já verificado na rodada 2. A rodada 3 valida os novos contratos e exemplos por inspeção local; não executa a prova de dados nem repete consultas autenticadas ou comprova disponibilidade futura dos insumos.
+- Texto e diff revisados quanto a G3, sem credenciais ou dados pessoais encontrados. Nenhum material de `local/` foi lido ou criado. Nenhuma issue, PR, publicação ou estado remoto foi presumido.
+- Gates em Node.js `v24.15.0`: 55 testes de governança aprovados, zero falhas; validador com zero erros, zero avisos e nove itens manuais; `git diff --check` sem erros antes do parecer. Os gates estruturais não validam as decisões analíticas nem a completude de K.
+
+**Progresso:** os bloqueadores diminuíram de três para um; R2-1 e R2-3 foram atendidos e R2-2 foi reduzido às combinações acima. Não houve contestação persistente ou reaparecimento de correção anteriormente aceita. A próxima revisão será a rodada 4, dentro do teto de cinco.
+
+**Veredito:** `REQUER NOVA RODADA` — corrigir R3-1 e responder R3-2, preservando rodadas e respostas anteriores. O revisor não altera os contratos nem incrementa a versão: ela permanece v3 até a correção do autor. Nenhuma decisão D1 a D9, aprovação ou implementação foi realizada.
 
 ## Pós-mortem
 
