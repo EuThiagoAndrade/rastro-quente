@@ -4,7 +4,7 @@
 > **Status:** `Em Execução`
 > **Versão:** `v5`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (início da issue #4)
+> **Última atualização:** 2026-11-03 (início da issue #5)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
