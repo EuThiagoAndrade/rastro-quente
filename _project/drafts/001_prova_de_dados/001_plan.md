@@ -2,9 +2,9 @@
 
 > **Ciclo:** `001`
 > **Status:** `Em Revisão`
-> **Versão:** `v4`
+> **Versão:** `v5`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (correção da rodada 3)
+> **Última atualização:** 2026-11-03 (registro das decisões D1 a D9)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -74,6 +74,26 @@ Consequências para o plano: os arquivos brutos são grandes demais para o Git e
 ## Decisões e autoridades
 
 ### Decisões analíticas do responsável (G1)
+
+#### Decisões registradas (2026-11-03)
+
+Respostas do responsável em 2026-11-03, depois do parecer da rodada 4 e da ressalva R4-1. Para D1 a D4: "As que você colocou sugestão acato-as. Com exceção da D6 que ficaremos apenas com item a". Para as decisões sem sugestão, o responsável pediu sugestões ao autor, que as apresentou como opinião, e respondeu: "Aceito as sugestões para D5, D7, D8 e D9". As escolhas estão dentro das alternativas revisadas e das "Combinações válidas".
+
+| Decisão | Escolha | Consequência no plano |
+| :-- | :-- | :-- |
+| D1 | d: AQUA, satélite de referência, como série principal; VIIRS e todos os satélites como contagens auxiliares | P tem um só satélite |
+| D2 | c: polígono IBGE como principal, com a lista de divergências (diferença simétrica) em relação a `municipio_id`; ponto exatamente sobre a divisa conta como dentro, e a quantidade é relatada | P = E; Mu calculada para as divergências |
+| D3 | c: GMT como principal; horário de Cuiabá (UTC−4) como sensibilidade | O item 1 obtém também `focos_diario_br_20261101.csv` |
+| D4 | a: registro publicado | Sem agrupamento por célula |
+| D5 | b com F2: tolerância de 25%, base maior | Diferença absoluta dividida pela maior das duas contagens, × 100 |
+| D6 | a, somente: NASA FIRMS (VIIRS) | QGIS e WebGIS não são usados como métodos; a ação externa da `MAP_KEY` na issue 1 passa a ser obrigatória |
+| D7 | b com C-d: U; C ≤ 3 dias, todos declarados; K ≥ 2 de 3, com a divergência explicada; M ≥ 90% | Com um só satélite em P, C-d = C-p |
+| D8 | c, com mínimo de 10 casos conclusivos e máximo de 20 casos no total | Reposição de casos limitada a 20 |
+| D9 | S2 (maioria dos satélites VIIRS) e E1 (satélite sem comparação sai da agregação do mês, com declaração); H não se aplica, por haver um só método de K | K calculado só pela comparação com o FIRMS |
+
+Conferência da combinação: D6 a dá a D7 b um método de K; S2 é admitida com D5 b; H dispensada com um só método; E1 escolhida, como exigido com D6 a; D4 a dispensa nova versão. As alternativas não escolhidas permanecem abaixo como registro do que foi decidido.
+
+#### Alternativas apresentadas
 
 O agente não escolhe entre estas alternativas. Os exemplos numéricos são **fictícios**, só para mostrar o efeito de cada regra. A sugestão do autor, quando houver, é uma opinião para facilitar a decisão, não uma decisão. As respostas são registradas no plano, numa correção de versão, antes da aprovação.
 
@@ -428,20 +448,20 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 PRÓXIMO PASSO
 Situação: Aguardando aprovação do plano — ciclo 001 (completo)
 Quem: Responsável
-Conferir: Veredito da rodada 4 e ressalva R4-1 em _project/drafts/001_prova_de_dados/001_plan.md#rodada-4; responder e registrar D1 a D9 antes da aprovação
+Conferir: Veredito e ressalvas na seção de revisão (rodada 4) e decisões D1 a D9 registradas em "Decisões registradas (2026-11-03)"
 Diga: "aprovo o plano do ciclo 001"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + revisar_plano + 001_plan/rodada-4 + v4@0dfe99e98a22ab7814bd966aecd57a53c3c63836`
+- `logical_key`: `rastro-quente + 001 + rascunhar_plano + 001_plan + v5@3c8f9b1`
 - `effect_class`: `local_mutation`
-- `state_before`: plano `v4` em `Em Revisão`, aguardando revisão (rodada 4), com respostas do autor à rodada 3, no commit local `0dfe99e98a22ab7814bd966aecd57a53c3c63836`; ciclo `001` em `Planejamento`; árvore limpa
-- `state_after`: plano `v4` permanece em `Em Revisão`, rodada 4 concluída com `APTO COM RESSALVAS`, aguardando aprovação do plano, condicionada ao registro de D1 a D9; ciclo permanece em `Planejamento`; aprovação humana pendente; alteração local somente neste plano, sem commit ou publicação
+- `state_before`: plano `v4` em `Em Revisão`, rodada 4 com `APTO COM RESSALVAS` (R4-1: registrar D1 a D9 antes da aprovação); a rodada estava sem commit e foi preservada intacta no commit local `3c8f9b1`; a manifestação "aprovo o plano do ciclo 001" anterior ao registro das decisões não foi registrada como aprovação
+- `state_after`: plano `v5` em `Em Revisão`, com D1 a D9 registradas conforme as respostas do responsável de 2026-11-03, dentro das alternativas revisadas; demais seções inalteradas; aprovação humana pendente; ciclo `001` em `Planejamento`; commit local em `chore/cycle-001-plan`; nada publicado
 - `result`: `executed`
-- `evidence`: rodada 4 abaixo; v4, diff e respostas do autor conferidos; histórico das rodadas 1 a 3 comparado com `ad14faa` e preservado; gates e limites registrados na rodada
-- `blockers`: nenhum bloqueador de revisão identificado; R4-1 registra a precondição ainda pendente para aprovação: respostas humanas a D1 a D9 e seu registro no plano
+- `evidence`: respostas do responsável citadas na seção de decisões; conferência da matriz de combinações válidas; rodadas 1 a 4 sem remoções no diff; testes e validador executados nesta branch
+- `blockers`: nenhum; falta somente a manifestação "aprovo o plano do ciclo 001" posterior a este registro
 
 ## Revisão crítica
 
