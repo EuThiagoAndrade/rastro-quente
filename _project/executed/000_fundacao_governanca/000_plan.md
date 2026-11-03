@@ -1,10 +1,10 @@
 # Plano de implementação — Fundação da governança do Rastro Quente
 
 > **Ciclo:** `000`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v4`
 > **Data de criação:** 2026-10-31
-> **Última atualização:** 2026-10-31
+> **Última atualização:** 2026-11-03
 > **Autor:** Codex, nesta conversa; identificação exata do modelo não registrada
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
@@ -361,21 +361,21 @@ Referências da intercambiabilidade, fixadas por URL e commit para consulta sem 
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | —; não criadas |
-| PR(s) | [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) — aberta; base/tip conferidos; integração pendente |
-| Branch(es) | `chore/cycle-000-plan`; raiz local em `main` |
-| Artefato ativo | Task nominal `000_task_bootstrap.md`; plano v4 em execução |
-| Destino após conclusão comprovada | `_project/executed/000_fundacao_governanca/000_plan.md` |
+| PR(s) | [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) — integrada em `main` em 2026-11-01 (squash `da35eb9`); PR de encerramento própria, sem número registrado aqui |
+| Branch(es) | `chore/cycle-000-plan`; raiz em `main`; `chore/cycle-000-closure` para o encerramento |
+| Artefato ativo | Nenhum; task nominal `000_task_bootstrap.md` concluída |
+| Destino após conclusão comprovada | `_project/executed/000_fundacao_governanca/000_plan.md` (já aplicado prospectivamente) |
 
 ## Próximo passo
 
-A task `_project/drafts/000_fundacao_governanca/000_task_bootstrap.md` é o artefato ativo; consultar seu registro para autorização, publicação e evidências da PR #1.
+Encerramento prospectivo: o estado abaixo vale depois do merge da PR de encerramento. Evidências e decisões do encerramento na task `_project/executed/000_fundacao_governanca/000_task_bootstrap.md`.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 000 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #1 (https://github.com/EuThiagoAndrade/rastro-quente/pull/1)
-Diga: "aprovo o merge da PR #1"
+Situação: Concluído — ciclo 000 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -383,11 +383,11 @@ Diga: "aprovo o merge da PR #1"
 - `handoff_schema_version`: `2`
 - `logical_key`: `rastro-quente + 000 + implementar_issue + bootstrap-local + v4`
 - `effect_class`: `local_mutation`
-- `state_before`: v4 em revisão concluída, parecer apto; autorização humana local recebida; sem Git
-- `state_after`: plano em execução; task nominal aguardando integração da PR #1; publicação do lote C2 verificada
+- `state_before`: plano em execução; PR #1 integrada em `main`, registros ainda em "Aguardando merge"
+- `state_after`: plano `Concluído` e movido para `executed/` (encerramento prospectivo); nada publicado
 - `result`: `executed`
-- `evidence`: task nominal, índice de ciclos, Git local e Rodada 3 preservada abaixo
-- `blockers`: aprovação específica de merge pendente; registros posteriores e encerramento não enviados no lote C2
+- `evidence`: task nominal, índice de ciclos, PR #1 `MERGED` conferida via `gh` e Rodada 3 preservada abaixo
+- `blockers`: publicação da branch de encerramento e merge exigem autorização específica do responsável
 
 ## Revisão crítica
 

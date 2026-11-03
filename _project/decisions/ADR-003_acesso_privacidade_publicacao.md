@@ -42,6 +42,6 @@ Copiar licença/visibilidade, usuários ou concessões da origem foi rejeitado.
 
 ## Emenda — publicação privada autorizada em 2026-10-31
 
-O responsável definiu `EuThiagoAndrade/rastro-quente` privado, autorizou sua criação vazia se necessário e adiou a licença aberta, sem arquivo LICENSE. Autorizou somente o commit raiz em main e a branch chore/cycle-000-plan até C2 `6f9e220825dade7c635bb56d87e6e9efbcec352e`, com abertura de PR. O repositório privado foi criado, os SHAs conferidos e a PR #1 aberta com checks verdes. Manifestação literal e evidências na task do bootstrap. Merge continua sujeito à aprovação específica.
+O responsável definiu `EuThiagoAndrade/rastro-quente` privado, autorizou sua criação vazia se necessário e adiou a licença aberta, sem arquivo LICENSE. Autorizou somente o commit raiz em main e a branch chore/cycle-000-plan até C2 `6f9e220825dade7c635bb56d87e6e9efbcec352e`, com abertura de PR. O repositório privado foi criado, os SHAs conferidos e a PR #1 aberta com checks verdes. Manifestação literal e evidências na task do bootstrap. A PR #1 foi integrada em `main` em 2026-11-01 (squash `da35eb9`).
 
-Esta emenda é registro local posterior ao lote publicado; não foi enviada na PR #1. Não autoriza publicação de novos commits, dados privados ou serviços externos.
+Esta emenda é registro posterior ao lote da PR #1; não integrou aquela PR e segue na PR de encerramento do ciclo 000. Não autoriza publicação de novos commits, dados privados ou serviços externos.
