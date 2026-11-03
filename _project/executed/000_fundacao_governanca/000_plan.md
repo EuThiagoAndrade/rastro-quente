@@ -1,10 +1,10 @@
 # Plano de implementação — Fundação da governança do Rastro Quente
 
 > **Ciclo:** `000`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v4`
 > **Data de criação:** 2026-10-31
-> **Última atualização:** 2026-10-31
+> **Última atualização:** 2026-11-03
 > **Autor:** Codex, nesta conversa; identificação exata do modelo não registrada
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
@@ -304,7 +304,7 @@ As demais entregas seguem a relação normal plano → issue → task → PR, ap
 
 - Revisão independente concluída na Rodada 3, sobre v4: `APTO PARA APROVAÇÃO`, sem achados.
 - Instrução humana posterior em 2026-10-31: `autorizo a implementação local do ciclo 000`. Não foi localizada a frase separada de aprovação; a instrução explícita atual autoriza a execução local do escopo revisado, com a divergência registrada na task, sem inventar manifestação anterior.
-- Remoto GitHub, visibilidade, licença e autorização de publicação: pendentes. Impedem publicação e integração, não a execução local explicitamente autorizada.
+- Publicação autorizada e executada em repositório privado `EuThiagoAndrade/rastro-quente`, até C2 `6f9e220825dade7c635bb56d87e6e9efbcec352e`; PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) aberta e checks verdes. Licença aberta adiada, sem LICENSE. Merge e publicação de commits posteriores não autorizados.
 - Origem no commit fixado verificada por Git; decisões técnicas posteriores continuam fora do escopo.
 
 ## Riscos, suposições e rollback
@@ -361,21 +361,21 @@ Referências da intercambiabilidade, fixadas por URL e commit para consulta sem 
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | —; não criadas |
-| PR(s) | —; não criadas |
-| Branch(es) | `chore/cycle-000-plan`; raiz local em `main` |
-| Artefato ativo | Task nominal `000_task_bootstrap.md`; plano v4 em execução |
-| Destino após conclusão comprovada | `_project/executed/000_fundacao_governanca/000_plan.md` |
+| PR(s) | [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) — integrada em `main` em 2026-11-01 (squash `da35eb9`); PR de encerramento própria, sem número registrado aqui |
+| Branch(es) | `chore/cycle-000-plan`; raiz em `main`; `chore/cycle-000-closure` para o encerramento |
+| Artefato ativo | Nenhum; task nominal `000_task_bootstrap.md` concluída |
+| Destino após conclusão comprovada | `_project/executed/000_fundacao_governanca/000_plan.md` (já aplicado prospectivamente) |
 
 ## Próximo passo
 
-A task `_project/drafts/000_fundacao_governanca/000_task_bootstrap.md` é o artefato ativo; consultar seu registro para evidências e pergunta de publicação.
+Encerramento prospectivo: o estado abaixo vale depois do merge da PR de encerramento. Evidências e decisões do encerramento na task `_project/executed/000_fundacao_governanca/000_task_bootstrap.md`.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 000 (completo)
-Quem: Responsável
-Conferir: A pergunta registrada na task do bootstrap sobre publicação
-Diga: sua resposta à pergunta registrada
+Situação: Concluído — ciclo 000 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -383,11 +383,11 @@ Diga: sua resposta à pergunta registrada
 - `handoff_schema_version`: `2`
 - `logical_key`: `rastro-quente + 000 + implementar_issue + bootstrap-local + v4`
 - `effect_class`: `local_mutation`
-- `state_before`: v4 em revisão concluída, parecer apto; autorização humana local recebida; sem Git
-- `state_after`: plano em execução; task nominal ativa; publicação e integração pendentes
+- `state_before`: plano em execução; PR #1 integrada em `main`, registros ainda em "Aguardando merge"
+- `state_after`: plano `Concluído` e movido para `executed/` (encerramento prospectivo); nada publicado
 - `result`: `executed`
-- `evidence`: task nominal, índice de ciclos, Git local e Rodada 3 preservada abaixo
-- `blockers`: destino, visibilidade, licença e autorização de publicação pendentes
+- `evidence`: task nominal, índice de ciclos, PR #1 `MERGED` conferida via `gh` e Rodada 3 preservada abaixo
+- `blockers`: publicação da branch de encerramento e merge exigem autorização específica do responsável
 
 ## Revisão crítica
 

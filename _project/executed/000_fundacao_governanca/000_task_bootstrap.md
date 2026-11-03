@@ -2,17 +2,18 @@
 
 > **Ciclo:** `000`
 > **Trilha:** `normal`
-> **Estado:** `Bloqueada`
+> **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `— (exceção de bootstrap do ciclo 000)`
-> **Plano:** `_project/drafts/000_fundacao_governanca/000_plan.md`
+> **Plano:** `_project/executed/000_fundacao_governanca/000_plan.md`
 > **Branch:** `chore/cycle-000-plan`
-> **PR:** `—`
-> **Integração:** `Pendente`
+> **PR:** `https://github.com/EuThiagoAndrade/rastro-quente/pull/1`
+> **Integração:** `PR #1 integrada em main em 2026-11-01 (squash da35eb9), checks verdes`
+> **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** "autorizo a implementação local do ciclo 000" em 2026-10-31
 > **Modo contínuo:** `—`
 > **Início:** 2026-10-31
-> **Última atualização:** 2026-10-31
+> **Última atualização:** 2026-11-03
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -21,7 +22,7 @@ Implantar localmente os quatro itens da v4 revisada do ciclo 000, conforme o inv
 
 ## Escopo autorizado
 
-Autoridades, adapters, 12 workflows, seis templates, duas skills adotadas, registro de ciclos/backlog vazio, quatro ADRs, duas KBs, manifesto/validador/testes, templates GitHub e workflow de governança. Git local e commits delimitados. Sem aplicação, dados, banco, serviços externos, remoto ou publicação.
+Autoridades, adapters, 12 workflows, seis templates, duas skills adotadas, registro de ciclos/backlog vazio, quatro ADRs, duas KBs, manifesto/validador/testes, templates GitHub e workflow de governança. Git local e commits delimitados. O escopo inicial era somente local; foi complementado pela autorização de publicação abaixo. Aplicação, dados, banco e recursos Vercel/Supabase continuam fora do escopo.
 
 ## Origem no backlog
 
@@ -52,6 +53,12 @@ Não se aplica. Ciclo completo de governança.
 - [x] Validações finais aprovadas; staging seletivo inspecionado antes de C1.
 - [x] Registro exclusivo de C1 nesta task para C2 documental, com testes/validador/diff repetidos; L1 depende de C2 efetivado e árvore limpa, conferíveis no Git.
 
+- [x] Repositório privado criado vazio; propriedade/visibilidade/ausência de refs conferidas antes do envio.
+- [x] Commit raiz e branch publicados por SHA explícito, sem commits posteriores ao tip autorizado.
+- [x] PR #1 aberta, diff remoto conferido e Governance aprovado no GitHub.
+- [x] PR #1 integrada em `main` pelo responsável em 2026-11-01 (squash `da35eb9`); Governance aprovado em `main`.
+- [x] Encerramento documental preparado em branch própria a partir de `main`, na PR de encerramento do ciclo 000.
+
 ## Evidências
 
 | Validação | Resultado |
@@ -67,8 +74,11 @@ Não se aplica. Ciclo completo de governança.
 | Histórico de revisão | Rodadas anteriores preservadas; SHA-256 da seção: f5e0cb026510c76d62a68161c7c49c61a4f7c0fc005548e518bac291f77c3f7e |
 | Origem | Checkout de referência permanece sem alterações rastreadas |
 | C1 — entrega técnica | `d735cd2572d56f809f602a9d1a8d833ac50ce08c` na branch `chore/cycle-000-plan`, descendente da raiz `9cd9105` |
-| C2 — registro documental | Somente esta task; imediatamente posterior a C1. Confirmar SHA/ancestralidade e árvore limpa no Git após o commit; não há SHA autorreferente neste documento |
-| Checks remotos | Não executados; remoto/PR inexistentes e publicação não autorizada |
+| C2 — registro documental | `6f9e220825dade7c635bb56d87e6e9efbcec352e` confirmado após C1, com árvore limpa no marco L1 |
+| Checks remotos | Governance aprovado: [execução 41263848049](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/41263848049); testes, validador e G4 passaram |
+| Publicação | PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) aberta; base `9cd91054bb44cb87e838eed38f83d298f25768b9` e head `6f9e220825dade7c635bb56d87e6e9efbcec352e`; dois commits e 49 arquivos de diff conferidos |
+| Privacidade remota | Repositório privado confirmado; lote sem local/, ambientes ou LICENSE |
+| Integração | PR #1 `MERGED` em 2026-11-01T02:27:45Z, por EuThiagoAndrade, commit `da35eb9`; Governance em `main`: [execução 41265299410](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/41265299410), aprovada |
 
 ## Revisão da correção
 
@@ -83,29 +93,43 @@ Não se aplica à trilha normal. A revisão independente da v4 foi concluída po
 
 ## Encerramento
 
-Não se aplica ainda. Sem PR ou integração; plano/task permanecem em drafts e ciclo em execução. L1 não conclui o ciclo. C1 está identificado nas evidências. Este registro exclusivo compõe C2; o commit documental imediatamente posterior a C1 e a árvore limpa formalizam L1. A confirmação posterior é somente leitura, sem inserir o SHA de C2 nele próprio. Depois desse marco, os workflows locais assumem.
+Encerramento prospectivo na PR de encerramento do ciclo 000: plano `Concluído`, task `Concluída`, `cycles.md` atualizado e ciclo em `executed/`. A PR #1 integrou a entrega mas não carregou o encerramento, pois o lote autorizado terminava em C2; por isso o encerramento segue em PR própria. Por decisão do responsável em 2026-11-03, tratado como continuação do ciclo 000, sem novo plano, ideação, issue ou ciclo 001. O número da PR de encerramento e o SHA do próprio merge não são registrados nesta task.
 
-## Pergunta de publicação
+Checklist: documentação viva atualizada (README, ADR-003 e `cycles.md`); plano e task em `executed/`; nenhum registro de aprendizado novo; backlog vazio, sem retorno a registrar.
 
-Qual é a URL GitHub de destino, a visibilidade e a política de licença pretendidas, e autoriza publicar o lote local apresentado (commit raiz direto em main mais branch chore/cycle-000-plan, incluindo C1/C2) e abrir a PR do bootstrap? Lote preparado: raiz `9cd9105`, entrega C1 identificada acima e C2 documental imediatamente posterior, limitado a esta task. A autorização de publicação continua pendente; conferir o tip e o diff reais antes de qualquer envio. Merge exigirá aprovação própria de PR real.
+## Publicação autorizada em 2026-10-31
+
+Manifestação humana literal:
+
+> Use o repositório EuThiagoAndrade/rastro-quente, privado. Se ainda não existir, autorizo criá-lo vazio. Vamos adiar a escolha da licença aberta e manter sem arquivo LICENSE nesta etapa. Autorizo enviar o commit inicial à main e a branch chore/cycle-000-plan, incluindo C1 e C2 até o commit 6f9e220, e abrir a PR do ciclo 000.
+
+Destino: `https://github.com/EuThiagoAndrade/rastro-quente`; privado; sem LICENSE e sem licença aberta nesta etapa. A criação vazia está autorizada se o destino não existir.
+
+Lote remoto estrito: raiz `9cd91054bb44cb87e838eed38f83d298f25768b9` em `refs/heads/main` e tip `6f9e220825dade7c635bb56d87e6e9efbcec352e` em `refs/heads/chore/cycle-000-plan`, incluindo C1/C2. Sem commits posteriores. Não inclui merge, deploy, banco ou serviços externos.
+
+Conferências: árvore limpa em C2; conta gh EuThiagoAndrade; destino inexistente conferido antes de criar; repositório criado privado e vazio, sem refs. Envio atômico dos dois SHAs explicitamente delimitados, sem force push, confirmado por ls-remote. PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) aberta pelo conector GitHub; base/head e os 49 arquivos do diff remoto conferem com o lote local. Governance [aprovado](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/41263848049) no tip autorizado.
+
+Registro posterior: a autorização e os fatos desta publicação atualizam task, plano, índice, ADR-003, README e a informação de visibilidade na autoridade comportamental. Esse commit documental não fez parte da PR #1, que preservou o snapshot L1 em C2 e foi integrada nesse estado. Seu envio e o do encerramento dependem da autorização do responsável para a PR de encerramento.
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 000 (completo)
-Quem: Responsável
-Conferir: A pergunta registrada sobre destino, visibilidade, licença e publicação do lote local
-Diga: sua resposta à pergunta registrada
+Situação: Concluído — ciclo 000 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
+
+Bloco prospectivo, válido depois do merge da PR de encerramento. Até lá, a situação efetiva mostrada é "Aguardando merge", com o número real da PR.
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 000 + atualizar_docs + registro-L1 + d735cd2572d56f809f602a9d1a8d833ac50ce08c`
+- `logical_key`: `rastro-quente + 000 + atualizar_docs + encerramento + da35eb940e21a3bfadb638b9f916897cfdc38776`
 - `effect_class`: `local_mutation`
-- `state_before`: entrega técnica validada e gravada em C1; task em andamento; integração pendente
-- `state_after`: registro documental de L1 preparado para C2; task bloqueada pela decisão de publicação; plano/ciclo em execução e integração pendente
+- `state_before`: PR #1 integrada em `main` (`da35eb9`), registros ainda em "Aguardando merge"; plano e task em `drafts/`; commit documental posterior apenas local
+- `state_after`: registros reconciliados em branch local a partir de `main`; plano `Concluído`, task `Concluída`, ciclo em `executed/`; nada publicado
 - `result`: `executed`
-- `evidence`: esta task, plano, índice e commits locais; comandos e limitações nesta seção de evidências
-- `blockers`: destino, visibilidade, licença e autorização de publicação pendentes
+- `evidence`: PR #1 `MERGED` e Governance em `main` aprovada (execução 41265299410), conferidos via `gh`; testes e validador executados na branch de encerramento
+- `blockers`: publicação da branch, PR de encerramento e merge exigem autorização específica do responsável
