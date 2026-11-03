@@ -44,3 +44,13 @@ test('geometria não suportada e GeoJSON vazio são recusados', () => {
   assert.throws(() => criarTerritorio({ type: 'Point', coordinates: [0, 0] }), /não suportada/);
   assert.throws(() => criarTerritorio({ type: 'FeatureCollection', features: [] }), /sem polígonos/);
 });
+
+test('distância ao limite em metros (cálculo à mão: 0,01° de longitude no equador ≈ 1113,2 m)', async () => {
+  const { distanciaAoLimiteM } = await import('./geo.mjs');
+  const t = criarTerritorio({ type: 'Polygon', coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] });
+  // ponto (0,5; 0,01): a aresta mais próxima é y = 0, a 0,01° de latitude = 1105,74 m
+  assert.ok(Math.abs(distanciaAoLimiteM(0.5, 0.01, t) - 1105.74) < 0.5);
+  assert.ok(Math.abs(distanciaAoLimiteM(0.01, 0.5, t) - 1113.2) < 1);
+  assert.equal(distanciaAoLimiteM(0, 0, t), 0); // vértice
+  assert.ok(Math.abs(distanciaAoLimiteM(-0.01, 0.5, t) - 1113.2) < 1); // fora também mede ao limite
+});

@@ -1,0 +1,16 @@
+{
+  "versao": 1,
+  "descricao": "Transcrição das decisões D1 a D9 do plano aprovado do ciclo 001 (001_plan.md, v5, seção 'Decisões registradas (2026-11-03)'). Não é fonte de decisão: o plano é. Os scripts leem este arquivo e recusam combinações não admitidas, sem escolher alternativa no lugar do responsável.",
+  "planoVersao": "v5",
+  "decisoes": {
+    "D1": { "escolha": "d", "resumo": "AQUA (AQUA_M-T) como série principal; VIIRS e todos os satélites como contagens auxiliares" },
+    "D2": { "escolha": "c", "resumo": "polígono IBGE como principal, com a lista de divergências em relação a municipio_id; ponto exatamente sobre a divisa conta como dentro" },
+    "D3": { "escolha": "c", "resumo": "GMT como principal; horário de Cuiabá (UTC−4) como sensibilidade" },
+    "D4": { "escolha": "a", "resumo": "registro publicado" },
+    "D5": { "escolha": "b", "formula": "F2", "toleranciaPercentual": 25, "resumo": "tolerância de 25%, base maior: |A − B| / max(A, B) × 100" },
+    "D6": { "escolhas": ["a"], "resumo": "somente NASA FIRMS (VIIRS)" },
+    "D7": { "escolha": "b", "unidadeC": "d", "cMaximo": 3, "kMinimo": 2, "kTotal": 3, "mMinimoPercentual": 90, "resumo": "U; C ≤ 3 dias, todos declarados; K ≥ 2 de 3, com a divergência explicada; M ≥ 90%" },
+    "D8": { "escolha": "c", "minimoConclusivos": 10, "maximoCasos": 20, "resumo": "inconclusivo sai do denominador; reposição até 10 conclusivos ou 20 casos no total" },
+    "D9": { "agregacaoSatelites": "S2", "agregacaoMetodos": null, "comparacaoIndisponivel": "E1", "resumo": "S2 (maioria dos satélites VIIRS) e E1 (satélite sem comparação sai da agregação, com declaração); H não se aplica, por haver um só método de K" }
+  }
+}

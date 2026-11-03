@@ -1,7 +1,7 @@
 # Relatório de viabilidade — prova de dados de Colniza (MT)
 
 > **Ciclo:** `001`
-> **Estado:** `Rascunho` (parte do item 2, issue #5; os itens 3 e a conclusão de viabilidade pertencem à issue #6)
+> **Estado:** `Rascunho` (itens 2 e parte automática do item 3; faltam os casos manuais, M e a conclusão de viabilidade)
 > **Período:** 2026-08-01 a 2026-10-31 (GMT, início inclusivo e fim exclusivo)
 > **Última atualização:** 2026-11-03
 
@@ -44,7 +44,7 @@ Registros por mês em Colniza, GMT:
 
 Por valor de `satelite` (polígono): `GOES-19` 9.204 / 1.219 / 648; `AQUA_M-M` 52 / 12 / 13; `METOP-B` 139 / 65 / 34; `METOP-C` 74 / 64 / 30; `MSG-03` 31 / 0 / 0; `TERRA_M-M` 239 / 68 / 58; `TERRA_M-T` 44 / 28 / 29; `NPP-375` 2.338 / 1.122 / 452; `NPP-375D` 1.173 / 386 / 209. A soma de todos os satélites mede registros, não fogos: o mesmo evento pode aparecer em vários satélites e várias vezes por dia.
 
-Conferência por caminho independente da contagem municipal de P: `awk` sobre as colunas `satelite` e `municipio_id` dos mesmos arquivos deu 516, 246 e 62, igual a Mu. A comparação com a segunda fonte (FIRMS) é da issue #6.
+Conferência por caminho independente da contagem municipal de P: `awk` sobre as colunas `satelite` e `municipio_id` dos mesmos arquivos deu 516, 246 e 62, igual a Mu. A comparação com a segunda fonte (FIRMS) está na seção 9.
 
 ## 4. Divergências entre `municipio_id` e polígono (D2)
 
@@ -104,8 +104,61 @@ Limites desta leitura, sem interpretação causal: ela cobre só os três meses 
 - O catálogo do INPE reúne satélites com sensores e resoluções distintas; só P tem série comparável ao longo do tempo.
 - Malha IBGE aproximada e não oficial, revisão 2025; polígono usado como declarado (limitações de uso do IBGE no levantamento).
 - Cobertura: dias sem registro e sem evidência de lacuna ficam como "cobertura não comprovada"; a classificação do aviso de 2026-08-12 é indeterminada.
-- Scripts e revisão são do mesmo agente. A independência vem da issue #6 (FIRMS) e dos casos conferidos pelo responsável.
+- Scripts e revisão são do mesmo agente. A independência vem da comparação com o FIRMS (seção 9) e dos casos conferidos pelo responsável (seção 10).
+- Concordância com o FIRMS valida a obtenção e o processamento da série VIIRS (V), no mesmo polígono e com a mesma regra de mês; não torna a observação física independente, porque INPE e FIRMS usam os mesmos sensores VIIRS (seção 9).
+- A comparação com o FIRMS não testa a série principal P (MODIS/`AQUA_M-T`). P se liga a E pela lista de divergências de D2 (vazia) e é conferida pelos casos manuais (seção 10).
+- O FIRMS só existe como NRT para o período (a versão SP termina em 2026-07-31), e dados NRT podem ser reprocessados depois; os números valem para o que foi obtido em 2026-11-03.
 
-## 9. Pendências para a issue #6
+## 9. Comparação com o NASA FIRMS (D5 a D9)
 
-Comparação com o FIRMS (D5 a D9), casos manuais (D8), K e M, conclusão de viabilidade (D7) e a versão final deste relatório.
+**Contrato (D6 a).** INPE: série V (satélites VIIRS, polígono IBGE, GMT, registro publicado, sem filtro de confiança). FIRMS: produtos `VIIRS_SNPP_NRT`, `VIIRS_NOAA20_NRT` e `VIIRS_NOAA21_NRT`, consultados pelo retângulo de Colniza em 19 janelas consecutivas de 5 dias por produto (57 arquivos, SHA-256 em `scripts/prova-dados/fontes.json`), com os registros filtrados pelo mesmo polígono e `acq_date` e `acq_time` lidos em UTC. A versão SP do FIRMS termina em 2026-07-31; por isso todo o período usa NRT, sem misturar produtos. Nenhum registro caiu fora do trimestre, nenhum se repetiu entre janelas e nenhum ficou exatamente sobre a divisa. Os 57 arquivos e a contagem do item 2 foram conferidos por SHA-256 antes da comparação.
+
+**Regra de concordância (D5 b, F2).** `|A − B| / max(A, B) × 100`, com tolerância de 25%; `A` é o INPE e `B` o FIRMS. Duas contagens iguais a zero concordam; só uma igual a zero diverge. O limite exato de 25% conta como concordância. Nenhum mês ficou perto do limite.
+
+| Mês | Satélite | A (INPE) | B (FIRMS) | Diferença | Resultado |
+| :-- | :-- | --: | --: | --: | :-- |
+| 2026-08 | SNPP (`NPP-375` + `NPP-375D`) | 3.511 | 3.513 | 0,06% | concorda |
+| 2026-08 | NOAA-20 | 3.732 | 3.733 | 0,03% | concorda |
+| 2026-08 | NOAA-21 | 3.213 | 3.214 | 0,03% | concorda |
+| 2026-09 | SNPP | 1.508 | 1.510 | 0,13% | concorda |
+| 2026-09 | NOAA-20 | 1.580 | 1.580 | 0,00% | concorda |
+| 2026-09 | NOAA-21 | 1.391 | 1.393 | 0,14% | concorda |
+| 2026-10 | SNPP | 661 | 633 | 4,24% | concorda |
+| 2026-10 | NOAA-20 | 660 | 628 | 4,85% | concorda |
+| 2026-10 | NOAA-21 | 604 | 586 | 2,98% | concorda |
+
+**K (D9 S2 e E1).** Um mês concorda se a maioria estrita dos satélites comparáveis concorda; satélite sem comparação sai da agregação com declaração. Os três satélites tiveram comparação nos três meses, então nada foi excluído. **K = 3 de 3** (agosto, setembro e outubro concordam). Há um só método de K (FIRMS), então a agregação entre métodos (H) não se aplica.
+
+**Onde as séries diferem (casamento por registro).** Casando os registros por data, hora e minuto UTC e coordenadas com 3 casas decimais (cerca de 110 m), com `node scripts/prova-dados/casar.mjs`:
+
+| Satélite | Casados | Só no INPE | Só no FIRMS |
+| :-- | --: | --: | --: |
+| SNPP | 5.652 | 28 | 4 |
+| NOAA-20 | 5.940 | 32 | 1 |
+| NOAA-21 | 5.190 | 18 | 3 |
+
+Todos os registros só do INPE estão em outubro e concentrados entre 2026-10-09 e 2026-10-20 (por exemplo, NOAA-20: 14 em 12/10 e 6 em 13/10; SNPP: 11 em 14/10 e 6 em 16/10). Os 8 registros só do FIRMS estão em agosto e setembro, 1 a 2 por dia. A **causa não foi determinada**: não testei se o FIRMS NRT estava incompleto nesses dias ou se o INPE processou passagens que o FIRMS não tem. Como todos os meses concordam dentro da tolerância, a causa não altera K nem a conclusão, e nenhuma explicação é exigida por D7 b; fica registrada como diferença observada.
+
+## 10. Casos manuais (D8 c)
+
+**Estado: pendente da ação do responsável.** O responsável escolhe de 10 a 20 casos e confere, para cada um, P1 (catálogo: o registro aparece no WebGIS do BDQueimadas com o mesmo instante, satélite e coordenadas), P2 (território: dentro ou fora de Colniza sobre a camada de limites) e P3 (período: o mês pela regra de GMT). `node scripts/prova-dados/candidatos.mjs` sugere 28 candidatos (arquivo local `local/prova-dados/saidas/candidatos_casos.md`), em ordem determinística por hash, misturando meses, satélites (AQUA_M-T e NOAA-20), pontos perto da divisa dentro e fora do polígono e dias de borda de mês. A sugestão não é a escolha.
+
+Os casos conferidos entram em `scripts/prova-dados/casos.json` e daqui na tabela abaixo. Cada caso é "confere" (as três propriedades conferem), "não confere" (alguma não confere) ou "inconclusivo" (nenhuma diverge e alguma é inconclusiva). Inconclusivos saem do denominador de M; com menos de 10 conclusivos, o responsável escolhe casos novos até 10 conclusivos ou 20 casos no total, e depois disso M é indeterminado.
+
+Registro dos casos: nenhum caso conferido ainda. Cabeçalho da tabela:
+
+| # | id INPE | coordenadas (lat, lon) | instante GMT | satélite | visualizador e camada (versão/data de acesso) | P1 catálogo | P2 território | P3 período | esperado (caminho independente) | script | classificação | quem conferiu e data | motivo (divergência ou inconclusão) |
+| --: | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+
+**M: indeterminado** (0 casos conclusivos).
+
+## 11. Critério de viabilidade (D7 b) e conclusão
+
+| Componente | Valor | Condição de D7 b | Situação |
+| :-- | :-- | :-- | :-- |
+| U (uso permitido das fontes) | atendido: INPE (acesso livre, sem licença formal explícita), IBGE (CC BY 4.0 compatível, com atribuição) e FIRMS (política aberta da NASA; o responsável não relatou restrição nos termos do cadastro) | obrigatório | atendido, com as ressalvas do levantamento |
+| C (dias com lacuna conhecida ou incidência indeterminada, C-d) | 1 (2026-08-12, declarado) | ≤ 3, todos declarados | atendido |
+| K (meses que concordam) | 3 de 3 | ≥ 2 de 3, com a divergência explicada | atendido (nenhum mês diverge) |
+| M (casos manuais que conferem) | indeterminado | ≥ 90% | pendente |
+
+**Conclusão provisória: evidência insuficiente**, porque M é indeterminado. Por D7 b, a conclusão final é "viável" ou "inviável" só depois dos casos conferidos. Esta conclusão avalia se as fontes públicas e o método reproduzem contagens coerentes em Colniza; não avalia a regra de seleção de áreas (fora do escopo do ciclo), e focos não comprovam incêndio, dano, autoria ou infração.
