@@ -878,7 +878,7 @@
             "NOAA-20",
             "NOAA-21"
           ],
-          "observacao": "A tabela do FAQ lista NPP-375 e NPP-375D como VIIRS 375 m do Suomi-NPP. Nos arquivos, NPP-375 aparece de 15h a 19h GMT e NPP-375D de 02h a 07h GMT, e nenhuma chave (latitude, longitude, instante) é comum aos dois no arquivo de agosto: são passagens distintas, não duplicatas. O significado do sufixo D não foi encontrado na documentação lida; a leitura de passagem noturna é inferência dos horários.",
+          "observacao": "A tabela do FAQ lista NPP-375 e NPP-375D como VIIRS 375 m do Suomi-NPP. Nos arquivos, NPP-375 aparece de 15h a 19h GMT e NPP-375D de 02h a 07h GMT, e nenhuma chave (latitude, longitude, instante) é comum aos dois no arquivo de agosto: são passagens distintas, não duplicatas. O filtro de satélites do BDQueimadas (consultado em 2026-11-04, https://data.inpe.br/queimadas/bdqueimadas/) rotula `NPP-375D` como \"NPP-375 Manhã\" e `NPP-375` como \"NPP-375 Tarde\"; o significado literal do sufixo D não consta na documentação lida.",
           "aConfirmarNoItem2": "Série V (D6 a): o plano diz 'SNPP, NOAA-20, NOAA-21 com os valores identificados no item 1'. A leitura natural é SNPP = NPP-375 + NPP-375D, o que o responsável deve confirmar antes da contagem."
         }
       },

@@ -61,3 +61,26 @@ export function classificarPonto(lon, lat, territorio) {
   }
   return 'fora';
 }
+
+// Distância aproximada (metros, equiretangular em torno do ponto) do ponto ao limite do território. Só para escolher casos; não entra em contagem.
+export function distanciaAoLimiteM(lon, lat, territorio) {
+  const mPorGrauLat = 110_574;
+  const mPorGrauLon = 111_320 * Math.cos((lat * Math.PI) / 180);
+  let menor = Infinity;
+  for (const aneis of territorio.poligonos) {
+    for (const anel of aneis) {
+      for (let i = 0, j = anel.length - 1; i < anel.length; j = i, i += 1) {
+        const ax = (anel[j][0] - lon) * mPorGrauLon;
+        const ay = (anel[j][1] - lat) * mPorGrauLat;
+        const bx = (anel[i][0] - lon) * mPorGrauLon;
+        const by = (anel[i][1] - lat) * mPorGrauLat;
+        const dx = bx - ax;
+        const dy = by - ay;
+        const comp = dx * dx + dy * dy;
+        const t = comp === 0 ? 0 : Math.max(0, Math.min(1, -(ax * dx + ay * dy) / comp));
+        menor = Math.min(menor, Math.hypot(ax + t * dx, ay + t * dy));
+      }
+    }
+  }
+  return menor;
+}

@@ -1,0 +1,380 @@
+{
+  "casos": [
+    {
+      "id": "41ec2a21-3f75-3a37-a5c6-4446d40e7424",
+      "lat": -9.27697,
+      "lon": -59.54828,
+      "instanteGmt": "2026-08-01T19:45:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1878037780 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-08-01T19:45:00Z (dia de borda de mês); mês 2026-08 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-08",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "12c4b3b1-310b-38f9-9a5b-4d47029e6f73",
+      "lat": -8.90224,
+      "lon": -60.56729,
+      "instanteGmt": "2026-08-13T19:08:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1881114730 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-08-13T19:08:00Z; mês 2026-08 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-08",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "c3b1a503-4531-3259-8cc1-d79c2e07d1c8",
+      "lat": -8.9622,
+      "lon": -60.5203,
+      "instanteGmt": "2026-08-16T05:36:00Z",
+      "satelite": "NOAA-20",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1881726180 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-08-16T05:36:00Z; mês 2026-08 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-08",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "b358e542-ec2c-3e78-a68f-d7d47f095eef",
+      "lat": -9.17929,
+      "lon": -59.6467,
+      "instanteGmt": "2026-08-31T19:04:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1887145427 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-08-31T19:04:00Z (dia de borda de mês); mês 2026-08 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-08",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "d744e2fe-72ac-3c1b-a0dc-4c58df117d42",
+      "lat": -9.14238,
+      "lon": -60.9573,
+      "instanteGmt": "2026-09-01T19:45:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1887562826 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-01T19:45:00Z (dia de borda de mês); mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-09",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "9f1b7557-d6ea-3536-888a-70fbf23a41f6",
+      "lat": -8.79986,
+      "lon": -60.79205,
+      "instanteGmt": "2026-09-19T19:38:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1891841197 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-19T19:38:00Z; mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-09",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "19ede071-e292-384a-93c0-df489cb78c53",
+      "lat": -9.58187,
+      "lon": -60.63054,
+      "instanteGmt": "2026-09-22T19:53:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1892443508 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município ARIPUANÃ/MT (fora de Colniza); limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-22T19:53:00Z; mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município ARIPUANÃ/MT; mês 2026-09",
+      "script": "fora",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "80179945-50a0-3eae-a447-33462a9f1259",
+      "lat": -8.92035,
+      "lon": -61.4712,
+      "instanteGmt": "2026-09-22T19:55:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1892444934 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município MACHADINHO D'OESTE/RO (fora de Colniza); limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-22T19:55:00Z; mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município MACHADINHO D'OESTE/RO; mês 2026-09",
+      "script": "fora",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "813a92ec-7aa7-3c21-aafe-3effab7b1e37",
+      "lat": -8.80321,
+      "lon": -60.80736,
+      "instanteGmt": "2026-09-22T19:55:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1892442184 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-22T19:55:00Z; mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-09",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "3e6faee6-d66f-32df-833a-1f0b561d76cb",
+      "lat": -9.1267,
+      "lon": -60.39911,
+      "instanteGmt": "2026-09-30T20:04:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1893886350 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-09-30T20:04:00Z (dia de borda de mês); mês 2026-09 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-09",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "db15870c-5f3a-3b55-861b-28b8988970f4",
+      "lat": -9.08083,
+      "lon": -61.15199,
+      "instanteGmt": "2026-10-04T19:19:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1894419238 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-10-04T19:19:00Z; mês 2026-10 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-10",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "39ad46da-593f-3102-a6df-88404cc7cfd5",
+      "lat": -9.56492,
+      "lon": -59.78339,
+      "instanteGmt": "2026-10-08T20:12:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1895245295 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município ARIPUANÃ/MT (fora de Colniza); limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-10-08T20:12:00Z; mês 2026-10 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município ARIPUANÃ/MT; mês 2026-10",
+      "script": "fora",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "c8b39087-dc5c-3c78-899c-06d7e1711042",
+      "lat": -9.10257,
+      "lon": -60.97426,
+      "instanteGmt": "2026-10-09T18:00:00Z",
+      "satelite": "NOAA-20",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1895441707 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-10-09T18:00:00Z; mês 2026-10 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-10",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "15862113-e0ee-3dd2-91d6-6453027dc246",
+      "lat": -9.7703,
+      "lon": -59.38624,
+      "instanteGmt": "2026-10-25T19:30:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1898760196 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-10-25T19:30:00Z; mês 2026-10 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-10",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    },
+    {
+      "id": "73cbc661-8fb5-3a89-831f-dc58a65f0392",
+      "lat": -9.13854,
+      "lon": -61.12164,
+      "instanteGmt": "2026-10-31T20:02:00Z",
+      "satelite": "AQUA_M-T",
+      "visualizador": "BDQueimadas (data.inpe.br/queimadas/bdqueimadas), camada bdqueimadas:focos consultada pelo serviço WFS do GeoServer do INPE; acesso em 2026-11-04",
+      "p1": {
+        "resultado": "confere",
+        "motivo": "registro id_foco_bdq 1899745185 com mesmo instante GMT, satélite, latitude e longitude (5 casas)"
+      },
+      "p2": {
+        "resultado": "confere",
+        "motivo": "catálogo do INPE: município COLNIZA/MT; limites do INPE, não a malha IBGE"
+      },
+      "p3": {
+        "resultado": "confere",
+        "motivo": "data/hora GMT do catálogo 2026-10-31T20:02:00Z (dia de borda de mês); mês 2026-10 pela regra de GMT"
+      },
+      "esperado": "no catálogo do INPE: registro existente; município COLNIZA/MT; mês 2026-10",
+      "script": "dentro",
+      "conferidoPor": "Claude (agente), por escolha do responsável em 2026-11-04; não é conferência humana",
+      "data": "2026-11-04",
+      "motivo": ""
+    }
+  ],
+  "explicacoesDeK": {}
+}
