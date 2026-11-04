@@ -2,17 +2,17 @@
 
 > **Ciclo:** `001`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#6`
 > **Plano:** `_project/drafts/001_prova_de_dados/001_plan.md`
 > **Branch:** `chore/issue-6`
-> **PR:** —
+> **PR:** https://github.com/EuThiagoAndrade/rastro-quente/pull/9
 > **Integração:** `Pendente`
 > **Autorização inicial:** "Autorizo a #6" em 2026-11-03
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-03
-> **Última atualização:** 2026-11-03
+> **Última atualização:** 2026-11-04
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -50,15 +50,15 @@ Não se aplica.
 - [x] `casar.mjs`: onde as séries diferem (todos os registros só do INPE em outubro, de 2026-10-09 a 2026-10-20; causa não determinada).
 - [x] `candidatos.mjs`: 28 candidatos determinísticos para o responsável escolher (arquivo local).
 - [x] Relatório consolidado (seções 9 a 11), com o cabeçalho da tabela de casos.
-- [ ] **Ação externa do responsável:** escolher de 10 a 20 casos e conferir P1, P2 e P3.
-- [ ] Registrar os casos em `casos.json`, calcular M e a conclusão final, completar o relatório.
+- [x] **Conferência dos casos (desvio declarado):** o responsável informou que não sabia operar o mapa e escolheu, em 2026-11-04, "Eu confiro no navegador" (resposta à pergunta de como seguir). O agente conferiu 15 casos (P1, P2, P3) pelo serviço WFS do BDQueimadas. Não é conferência humana.
+- [x] Casos em `casos.json`, M e conclusão final (viável), relatório completado (seções 10 e 11).
 - [ ] PR da issue, checks e aprovação do merge.
 
 ## Evidências
 
 | Validação | Resultado |
 | :-- | :-- |
-| Testes | `npm run test:prova-dados`: 56 testes, 56 aprovados, 0 falhas (Node v24.15.0); governança: 55 aprovados |
+| Testes | `npm run test:prova-dados`: 57 testes, 57 aprovados, 0 falhas (Node v24.15.0); governança: 55 aprovados |
 | Validador | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem erros |
 | Checks remotos | Pendente |
@@ -73,8 +73,10 @@ Não se aplica.
 - **Limite exato da tolerância.** O plano não diz se 25,00% concorda ou diverge; adotei "concorda" (≤), testado e registrado no relatório. Nenhum mês chegou perto (máximo 4,85%).
 - **Casamento de registros (`casar.mjs`).** Módulo extra, para caracterizar as diferenças entre INPE e FIRMS sem explicar a causa. A causa da concentração de registros só do INPE em 2026-10-09 a 2026-10-20 não foi determinada; K não depende dela. Registrado como diferença observada.
 - **Candidatos de casos (`candidatos.mjs`).** Módulo extra que apoia a ação externa: sugere 28 candidatos por regra determinística (hash do id), sem escolher pelo responsável. A distância ao limite é aproximada e só serve para sugerir.
-- **`casos.json` versionado.** Guarda os casos conferidos (dados públicos do INPE) e as explicações de divergências de K, lidos por `comparar.mjs`. Hoje vazio, então M é indeterminado.
-- **Conclusão provisória.** U atendido (com as ressalvas do levantamento), C-d = 1, K = 3 de 3 e M indeterminado: "evidência insuficiente". A conclusão final depende dos casos.
+- **`casos.json` versionado.** Guarda os casos conferidos (dados públicos do INPE) e as explicações de divergências de K, lidos por `comparar.mjs`. Agora tem 15 casos.
+- **Quem conferiu os casos.** O plano previa o responsável. Ele não sabe operar a ferramenta, recusou "dar como certo" sem conferência (o agente também recusou) e escolheu que o agente conferisse. O relatório declara que não é conferência humana nem totalmente independente do autor dos scripts. Usei o serviço WFS do GeoServer do BDQueimadas (o mesmo do mapa do site), consultado do navegador, em vez de clicar nos pontos; P2 foi conferido pelo atributo `municipio` do catálogo (limites do INPE), não pela malha IBGE. Os 15 casos foram escolhidos por critério de cobertura antes da consulta.
+- **Conclusão final.** U atendido (com as ressalvas do levantamento), C-d = 1, K = 3 de 3 e M = 100% (15 de 15): "viável" por D7 b, com a ressalva acima. Se o responsável quiser conferência humana, os casos ficam em `casos.json`.
+- **Duplicidade observada.** No caso 26 o catálogo traz dois registros AQUA_M-T no mesmo instante a cerca de 1 m um do outro; não foi investigada (registrada no relatório).
 - **Independência.** A comparação com o FIRMS valida a série VIIRS (V), não a principal P (MODIS), e usa os mesmos sensores; os casos manuais e a lista de divergências de D2 (vazia) cobrem P. Declarado no relatório.
 
 ## Encerramento
@@ -85,18 +87,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando ação externa — ciclo 001 (completo)
+Situação: Aguardando merge — ciclo 001 (completo)
 Quem: Responsável
-Conferir: Roteiro na seção 10 do relatório 001_research_viabilidade.md: escolher de 10 a 20 casos (sugestões em local/prova-dados/saidas/candidatos_casos.md) e conferir P1 (catálogo no BDQueimadas), P2 (dentro ou fora de Colniza na camada de limites) e P3 (mês por GMT), com resultado e motivo de cada um
-Diga: "concluí a ação externa da issue #6"
+Conferir: Checks e diff da PR #9 (https://github.com/EuThiagoAndrade/rastro-quente/pull/9); conclusão "viável" (U, C-d = 1, K = 3 de 3, M = 100%) e a ressalva de que os 15 casos foram conferidos pelo agente, não por pessoa, com P2 contra a base de limites do INPE
+Diga: "aprovo o merge da PR #9"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 001 + implementar_issue + 6 + 1c50787`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issues #4 e #5 integradas, `main` em `1c50787`, sem `comparar.mjs` / branch `chore/issue-6` local com `comparar.mjs`, módulos, testes, relatório consolidado até a seção 11 e task; casos manuais pendentes.
-- `result`: `executed` (parte automática); casos e PR pendentes.
-- `evidence`: `npm run test:prova-dados` 56/56; governança 55/55; duas execuções de `comparar.mjs` com SHA-256 de saída `983eaaadc41761aedfaae8f152e2e76159fc6cf5c67ac25156114232d5187464`; K = 3 de 3.
-- `blockers`: conferência manual dos casos (ação externa do responsável).
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issues #4 e #5 integradas, `main` em `1c50787`, sem `comparar.mjs` / branch `chore/issue-6` publicada com `comparar.mjs`, módulos, testes, 15 casos conferidos pelo agente, relatório completo e task.
+- `result`: `executed`
+- `evidence`: `npm run test:prova-dados` 57/57; governança 55/55; validador 0 erros; `comparar.mjs` com SHA-256 de saída `f33b2a7d6e5ab41361be4ec657e22fc5835b1f9f0d6a8ce9a0e562f4f86cf1ce`; K = 3 de 3; M = 100% (15 de 15); conclusão "viável".
+- `blockers`: `nenhum` (merge depende de checks verdes e da aprovação do responsável).
