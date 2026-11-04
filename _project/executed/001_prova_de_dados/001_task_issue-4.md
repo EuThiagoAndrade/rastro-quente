@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#4`
-> **Plano:** `_project/drafts/001_prova_de_dados/001_plan.md`
+> **Plano:** `_project/executed/001_prova_de_dados/001_plan.md`
 > **Branch:** `chore/issue-4`
 > **PR:** https://github.com/EuThiagoAndrade/rastro-quente/pull/7
 > **Integração:** `PR #7 integrada em main em 2026-11-03 (squash), Governance aprovado em main`
@@ -61,7 +61,7 @@ Não se aplica.
 | Testes | `npm run test:prova-dados`: 16 testes, 16 aprovados, 0 falhas (Node v24.15.0); `node --test scripts/validate-governance.test.mjs`: 55 aprovados, 0 falhas |
 | Validador | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem erros; `local/` ignorado (`git check-ignore`), nenhum bruto no índice |
-| Checks remotos | Pendente |
+| Checks remotos | Governance aprovado na PR #7 e em `main` (68c2666) |
 
 ## Revisão da correção
 
