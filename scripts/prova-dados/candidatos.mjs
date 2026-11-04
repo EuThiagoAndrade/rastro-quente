@@ -58,11 +58,23 @@ export function tabelaCandidatos(candidatos) {
   return ['| # | id INPE | lat, lon | instante GMT | satélite | mês (script, GMT) | polígono (script) | distância ao limite (m, aprox.) | por que foi sugerido |', '| --: | :-- | :-- | :-- | :-- | :-- | :-- | --: | :-- |', ...linhas].join('\n');
 }
 
+// GeoJSON com o polígono de Colniza e os candidatos numerados, para abrir no QGIS ou em geojson.io e conferir P2.
+export function geojsonCandidatos(candidatos, malha) {
+  const poligonos = (malha.features ?? [malha]).map((f) => ({ type: 'Feature', properties: { nome: 'Colniza (malha IBGE)' }, geometry: f.geometry }));
+  const pontos = candidatos.map((c, i) => ({
+    type: 'Feature',
+    properties: { n: i + 1, id: c.id, satelite: c.satelite, instanteGmt: c.instanteGmt, mes: c.mes, script: c.script, distanciaM: c.distanciaM },
+    geometry: { type: 'Point', coordinates: [c.lon, c.lat] },
+  }));
+  return { type: 'FeatureCollection', features: [...poligonos, ...pontos] };
+}
+
 export async function executar({ raiz, saida } = {}) {
   const fontes = JSON.parse(await readFile(path.join(AQUI, 'fontes.json'), 'utf8'));
   const brutos = path.join(raiz, 'local', 'prova-dados', 'brutos');
   const malha = fontes.itens.find((i) => i.tipo === 'ibge-malha');
-  const territorio = criarTerritorio(JSON.parse(await readFile(path.join(brutos, malha.destino), 'utf8')));
+  const malhaGeojson = JSON.parse(await readFile(path.join(brutos, malha.destino), 'utf8'));
+  const territorio = criarTerritorio(malhaGeojson);
   const arquivos = fontes.itens.filter((i) => i.tipo === 'inpe-focos' && i.id.startsWith('inpe-mensal')).map((i) => path.join(brutos, i.destino));
   const todos = (async function* () {
     for (const a of arquivos) yield* lerFocos(a);
@@ -71,6 +83,7 @@ export async function executar({ raiz, saida } = {}) {
   const destino = saida ?? path.join(raiz, 'local', 'prova-dados', 'saidas', 'candidatos_casos.md');
   await mkdir(path.dirname(destino), { recursive: true });
   await writeFile(destino, `# Candidatos para a conferência manual (sugestão, não escolha)\n\nTotais lidos: ${JSON.stringify(totais)}.\n\n${tabelaCandidatos(candidatos)}\n`);
+  await writeFile(destino.replace(/\.md$/, '.geojson'), `${JSON.stringify(geojsonCandidatos(candidatos, malhaGeojson))}\n`);
   return { destino, candidatos, totais };
 }
 

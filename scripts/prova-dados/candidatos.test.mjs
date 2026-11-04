@@ -39,3 +39,15 @@ test('seleção determinística e tabela com todas as colunas', async () => {
   assert.equal(t.length, a.candidatos.length + 2);
   assert.match(t[0], /id INPE.*instante GMT.*satélite.*polígono \(script\).*por que foi sugerido/);
 });
+
+test('GeoJSON dos candidatos: polígono mais um ponto numerado por candidato, em [lon, lat]', async () => {
+  const { geojsonCandidatos } = await import('./candidatos.mjs');
+  const malha = JSON.parse(await readFile(new URL('colniza_ficticio.geojson', FIXTURES), 'utf8'));
+  const { candidatos } = await rodar({});
+  const g = geojsonCandidatos(candidatos, malha);
+  assert.equal(g.features.length, 1 + candidatos.length);
+  assert.equal(g.features[0].geometry.type, 'MultiPolygon');
+  const d5 = g.features.find((f) => f.properties.id === 'd5');
+  assert.deepEqual(d5.geometry.coordinates, [10, 5]); // lon 10, lat 5
+  assert.equal(d5.properties.n, candidatos.findIndex((c) => c.id === 'd5') + 1);
+});
