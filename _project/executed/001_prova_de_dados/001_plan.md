@@ -1,10 +1,10 @@
 # Plano de Implementação — Prova de dados
 
 > **Ciclo:** `001`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v5`
 > **Data de criação:** 2026-11-03
-> **Última atualização:** 2026-11-03 (início da issue #6)
+> **Última atualização:** 2026-11-04 (encerramento prospectivo)
 > **Tipo:** `chore`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -58,7 +58,7 @@ Consequências para o plano: os arquivos brutos são grandes demais para o Git e
 - Testes `node --test` com fixtures fictícias em `tests/fixtures/prova-dados/`, incluindo casos de referência calculados à mão.
 - Manifesto de fontes versionado (`scripts/prova-dados/fontes.json`) com URL sanitizada, período e, após a obtenção, data de obtenção, tamanho e SHA-256 esperados.
 - Dados brutos e saídas intermediárias somente em `local/prova-dados/`.
-- Relatório `_project/drafts/001_prova_de_dados/001_research_viabilidade.md` com fontes, versões, cobertura, contagens agregadas, comparação, casos conferidos, limitações e conclusão de viabilidade nos termos decididos em D7 a D9.
+- Relatório `_project/executed/001_prova_de_dados/001_research_viabilidade.md` com fontes, versões, cobertura, contagens agregadas, comparação, casos conferidos, limitações e conclusão de viabilidade nos termos decididos em D7 a D9.
 - Encerramento prospectivo do ciclo e atualização da documentação viva (KB-003).
 
 ### Fora do escopo
@@ -376,7 +376,7 @@ Com D6 a, roteiro da ação externa: o responsável faz o cadastro gratuito no F
 
 - `scripts/prova-dados/` (novo): `fontes.json`, `decisoes.json` (transcrição das decisões do plano aprovado), `obter.mjs`, `contar.mjs`, `comparar.mjs`, módulos de apoio e `*.test.mjs`.
 - `tests/fixtures/prova-dados/` (novo): CSV e GeoJSON fictícios.
-- `_project/drafts/001_prova_de_dados/`: `001_plan.md`, tasks e `001_research_viabilidade.md`.
+- `_project/executed/001_prova_de_dados/`: `001_plan.md`, tasks e `001_research_viabilidade.md`.
 - `_project/cycles.md`; no encerramento, `_project/knowledge/KB-003_visao_produto_requisitos.md` e a movimentação para `_project/executed/001_prova_de_dados/`.
 - `package.json`: somente um script `test:prova-dados`, se útil; nenhuma dependência.
 - Fora do Git: `local/prova-dados/`.
@@ -438,30 +438,32 @@ Uma issue por PR. O encerramento é coberto pela aprovação do plano e exige ap
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#4](https://github.com/EuThiagoAndrade/rastro-quente/issues/4) (item 1), [#5](https://github.com/EuThiagoAndrade/rastro-quente/issues/5) (item 2), [#6](https://github.com/EuThiagoAndrade/rastro-quente/issues/6) (item 3) |
-| PR(s) | [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3) (documental: ideação e plano) |
-| Branch(es) | `chore/cycle-001-plan` (publicada; inclui os commits da ideação) |
-| Destino após conclusão | `_project/executed/001_prova_de_dados/001_plan.md` |
+| PR(s) | [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3) (documental: ideação e plano), [#7](https://github.com/EuThiagoAndrade/rastro-quente/pull/7) (issue #4), [#8](https://github.com/EuThiagoAndrade/rastro-quente/pull/8) (issue #5), [#9](https://github.com/EuThiagoAndrade/rastro-quente/pull/9) (issue #6); PR de encerramento própria, sem número registrado aqui |
+| Branch(es) | `chore/cycle-001-plan`, `chore/issue-4`, `feature/issue-5`, `chore/issue-6`; `chore/cycle-001-closure` para o encerramento |
+| Destino após conclusão | `_project/executed/001_prova_de_dados/001_plan.md` (já aplicado prospectivamente) |
 
 ## Próximo passo
 
+Encerramento prospectivo: o estado abaixo vale depois do merge da PR de encerramento. Evidências e decisões do encerramento na task `_project/executed/001_prova_de_dados/001_task_issue-6.md`.
+
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 001 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR [#3](https://github.com/EuThiagoAndrade/rastro-quente/pull/3)
-Diga: "aprovo o merge da PR #3"
+Situação: Concluído — ciclo 001 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 001 + atualizar_docs + 001_plan/aprovacao-e-pr-documental + v5@444c059`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 001 + atualizar_docs + encerramento + c78ca0d`
 - `effect_class`: `remote_mutation`
-- `state_before`: plano `v5` em `Em Revisão`, `APTO COM RESSALVAS` na rodada 4, D1 a D9 registradas, aprovação pendente; branch `chore/cycle-001-plan` só local; nenhuma PR do ciclo 001 no GitHub
-- `state_after`: plano `Aprovado` (`Aprovada em 2026-11-03`); branch publicada e PR documental #3 aberta para `main`; ciclo `001` em `Planejamento`; issues ainda não criadas
+- `state_before`: issues #4, #5 e #6 integradas (PRs #7, #8 e #9), `main` em `c78ca0d` com Governance aprovado; plano `Em Execução` em `drafts/`; ciclo `Em execução`
+- `state_after`: plano `Concluído` e ciclo movido para `executed/` (encerramento prospectivo, vale depois do merge); tasks `Concluída`; KB-003 atualizado
 - `result`: `executed`
-- `evidence`: manifestação "aprovo o plano do ciclo 001" posterior ao registro das decisões; `gh pr list` sem PR anterior do ciclo; PR #3 criada; testes e validador executados nesta branch
-- `blockers`: nenhum; o merge exige checks verdes e "aprovo o merge da PR #3"; a criação das issues vem depois da integração, com payload confirmado
+- `evidence`: PRs #3, #7, #8 e #9 `MERGED` conferidas via `gh`; Governance verde em `main`; testes e validador executados na branch de encerramento
+- `blockers`: `nenhum`; o merge exige checks verdes e "aprovo o merge da PR #N" com o número real
 
 ## Revisão crítica
 

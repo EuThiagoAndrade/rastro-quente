@@ -2,17 +2,17 @@
 
 > **Ciclo:** `001`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#5`
-> **Plano:** `_project/drafts/001_prova_de_dados/001_plan.md`
+> **Plano:** `_project/executed/001_prova_de_dados/001_plan.md`
 > **Branch:** `feature/issue-5`
 > **PR:** https://github.com/EuThiagoAndrade/rastro-quente/pull/8
-> **Integração:** `Pendente`
+> **Integração:** `PR #8 integrada em main em 2026-11-03 (squash), Governance aprovado em main`
 > **Autorização inicial:** "Concordo com a proposta e autorizo a implementação da issue #5" em 2026-11-03
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-03
-> **Última atualização:** 2026-11-03
+> **Última atualização:** 2026-11-04
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -60,7 +60,7 @@ Não se aplica.
 | Testes | `npm run test:prova-dados`: 36 testes, 36 aprovados, 0 falhas (Node v24.15.0); governança: 55 aprovados |
 | Validador | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem erros; `local/` ignorado, nenhum bruto, saída ou imagem no índice |
-| Checks remotos | Pendente |
+| Checks remotos | Governance aprovado na PR #8 e em `main` (1c50787) |
 
 ## Revisão da correção
 
@@ -83,10 +83,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 001 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #8 (https://github.com/EuThiagoAndrade/rastro-quente/pull/8); classificação do aviso de 2026-08-12 como incidência indeterminada e a leitura do crescimento (não observado)
-Diga: "aprovo o merge da PR #8"
+Situação: Concluído — ciclo 001 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

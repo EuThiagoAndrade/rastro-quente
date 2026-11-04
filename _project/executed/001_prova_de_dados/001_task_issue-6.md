@@ -2,13 +2,13 @@
 
 > **Ciclo:** `001`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#6`
-> **Plano:** `_project/drafts/001_prova_de_dados/001_plan.md`
+> **Plano:** `_project/executed/001_prova_de_dados/001_plan.md`
 > **Branch:** `chore/issue-6`
 > **PR:** https://github.com/EuThiagoAndrade/rastro-quente/pull/9
-> **Integração:** `Pendente`
+> **Integração:** `PR #9 integrada em main em 2026-11-04 (squash), Governance aprovado em main`
 > **Autorização inicial:** "Autorizo a #6" em 2026-11-03
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-03
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Relatório consolidado (seções 9 a 11), com o cabeçalho da tabela de casos.
 - [x] **Conferência dos casos (desvio declarado):** o responsável informou que não sabia operar o mapa e escolheu, em 2026-11-04, "Eu confiro no navegador" (resposta à pergunta de como seguir). O agente conferiu 15 casos (P1, P2, P3) pelo serviço WFS do BDQueimadas. Não é conferência humana.
 - [x] Casos em `casos.json`, M e conclusão final (viável), relatório completado (seções 10 e 11).
-- [ ] PR da issue, checks e aprovação do merge.
+- [x] PR da issue, checks e aprovação do merge ("aprovo o merge da PR #9", 2026-11-04).
 
 ## Evidências
 
@@ -61,7 +61,7 @@ Não se aplica.
 | Testes | `npm run test:prova-dados`: 57 testes, 57 aprovados, 0 falhas (Node v24.15.0); governança: 55 aprovados |
 | Validador | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem erros |
-| Checks remotos | Pendente |
+| Checks remotos | Governance aprovado na PR #9 e em `main` (c78ca0d) |
 
 ## Revisão da correção
 
@@ -81,16 +81,24 @@ Não se aplica.
 
 ## Encerramento
 
-Não se aplica.
+Encerramento prospectivo do ciclo 001 (PR `chore/cycle-001-closure`, sem issue, coberta pela aprovação do plano, com aprovação de merge própria). O estado abaixo vale depois do merge dessa PR.
+
+- **Entregas integradas:** #4 (PR #7), #5 (PR #8) e #6 (PR #9), todas com Governance aprovado em `main`. Plano documental: PR #3.
+- **Resultado do ciclo:** conclusão de viabilidade **viável** por D7 b (U atendido; C-d = 1; K = 3 de 3; M = 100% em 15 casos), com as ressalvas do relatório: os 15 casos foram conferidos pelo agente, a pedido do responsável, e não por pessoa; P2 foi conferido contra a base de limites do INPE; a série VIIRS foi comparada com o FIRMS NRT (a versão SP do FIRMS termina em 2026-07-31). Relatório: `_project/executed/001_prova_de_dados/001_research_viabilidade.md`.
+- **Documentação viva:** `_project/knowledge/KB-003_visao_produto_requisitos.md` atualizado com o que o ciclo estabeleceu; `_project/cycles.md` com o ciclo `Concluído`; plano, tasks e relatório movidos para `executed/`.
+- **Fora do Git:** dados brutos, saídas e imagens ficam em `local/prova-dados/`; o responsável pode apagá-los sem efeito no repositório (reproduzíveis por `obter.mjs`, `contar.mjs` e `comparar.mjs`, com a `MAP_KEY` do FIRMS).
+- **Pendências declaradas, sem reserva no backlog:** conferência humana dos casos (se desejada); duplicidade do caso 26 e registros só do INPE de 2026-10-09 a 2026-10-20 sem causa determinada; regra de seleção de áreas e arquitetura (fora do escopo do ciclo, para triagem própria).
 
 ## Próximo passo
 
+Encerramento prospectivo: o estado abaixo vale depois do merge da PR de encerramento.
+
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 001 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #9 (https://github.com/EuThiagoAndrade/rastro-quente/pull/9); conclusão "viável" (U, C-d = 1, K = 3 de 3, M = 100%) e a ressalva de que os 15 casos foram conferidos pelo agente, não por pessoa, com P2 contra a base de limites do INPE
-Diga: "aprovo o merge da PR #9"
+Situação: Concluído — ciclo 001 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -98,7 +106,7 @@ Diga: "aprovo o merge da PR #9"
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 001 + implementar_issue + 6 + 1c50787`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: issues #4 e #5 integradas, `main` em `1c50787`, sem `comparar.mjs` / branch `chore/issue-6` publicada com `comparar.mjs`, módulos, testes, 15 casos conferidos pelo agente, relatório completo e task.
+- `state_before` / `state_after`: issues #4 e #5 integradas, `main` em `1c50787`, sem `comparar.mjs` / PR #9 integrada em `main` (`c78ca0d`) com `comparar.mjs`, módulos, testes, 15 casos conferidos pelo agente, relatório completo; task `Concluída` (prospectivo, depois do merge da PR de encerramento).
 - `result`: `executed`
 - `evidence`: `npm run test:prova-dados` 57/57; governança 55/55; validador 0 erros; `comparar.mjs` com SHA-256 de saída `f33b2a7d6e5ab41361be4ec657e22fc5835b1f9f0d6a8ce9a0e562f4f86cf1ce`; K = 3 de 3; M = 100% (15 de 15); conclusão "viável".
-- `blockers`: `nenhum` (merge depende de checks verdes e da aprovação do responsável).
+- `blockers`: `nenhum`
