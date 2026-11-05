@@ -2,13 +2,13 @@
 
 > **Ciclo:** `002`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#14`
-> **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
+> **Plano:** `_project/executed/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-14`
 > **PR:** [#17](https://github.com/EuThiagoAndrade/rastro-quente/pull/17)
-> **Integração:** `Pendente`
+> **Integração:** `PR #17 integrada em main em 2026-11-05 (squash); Governance aprovado na PR e em main`
 > **Autorização inicial:** "autorizo a implementação da issue #14" em 2026-11-05
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-05
@@ -62,6 +62,7 @@ Não se aplica.
 | Consistência | 27 cenários únicos, nove por conjunto e 81 resultados EI; dez recursos, cinco protocolos e oito IDs de fontes presentes. Relatórios dos itens 1/2 e fatos municipais da KB preservados. Revisão crítica do plano idêntica à base, SHA-256 `15b20aedee0189a4f3016e800c6e37c6c055149dff3934f3523a731a72cb80a3`. |
 | Publicação | Commit de entrega `9a670d1ff6868946c31037359bfc24d3b31deedd` publicado; PR #17 `OPEN`, de `chore/issue-14` para `main`, com os cinco arquivos previstos. Este registro é atualizado em commit documental posterior na mesma PR. |
 | Checks remotos | `Governance / Validate governance` observado como `QUEUED` na abertura sobre `9a670d1` ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42080471636/job/127431855156)). O último push reexecuta os checks; estado atual verificável na PR, sem sucesso presumido. |
+| Reconciliação após integração | PR #17 `MERGED` em 2026-11-05 às 18:08:06Z; issue #14 `CLOSED`; Governance `SUCCESS` em main ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42081315005)). O parecer e a KB-003 permanecem preservados. |
 
 ## Revisão da correção
 
@@ -78,28 +79,28 @@ Não se aplica.
 
 ## Encerramento
 
-Não se aplica. Última issue de ciclo completo: a PR de encerramento documental é separada e depende da integração desta entrega. Não concluir plano/ciclo nem mover para `executed/` agora.
+Encerramento prospectivo documentado em `002_task_closure.md`. Esta task registra a conclusão da issue #14; o estado global do ciclo vale depois do merge da PR de encerramento.
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 002 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/17
-Diga: "aprovo o merge da PR #17"
+Situação: Concluído — ciclo 002 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 002 + implementar_issue + issue-14/item-3 + 2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`
-- `effect_class`: `remote_mutation`
-- `state_before`: plano/ciclo em execução; itens 1 e 2 integrados; issue #14 aberta e autorizada em 2026-11-05, sem task/PR.
-- `state_after`: parecer do item 3 e KB-003 publicados na PR #17; task #13 reconciliada como concluída; task #14 `Aguardando integração`, sem encerrar o ciclo.
-- `result`: `executed`
-- `evidence`: autorização literal, base e integração das dependências conferidas; relatório com alternativas/81 avaliações/recursos/matriz/protocolos e KB-003 no escopo; 55 testes passaram, validador sem erros/avisos, contas, referências/G3/staging conferidos; PR #17 real com escopo e checks consultados.
-- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e "aprovo o merge da PR #17". Encerramento depende da integração e de PR própria. Lacunas não autorizam provas ou serviços.
+- `logical_key`: `rastro-quente + 002 + atualizar_docs + reconciliar_issue-14 + 7992dfbbec6ee4e8cee8eca497ea8f828a135763`
+- `effect_class`: `local_mutation`
+- `state_before`: task #14 `Aguardando integração`; PR #17 já integrada, issue #14 fechada e Governance aprovado em main.
+- `state_after`: task #14 `Concluída`; relatório do item 3 e KB-003 integrados; encerramento prospectivo do ciclo documentado na task própria.
+- `result`: `already_executed_and_reconciled`
+- `evidence`: PR #17 `MERGED`, issue #14 `CLOSED` e check Governance `SUCCESS` em main ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42081315005)); conteúdo do parecer preservado.
+- `blockers`: nenhum para a issue #14; o merge da PR de encerramento ainda exige checks verdes e aprovação específica.
 
 ## Referência do bootstrap
 

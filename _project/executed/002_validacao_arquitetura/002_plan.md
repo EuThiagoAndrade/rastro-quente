@@ -1,10 +1,10 @@
 # Plano de Implementação — Validação de capacidades, custos e arquitetura
 
 > **Ciclo:** `002`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-05
-> **Última atualização:** 2026-11-05
+> **Última atualização:** 2026-11-05 (encerramento prospectivo)
 > **Tipo:** `chore`
 > **Prioridade:** `P2` (proposta de planejamento, sem prazo assumido)
 > **Nível:** `completo`
@@ -19,7 +19,7 @@
 
 Plano v2 aprovado pelo responsável em 2026-11-05 pela manifestação literal "Aprovo o plano do ciclo 002", posterior ao veredito `APTO PARA APROVAÇÃO` da rodada 2. A aprovação confirma o recorte de evidências, a exclusão de camadas adicionais de sobreposição e de recontagem local, e o processamento esperado como indeterminado. Cobre a publicação da PR documental do lote do ciclo e, após sua integração e confirmação dos payloads, a criação das issues; não autoriza merge ou implementação de entregas.
 
-**Execução:** itens 1 e 2 autorizados por "autorizo a implementação da issue #12" e "autorizo a implementação da issue #13" em 2026-11-05 e integrados pelas PRs #15/#16. Item 3 autorizado por "autorizo a implementação da issue #14" em 2026-11-05; `002_task_issue-14.md` é o artefato ativo. O escopo e as rodadas da v2 aprovada permanecem preservados; encerramento documental fica em PR própria após integração das entregas.
+**Execução:** os itens 1, 2 e 3 foram autorizados e integrados pelas PRs #15, #16 e #17 em 2026-11-05. O encerramento documental prospectivo nesta PR reconcilia as três tasks, atualiza a documentação viva e move o ciclo para `executed/`; o estado Concluído passa a valer após o merge desta PR. O escopo e as rodadas da v2 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -201,7 +201,7 @@ Se todas forem incompatíveis ou indeterminadas, relatar esse resultado e as dec
 
 | Momento | Arquivos previstos |
 | :-- | :-- |
-| Rascunho e revisão | `_project/drafts/002_validacao_arquitetura/002_plan.md`; `_project/cycles.md` para estado `Planejamento` e link do plano |
+| Rascunho e revisão | `_project/executed/002_validacao_arquitetura/002_plan.md`; `_project/cycles.md` para estado `Planejamento` e link do plano |
 | PR documental futura | Plano e registro do ciclo; incluir os dois commits locais da ideação ainda não publicados em `_project/ideations/002_validacao_arquitetura.md` |
 | Item 1 | `002_research_cenarios.md` e task `002_task_issue-N.md` no diretório ativo do ciclo |
 | Item 2 | `002_research_capacidades_custos.md` e task correspondente no diretório ativo |
@@ -269,33 +269,46 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#12](https://github.com/EuThiagoAndrade/rastro-quente/issues/12) (item 1), [#13](https://github.com/EuThiagoAndrade/rastro-quente/issues/13) (item 2), [#14](https://github.com/EuThiagoAndrade/rastro-quente/issues/14) (item 3) |
-| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), [#15 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/pull/15) e [#16 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/pull/16), integradas em 2026-11-05; [#17 — item 3](https://github.com/EuThiagoAndrade/rastro-quente/pull/17), aberta, integração pendente |
-| Branch(es) | Plano: `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395`; item 1: `chore/issue-12`, base integrada `1e794cf91d46276b14a12b3ecd1de187e22b87af`; item 2: `chore/issue-13`, base `d8fb3b3d7b2459e11e63c0e3a26cebb1051f3778`; item 3: `chore/issue-14`, base `2cb40044bd42edefac94cbd1d360dd8ebcd9f67d` |
-| Entrega do item 1 | `002_research_cenarios.md`; task `002_task_issue-12.md` reconciliada como concluída |
-| Entrega do item 2 | `002_research_capacidades_custos.md`; task `002_task_issue-13.md` reconciliada como concluída |
-| Entrega do item 3 | `002_research_arquitetura.md`, atualização da KB-003 e registro ativo em `002_task_issue-14.md` |
+| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), [#15 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/pull/15), [#16 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/pull/16) e [#17 — item 3](https://github.com/EuThiagoAndrade/rastro-quente/pull/17), integradas em 2026-11-05; PR própria de encerramento nesta branch, sem número autorreferenciado |
+| Branch(es) | Plano: `chore/cycle-002-plan`; item 1: `chore/issue-12`; item 2: `chore/issue-13`; item 3: `chore/issue-14`; encerramento: `chore/cycle-002-closure` |
+| Entrega do item 1 | `002_research_cenarios.md`; task `002_task_issue-12.md` concluída |
+| Entrega do item 2 | `002_research_capacidades_custos.md`; task `002_task_issue-13.md` concluída |
+| Entrega do item 3 | `002_research_arquitetura.md`, atualização da KB-003 e task `002_task_issue-14.md` concluída |
 | Destino após conclusão | `_project/executed/002_validacao_arquitetura/002_plan.md` |
 
 ## Próximo passo
 
+Encerramento prospectivo: o estado abaixo vale depois do merge da PR de encerramento.
+
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 002 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/17
-Diga: "aprovo o merge da PR #17"
+Situação: Concluído — ciclo 002 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 002 + implementar_issue + issue-14/item-3 + 2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`.
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 002 + atualizar_docs + encerramento + 7992dfbbec6ee4e8cee8eca497ea8f828a135763`
+- `effect_class`: `remote_mutation`
+- `state_before`: main em `7992dfbbec6ee4e8cee8eca497ea8f828a135763`; ciclo e plano `Em execução`; PRs #15/#16/#17 integradas, issues #12/#13/#14 fechadas; check Governance da main `SUCCESS`.
+- `state_after`: encerramento prospectivo; plano e ciclo `Concluído`, tasks `Concluída` e artefatos em `executed/` após o merge desta PR; integração desta PR ainda pendente.
+- `result`: `executed`
+- `evidence`: estados do GitHub verificados; check Governance em main ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42081315005)); parecer e limites já consolidados na KB-003 e no relatório do item 3.
+- `blockers`: nenhum para o pacote documental; integração depende de checks verdes e aprovação específica da PR de encerramento.
+
+### Registro anterior — publicação do item 3
+
+- `handoff_schema_version: 2`
+- `logical_key`: `rastro-quente + 002 + implementar_issue + issue-14/item-3 + 2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`
 - `effect_class`: `remote_mutation`
 - `state_before`: plano/ciclo em execução; PRs #15/#16 integradas, task #13 aguardando reconciliação; issue #14 aberta e autorização específica recebida.
 - `state_after`: task #13 reconciliada como concluída; item 3 e KB-003 publicados na PR #17 de `chore/issue-14`, task #14 aguardando integração; ciclo permanece em execução, sem encerramento antecipado.
 - `result`: `executed`
 - `evidence`: PR #16 e checks da PR/main conferidos; autorização literal, relatório com três alternativas, recursos materiais, 81 avaliações, proposta de acesso e cinco protocolos futuros; KB-003 atualizada e PR #17 real com escopo conferido.
-- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e "aprovo o merge da PR #17". Encerramento em PR própria depois da integração das entregas; incógnitas impedem compatibilidade global, não a entrega do parecer insuficiente.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e aprovação específica da PR #17. Encerramento em PR própria depois da integração das entregas; incógnitas impedem compatibilidade global, não a entrega do parecer insuficiente.
 
 ### Registro anterior — publicação do item 2
 
@@ -449,8 +462,8 @@ Nenhum bloqueador ou ressalva.
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
+- **Data de conclusão:** 2026-11-05 (prospectiva, após merge desta PR).
+- **Desvios:** nenhum de escopo; falha 401 do MCP GitHub Docker e uso do `gh` autenticado registrados na task de encerramento.
 - **Lições comprovadas:** —
 
 ## Referência do bootstrap

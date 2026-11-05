@@ -46,14 +46,14 @@ Há incompatibilidades demonstradas para rotas que exijam os CSVs nacionais mens
 
 O relatório do item 3 propõe acessos permitidos/negados para anônimo, responsável autorizado, outro autenticado e executor controlado, além de cinco protocolos de provas futuras. **Nenhuma política, teste de segurança, benchmark ou prova de recuperação foi executada.** Não há arquitetura aceita nem garantia de gratuidade; Vercel, Supabase e login Google permanecem requisitos.
 
-Próximas etapas técnicas exigem definir contrato de dados e acesso, finalidade/elegibilidade, consultas, capacidade e objetivos de operação/recuperação; provas futuras e fundação dependem de triagem, plano e autorizações próprios. O ciclo 002 permanece em execução até integrar as entregas e o encerramento documental separado. Não se reservam demandas no backlog ou ciclos futuros.
+Próximas etapas técnicas exigem definir contrato de dados e acesso, finalidade/elegibilidade, consultas, capacidade e objetivos de operação/recuperação; provas futuras e fundação dependem de triagem, plano e autorizações próprios. O ciclo 002 foi concluído pela integração das três entregas e da PR documental de encerramento em 2026-11-05. As evidências e limites permanecem nos relatórios do ciclo em `executed/`; a conclusão não escolhe arquitetura nem autoriza provas, serviços ou mudanças ambientais. Não se reservam demandas no backlog ou ciclos futuros.
 
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
 - ADR-002: requisitos de infraestrutura; ADR-003: acesso/privacidade; KB-001: inventário de componentes de origem. Fontes externas, URLs fixadas e blobs constam de KB-001.
 - Ciclo `001`: relatório `_project/executed/001_prova_de_dados/001_research_viabilidade.md` e `scripts/prova-dados/fontes.json` (URLs, datas de acesso, tamanhos e SHA-256 das fontes de focos, malha e FIRMS).
-- Ciclo `002`: [cenários](../drafts/002_validacao_arquitetura/002_research_cenarios.md), [capacidades e custos](../drafts/002_validacao_arquitetura/002_research_capacidades_custos.md) e [parecer de arquiteturas](../drafts/002_validacao_arquitetura/002_research_arquitetura.md). Os dois primeiros estão integrados na base `2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`; o parecer acompanha a entrega da issue #14. Fontes oficiais, seções, datas e limites constam dos relatórios. São evidências documentais, sem autoridade para adotar arquitetura ou autorizar provas/serviços.
+- Ciclo `002`: [cenários](../executed/002_validacao_arquitetura/002_research_cenarios.md), [capacidades e custos](../executed/002_validacao_arquitetura/002_research_capacidades_custos.md) e [parecer de arquiteturas](../executed/002_validacao_arquitetura/002_research_arquitetura.md). As três entregas foram integradas pelas PRs #15, #16 e #17 em 2026-11-05. Fontes oficiais, seções, datas e limites constam dos relatórios. São evidências documentais, sem autoridade para adotar arquitetura ou autorizar provas/serviços.
 
 ## Histórico
 
@@ -61,4 +61,4 @@ Próximas etapas técnicas exigem definir contrato de dados e acesso, finalidade
 | :-- | :-- | :-- |
 | 2026-10-31 | `000` | Síntese formal autossuficiente, sem leitura/cópia do brainstorm |
 | 2026-11-04 | `001` | Resultado e limites da prova de dados de Colniza (conclusão de viabilidade com ressalvas) e fatos que as próximas etapas devem respeitar |
-| 2026-11-05 | `002` | Comparação documental de três alternativas para S1/S2/S3, insuficiência nos 27 cenários por alternativa, incompatibilidades de rotas específicas, proposta de acesso e provas futuras não executadas; sem arquitetura aceita |
+| 2026-11-05 | `002` | Comparação documental de três alternativas para S1/S2/S3, insuficiência nos 27 cenários por alternativa, incompatibilidades de rotas específicas, proposta de acesso e provas futuras não executadas; sem arquitetura aceita; ciclo concluído pela PR própria de encerramento |
