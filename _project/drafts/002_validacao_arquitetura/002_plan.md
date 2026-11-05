@@ -267,7 +267,7 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — (não criadas) |
-| PR(s) | — (não publicadas para o ciclo 002) |
+| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), aberta; integração pendente |
 | Branch(es) | `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395` |
 | Destino após conclusão | `_project/executed/002_validacao_arquitetura/002_plan.md` |
 
@@ -275,22 +275,22 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 002"
+Situação: Aguardando merge — ciclo 002 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/11
+Diga: "aprovo o merge da PR #11"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + atualizar_docs + aprovacao_publicacao_plano + v2@25ea623eec58ffafaffc537e7f9ce40f7d379cfe` (origem revisada com SHA-256 `fb4e94afc195af1978c2c2805ea37d3d7db8d239bcc6ad526a506e98590902ab`).
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v2 em `Em Revisão`, rodada 2 registrada como alteração local preexistente, veredito `APTO PARA APROVAÇÃO`, aguardando aprovação humana; somente o plano modificado em `chore/cycle-002-plan`; ciclo 002 em `Planejamento`.
-- `state_after`: plano v2 `Aprovado` por manifestação posterior ao parecer; publicação documental autorizada e em preparação; ciclo permanece em `Planejamento`; nenhuma issue ou implementação iniciada.
+- `state_after`: plano v2 `Aprovado` por manifestação posterior ao parecer; lote documental publicado na PR #11 de `chore/cycle-002-plan` para `main`, aguardando merge; ciclo permanece em `Planejamento`; nenhuma issue ou implementação iniciada.
 - `result`: `executed`
-- `evidence`: manifestação humana literal "Aprovo o plano do ciclo 002" em 2026-11-05; veredito apto da rodada 2 preservado; repositório privado e base `origin/main` em `28dece5b5391cc9e7176a2f8c4020f5e05c1c34a` conferidos; ausência de PR do ciclo verificada; lote limitado à ideação, plano e registro do ciclo.
-- `blockers`: nenhum para registrar a aprovação e preparar a PR documental; merge exige PR real, checks verdes e aprovação específica. Issues dependem da integração documental e da confirmação dos payloads.
+- `evidence`: manifestação humana literal "Aprovo o plano do ciclo 002" em 2026-11-05; veredito apto da rodada 2 preservado; repositório privado e base `origin/main` em `28dece5b5391cc9e7176a2f8c4020f5e05c1c34a` conferidos; ausência de PR do ciclo verificada antes da criação; PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/11 criada após publicar o commit de aprovação `f178cca`; lote limitado à ideação, plano e registro do ciclo; 55 testes passaram, validador sem erros/avisos e diff sem erros; revisões preservadas integralmente por conferência de hash.
+- `blockers`: nenhum para a publicação realizada; integração depende de checks verdes e "aprovo o merge da PR #11". Issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
 
 A subseção abaixo é a evidência do rascunho (`rascunhar_plano`, v1), preservada sem alteração.
 
