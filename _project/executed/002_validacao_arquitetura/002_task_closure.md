@@ -48,7 +48,7 @@ Não se aplica.
 - [x] Atualizar documentação viva, rastreabilidade e estados prospectivos.
 - [x] Mover plano, relatórios e tasks para executed e criar esta task de encerramento.
 - [x] Executar o validador local e git diff --check; revisar staging e G3.
-- [ ] Publicar PR própria de encerramento e conferir os checks remotos.
+- [x] Publicar a PR própria de encerramento e conferir os checks remotos.
 
 ## Evidências
 
@@ -59,7 +59,7 @@ Não se aplica.
 | Testes locais desta atualização | Não executados; o workflow Governance da PR verificará o validador no commit publicado. |
 | Validador | `node scripts/validate-governance.mjs`: zero erros, zero avisos, nove itens manuais. |
 | git diff --check | `git diff --cached --check` passou antes do commit. |
-| Checks da PR de encerramento | Pendente; exige sucesso no commit final antes da aprovação de merge. |
+| Checks da PR de encerramento | Governance passou no commit publicado; integração em main ainda depende da aprovação e do merge desta PR. |
 
 ## Decisões incidentais e desvios
 
