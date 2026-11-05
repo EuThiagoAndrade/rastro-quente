@@ -1,7 +1,7 @@
 # Plano de Implementação — Validação de capacidades, custos e arquitetura
 
 > **Ciclo:** `002`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-05
 > **Última atualização:** 2026-11-05
@@ -18,6 +18,8 @@
 > **handoff_schema_version:** `2`
 
 Plano v2 aprovado pelo responsável em 2026-11-05 pela manifestação literal "Aprovo o plano do ciclo 002", posterior ao veredito `APTO PARA APROVAÇÃO` da rodada 2. A aprovação confirma o recorte de evidências, a exclusão de camadas adicionais de sobreposição e de recontagem local, e o processamento esperado como indeterminado. Cobre a publicação da PR documental do lote do ciclo e, após sua integração e confirmação dos payloads, a criação das issues; não autoriza merge ou implementação de entregas.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #12" recebida em 2026-11-05. A task `002_task_issue-12.md` é o artefato ativo; somente a entrega documental da #12 está em execução. O escopo e as rodadas da v2 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -266,31 +268,43 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — (não criadas) |
-| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), aberta; integração pendente |
-| Branch(es) | `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395` |
+| Issue(s) | [#12](https://github.com/EuThiagoAndrade/rastro-quente/issues/12) (item 1), [#13](https://github.com/EuThiagoAndrade/rastro-quente/issues/13) (item 2), [#14](https://github.com/EuThiagoAndrade/rastro-quente/issues/14) (item 3) |
+| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), integrada em 2026-11-05 |
+| Branch(es) | Plano: `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395`; item 1: `chore/issue-12`, base integrada `1e794cf91d46276b14a12b3ecd1de187e22b87af` |
+| Entrega do item 1 | `002_research_cenarios.md`; registro ativo em `002_task_issue-12.md` |
 | Destino após conclusão | `_project/executed/002_validacao_arquitetura/002_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 002 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/11
-Diga: "aprovo o merge da PR #11"
+Situação: Pronto para continuar — ciclo 002 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 002"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 002 + atualizar_docs + aprovacao_publicacao_plano + v2@25ea623eec58ffafaffc537e7f9ce40f7d379cfe` (origem revisada com SHA-256 `fb4e94afc195af1978c2c2805ea37d3d7db8d239bcc6ad526a506e98590902ab`).
-- `effect_class`: `remote_mutation`
-- `state_before`: plano v2 em `Em Revisão`, rodada 2 registrada como alteração local preexistente, veredito `APTO PARA APROVAÇÃO`, aguardando aprovação humana; somente o plano modificado em `chore/cycle-002-plan`; ciclo 002 em `Planejamento`.
-- `state_after`: plano v2 `Aprovado` por manifestação posterior ao parecer; lote documental publicado na PR #11 de `chore/cycle-002-plan` para `main`, aguardando merge; ciclo permanece em `Planejamento`; nenhuma issue ou implementação iniciada.
+- `logical_key`: `rastro-quente + 002 + implementar_issue + issue-12/item-1 + 1e794cf91d46276b14a12b3ecd1de187e22b87af`.
+- `effect_class`: `local_mutation`
+- `state_before`: plano v2 aprovado e integrado; ciclo em `Planejamento`; issue #12 aberta e autorização específica recebida.
+- `state_after`: plano `Em Execução`, ciclo `Em execução`, relatório do item 1 e task registrados em `chore/issue-12`; preparação da PR em curso.
 - `result`: `executed`
-- `evidence`: manifestação humana literal "Aprovo o plano do ciclo 002" em 2026-11-05; veredito apto da rodada 2 preservado; repositório privado e base `origin/main` em `28dece5b5391cc9e7176a2f8c4020f5e05c1c34a` conferidos; ausência de PR do ciclo verificada antes da criação; PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/11 criada após publicar o commit de aprovação `f178cca`; lote limitado à ideação, plano e registro do ciclo; 55 testes passaram, validador sem erros/avisos e diff sem erros; revisões preservadas integralmente por conferência de hash.
-- `blockers`: nenhum para a publicação realizada; integração depende de checks verdes e "aprovo o merge da PR #11". Issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
+- `evidence`: relatório `002_research_cenarios.md` e task `002_task_issue-12.md`, com autorização literal, proveniência, cenários, contas e gates; PR #11 integrada conferida no GitHub.
+- `blockers`: nenhum para publicar a entrega autorizada; merge depende de aprovação própria. Itens 2 e 3 não iniciados.
+
+### Registro anterior — criação das issues
+
+- `handoff_schema_version: 2`
+- `logical_key`: `rastro-quente + 002 + criar_issues + chore_items_1_2_3 + v2@e10129a911dfb450204825cb9aa2a7679130d746`.
+- `effect_class`: `remote_mutation`
+- `state_before`: plano v2 `Aprovado`; PR #11 integrada em `main` pelo commit `1e794cf91d46276b14a12b3ecd1de187e22b87af`; ciclo 002 em `Planejamento`; issues dos itens 1–3 ainda não criadas; nenhuma implementação iniciada.
+- `state_after`: plano v2 `Aprovado`; ciclo 002 permanece em `Planejamento`; issues #12, #13 e #14 abertas e registradas; próximo passo aguarda autorização para implementar a issue #12; nenhuma implementação iniciada.
+- `result`: `executed`
+- `evidence`: confirmação humana "Confirmo os 3 payloads. Pode criar as issues." em 2026-11-05; PR #11 integrada e merge commit conferido; issues #12, #13 e #14 criadas e verificadas no GitHub com os títulos e corpos confirmados; issue #12 é o primeiro item do plano.
+- `blockers`: nenhum para criação das issues; implementação da #12 aguarda autorização explícita; #13 depende da integração do item 1 e #14 depende da integração dos itens 1 e 2.
 
 A subseção abaixo é a evidência do rascunho (`rascunhar_plano`, v1), preservada sem alteração.
 
