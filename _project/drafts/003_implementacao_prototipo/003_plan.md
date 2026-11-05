@@ -388,30 +388,36 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | —; cinco propostas, nenhuma criada |
-| PR(s) | —; nenhuma publicação do ciclo `003` |
-| Branch(es) | `chore/cycle-003-plan`, local, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b` |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integração pendente |
+| Branch(es) | `chore/cycle-003-plan`, publicada, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b` |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 003 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 003"
+Situação: Aguardando merge — ciclo 003 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/19
+Diga: "aprovo o merge da PR #19"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + atualizar_docs + aprovacao_publicacao_plano + v4@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf+rodada-3`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano `v4` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO PARA APROVAÇÃO` (rodada 3), aprovação `Pendente`, situação `Aguardando aprovação do plano`. A branch `chore/cycle-003-plan` está em `89e060d`, sobre `origin/main` `78267a79363aa49286fc1a8e2b7be2a5fe1e9d38`; rodadas 2 e 3 e correção v4 ainda locais. Ciclo `003` em `Planejamento`; sem PR ou issue do ciclo.
-- `state_after`: plano `v4` `Aprovado` (`Aprovada em 2026-11-05`) por manifestação posterior ao parecer; ciclo permanece em `Planejamento`. A publicação da PR documental, coberta pela aprovação, é o próximo passo.
+- `state_after`: plano `v4` `Aprovado` (`Aprovada em 2026-11-05`) por manifestação posterior ao parecer. Lote documental publicado na PR #19, de `chore/cycle-003-plan` para `main`, aguardando checks e merge. Ciclo permanece em `Planejamento`; nenhuma issue ou implementação iniciada.
 - `result`: `executed`
-- `evidence`: manifestação humana literal "aprovo o plano do ciclo 003" em 2026-11-05, posterior à rodada 3; precedente do ciclo `002` (PR #11) conferido; base remota e ausência de PR/branch remota do ciclo conferidas por `git fetch`, `git ls-remote` e `gh`.
-- `blockers`: nenhum para publicar a PR documental.
+- `evidence`:
+  - manifestação humana literal "aprovo o plano do ciclo 003" em 2026-11-05, posterior à rodada 3;
+  - precedente do ciclo `002` (PR #11) conferido;
+  - base `origin/main` `78267a79363aa49286fc1a8e2b7be2a5fe1e9d38` e ausência de PR ou branch remota do ciclo conferidas antes de publicar;
+  - commit de aprovação `ad2fa08` publicado e PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/19 criada;
+  - lote limitado a ideação, plano e registro do ciclo; 55 testes aprovados, validador sem erros ou avisos, diff sem erros, varredura G3 sem e-mail, UUID ou segredo;
+  - rodadas 1 e 2 conferidas por hash.
+- `blockers`: nenhum para a publicação realizada. A integração depende de checks verdes e de "aprovo o merge da PR #19". As issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
 
 ### Registro anterior — revisão da rodada 3
 
