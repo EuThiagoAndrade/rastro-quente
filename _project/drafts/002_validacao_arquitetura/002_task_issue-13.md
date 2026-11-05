@@ -2,12 +2,12 @@
 
 > **Ciclo:** `002`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#13`
 > **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-13`
-> **PR:** —
+> **PR:** [#16](https://github.com/EuThiagoAndrade/rastro-quente/pull/16)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #13" em 2026-11-05
 > **Modo contínuo:** `—`
@@ -47,7 +47,8 @@ Não se aplica.
 - [x] Ler autoridades, templates de task/plano/PR e `governance-check`.
 - [x] Pesquisar 32 fontes oficiais e documentar condições/cotas, divergências e pontos não verificados no relatório `002_research_capacidades_custos.md`.
 - [x] Confrontar os 27 cenários e três conjuntos por recurso, conferir contas e critérios de aceite.
-- [ ] Executar gates, revisar G3/staging e publicar PR com checks reais.
+- [x] Executar gates, revisar G3/staging e publicar a PR #16, com branch/base e quatro arquivos conferidos no GitHub.
+- [x] Consultar os checks reais; acompanhar o resultado do último push antes de solicitar integração.
 
 ## Evidências
 
@@ -59,7 +60,8 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove itens manuais. |
 | `git diff --check` | Passou na conferência local. |
 | Consistência | 27 linhas de cenários únicas, nove para cada S1/S2/S3; IDs de fontes consistentes. Revisões do plano idênticas à base integrada; relatório do item 1 sem alteração. |
-| Checks remotos | Pendente |
+| Publicação | Commit de entrega `c2e6bc82eb7f474ff8a61bbe0bacd6efc361b9c8` publicado; PR #16 `OPEN`, de `chore/issue-13` para `main`, com os quatro arquivos previstos. Este registro é atualizado em commit documental posterior na mesma PR. |
+| Checks remotos | `Governance / Validate governance` observado como `IN_PROGRESS` na abertura da PR #16 sobre `c2e6bc8` ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42077122876/job/127420189450)). O último push reexecuta os checks; estado atual verificável na PR, sem sucesso presumido. |
 
 ## Revisão da correção
 
@@ -83,22 +85,22 @@ Não se aplica. Segunda issue de ciclo completo; sem encerramento prospectivo ne
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 002"
+Situação: Aguardando merge — ciclo 002 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/16
+Diga: "aprovo o merge da PR #16"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-13/item-2 + d8fb3b3d7b2459e11e63c0e3a26cebb1051f3778`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v2 em execução; item 1 integrado; issue #13 aberta, sem task/PR; autorização específica recebida em 2026-11-05.
-- `state_after`: relatório do item 2 concluído localmente; task #12 reconciliada como concluída, task #13 ativa e publicação em preparação; plano/ciclo permanecem em execução.
+- `state_after`: relatório do item 2 publicado na PR #16; task #12 reconciliada como concluída, task #13 `Aguardando integração`; plano/ciclo permanecem em execução e item 3 não iniciado.
 - `result`: `executed`
-- `evidence`: autorização literal, issue/PR #15 e base conferidas; relatório com 32 fontes oficiais, 27 cenários, condições e contas reproduzidas; 55 testes passaram, validador sem erros/avisos, referências e G3 conferidos; evidências detalhadas nesta task.
-- `blockers`: nenhum para pesquisa autorizada; contas, provas, custos, merge e item 3 não estão autorizados por esta manifestação.
+- `evidence`: autorização literal, issue/PR #15 e base conferidas; relatório com 32 fontes oficiais, 27 cenários, condições e contas reproduzidas; 55 testes passaram, validador sem erros/avisos, referências/G3/staging conferidos; PR #16 real com quatro arquivos e checks consultados.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e "aprovo o merge da PR #16". Contas, provas, custos e item 3 não estão autorizados por esta manifestação.
 
 ## Referência do bootstrap
 
