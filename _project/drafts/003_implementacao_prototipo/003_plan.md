@@ -2,7 +2,7 @@
 
 > **Ciclo:** `003`
 > **Status:** `Rascunho`
-> **Versão:** `v1`
+> **Versão:** `v2`
 > **Data de criação:** 2026-11-05
 > **Última atualização:** 2026-11-05
 > **Tipo:** `feature`
@@ -16,6 +16,8 @@
 > **handoff_schema_version:** `2`
 
 **Autorização do rascunho:** "autorizo o rascunho do plano do ciclo 003", em 2026-11-05. Após perguntas com sugestões e alternativas, o responsável declarou "Aceito todas as suas sugestões apresentadas." e indicou o estilo de `local/prototipo` como inspiração. Autor: Codex (GPT-6). Este aceite resolve o recorte abaixo; não é aprovação do plano após revisão nem autorização de implementação.
+
+**Complemento autorizado — v2, 2026-11-05:** o responsável pediu componentes mobile first na medida do possível, mantendo a exploração cartográfica confortável no computador; textos mais visíveis, especialmente as tags abaixo dos nomes dos municípios; e uma cor de destaque claramente distinta das cores secundárias. Esta versão detalha esses requisitos na direção visual, na estratégia de testes e no item 4. A escolha exata do azul proposto abaixo é técnica e permanece sujeita à revisão/aprovação do plano. Não houve veredito formal entre v1 e v2; o plano permanece `Rascunho`, aguardando rodada 1.
 
 ## Problema e contexto
 
@@ -49,7 +51,7 @@ Não se aplica. Demanda direta do responsável em 2026-11-05; `_project/backlog.
 - Obtenção verificável, validação, medição estadual, manifesto de fontes, importador repetível, publicação transacional, expiração da janela e reconstrução local.
 - Banco Supabase, migrações aditivas, acesso por RLS, executor com privilégio mínimo, login/logout Google, consulta, mapa vetorial e estados reais de erro/disponibilidade.
 - Fundação web, testes de método/acesso/integração/interface, configuração gratuita pelo responsável, deploy, verificação autorizada em produção e documentação operacional.
-- Direção visual inspirada no protótipo privado, reimplementada para este recorte com acessibilidade, responsividade e dados apropriados para cada ambiente.
+- Direção visual inspirada no protótipo privado, reimplementada para este recorte com componentes mobile first, tipografia legível, cor de destaque distinta, acessibilidade e dados apropriados para cada ambiente; desktop amplia o espaço de exploração do mapa.
 
 ### Fora do escopo
 
@@ -104,14 +106,17 @@ Login Google não basta para tornar uma conta RP. Testar a matriz também pela A
 
 ### Direção visual proposta
 
-O pedido humano de usar `local/prototipo` como inspiração foi registrado na ideação **antes** da inspeção, como exceção restrita à proibição geral de leitura desse diretório. Síntese sanitizada do estilo observado no CSS, suficiente para implementar sem depender do material privado:
+O pedido humano de usar `local/prototipo` como inspiração foi registrado na ideação **antes** da inspeção, como exceção restrita à proibição geral de leitura desse diretório. A síntese abaixo incorpora o complemento humano da v2; implementar/revisar não depende de acessar o material privado:
 
-- Fundo claro levemente esverdeado (`#f5f6f2`), superfícies brancas, texto verde profundo (`#243c31`), ações em verde (`#254b39`) e acentos de detecção em laranja (`#e97d4b`). Cores são ponto de partida; contraste de texto e foco deve ser corrigido quando necessário.
-- Tipografia de sistema (`Segoe UI`, Arial, sans-serif), títulos com hierarquia clara, números tabulares, cartões com bordas suaves, cantos discretos e sombras leves. Evitar os textos muito pequenos e pouco contrastantes do mockup.
-- Cabeçalho com identidade do produto e sessão; filtros legíveis; cartões de resumo; mapa em fundo verde escuro; painel de detalhes/proveniência ao lado em desktop e abaixo em telas menores. Navegação só para destinos reais do recorte; sem botões demonstrativos sem ação.
-- Mapa destacado, pontos laranja e limites municipais discretos, com legenda textual, atribuição das fontes e indicação inequívoca do período/versão. Tabela oferece acesso equivalente aos dados para quem não usa o mapa.
-- Não reproduzir ranking, badges de áreas protegidas, favoritos, exportação, percentuais inventados, estatística ilustrativa ou marca de cobertura plena do mockup. Um resultado vazio, indeterminado ou uma falha de atualização precisa aparecer como tal.
-- Entregar navegação por teclado, foco visível, rótulos de formulário, erro associado ao campo, movimento reduzido e layout utilizável em 390 px e 1440 px. Verificação visual com fixtures fictícias; material privado não vira screenshot ou baseline versionado.
+- **Mobile first:** desenhar a base dos componentes para telas pequenas, com CSS progressivamente ampliado conforme o espaço disponível. Login, filtros, resumos, detalhes, mensagens, legenda e proveniência devem ser operáveis em celular. Priorizar conteúdo em uma coluna; filtros e cartões quebram linha, e detalhes ficam no fluxo da página, sem painel lateral fixo que reduza a área útil. Não reduzir fontes para acomodar o arranjo desktop.
+- **Mapa e desktop:** conservar mapa e consulta no celular, com controles próprios para toque e sem bloquear a rolagem normal da página. Em telas largas, ampliar o mapa e posicionar detalhes/proveniência ao lado. A natureza bidimensional do mapa não dispensa adaptação dos controles e demais componentes. Mapa/tabela podem ter navegação em duas dimensões dentro de sua região; não provocar rolagem horizontal global nem ocultar informações essenciais fora da tela. A tabela/lista oferece consulta equivalente aos registros.
+- **Estrutura e identidade:** preservar fundo claro levemente esverdeado (`#f5f6f2`), superfícies brancas, texto verde profundo (`#243c31`), identidade em verde (`#254b39`), cartões com bordas suaves, cantos discretos e sombras leves. Cabeçalho, sessão, filtros, resumos e mapa mantêm hierarquia clara. Navegação só para destinos reais do recorte, sem botões demonstrativos sem ação.
+- **Tipografia:** usar fontes de sistema (`Segoe UI`, Arial, sans-serif), unidades relativas e escala que respeite preferências do navegador. Adotar texto-base de `1rem` (16 px na configuração padrão), entrelinha aproximada de 1,5 e piso de `0.875rem` (14 px no padrão) para textos informativos auxiliares, tags, rótulos, legenda e atribuição. Nomes dos municípios têm pelo menos `1rem`; etiquetas abaixo deles, citadas pelo responsável, têm pelo menos `0.875rem`, peso legível, bom contraste, espaçamento e quebra de linha. Esses tamanhos são critérios locais do projeto, não mínimos de fonte definidos pela WCAG. Não esconder/truncar conteúdo necessário para simular legibilidade.
+- **Cor de destaque:** propor azul royal `#1d4ed8` para ação primária, seleção e indicadores de interação, distinguindo-o dos verdes/tons neutros secundários e do laranja das detecções. Ações secundárias usam superfície neutra/contorno; evitar uma família de acentos semelhantes competindo pela mesma função. Em fundo claro, usar azul com texto branco ou texto azul na superfície clara conforme o componente; sobre o mapa escuro, usar variante azul clara `#93c5fd` para foco/seleção, com contorno ou rótulo. Laranja permanece informação de detecção, sem funcionar simultaneamente como destaque genérico de ação.
+- **Contraste e significado:** exigir pelo menos 4,5:1 nos textos informativos e 3:1 nas pistas visuais necessárias para identificar controles/estados contra cores adjacentes; verificar os pares reais de cada estado e superfície, incluindo tags, hover, foco e seleção. Não depender só de matiz para distinguir estado: acrescentar rótulo, ícone, contorno ou padrão. A legibilidade e a distinção visual da ação primária devem ser verificadas também em escala de cinza. As cores propostas são ponto de partida; passar um cálculo isolado não certifica toda a interface.
+- **Interação e ampliação:** adotar alvos de toque de pelo menos 44 × 44 CSS px nos controles como critério local de conforto, sem aplicar esse tamanho a cada ponto cartográfico. Preservar teclado, foco visível, rótulos de formulário, erro associado ao campo e movimento reduzido. Testar ampliação do texto a 200% sem perda de conteúdo/funcionalidade e reflow dos componentes comuns a 320 CSS px. Não limitar zoom do navegador; o zoom do mapa é recurso distinto.
+- **Conteúdo real:** mapa destacado, pontos laranja e limites municipais discretos, com legenda textual, fontes e indicação inequívoca de período/versão. Não reproduzir ranking, badges de áreas protegidas, favoritos, exportação, percentuais inventados, estatística ilustrativa ou marca de cobertura plena do mockup. Vazio, indeterminado e falha de atualização são estados distintos.
+- **Conferência visual:** usar fixtures fictícias em 360/390 px primeiro, depois 768/1440 px; conferir também texto ampliado, reflow, toque e teclado. Material privado não vira screenshot ou baseline versionado. As referências W3C de contraste, ampliação e reflow estão na seção de referências; estes critérios não equivalem a declarar conformidade integral com WCAG.
 
 São diretrizes deste protótipo, não um design system definitivo. A entrega 4 documenta os componentes efetivamente implementados; preferência estética não substitui aceite funcional, G1 ou G2.
 
@@ -144,7 +149,7 @@ Cada PR, inclusive a documental e a de encerramento, exige aprovação própria 
 - **Referência pública:** na entrega 1, se os mesmos hashes e recorte de Colniza do ciclo `001` forem obtidos, exigir 516/246/62 e total 824. Hash/revisão diferente exige explicar a mudança e validar contra referência independente compatível; não editar resultado esperado só para passar. Contagens estaduais/municipais da janela devem concordar com uma agregação independente sobre os registros classificados, sob o mesmo contrato e sem extrapolação municipal. Essa conferência de totais não valida espacialmente todos os pontos: a evidência espacial permanece delimitada pelos casos independentes e pelo recorte público comparável.
 - **Banco e autorização:** aplicar migrações do zero em Supabase local, gerar identidades fictícias RP/OA no mesmo papel `authenticated`, testar AN e EX, RLS por tabela, RPC/views, carga parcial, revogação, token ausente/expirado e metadado adulterado. Negativos não devolvem linhas/bytes indevidos nem alteram estado; não fixar um único status HTTP como prova. EX não pode mudar schema, grants ou autorizações.
 - **Pipeline e recuperação:** mesma carga duas vezes, lotes repetidos, concorrência, falha antes/durante/depois do commit, correção de fonte, expiração e reconstrução em destino local novo. Manifesto, registros e totais restaurados devem coincidir com referência externa ao mecanismo de publicação. Testes destrutivos limitados ao ambiente isolado.
-- **Interface:** typecheck/build; Playwright em ambiente local com dados fictícios e Auth local, cobrindo login/negação/logout, filtros, paginação, mapa/tabela, requisições fora de ordem, troca de versão, fonte indisponível, vazio e indeterminado. Verificar teclado, foco, contraste e renderizações em 390/1440 px. Sem snapshot do mockup privado.
+- **Interface:** typecheck/build; Playwright em ambiente local com dados fictícios e Auth local, cobrindo login/negação/logout, filtros, paginação, mapa/tabela, requisições fora de ordem, troca de versão, fonte indisponível, vazio e indeterminado. Validar primeiro 360/390 px com toque, depois 768/1440 px, teclado e foco. Conferir tamanhos relativos/computados de textos e tags, contraste dos pares efetivos, distinção da ação primária/seleção, texto ampliado a 200% e reflow dos componentes comuns a 320 CSS px, sem perda de conteúdo ou rolagem horizontal global. Avaliar mapa/tabela separadamente quando exigirem disposição bidimensional, mantendo seus controles acessíveis. Sem snapshot do mockup privado e sem alegar teste de interface nesta alteração documental.
 - **Gates a adicionar na implementação:** comandos de aplicação propostos `npm run typecheck`, `npm run build`, `npm run test:prototipo`, `npm run test:rls` e `npm run test:e2e`, documentados ao criá-los; hoje não existem. Preservar `npm run test:prova-dados` e gates de governança. CI executa testes determinísticos com fixtures e banco isolado; download estadual, login pessoal e segredo de produção ficam fora da CI.
 - **Produção:** somente após a frase própria, executar roteiro sanitizado do item 5. Não alegar Google OAuth real, capacidade estadual, exclusão de upload ou retomada real de pausa por terem passado testes locais.
 
@@ -195,13 +200,15 @@ Cada PR, inclusive a documental e a de encerramento, exige aprovação própria 
 
 ### Item 4 — Entregar a interface de consulta com o estilo de referência
 
-**Contexto:** R1 precisa de uso real e explicação do resultado, preservando a direção estética aceita.
+**Contexto:** R1 precisa de uso real e explicação do resultado, preservando a direção estética aceita e os pedidos posteriores de mobile first, tipografia visível e destaque cromático distinto.
 
-**Ação técnica:** adicionar aplicação Vite/TypeScript, estilos próprios, SDK Supabase e Leaflet estável, lockfile e build. Implementar início/callback de login Google, acesso autorizado, logout e estados de sessão. Integrar filtros município/datas, mapa, série temporal, tabela paginada, divergências, disponibilidade e proveniência, fixando versão e descartando respostas obsoletas. Usar somente fontes/API autorizadas; sem chave privilegiada, tiles, fonte web, analytics ou outro serviço adicional. Separar módulos de sessão, consulta, mapa e apresentação sem criar biblioteca genérica de componentes. Documentar as diretrizes implementadas no guia da interface do runbook, sem instituir design system ou contrato visual canônico neste ciclo.
+**Ação técnica:** adicionar aplicação Vite/TypeScript, estilos próprios, SDK Supabase e Leaflet estável, lockfile e build. Construir componentes a partir do layout para celular e ampliar progressivamente para desktop, onde o mapa pode ocupar mais espaço. Aplicar escala tipográfica relativa legível e papéis de cor separados conforme a direção visual. Implementar início/callback de login Google, acesso autorizado, logout e estados de sessão. Integrar filtros município/datas, mapa, série temporal, tabela paginada, divergências, disponibilidade e proveniência, fixando versão e descartando respostas obsoletas. Usar somente fontes/API autorizadas; sem chave privilegiada, tiles, fonte web, analytics ou outro serviço adicional. Separar módulos de sessão, consulta, mapa e apresentação sem criar biblioteca genérica de componentes. Documentar as diretrizes implementadas no guia da interface do runbook, sem instituir design system ou contrato visual canônico neste ciclo.
 
 **Critérios de aceite:**
 
-- [ ] Estilo reflete a direção descrita neste plano, com texto legível e layout utilizável em 390/1440 px; comparação visual da implementação feita com fixtures fictícias e evidência sanitizada.
+- [ ] Componentes partem do layout mobile first e funcionam em 360/390 px com toque e em 768/1440 px com espaço progressivo para mapa/detalhes; filtros, resumos, legenda e proveniência acessíveis sem reduzir fontes ou exigir rolagem horizontal global. Comparação visual feita com fixtures fictícias e evidência sanitizada.
+- [ ] Texto-base de `1rem`, nomes de municípios de pelo menos `1rem` e tags/rótulos/legendas informativos de pelo menos `0.875rem`, respeitando o tamanho padrão do navegador. Etiquetas abaixo do município têm contraste, espaçamento e quebra de linha adequados. Ampliação a 200% e reflow dos componentes comuns a 320 CSS px não cortam conteúdo nem perdem funcionalidade.
+- [ ] Ação primária e seleção se distinguem dos elementos secundários e dos pontos de detecção; azul royal/variante clara propostos são conferidos nas superfícies efetivas. Textos informativos atingem 4,5:1 e pistas visuais necessárias dos controles/estados atingem 3:1; estado não depende apenas de cor. Controles têm alvo de toque mínimo de 44 × 44 CSS px e foco/teclado utilizáveis; mapa é conferido separadamente, sem estender a exceção bidimensional aos componentes comuns.
 - [ ] Fluxo de sessão e consulta funciona com Auth local; Google real permanece para o roteiro externo do item 5. AN/OA não recebem dados mesmo chamando diretamente a API.
 - [ ] Logout, revogação ou expiração limpam os dados da sessão na interface; respostas atrasadas de RP não repovoam a tela de AN/OA. Dados de consulta não ficam em armazenamento persistente/cache público, e valores de fonte são renderizados como texto, sem execução de marcação.
 - [ ] Mapa, totais, série e tabela correspondem à mesma versão/período; paginação/limite de pontos não muda totais nem oculta truncamento. Município é listado sem ranking ambiental.
@@ -229,7 +236,7 @@ Após ações externas e gates conferidos, preparar banco hospedado vazio compat
 
 ## Arquivos afetados
 
-Nesta etapa, somente este plano, a reconciliação das escolhas/autorizações na ideação e a linha de estado/plano em `_project/cycles.md`. Nenhum arquivo do protótipo privado é alterado ou versionado.
+Na criação da v1, somente este plano, a reconciliação das escolhas/autorizações na ideação e a linha de estado/plano em `_project/cycles.md`. No complemento v2, somente este plano e a referência de versão no registro de ciclos. Nenhum arquivo do protótipo privado é alterado ou versionado.
 
 Na execução proposta: `scripts/prototipo/`, `tests/fixtures/prototipo/`, `supabase/config.toml`, novas migrações em `supabase/migrations/`, testes em `supabase/tests/`, `src/`, `index.html`, configuração Vite/TypeScript/Playwright, `package.json`/lockfile, `.env.example`, `.gitignore`, `.vercelignore` e configuração de deploy/CI estritamente necessária. Documentação: README, runbook com guia da interface, novo ADR/KB usando numeração conferida ao criar, atualização de KB-003 e artefatos/evidências/tasks do ciclo. Brutos, medições detalhadas, cópias e screenshots de trabalho ficam em `local/dados-prototipo/`; fixtures versionadas são fictícias.
 
@@ -291,6 +298,7 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 - [Supabase — Google Auth](https://supabase.com/docs/guides/auth/social-sign-in/auth-google): configuração de provedor e URLs. [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security): identidade/políticas e risco de bypass. [Desenvolvimento local](https://supabase.com/docs/guides/local-development): CLI e runtime compatível.
 - [node-postgres — transações](https://node-postgres.com/features/transactions): usar o mesmo cliente em cada transação, sem confundir operações independentes do pool.
 - [Supabase Free](https://supabase.com/pricing): 500 MB de banco, cotas de egress e pausa após uma semana de inatividade; não prova saldo/margem desta conta. [Backups](https://supabase.com/docs/guides/platform/backups): recomenda exportação/cópia própria para Free. [Vercel Hobby](https://vercel.com/docs/plans/hobby): modalidade pessoal não comercial e recursos sujeitos a limites.
+- [W3C — contraste de texto](https://www.w3.org/WAI/WCAG22/Understanding/contrast-minimum.html), [contraste de controles/gráficos](https://www.w3.org/WAI/WCAG22/Understanding/non-text-contrast.html), [ampliação de texto](https://www.w3.org/WAI/WCAG22/Understanding/resize-text.html) e [reflow](https://www.w3.org/WAI/WCAG22/Understanding/reflow.html), consultados em 2026-11-05 no complemento v2: fundamentam os limiares de contraste e a verificação de ampliação/reflow. Pisos de fonte e alvos de toque de 44 px são decisões locais de conforto deste rascunho, sem alegação de certificação WCAG.
 - Inspiração privada indicada pelo responsável: `local/prototipo`, somente CSS/estrutura visual, com autorização excepcional registrada antes da leitura. A implementação e a revisão são autossuficientes com a síntese deste plano; o material não é fonte de regra, dado ou código executável.
 
 ## Rastreabilidade
@@ -313,6 +321,23 @@ Diga: "revise o plano do ciclo 003"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v2@ec1f66e5681d52e64188ec5e0b9018a507f76087`
+- `effect_class`: `local_mutation`
+- `state_before`: plano único `v1` em `Rascunho`, ciclo `003` em `Planejamento`, aguardando rodada 1, branch local `chore/cycle-003-plan` em `ec1f66e`, árvore limpa e sem rodada formal registrada.
+- `state_after`: o mesmo plano em `v2`, ainda `Rascunho` e aguardando rodada 1; complemento humano registrado, com mobile first, tipografia legível e cor de destaque distinta na direção visual, testes e aceite do item 4. Referência de versão em `cycles.md` atualizada; demais entregas, método e acesso preservados.
+- `result`: `executed`
+- `evidence`: pedido humano complementar de 2026-11-05 sintetizado no cabeçalho, autoridades/template lidos e diff documental limitado ao plano/registro. Fontes primárias W3C conferidas; cálculo de contraste dos pares propostos registrado na validação v2. Não houve nova inspeção do mockup privado, implementação de interface, revisão formal, configuração de serviço ou publicação remota.
+- `blockers`: nenhum para este complemento; revisão formal pendente. Renderizações, testes de interação e contraste da interface efetiva pertencem à entrega 4 e não foram executados nesta etapa.
+
+### Validação local do complemento v2
+
+- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas. `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais; `git diff --check` sem erros.
+- Diff conferido, restrito a este plano e à versão em `_project/cycles.md`; pedido humano, G3, preservação do histórico v1 e situação de revisão pendente conferidos. Alteração somente documental, sem testes de interface ou publicação remota.
+- Pares calculados pela luminância relativa sRGB: azul `#1d4ed8`/branco `#ffffff` = aproximadamente 6,70:1; azul/`#f5f6f2` = 6,17:1; azul claro `#93c5fd`/mapa escuro proposto `#152e27` = 8,02:1. Esses cálculos não verificam uma interface ainda não implementada, nem tornam o azul claro adequado sobre fundo branco.
+
+### Registro anterior — rascunho v1
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v1@23896d64d1724e8d62745f7b1a366f63d6a48b9b`
