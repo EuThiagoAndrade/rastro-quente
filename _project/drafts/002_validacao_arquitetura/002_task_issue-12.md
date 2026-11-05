@@ -2,12 +2,12 @@
 
 > **Ciclo:** `002`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#12`
 > **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-12`
-> **PR:** —
+> **PR:** [#15](https://github.com/EuThiagoAndrade/rastro-quente/pull/15)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #12" em 2026-11-05
 > **Modo contínuo:** `—`
@@ -46,7 +46,9 @@ Não se aplica.
 - [x] Ler autoridades, template de task, template de PR e `governance-check`.
 - [x] Isolar execução em worktree `C:/Programas/rastro-quente-issue-12`, branch `chore/issue-12`, base `1e794cf91d46276b14a12b3ecd1de187e22b87af`.
 - [x] Entregar inventário, cenários cruzados por conjunto e frequência, cálculos e lacunas em `002_research_cenarios.md`.
-- [ ] Executar gates e conferir G3, staging, PR e checks reais.
+- [x] Executar gates e conferir G3 e staging seletivo dos quatro arquivos.
+- [x] Publicar e conferir a PR #15, de `chore/issue-12` para `main`, com diff limitado à entrega.
+- [x] Consultar os checks reais da PR; acompanhamento do último commit no GitHub, sem presumir sucesso.
 
 ## Evidências
 
@@ -57,7 +59,9 @@ Não se aplica.
 | Testes | Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 passaram, zero falhas. Contas da seção 6.4 executadas e conferidas com somas por coluna e inversão do limiar; resultados coincidentes. Sem testes de banco, RLS, carga ou recuperação executados. |
 | Validador | `node scripts/validate-governance.mjs`: zero erros, zero avisos, nove itens manuais. |
 | `git diff --check` | Passou na conferência local. |
-| Checks remotos | Pendente |
+| Publicação | Commit de entrega `d9aecbe602582dafe1d113d0db34c2b9e3ece1b0` publicado; PR #15 aberta e quatro arquivos conferidos pelo GitHub. Este registro documental é atualizado em commit posterior da mesma PR. |
+| Checks remotos | Workflow `Governance`, job `Validate governance`, observado como `QUEUED` na abertura da PR #15 sobre `d9aecbe`; o último push reexecuta os checks. O estado atual e o resultado de cada execução são verificáveis na PR, sem presumir aprovação. |
+| Revisões preservadas | Seção `Revisão crítica` idêntica à base integrada; SHA-256 `15b20aedee0189a4f3016e800c6e37c6c055149dff3934f3523a731a72cb80a3`. |
 
 ## Revisão da correção
 
@@ -80,22 +84,22 @@ Não se aplica. Primeira issue de ciclo completo; nenhuma movimentação para `e
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 002"
+Situação: Aguardando merge — ciclo 002 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/15
+Diga: "aprovo o merge da PR #15"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-12/item-1 + 1e794cf91d46276b14a12b3ecd1de187e22b87af`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v2 aprovado e integrado; issue #12 aberta, sem task ou PR; autorização explícita recebida em 2026-11-05.
-- `state_after`: branch isolada e task criadas; item 1 em andamento; publicação e integração pendentes.
+- `state_after`: relatório do item 1 publicado na PR #15; task `Aguardando integração`, plano `Em Execução`, ciclo `Em execução`; merge pendente, sem iniciar itens 2 e 3.
 - `result`: `executed`
-- `evidence`: issue, PR #11 e base conferidas por `gh`/Git; autorização literal no cabeçalho; worktree registrado no mesmo Git.
-- `blockers`: nenhum para prosseguir na implementação documental autorizada; merge exige aprovação própria.
+- `evidence`: autorização literal no cabeçalho; precondições e base verificadas, worktree do mesmo Git; relatório com proveniência e contas reproduzidas; 55 testes passaram, validador zero erros/avisos, G3 e staging conferidos; commit de entrega publicado e PR #15 real com quatro arquivos, branch/base e checks consultados.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e aprovação específica "aprovo o merge da PR #15". A issue #13 continua dependente da integração do item 1 e de autorização própria.
 
 ## Referência do bootstrap
 

@@ -269,7 +269,7 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#12](https://github.com/EuThiagoAndrade/rastro-quente/issues/12) (item 1), [#13](https://github.com/EuThiagoAndrade/rastro-quente/issues/13) (item 2), [#14](https://github.com/EuThiagoAndrade/rastro-quente/issues/14) (item 3) |
-| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), integrada em 2026-11-05 |
+| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), integrada em 2026-11-05; [#15 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/pull/15), aberta, integração pendente |
 | Branch(es) | Plano: `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395`; item 1: `chore/issue-12`, base integrada `1e794cf91d46276b14a12b3ecd1de187e22b87af` |
 | Entrega do item 1 | `002_research_cenarios.md`; registro ativo em `002_task_issue-12.md` |
 | Destino após conclusão | `_project/executed/002_validacao_arquitetura/002_plan.md` |
@@ -278,22 +278,22 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 002"
+Situação: Aguardando merge — ciclo 002 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/15
+Diga: "aprovo o merge da PR #15"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-12/item-1 + 1e794cf91d46276b14a12b3ecd1de187e22b87af`.
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v2 aprovado e integrado; ciclo em `Planejamento`; issue #12 aberta e autorização específica recebida.
-- `state_after`: plano `Em Execução`, ciclo `Em execução`, relatório do item 1 e task registrados em `chore/issue-12`; preparação da PR em curso.
+- `state_after`: plano `Em Execução`, ciclo `Em execução`, relatório do item 1 e task publicados na PR #15 de `chore/issue-12`; aguardando integração.
 - `result`: `executed`
-- `evidence`: relatório `002_research_cenarios.md` e task `002_task_issue-12.md`, com autorização literal, proveniência, cenários, contas e gates; PR #11 integrada conferida no GitHub.
-- `blockers`: nenhum para publicar a entrega autorizada; merge depende de aprovação própria. Itens 2 e 3 não iniciados.
+- `evidence`: relatório `002_research_cenarios.md` e task `002_task_issue-12.md`, com autorização literal, proveniência, cenários, contas e gates; PR #11 integrada e PR #15 aberta com escopo conferido no GitHub.
+- `blockers`: nenhum para a entrega publicada; integração depende dos checks verdes no último commit e de "aprovo o merge da PR #15". Itens 2 e 3 não iniciados.
 
 ### Registro anterior — criação das issues
 
