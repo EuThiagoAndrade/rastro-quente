@@ -1,7 +1,7 @@
 # Plano de Implementação — Validação de capacidades, custos e arquitetura
 
 > **Ciclo:** `002`
-> **Status:** `Em Revisão`
+> **Status:** `Aprovado`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-05
 > **Última atualização:** 2026-11-05
@@ -12,10 +12,12 @@
 > **Autorização do rascunho:** "autorizo o rascunho do plano do ciclo 002" em 2026-11-05
 > **Autorização da correção:** "Corrija o plano" em 2026-11-05, referente aos achados R1-1 a R1-4 do ciclo 002
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
-> **Veredito da revisão:** `REQUER NOVA RODADA`
-> **Aprovação humana pós-revisão:** `Pendente`
+> **Revisão formal:** `Concluída`
+> **Veredito da revisão:** `APTO PARA APROVAÇÃO`
+> **Aprovação humana pós-revisão:** `Aprovada em 2026-11-05`
 > **handoff_schema_version:** `2`
+
+Plano v2 aprovado pelo responsável em 2026-11-05 pela manifestação literal "Aprovo o plano do ciclo 002", posterior ao veredito `APTO PARA APROVAÇÃO` da rodada 2. A aprovação confirma o recorte de evidências, a exclusão de camadas adicionais de sobreposição e de recontagem local, e o processamento esperado como indeterminado. Cobre a publicação da PR documental do lote do ciclo e, após sua integração e confirmação dos payloads, a criação das issues; não autoriza merge ou implementação de entregas.
 
 ## Problema e contexto
 
@@ -273,22 +275,22 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 2) — ciclo 002 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Situação: Pronto para continuar — ciclo 002 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
 Conferir: —
-Diga: "revise o plano do ciclo 002"
+Diga: "continue o ciclo 002"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 002 + rascunhar_plano + 002_plan + v2` (origem: v1 revisada, SHA-256 `a635f80ebfa08c92115e198f9ba57c86cfff1bd7cdfb9383610e730fea04bb6f`, sobre `5b50791efb53f71c72070ef145694060a2b63194`).
+- `logical_key`: `rastro-quente + 002 + atualizar_docs + aprovacao_publicacao_plano + v2@25ea623eec58ffafaffc537e7f9ce40f7d379cfe` (origem revisada com SHA-256 `fb4e94afc195af1978c2c2805ea37d3d7db8d239bcc6ad526a506e98590902ab`).
 - `effect_class`: `local_mutation`
-- `state_before`: plano v1 em `Em Revisão`, rodada 1 registrada como alteração local preexistente, veredito `REQUER NOVA RODADA`, aguardando correções; ciclo 002 em `Planejamento`, branch `chore/cycle-002-plan`; somente o plano modificado, sem staging.
-- `state_after`: plano v2 em `Em Revisão`, respostas do autor a R1-1 a R1-4 registradas e rodada 1 preservada; aguardando revisão (rodada 2); veredito anterior mantido até nova revisão, aprovação pendente; ciclo em `Planejamento`; sem publicação ou implementação.
+- `state_before`: plano v2 em `Em Revisão`, rodada 2 registrada como alteração local preexistente, veredito `APTO PARA APROVAÇÃO`, aguardando aprovação humana; somente o plano modificado em `chore/cycle-002-plan`; ciclo 002 em `Planejamento`.
+- `state_after`: plano v2 `Aprovado` por manifestação posterior ao parecer; publicação documental autorizada e em preparação; ciclo permanece em `Planejamento`; nenhuma issue ou implementação iniciada.
 - `result`: `executed`
-- `evidence`: pedido humano "Corrija o plano" de 2026-11-05; autoridades, template, ideação, KB-003 e ADRs pertinentes conferidos; alterações e respostas por achado; referência de origem inclui a revisão local ainda não commitada; validações da v2 registradas na resposta do autor.
-- `blockers`: nenhum para registrar as correções; suficiência das respostas depende da rodada 2. Exclusões de camadas adicionais e de recontagem local são propostas explícitas sujeitas à aprovação do plano, sem presumir nova decisão humana ou autorizar ampliação.
+- `evidence`: manifestação humana literal "Aprovo o plano do ciclo 002" em 2026-11-05; veredito apto da rodada 2 preservado; repositório privado e base `origin/main` em `28dece5b5391cc9e7176a2f8c4020f5e05c1c34a` conferidos; ausência de PR do ciclo verificada; lote limitado à ideação, plano e registro do ciclo.
+- `blockers`: nenhum para registrar a aprovação e preparar a PR documental; merge exige PR real, checks verdes e aprovação específica. Issues dependem da integração documental e da confirmação dos payloads.
 
 A subseção abaixo é a evidência do rascunho (`rascunhar_plano`, v1), preservada sem alteração.
 
@@ -370,6 +372,42 @@ O último item afirma que o MCP GitHub Docker retornou `401` e que "futuras aç�
 - **R1-4 — Corrigido pelo autor, sujeito à rodada 2.** Removidas a ocorrência transitória de credenciais e a instrução de repetir tentativas de conector de "Dependências e blockers". O plano referencia as autoridades e instruções humanas vigentes, sem criar ordem própria de ferramentas. A preferência explícita do responsável pelo MCP disponível continua válida na sessão; não é substituída por regra criada neste plano.
 
 **Validação da correção:** `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas. `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove itens de conferência manual. `git diff --check`: sem erros. Conferidos escopo, G3, autorização e próximo passo; somente o plano e a referência de versão em `cycles.md` alterados. Texto original da rodada 1 preservado integralmente, com SHA-256 `d9e0ce556fe85075a7ddc83958dad253e21590b886609761587fa2f52367e8c1` idêntico antes/depois. Consulta somente leitura de PRs por `gh`, após falha de credenciais do MCP, não encontrou PR do ciclo 002. Nenhuma fonte de provedor, base local, prova técnica, conta ou serviço foi usada para executar as entregas do ciclo; a revisão formal da v2 permanece pendente.
+
+### Rodada 2
+
+**Data:** 2026-11-05.
+
+**Autor:** Codex (GPT-6), conforme a resposta do autor à rodada 1; o commit `25ea623` não traz trailer de coautoria.
+
+**Revisor:** Claude Code, modelo Opus 5.5 (`claude-opus-5-5`), o mesmo da rodada 1.
+
+**Base revisada:** `v2` no commit `25ea623eec58ffafaffc537e7f9ce40f7d379cfe`, branch local `chore/cycle-002-plan`, árvore limpa. O diff `5b50791..25ea623` altera somente este plano e a linha do ciclo 002 em `_project/cycles.md`. A rodada 1 está preservada com o texto registrado pelo revisor.
+
+#### Conferência dos achados da rodada 1
+
+| Achado | Situação | Evidência na v2 |
+| :-- | :-- | :-- |
+| R1-1 | Resolvido | O item 3 lista todos os recursos materiais antes da síntese, inclusive os desconhecidos. A ordem é incompatibilidade, depois evidência insuficiente, depois compatibilidade, e qualquer incógnita material impede compatibilidade no conjunto. Camadas adicionais ficam excluídas com efeito declarado (Objetivo e Fora do escopo). O título obrigatório da conclusão vale para relatório e KB-003, e a linha "Aprovar plano" avisa que o processamento é esperado como indeterminado. A exclusão explícita era uma das saídas admitidas pelo achado. |
+| R1-2 | Resolvido | Tabela com três conjuntos persistidos no item 1, levados em linhas separadas ao item 2 e por conjunto ao item 3, com critérios de aceite nos três itens. Os valores de Colniza conferem com a seção 3 do relatório do ciclo 001 (824 + 16.860 = 17.684). Os identificadores `NPP-375`, `NPP-375D`, `NOAA-20` e `NOAA-21` são os de `scripts/prova-dados/casar.mjs`. A escolha operacional permanece do responsável. |
+| R1-3 | Resolvido | Tabela de evidências admitidas no item 1. A recontagem de `local/prova-dados/brutos/` está excluída e aparece também em "Fora do escopo"; a aprovação confirma esse recorte. A consequência (intervalos ou valores desconhecidos) está declarada. |
+| R1-4 | Resolvido | A regra de ordem de conectores saiu de "Dependências e blockers"; o plano remete às autoridades vigentes, que prescrevem `gh`. |
+
+Os bloqueadores caíram de dois para zero e nenhum achado corrigido reapareceu. A regra de progresso está atendida.
+
+#### Achados novos
+
+Nenhum bloqueador ou ressalva.
+
+#### Itens atendidos e verificações
+
+- As correções não ampliaram o escopo: nenhuma fonte, camada, prova, conta, leitura de `local/` ou regra ambiental foi acrescentada. As exclusões novas reduzem o que o ciclo pode afirmar e estão expostas para a aprovação.
+- Com os critérios da v2, o resultado previsível para todas as alternativas é "evidência insuficiente" no conjunto, com compatibilidade parcial por recurso e protocolos de prova futura. O Objetivo já admite esse desfecho, e a linha "Aprovar plano" o põe em "Conferir". A aprovação deve ser dada sabendo disso.
+- O cabeçalho registra a correção como "Corrija o plano". A frase canônica da situação é "corrija o plano do ciclo 002". O autor registrou o pedido literal com o alvo; a intenção é inequívoca no contexto, e a autenticidade das frases continua conferência manual.
+- A linha do ciclo 002 em `_project/cycles.md` diz "aguardando rodada 2". O revisor não altera esse arquivo; o próximo workflow mutante (aprovação ou publicação documental) deve atualizar a descrição.
+- G1 a G4 sem mudança de aplicabilidade. Nenhum dado pessoal, credencial ou material privado no diff; nenhum arquivo de `local/` foi lido nesta revisão.
+- Validações locais após registrar esta rodada: Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes aprovados, zero falhas; `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais; `git diff --check`: sem erros; `git status --short`: somente este plano modificado, sem staging. Diff restrito aos campos de revisão e veredito, aos blocos de próximo passo e handoff e a esta rodada.
+
+**Veredito:** `APTO PARA APROVAÇÃO`. O veredito não é aprovação. A aprovação exige manifestação humana posterior ("aprovo o plano do ciclo 002"), que confirma também o recorte de evidências, a exclusão de camadas adicionais e de recontagem local, e o processamento esperado como indeterminado. Nenhuma aprovação, publicação, issue ou implementação foi realizada.
 
 ## Pós-mortem
 
