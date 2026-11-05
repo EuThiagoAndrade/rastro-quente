@@ -2,12 +2,12 @@
 
 > **Ciclo:** `002`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#14`
 > **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-14`
-> **PR:** —
+> **PR:** [#17](https://github.com/EuThiagoAndrade/rastro-quente/pull/17)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #14" em 2026-11-05
 > **Modo contínuo:** `—`
@@ -47,7 +47,8 @@ Não se aplica.
 - [x] Ler autoridades, workflows e templates `.agent/templates/task.md`, `.agent/templates/plano_implementacao.md`, `.agent/templates/kb.md` e `.github/pull_request_template.md`; aplicar `governance-check` ao final.
 - [x] Comparar três alternativas, dez recursos materiais e 27 cenários por alternativa (81 avaliações) no relatório `002_research_arquitetura.md`.
 - [x] Propor matriz para quatro papéis, cinco protocolos futuros, atualizar KB-003 e reconciliar #13 integrada.
-- [ ] Conferir critérios, contas, G3 e gates; publicar PR e acompanhar checks reais.
+- [x] Conferir critérios, contas, G3 e gates; publicar PR #17, com cinco arquivos, branch e base verificados no GitHub.
+- [x] Consultar checks reais e acompanhar o último push antes de solicitar integração.
 
 ## Evidências
 
@@ -59,7 +60,8 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: zero erros, zero avisos, nove itens manuais. |
 | `git diff --check` | Passou na conferência local. |
 | Consistência | 27 cenários únicos, nove por conjunto e 81 resultados EI; dez recursos, cinco protocolos e oito IDs de fontes presentes. Relatórios dos itens 1/2 e fatos municipais da KB preservados. Revisão crítica do plano idêntica à base, SHA-256 `15b20aedee0189a4f3016e800c6e37c6c055149dff3934f3523a731a72cb80a3`. |
-| Checks remotos | Pendente |
+| Publicação | Commit de entrega `9a670d1ff6868946c31037359bfc24d3b31deedd` publicado; PR #17 `OPEN`, de `chore/issue-14` para `main`, com os cinco arquivos previstos. Este registro é atualizado em commit documental posterior na mesma PR. |
+| Checks remotos | `Governance / Validate governance` observado como `QUEUED` na abertura sobre `9a670d1` ([execução](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42080471636/job/127431855156)). O último push reexecuta os checks; estado atual verificável na PR, sem sucesso presumido. |
 
 ## Revisão da correção
 
@@ -82,22 +84,22 @@ Não se aplica. Última issue de ciclo completo: a PR de encerramento documental
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 002"
+Situação: Aguardando merge — ciclo 002 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/17
+Diga: "aprovo o merge da PR #17"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-14/item-3 + 2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano/ciclo em execução; itens 1 e 2 integrados; issue #14 aberta e autorizada em 2026-11-05, sem task/PR.
-- `state_after`: parecer do item 3 concluído localmente e KB-003 atualizada; task #13 reconciliada como concluída; task #14 ativa e publicação em preparação, sem encerrar o ciclo.
+- `state_after`: parecer do item 3 e KB-003 publicados na PR #17; task #13 reconciliada como concluída; task #14 `Aguardando integração`, sem encerrar o ciclo.
 - `result`: `executed`
-- `evidence`: autorização literal, base e integração das dependências conferidas; relatório com alternativas/81 avaliações/recursos/matriz/protocolos e KB-003 no escopo; 55 testes passaram, validador sem erros/avisos, contas, referências e G3 conferidos.
-- `blockers`: nenhum para a entrega documental; merge exige checks verdes e aprovação específica. Lacunas não autorizam provas ou serviços.
+- `evidence`: autorização literal, base e integração das dependências conferidas; relatório com alternativas/81 avaliações/recursos/matriz/protocolos e KB-003 no escopo; 55 testes passaram, validador sem erros/avisos, contas, referências/G3/staging conferidos; PR #17 real com escopo e checks consultados.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e "aprovo o merge da PR #17". Encerramento depende da integração e de PR própria. Lacunas não autorizam provas ou serviços.
 
 ## Referência do bootstrap
 
