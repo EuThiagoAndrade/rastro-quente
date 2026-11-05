@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#12`
-> **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
+> **Plano:** `_project/executed/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-12`
 > **PR:** [#15](https://github.com/EuThiagoAndrade/rastro-quente/pull/15)
 > **Integração:** `PR #15 integrada em main em 2026-11-05; Governance aprovado na PR e em main`
@@ -86,10 +86,10 @@ Não se aplica. Primeira issue de ciclo completo; nenhuma movimentação para `e
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 002 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 002 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 002"
+Diga: —
 ```
 
 ## Handoff de saída

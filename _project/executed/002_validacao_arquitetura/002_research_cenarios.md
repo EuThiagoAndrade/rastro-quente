@@ -24,7 +24,7 @@ Referências locais verificadas em 2026-11-05:
 
 - **L1:** `_project/executed/001_prova_de_dados/001_research_viabilidade.md`, seções 1, 3, 7 e 8–11. Usar conclusão da seção 11 e suas ressalvas; o cabeçalho histórico ainda diz `Rascunho`.
 - **L2:** `scripts/prova-dados/fontes.json`, campos `itens` e `levantamento` (consulta histórica de 2026-11-03). SHA-256 identifica o arquivo obtido naquela execução; HEAD atual não equivale a nova verificação de hash.
-- **L3:** `_project/drafts/002_validacao_arquitetura/002_plan.md`, item 1 e evidências admitidas; KB-003 e ADR-002/003. O contrato de contagem do ciclo 001 é referência limitada, não decisão de método para a fundação estadual.
+- **L3:** `_project/executed/002_validacao_arquitetura/002_plan.md`, item 1 e evidências admitidas; KB-003 e ADR-002/003. O contrato de contagem do ciclo 001 é referência limitada, não decisão de método para a fundação estadual.
 
 ## 2. Evidência disponível e consultas desta entrega
 
