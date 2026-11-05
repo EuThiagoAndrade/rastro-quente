@@ -118,7 +118,23 @@ Exemplo numérico fictício para 3 municípios de MT numa janela de 30 dias na s
     2. *Verificação de elegibilidade, Auth e isolamento RLS (absorve PF3 e PF5):* executada na entrega de fundação Supabase/Vercel, com testes automatizados para `AN`, `RP`, `OA` e `EX`.
     3. *Teste de carga, idempotência e reconstrução (absorve PF2 e PF4):* executado na entrega do importador antes de expor os dados na interface.
 
-## Perguntas em aberto
+## Decisões do responsável — 2026-11-05
+
+Após receber sugestões com motivos e alternativas, o responsável declarou **"Aceito todas as suas sugestões apresentadas."**. A autorização anterior **"autorizo o rascunho do plano do ciclo 003"** permanece vigente. Registrar as seguintes escolhas para o rascunho:
+
+- **R1:** consulta territorial e temporal auditável; seleção/ranking automático de áreas fora deste ciclo. A sugestão condicional M2 para R2 não é ativada pela escolha de R1.
+- **S1:** somente `AQUA_M-T`, com **12 meses completos mais recentes disponíveis**; focos INPE e limites municipais IBGE de Mato Grosso, sem outras camadas.
+- **I1:** ingestão sob demanda por comando local, com processamento territorial local e publicação controlada no Supabase.
+- **T1:** polígonos IBGE como referência territorial, borda incluída, GMT como principal, sensibilidade em `America/Cuiaba` e divergências contra os códigos INPE explícitas.
+- **Acesso:** somente o responsável lê por autorização em RLS; anônimos/outros autenticados não leem; escrita somente pelo executor controlado; fontes públicas sem dados pessoais.
+- **Operação:** orçamento financeiro zero, parada se a estimativa de banco ultrapassar 400 MB, conferência das demais cotas e teste de reconstrução por migrações/importador; configuração externa de contas pelo responsável. Finalidade real do uso, elegibilidade das contas e cotas disponíveis devem ser verificadas antes de aprovisionamento/deploy, sem presumir que o aceite das recomendações comprova esses fatos. Tempo de recuperação será medido, sem garantia antecipada.
+- **Forma de interação:** apresentar sugestão fundamentada antes de cada pergunta, com alternativas para escolha.
+
+**Referência visual e divergência delimitada:** na mesma mensagem, o responsável indicou expressamente `local/prototipo` como inspiração de estilo para o protótipo atual. Essa instrução humana mais recente autoriza a inspeção local restrita aos elementos visuais desse diretório para síntese do estilo, apesar da proibição geral de leitura pela governança em `.agent/ai_behavior.md`. A exceção é somente deste trabalho: não autoriza ler `local/brainstorm`, publicar materiais privados, copiar conteúdo/dados do mockup, adotar suas funcionalidades ou tratá-lo como arquitetura ou design system. O plano deverá registrar diretrizes visuais autossuficientes e sanitizadas.
+
+## Perguntas originais e alternativas
+
+As perguntas abaixo ficam preservadas como histórico. As escolhas acima resolvem o recorte do plano; verificações factuais de conta, capacidade e recuperação serão condições bloqueantes das entregas correspondentes.
 
 Para redigir o plano único de implementação sem suposições, precisamos das suas decisões sobre os 6 pontos abaixo:
 
@@ -149,15 +165,39 @@ Para redigir o plano único de implementação sem suposições, precisamos das 
 
 ## Próximo passo
 
+A autorização para o rascunho foi recebida em 2026-11-05: **"autorizo o rascunho do plano do ciclo 003"**. O aceite posterior das sugestões resolveu o recorte, conforme a seção de decisões acima, e o rascunho único foi criado em `_project/drafts/003_implementacao_prototipo/003_plan.md`. Esse plano é agora o artefato ativo do ciclo em `Planejamento`; verificações factuais permanecem condicionantes das entregas, sem implementação autorizada nesta etapa.
+
 ```text
 PRÓXIMO PASSO
-Situação: Ideação registrada — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Perguntas e decisões da ideação em _project/ideations/003_implementacao_prototipo.md
-Diga: "autorizo o rascunho do plano do ciclo 003"
+Situação: Aguardando revisão (rodada 1) — ciclo 003 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 003"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v1@23896d64d1724e8d62745f7b1a366f63d6a48b9b`
+- `effect_class`: `local_mutation`
+- `state_before`: ideação em `Parado`, autorização do rascunho registrada, sem plano; escolhas e orientação visual recebidas do responsável em 2026-11-05.
+- `state_after`: decisões e exceção visual delimitada registradas; plano único `v1` em `Rascunho` criado em `_project/drafts/003_implementacao_prototipo/003_plan.md`, ciclo em `Planejamento`, situação `Aguardando revisão (rodada 1)`, branch local `chore/cycle-003-plan`.
+- `result`: `executed`
+- `evidence`: aceite literal das sugestões registrado acima; referência visual indicada pelo responsável e inspeção estática limitada a CSS/estrutura após registrar a exceção; plano, gates de validação e handoff próprio no novo artefato ativo. Nenhuma publicação remota, issue, implementação ou aprovação do plano realizada.
+- `blockers`: nenhum para a redação; revisão formal pendente. Verificações de ambiente, fontes/capacidade, finalidade/elegibilidade e operação estão previstas como condições das entregas, sem afirmar fatos ainda não verificados.
+
+### Registro anterior — rascunho interrompido antes das decisões
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v1@23896d64d1724e8d62745f7b1a366f63d6a48b9b`
+- `effect_class`: `local_mutation`
+- `state_before`: ciclo `003` em `Ideação`, sem plano, na branch local `chore/cycle-003-ideation` em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`, com árvore limpa; ideação aguardando autorização e decisões; `main` remota conferida em `78267a79363aa49286fc1a8e2b7be2a5fe1e9d38`.
+- `state_after`: autorização humana do rascunho registrada nesta ideação; ciclo permanece em `Ideação`, sem plano; situação `Parado` com pergunta sobre as decisões ausentes. Nenhuma alternativa escolhida, issue criada ou publicação realizada.
+- `result`: `not_executed` — rascunho não iniciado por precondição ausente; somente autorização e pendência registradas no artefato ativo.
+- `evidence`: mensagem humana de 2026-11-05 reproduzida acima; leitura das autoridades, desta ideação, do workflow `rascunhar_plano`, dos templates `plano_implementacao` e `ideacao`, da KB-003, ADR-002/003/004 e do parecer de arquitetura do ciclo `002`; ausência de plano local e de respostas às perguntas 1 a 6 nos artefatos conferidos. Consulta somente leitura por `gh` após indisponibilidade dos conectores confirmou PR #18 integrada, nenhuma PR aberta do ciclo `003` e base remota inalterada. Node.js `v24.15.0`: 55 testes de governança passaram; validador com zero erros, zero avisos e nove conferências manuais; `git diff --check` sem erros. Diff restrito a este registro, com G3 e autorização conferidos manualmente.
+- `blockers`: decisões das perguntas 1 a 6, ou delimitação humana explícita do que ficará condicionado a uma entrega. A autorização de rascunho está atendida e não precisa ser repetida.
+
+### Registro anterior — ideação
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + idear + implementacao_prototipo + 78267a79363aa49286fc1a8e2b7be2a5fe1e9d38`
