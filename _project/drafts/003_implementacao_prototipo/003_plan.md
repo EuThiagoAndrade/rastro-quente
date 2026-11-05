@@ -1,8 +1,8 @@
 # Plano de Implementação — Fundação e implementação do protótipo
 
 > **Ciclo:** `003`
-> **Status:** `Em Revisão`
-> **Versão:** `v3`
+> **Status:** `Aprovado`
+> **Versão:** `v4`
 > **Data de criação:** 2026-11-05
 > **Última atualização:** 2026-11-05
 > **Tipo:** `feature`
@@ -10,9 +10,9 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "confirmo o nível completo e autorizo a ideação do ciclo 003" em 2026-11-05
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
-> **Veredito da revisão:** `REQUER NOVA RODADA`
-> **Aprovação humana pós-revisão:** `Pendente`
+> **Revisão formal:** `Concluída`
+> **Veredito da revisão:** `APTO PARA APROVAÇÃO`
+> **Aprovação humana pós-revisão:** `Aprovada em 2026-11-05`
 > **handoff_schema_version:** `2`
 
 **Autorização do rascunho:** "autorizo o rascunho do plano do ciclo 003", em 2026-11-05. Após perguntas com sugestões e alternativas, o responsável declarou "Aceito todas as suas sugestões apresentadas." e indicou o estilo de `local/prototipo` como inspiração. Autor: Codex (GPT-6). Este aceite resolve o recorte abaixo; não é aprovação do plano após revisão nem autorização de implementação.
@@ -20,6 +20,30 @@
 **Complemento autorizado — v2, 2026-11-05 (histórico):** o responsável pediu componentes mobile first na medida do possível, mantendo a exploração cartográfica confortável no computador; textos mais visíveis, especialmente as tags abaixo dos nomes dos municípios; e uma cor de destaque claramente distinta das cores secundárias. A v2 detalhou esses requisitos na direção visual, na estratégia de testes e no item 4. A escolha exata do azul proposto é técnica e permanece sujeita à revisão/aprovação do plano. Não houve veredito formal entre v1 e v2; ao concluir aquele complemento, o plano estava em `Rascunho`, aguardando rodada 1.
 
 **Autorização da correção — v3, 2026-11-05:** "corrija o plano do ciclo 003". A rodada 1 da v2, de Claude Code (Opus 5.5), está preservada integralmente em "Revisão crítica". Após sugestões com alternativas e exemplos, o responsável escolheu **D1 — classificação por município** e **sensibilidade por consulta na interface**. Esta correção responde R1-1 a R1-8, mantém `Em Revisão` e o último veredito `REQUER NOVA RODADA`, e aguarda rodada 2; não representa novo parecer ou aprovação.
+
+**Autorização da correção — v4, 2026-11-05:** "corrija o plano do ciclo 003 com a opção H3". A frase veio depois do veredito `APTO COM RESSALVAS` da rodada 2 e depois de o autor apresentar três alternativas para o histórico de avisos ausente ou incompleto:
+
+- **H1:** dia indeterminado e publicação sem nova consulta;
+- **H2:** "sem evidência de lacuna", com o motivo "histórico não verificado";
+- **H3:** H1 como padrão de processamento local, mais uma parada para decisão humana antes de publicar.
+
+O responsável escolheu H3. A v4 responde R2-1 e R2-2, preserva as rodadas 1 e 2 e mantém `Em Revisão`; aguarda a rodada 3. Autor desta correção: Claude Code (Opus 5.5), o mesmo agente que revisou as rodadas 1 e 2. A independência da próxima revisão é conferência manual do responsável, que pode levá-la a outra ferramenta.
+
+**Aprovação do plano — v4, 2026-11-05:** o responsável manifestou literalmente "aprovo o plano do ciclo 003", depois do veredito `APTO PARA APROVAÇÃO` da rodada 3 (revisor: Codex, GPT-6).
+
+A aprovação ratifica as decisões de G1 enumeradas em "Aprovar plano › Conferir":
+
+- protocolo D1, com unidade município-dia GMT, três classes, precedência, validação humana de avisos ambíguos e H1 como padrão local;
+- parada H3 antes de publicar;
+- sensibilidade Cuiabá por consulta.
+
+Cobre:
+
+- a publicação da PR documental deste lote (ideação, plano e registro do ciclo);
+- depois da integração documental e da confirmação dos payloads, a criação das cinco issues;
+- o encerramento, depois das entregas.
+
+Não cobre merge, implementação de issues, ações humanas externas, carga hospedada nem verificação em produção. Cada um desses passos tem frase própria.
 
 ## Problema e contexto
 
@@ -90,6 +114,19 @@ A janela exata e a revisão das fontes são fixadas na entrega 1, sem download o
 
 Conferir o histórico para a janela/fonte consultada e registrar seu alcance: verificado, parcial ou indisponível. Dia sem aviso incidente num histórico verificável recebe `sem_evidencia_de_lacuna`, com o aviso textual **"cobertura não comprovada"**. Se não houver histórico verificável para o dia/município, usar `incidencia_indeterminada`, motivo `historico_ausente_ou_incompleto`, e conservar as contagens observadas acompanhadas da limitação. Na composição de avisos do mesmo dia/satélite/município, manter a precedência do ciclo `001`: lacuna conhecida, depois incidência indeterminada, depois sem evidência de lacuna; preservar os motivos e a incompletude do histórico, mesmo quando já exista lacuna conhecida.
 
+**H3 — parada por histórico de avisos ausente ou incompleto (escolhida pelo responsável na v4):** no processamento local do item 1, a regra acima (H1) continua sendo o padrão. Antes de qualquer publicação, o item 1 mede o alcance real do histórico de avisos na janela:
+
+- município-dias, dias e meses com histórico verificado, parcial ou indisponível;
+- as fontes consultadas e por que foram consideradas suficientes ou não.
+
+Se houver qualquer município-dia com histórico parcial ou indisponível, a execução vai a `Parado`. A decisão é apresentada com esses números e com o efeito de cada alternativa na disponibilidade exibida, no mínimo:
+
+- manter H1;
+- adotar H2 (dia como `sem_evidencia_de_lacuna`, motivo `historico_nao_verificado`);
+- outra regra proposta com sugestão e motivo.
+
+Nenhuma carga hospedada e nenhuma publicação dessa disponibilidade ocorre antes da decisão registrada. As contagens de focos não dependem dessa escolha, mas também não são publicadas separadas da disponibilidade sem decisão. Se o histórico estiver verificado em toda a janela, não há parada, e o relatório do item 1 registra a evidência.
+
 Exemplo fictício escolhido: aviso de falta de `AQUA_M-T` a oeste de 58°O → X inteiro a oeste: lacuna conhecida; Y cortado pela linha: incidência indeterminada; Z inteiro a leste: sem evidência de lacuna, se o histórico do dia foi verificado. Em 30 dias iguais quanto ao histórico, Z ter zero dias nas duas primeiras classes não significa 30 dias cobertos. Exibir dias por classe no município selecionado; na visão estadual, explicitar a unidade município-dia e as classes, sem inventar um status homogêneo para todo MT.
 
 **R1-2 / interface por consulta:** o responsável escolheu sensibilidade em Cuiabá para cada consulta, além da série principal GMT. Para outubro/2026, por exemplo, principal `[2026-10-01T00:00Z, 2026-11-01T00:00Z)` e sensibilidade `[2026-10-01T04:00Z, 2026-11-01T04:00Z)`, após conferir o fuso do período. Exemplo fictício aceito: principal 100, com 3 registros nas primeiras quatro horas do início e 5 nas quatro horas após o fim → sensibilidade `100 − 3 + 5 = 102`, diferença `+2`. Nenhum dos 5 registros finais entra no mapa/tabela/total principal de outubro. Persistir e dimensionar o envelope; não presumir diferença zero por ela ter ocorrido na referência de Colniza. Disponibilidade permanece na unidade dia GMT, explicitamente rotulada, sem recalculá-la silenciosamente em outro calendário.
@@ -143,7 +180,7 @@ São diretrizes deste protótipo, não um design system definitivo. A entrega 4 
 | Ponto | Precondição | Cobre | Não cobre | Conferir |
 | :-- | :-- | :-- | :-- | :-- |
 | Autorizar rascunho — "autorizo o rascunho do plano do ciclo 003" | Ideação, escolhas humanas registradas e autorização já recebida | Este rascunho local, reconciliação da ideação e registro do ciclo | Revisão, aprovação, issues, implementação e publicação | R1/S1/12 meses/I1/T1, matriz, inspiração visual delimitada e condicionantes |
-| Aprovar plano — "aprovo o plano do ciclo 003" | Revisão formal com veredito apto e manifestação humana posterior | Plano revisado, publicação da PR documental; issues após integração documental e confirmação dos payloads; encerramento após entregas | Implementação das issues, merge, configuração/aceite externo e verificação em produção | Ressalvas, cinco itens, orçamento zero sem garantia de capacidade, fontes/método, acesso e dependências de ambiente |
+| Aprovar plano — "aprovo o plano do ciclo 003" | Revisão formal com veredito apto e manifestação humana posterior | Plano revisado, publicação da PR documental; issues após integração documental e confirmação dos payloads; encerramento após entregas | Implementação das issues, merge, configuração/aceite externo e verificação em produção | Ressalvas, cinco itens, orçamento zero sem garantia de capacidade, fontes/método, acesso e dependências de ambiente. Aprovar fixa como decisões humanas de G1: o protocolo D1 (unidade município-dia GMT, três classes, precedência, validação humana de avisos ambíguos, H1 como padrão local para histórico ausente), a parada H3 antes de publicar e a sensibilidade Cuiabá por consulta |
 | Aprovar merge — "aprovo o merge da PR #N" | PR concreta, checks verdes no último commit e diff conferido | Somente merge daquela PR, por squash | Outras PRs, conta externa, deploy e nova entrega | Lote documental ou issue correspondente, privacidade, G1–G4, checks e estado real |
 | Autorizar implementação — "autorizo a implementação da issue #N" | Plano aprovado/integrado, issue válida e dependências integradas | Implementação/testes e preparação/publicação da PR delimitada. No item 5, agente prepara o roteiro e, somente após PR técnica integrada e ações externas conferidas, faz dry-run e carga/publicação pelo EX para o alvo/manifesto/janela previstos, conforme tabela específica | Merge, atos administrativos reservados ao responsável (DDL hospedado, contas, OAuth, EX/segredos e cadastro RP), cobrança, expansão de escopo ou verificação em produção sem sua frase | Escopo, credencial EX limitada, alvo/manifesto, gates e separação entre administração humana e carga de dados |
 | Ação humana externa — "concluí a ação externa da issue #N" | Roteiro concreto preparado na task dos itens 2 ou 5; no item 5, PR técnica integrada antes de efeitos remotos | Retorno do responsável sobre atos que ele próprio executa: ambiente e, no item 5, contas/configuração, migrações hospedadas, provisionamento de EX, deploy, primeiro login e cadastro RP, na ordem da tabela. Confirmar etapa executada sem segredo/UUID real no registro | Não autoriza agente a usar credencial administrativa ou repetir esses atos; não comprova automaticamente elegibilidade nem substitui merge ou autorização de verificação em produção | Evidências sanitizadas por etapa, histórico de migrações, alvo/commit, flags de privilégio, conta autorizada e acesso EX disponível só no ambiente controlado |
@@ -163,7 +200,7 @@ Cada PR, inclusive a documental e a de encerramento, exige aprovação própria 
 ## Estratégia de testes
 
 - **Nesta redação:** testes e validador de governança, `git diff --check`, revisão do diff, referências, G3, autoria das escolhas e coerência dos estados. Não executar aplicação, ingestão, banco, conta, benchmark ou deploy para redigir o plano.
-- **Método:** `node:test` com fixtures fictícias e valores esperados independentes: dentro/fora/borda/buraco/MultiPolygon, divisa ambígua, código INPE divergente, coordenada inválida, repetição legítima de linha e `id_fonte` repetido/vazio/coluna ausente. Para disponibilidade, testar aviso parcial X/Y/Z, área não delimitada, aviso externo, ausência de aviso em histórico verificado, histórico ausente/parcial e precedência das três classes. Para tempo, testar cortes diários GMT, limites inclusivo/exclusivo, virada mensal/ano bissexto e exemplo `100 − 3 + 5 = 102`; envelope persistido participa somente da sensibilidade. Resultados de produção não fabricam seus valores esperados.
+- **Método:** `node:test` com fixtures fictícias e valores esperados independentes: dentro/fora/borda/buraco/MultiPolygon, divisa ambígua, código INPE divergente, coordenada inválida, repetição legítima de linha e `id_fonte` repetido/vazio/coluna ausente. Para disponibilidade, testar aviso parcial X/Y/Z, área não delimitada, aviso externo, ausência de aviso em histórico verificado, histórico ausente/parcial e precedência das três classes. Testar também que o relatório de alcance contabiliza município-dias verificados, parciais e indisponíveis e que histórico parcial em fixture aciona a parada H3, sem gerar publicação. Para tempo, testar cortes diários GMT, limites inclusivo/exclusivo, virada mensal/ano bissexto e exemplo `100 − 3 + 5 = 102`; envelope persistido participa somente da sensibilidade. Resultados de produção não fabricam seus valores esperados.
 - **Referência pública:** na entrega 1, se os mesmos hashes e recorte de Colniza do ciclo `001` forem obtidos, exigir 516/246/62 e total 824. Hash/revisão diferente exige explicar a mudança e validar contra referência independente compatível; não editar resultado esperado só para passar. Contagens estaduais/municipais da janela devem concordar com uma agregação independente sobre os registros classificados, sob o mesmo contrato e sem extrapolação municipal. Essa conferência de totais não valida espacialmente todos os pontos: a evidência espacial permanece delimitada pelos casos independentes e pelo recorte público comparável.
 - **Banco e autorização:** aplicar migrações do zero em Supabase local, gerar UUIDs fictícios RP/OA no mesmo papel `authenticated` e testar negação antes de cadastrar RP, permissão após cadastro administrativo e nova negação após revogação. Testar AN/EX, RLS por tabela, RPC/views, carga parcial, token ausente/expirado e metadado adulterado. Negativos não devolvem linhas/bytes indevidos nem alteram estado; EX não muda schema, grants ou lista RP. Consultas persistem/filtram escopo principal/envelope e disponibilidade municipal, sem contaminar total GMT.
 - **Pipeline e recuperação:** mesma carga duas vezes, concorrência, falha antes/durante/depois do commit, correção de fonte, expiração e reconstrução local nova. Testar lotes repetidos/checkpoints somente se a medição exigir tais mecanismos. Manifesto, registros principais/envelope, disponibilidade e totais restaurados coincidem com referência externa ao mecanismo. Testes destrutivos só no ambiente isolado.
@@ -185,6 +222,7 @@ Cada PR, inclusive a documental e a de encerramento, exige aprovação própria 
 - [ ] Processamento em streaming recorta MT pela geometria e relata divergências; rejeita arquivo incompatível/linha inválida sem declarar carga válida silenciosamente. Eventual ambiguidade material é apresentada para decisão antes de publicar.
 - [ ] Casos independentes de G1 passam; referência pública comparável e contagens estaduais/municipais reconciliadas; cobertura e sensibilidade não são inferidas de ausência de registros.
 - [ ] Produzir disponibilidade por dia GMT × satélite × município com as três classes/motivos, alcance do histórico e validação humana de avisos ambíguos. Fixtures de área parcial X/Y/Z, aviso sem área, histórico ausente e precedência passam; histórico indisponível mantém contagens com limitação explícita, não dias supostamente cobertos.
+- [ ] Relatório de alcance do histórico de avisos (H3): município-dias, dias e meses verificados, parciais e indisponíveis, com as fontes consultadas. Com qualquer parcela parcial ou indisponível, a entrega para em `Parado` antes de publicar, com os números e as alternativas H1, H2 ou outra regra. A decisão humana fica registrada na task antes de qualquer carga hospedada.
 - [ ] Produzir registros da janela principal e envelope identificados separadamente, preservando `id_fonte` e relatório de repetidos/ausentes. Caso 100 GMT/102 Cuiabá confere, com envelope fora da contagem principal; fonte de fronteira e completude comprovadas para suportar consulta por período.
 - [ ] Separar malha integral de classificação e geometria de exibição; medir ambas por município e conjunto, com proveniência/representação e parâmetros declarados, sem extrapolação a partir de Colniza.
 - [ ] Medição da janela completa, não só amostra: linhas lidas/persistíveis/excluídas, bytes, tempo, memória/pico de disco local e tamanhos do resultado. Separar obtenção, classificação e agregação; não estimar banco como se já estivesse medido.
@@ -279,7 +317,7 @@ Ordem canônica: **PR técnica integrada → contas/elegibilidade → migraçõe
 
 ## Arquivos afetados
 
-Na criação da v1, somente este plano, a reconciliação das escolhas/autorizações na ideação e a linha de estado/plano em `_project/cycles.md`. No complemento v2 e na correção v3, somente este plano e a referência de versão/situação no registro de ciclos. A rodada 1 preexistente é preservada; nenhum arquivo do protótipo privado é alterado ou versionado.
+Na criação da v1, somente este plano, a reconciliação das escolhas/autorizações na ideação e a linha de estado/plano em `_project/cycles.md`. No complemento v2 e nas correções v3 e v4, somente este plano e a referência de versão/situação no registro de ciclos. As rodadas de revisão preexistentes são preservadas; nenhum arquivo do protótipo privado é alterado ou versionado.
 
 Na execução proposta: `scripts/prototipo/`, `tests/fixtures/prototipo/`, `supabase/config.toml`, novas migrações em `supabase/migrations/`, testes em `supabase/tests/`, `src/`, `index.html`, configuração Vite/TypeScript/Playwright, `package.json`/lockfile, `.env.example`, `.gitignore`, `.vercelignore` e configuração de deploy/CI estritamente necessária. Documentação: README, runbook com guia da interface, novo ADR/KB usando numeração conferida ao criar, atualização de KB-003 e artefatos/evidências/tasks do ciclo. Brutos, medições detalhadas, cópias e screenshots de trabalho ficam em `local/dados-prototipo/`; fixtures versionadas são fictícias.
 
@@ -299,9 +337,9 @@ Os números não existem nesta etapa. Cada payload será apresentado e confirmad
 
 ## Dependências e blockers
 
-- **Para revisar o rascunho:** nenhum bloqueio de redação; escolhas humanas de produto/método registradas. Revisão formal pendente.
+- **Para a aprovação do plano:** veredito apto na rodada de revisão em curso; escolhas humanas de produto/método registradas, incluindo D1, sensibilidade por consulta e H3.
 - **Antes do item 2 ser aceito:** disponibilizar ambiente local gratuito compatível com Supabase/contêineres, com memória/disco e licenças adequados. Ausência de ferramenta não dispensa o teste de banco nem permite substituí-lo por mocks.
-- **Antes de carga hospedada:** fontes/contrato aprovados pelos testes, schema real medido, ausência de ambiguidade analítica material, idempotência, reconstrução e orçamento com margem. O limiar de 400 MB não cobre sozinho disco, CPU, egress, operação ou organização.
+- **Antes de carga hospedada:** fontes/contrato aprovados pelos testes, schema real medido, ausência de ambiguidade analítica material, decisão H3 registrada quando o histórico de avisos for parcial ou indisponível, idempotência, reconstrução e orçamento com margem. O limiar de 400 MB não cobre sozinho disco, CPU, egress, operação ou organização.
 - **Antes de configurar/deployar serviços:** finalidade real e elegibilidade confirmadas, vagas/quotas das contas gratuitas verificadas, roteiro externo concluído, segredos guardados no local próprio e nenhuma dependência paga oculta. Sem finalidade confirmada, não presumir enquadramento comercial.
 - **Antes de declarar operação:** evidência do deploy, Google real, matriz no destino, consumo e resultado conferidos sob autorização de produção; pendência não testada permanece explícita e impede alegação correspondente.
 
@@ -358,13 +396,64 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 2) — ciclo 003 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
 Conferir: —
-Diga: "revise o plano do ciclo 003"
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + atualizar_docs + aprovacao_publicacao_plano + v4@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf+rodada-3`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v4` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO PARA APROVAÇÃO` (rodada 3), aprovação `Pendente`, situação `Aguardando aprovação do plano`. A branch `chore/cycle-003-plan` está em `89e060d`, sobre `origin/main` `78267a79363aa49286fc1a8e2b7be2a5fe1e9d38`; rodadas 2 e 3 e correção v4 ainda locais. Ciclo `003` em `Planejamento`; sem PR ou issue do ciclo.
+- `state_after`: plano `v4` `Aprovado` (`Aprovada em 2026-11-05`) por manifestação posterior ao parecer; ciclo permanece em `Planejamento`. A publicação da PR documental, coberta pela aprovação, é o próximo passo.
+- `result`: `executed`
+- `evidence`: manifestação humana literal "aprovo o plano do ciclo 003" em 2026-11-05, posterior à rodada 3; precedente do ciclo `002` (PR #11) conferido; base remota e ausência de PR/branch remota do ciclo conferidas por `git fetch`, `git ls-remote` e `gh`.
+- `blockers`: nenhum para publicar a PR documental.
+
+### Registro anterior — revisão da rodada 3
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + revisar_plano + 003_plan/rodada-3 + v4@sha256:aa85fe1c18d58a246a105b8cb3e685b585164be6de7fa1e3b48529286875f977`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v4` em `Em Revisão`, revisão formal `Em andamento`, último veredito `APTO COM RESSALVAS` da rodada 2 e situação `Aguardando revisão (rodada 3)`; ciclo `003` em `Planejamento`. Branch `chore/cycle-003-plan` em `89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf`, com correção v4/rodada 2 e registro de ciclos preexistentes ainda não commitados; fonte normalizada LF identificada pelo SHA-256 da logical_key, sem tratar a v4 como conteúdo do commit base.
+- `state_after`: plano permanece `v4` e `Em Revisão`, revisão formal `Concluída`, veredito da rodada 3 `APTO PARA APROVAÇÃO`, aprovação humana ainda `Pendente`, situação `Aguardando aprovação do plano`. Rodadas anteriores e conteúdo executável preservados; `cycles.md` e as alterações preexistentes não foram modificados por este revisor.
+- `result`: `executed`
+- `evidence`: pedido humano "revise o plano do ciclo 003"; inspeção da v4 real, autoridades, template, ideação, evidências locais e achados/respostas das rodadas anteriores; fonte e trechos protegidos conferidos por SHA-256; GitHub observado somente por leitura, após falha 401 do MCP preferencial. Parecer e resultados dos gates registrados na rodada 3.
+- `blockers`: nenhum para solicitar aprovação humana do plano. As precondições de execução, H3, capacidade, acesso, contas e produção continuam obrigatórias; este parecer não as declara atendidas.
+
+### Registro anterior — correção v4
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v4@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf+rodada-2`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` (rodada 2), situação `Aguardando aprovação do plano`. Branch local `chore/cycle-003-plan` em `89e060d`; a rodada 2 ainda não estava commitada e era a única alteração local, somente neste plano.
+- `state_after`: plano `v4` em `Em Revisão`. As rodadas 1 e 2 e seus vereditos estão preservados. A parada H3 entrou no protocolo D1, no item 1, nos testes e nas dependências. A linha "Aprovar plano › Conferir" passou a enumerar as decisões de G1 que a aprovação fixa, e o texto desatualizado de "Dependências e blockers" foi trocado. Respostas a R2-1 e R2-2 registradas. Situação `Aguardando revisão (rodada 3)` e referência em `cycles.md` atualizada.
+- `result`: `executed`
+- `evidence`: frase "corrija o plano do ciclo 003 com a opção H3" em 2026-11-05, depois da apresentação de H1, H2 e H3 com o efeito de 51.830 município-dias. Workflow `rascunhar_plano`, template e autoridades conferidos. Validação abaixo.
+- `blockers`: nenhum para submeter a v4 à rodada 3.
+
+### Validação local da correção v4
+
+- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes aprovados, zero falhas; `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais; `git diff --check`: sem erros.
+- Rodada 1: SHA-256 da seção normalizada em LF `ed4b8b54ec6afe9aef6a6304c038e88a7fbcd3ceeb4e1091b01bb9d1c64e2ef3`, igual ao registrado nas correções anteriores. Rodada 2: `38ab97b6a182c7d70362d91bf50633cace1d429ee02b2c14a970ed799a15e4f8`, medido depois desta correção. O diff contra `89e060d` não remove nenhuma linha das rodadas.
+- O campo `Revisão formal` voltou para `Em andamento`, porque há uma rodada 3 pendente. O último veredito (`APTO COM RESSALVAS`, rodada 2) foi mantido no cabeçalho até o novo parecer.
+- Somente este plano e a linha do ciclo em `_project/cycles.md` alterados. Nenhuma leitura de `local/`, operação remota, issue ou publicação.
+
+### Registro anterior — revisão da rodada 2
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + revisar_plano + 003_plan/rodada-2 + v3@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v3` em `Em Revisão`, revisão formal `Em andamento`, último veredito `REQUER NOVA RODADA` (rodada 1), situação `Aguardando revisão (rodada 2)`; branch local `chore/cycle-003-plan` em `89e060d`, árvore limpa; ciclo `003` em `Planejamento`.
+- `state_after`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS`; rodada 2 registrada sem bloqueadores e com duas ressalvas; situação `Aguardando aprovação do plano`. Conteúdo do plano, rodada 1, resposta do autor, ideação e `cycles.md` não alterados pelo revisor.
+- `result`: `executed`
+- `evidence`: diff `6fb4956..89e060d` e plano `v3` lidos integralmente; preservação da rodada 1 conferida por SHA-256; resposta do autor confrontada com cada achado; validação registrada na rodada 2.
+- `blockers`: nenhum para a decisão humana; R2-1 e R2-2 são ressalvas a conferir na aprovação.
+
+### Registro anterior — correção v3
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + rascunhar_plano + 003_plan + v3@sha256:5646730cf671736add754f84edbed1f5c2417716a4397badf44a752b9d523f47`
@@ -521,6 +610,121 @@ A linha "Unidade contada" define a identidade técnica por versão/hash da fonte
 - **R1-8 — Corrigido pelo autor, sujeito à rodada 2.** `id_fonte` preserva `id` textual para auditoria, sem unicidade/deduplicação; repetidos permanecem linhas distintas e são relatados, células vazias viram nulo declarado e coluna ausente é incompatibilidade de formato a tratar. Schema, item 1/2 e fixtures refletem esses casos.
 
 **Validação da correção:** ver "Handoff de saída › Validação local da correção v3". Nenhuma rodada 2 foi executada; solicitar reavaliação do plano corrigido.
+
+### Rodada 2
+
+**Data:** 2026-11-05.
+
+**Autor:** Codex (GPT-6), conforme a resposta à rodada 1; o commit `89e060d` não traz trailer de coautoria.
+
+**Revisor:** Claude Code, modelo Opus 5.5 (`claude-opus-5-5`), o mesmo da rodada 1.
+
+**Base revisada:** `v3` no commit `89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf`, branch local `chore/cycle-003-plan`, árvore limpa. Diff `6fb4956..89e060d` lido: só este plano e a linha do ciclo em `_project/cycles.md`. A rodada 1 está preservada: o SHA-256 da seção, normalizada em LF, é `ed4b8b54…2ef3`, igual ao declarado pelo autor. Nenhum arquivo de `local/` foi lido. As novas referências Supabase (usuários, migrações hospedadas, papéis) não foram consultadas; o plano as trata como apoio, não como prova de capacidade da conta.
+
+#### Situação dos achados da rodada 1
+
+| Achado | Situação | Conferência |
+| :-- | :-- | :-- |
+| R1-1 — disponibilidade estadual (bloqueador) | Atendido, com ressalva R2-1 | Unidade dia GMT × satélite × município, três classes do ciclo `001`, aviso parcial e sem área, precedência e alcance do histórico estão no contrato, nos testes e nos critérios dos itens 1, 2 e 4. O exemplo X/Y/Z virou fixture. |
+| R1-2 — semântica temporal (bloqueador) | Atendido | Datas, dias da série, mapa, tabela e total principal em GMT. Sensibilidade Cuiabá por consulta, em campo separado e rotulado, com a mesma versão. Envelope persistido, marcado e excluído do principal. Critérios nos itens 1, 2 e 4 e fixture 100/102. Conferido: o intervalo de sensibilidade `[01/10 04:00Z, 01/11 04:00Z)` só precisa de dados após o fim da janela, nunca antes do início. |
+| R1-3 — mutações hospedadas (bloqueador) | Atendido | Tabela de sete operações com executor, frase, credencial e parada. A contradição sobre o RP foi resolvida: cadastro pelo responsável. Chave `auth.users.id`, ordem primeiro login → cadastro → verificação, credencial de proprietário nunca entregue ao agente e carga só com EX após a PR técnica integrada. A linha "Autorizar implementação" exclui os atos administrativos, e "Ação humana externa" não delega ao agente. |
+| R1-4 — geometria de exibição | Atendido | Geometria de classificação separada da de exibição; simplificação só se a medição exigir, com proveniência e texto de legenda definido; medições nos itens 1, 3 e 4, sem extrapolar Colniza. |
+| R1-5 — azul em cinza | Atendido | Diferenciador não cromático obrigatório (preenchimento, texto branco, verbo, contorno); `#152e27` explicitado; o critério não alega contraste azul/verde. |
+| R1-6 — simplicidade do item 3 | Atendido | Uma transação como primeira hipótese; lotes, checkpoints e trava só com necessidade medida; garantias e testes mantidos. |
+| R1-7 — matriz "aprovada" | Atendido | Título e texto separam o resumo aceito na ideação do detalhamento sujeito à aprovação. |
+| R1-8 — `id` da fonte | Atendido | `id_fonte` textual, sem unicidade; repetido, vazio e coluna ausente tratados e cobertos por fixture. |
+
+Nenhum achado corrigido reapareceu. Os bloqueadores caíram de três para zero.
+
+#### R2-1 — Ressalva: regras do protocolo D1 que a aprovação vai fixar
+
+O plano registra que o responsável escolheu "D1" e "sensibilidade por consulta", mas não transcreve a manifestação literal, como foi feito com "Aceito todas as suas sugestões apresentadas.". O revisor não pode conferir a fala; isso fica entre as conferências manuais do validador.
+
+Além disso, o protocolo D1 traz regras de interpretação redigidas pelo autor que vão além do exemplo X/Y/Z apresentado na rodada 1:
+
+- histórico de avisos ausente ou incompleto leva a `incidencia_indeterminada`, com motivo `historico_ausente_ou_incompleto`;
+- avisos ambíguos são validados pelo responsável.
+
+A primeira regra tem efeito grande. Com carga em novembro de 2026, a janela de novembro de 2025 a outubro de 2026 tem 365 dias, ou 365 × 142 = 51.830 município-dias para `AQUA_M-T`. Se o histórico de avisos do INPE não puder ser verificado, todos esses município-dias ficam "incidência indeterminada". No ciclo `001`, um dia sem aviso era `sem_evidencia_de_lacuna`. A regra é conservadora e coerente com G1, mas é uma escolha de interpretação: ela só vale como decisão humana se o responsável a aprovar sabendo disso.
+
+Recomenda-se, na aprovação ou numa correção curta:
+
+- transcrever a manifestação literal das duas escolhas;
+- citar na coluna "Conferir" da linha "Aprovar plano" as regras do protocolo D1 (histórico ausente → indeterminada, validação humana de avisos ambíguos, precedência) e a sensibilidade por consulta.
+
+Se o responsável preferir outra regra para histórico ausente, é preciso corrigir antes de aprovar.
+
+#### R2-2 — Ressalva: texto desatualizado em "Dependências e blockers"
+
+O primeiro item ainda diz "Para revisar o rascunho: … Revisão formal pendente.". O plano está em `Em Revisão` e passou por duas rodadas. Atualizar na próxima edição do autor; isso não afeta escopo nem autorização.
+
+#### Itens atendidos e verificações
+
+- Objetivo, escopo, exclusões, cinco itens, decomposição em issues e PRs, a exceção `Refs #N` do item 5 e o encerramento continuam como atendidos na rodada 1. A correção não ampliou o escopo: não adicionou camada, satélite, janela, serviço ou capacidade.
+- G1 a G4 continuam `Sim` e justificados. G2 foi reforçado: chave por UUID, nunca por e-mail ou metadado; teste de negação antes do cadastro e depois da revogação; EX sem acesso à lista RP. Para G3, nenhum UUID, e-mail, segredo ou trecho do material privado foi incorporado.
+- Pontos de aprovação: os cinco tipos e frases de `_project/README.md`, sem frase nova. A produção só é mutada pelo agente na carga EX, que está enumerada; a verificação em produção mantém frase própria. As condições de parada estão declaradas.
+- `_project/cycles.md` foi atualizado pelo autor, como pedia a rodada 1.
+- Validações locais após registrar esta rodada: Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes aprovados, zero falhas; `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais; `git diff --check`: sem erros; `git status --short`: somente este plano modificado, sem staging. Diff restrito a status, revisão e veredito, bloco de próximo passo, handoff e esta seção.
+
+**Veredito:** `APTO COM RESSALVAS` — sem bloqueadores. R2-1 deve ser conferida pelo responsável antes de aprovar: aprovar o plano fixa as regras do protocolo D1 e a sensibilidade por consulta como decisões humanas de G1. R2-2 é editorial. Este veredito não é aprovação. Nenhuma publicação, issue ou implementação foi realizada.
+
+### Resposta do autor à rodada 2 — v4
+
+**Data:** 2026-11-05. **Autor:** Claude Code (Opus 5.5). **Autorização:** "corrija o plano do ciclo 003 com a opção H3". As rodadas 1 e 2 permanecem preservadas. Esta resposta não constitui revisão nem aprovação.
+
+- **R2-1 — Corrigido pelo autor, sujeito à rodada 3.**
+  - Sobre a regra de histórico ausente, o responsável recebeu três alternativas com o efeito de 51.830 município-dias e escolheu H3, com frase literal registrada no cabeçalho. A regra conservadora (H1) continua como padrão do processamento local, mas não chega à publicação sem decisão humana quando o histórico for parcial ou indisponível. Isso está no protocolo D1, no critério do item 1, nos testes e em "Dependências e blockers".
+  - A linha "Aprovar plano › Conferir" enumera as decisões de G1 que a aprovação fixa: o protocolo D1, a parada H3 e a sensibilidade por consulta.
+  - Limitação declarada: a manifestação literal das escolhas D1 e da sensibilidade por consulta, feitas na correção v3 com outro agente, não está acessível a este autor e não é reconstruída. A enumeração em "Conferir" faz com que a aprovação humana ratifique essas escolhas explicitamente.
+- **R2-2 — Corrigido pelo autor, sujeito à rodada 3.** O primeiro item de "Dependências e blockers" foi trocado por "Para a aprovação do plano", sem a menção desatualizada a revisão pendente.
+
+**Validação da correção:** ver "Handoff de saída › Validação local da correção v4".
+
+### Rodada 3
+
+**Data:** 2026-11-05.
+
+**Autor da v4:** Claude Code, modelo Opus 5.5 (`claude-opus-5-5`), conforme cabeçalho e resposta à rodada 2. As versões até a v3 têm autoria Codex (GPT-6).
+
+**Revisor:** Codex (GPT-6), em etapa de revisão separada da correção v4. Este agente participou da autoria até a v3 nesta conversa; não se alega revisão cega ou independência integral do histórico. A conferência humana de independência continua nos limites de ADR-004 e `_project/README.md`, sem criar requisito novo de ferramenta.
+
+**Base revisada:** v4 efetivamente presente na branch local `chore/cycle-003-plan`, antes deste parecer, com SHA-256 do texto normalizado LF `aa85fe1c18d58a246a105b8cb3e685b585164be6de7fa1e3b48529286875f977`. O HEAD é `89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf` (v3); a rodada 2 e a correção v4 estavam em alterações locais preexistentes no plano e em `cycles.md`, sem staging. A indicação inicial de v3/rodada 2 nesta conversa foi reconciliada com o estado real antes de revisar; o alvo desta rodada é v4/rodada 3.
+
+Foram conferidos `.agent/ai_behavior.md`, `_project/README.md`, `_project/cycles.md`, `.agent/workflows/revisar_plano.md`, `.agent/templates/plano_implementacao.md`, ideação `003`, ADR-002/003/004, KB-003, plano e histórico de revisão, relatório do ciclo `001` (método, contagens, fuso e disponibilidade), parecer do ciclo `002` (matriz de acesso e PF1–PF5), `scripts/prova-dados/cobertura.mjs`, manifesto `fontes.json` e `package.json`. Nenhum arquivo de `local/` foi lido. Nenhum código de aplicação, banco ou conta foi executado para provar as entregas.
+
+#### Conferência dos achados da rodada 2
+
+| Achado | Situação | Evidência na v4 |
+| :-- | :-- | :-- |
+| R2-1 — decisões de G1 e histórico de avisos | Atendido | O cabeçalho registra a autorização literal da correção com H3 e as alternativas H1/H2/H3. O protocolo mantém H1 apenas como padrão local e obriga `Parado` se houver qualquer município-dia com histórico parcial/indisponível. Relatório, teste e critério do item 1 exigem medir o alcance e registrar decisão humana antes de carga/publicação, inclusive publicação separada de contagens. A linha "Aprovar plano › Conferir" enumera D1, três classes, precedência, validação humana, H1 local, H3 e sensibilidade por consulta. |
+| R2-2 — dependência editorial desatualizada | Atendido | A seção agora começa por "Para a aprovação do plano" e exige veredito apto na rodada em curso; não diz que um rascunho ainda espera sua primeira revisão. |
+
+Nesta conversa, foi possível conferir as escolhas textuais do responsável na correção v3: **"D1 — classificação por município (recomendado)"** e **"Sensibilidade por consulta na interface (recomendado)"**, após sugestões e exemplos numéricos. O registro de H3 veio da correção v4 de outro agente e permanece com sua proveniência declarada; não foi reconstruída uma conversa externa. A futura manifestação de aprovação deve ratificar expressamente o contrato enumerado no ponto de aprovação. A autenticidade de autorizações registradas por outras sessões permanece conferência humana, como nas demais autoridades do projeto.
+
+Os bloqueadores da rodada 1 permanecem atendidos, sem reaparecimento: unidade/classes de disponibilidade; filtros e série GMT, envelope persistido e sensibilidade por consulta; executor/credencial/ordem das mutações hospedadas. Também continuam atendidas geometria de exibição separada, distinção visual não cromática, mecanismos condicionados à medição, matriz detalhada ainda sujeita à aprovação e `id_fonte` de auditoria sem deduplicação ambiental. As duas ressalvas da rodada 2 foram tratadas, sem oscilação ou discordância persistente; a regra de progresso está atendida.
+
+#### Achados novos
+
+Nenhum bloqueador ou ressalva nova.
+
+#### Itens atendidos e limites do parecer
+
+- Objetivo, cinco itens, dependências, escopo e exclusões seguem R1/S1/I1/T1 e 12 meses de MT. A v4 não acrescenta fonte, camada, ranking, serviço ou capacidade; H3 é uma barreira de decisão, não publicação previamente autorizada com histórico incompleto.
+- G1–G4 e critérios de aceite são coerentes: casos independentes e fontes fixadas; RLS por tabela e acesso direto AN/RP/OA/EX; credenciais/identidades fora de Git/bundle/logs; migrações aditivas. O mapa simplificado não redefine pertencimento, e os limites de referência municipal não são extrapolados para comprovar capacidade estadual.
+- Verificados no repositório: `516 + 246 + 62 = 824` no recorte de Colniza; malha registrada com 62.339 bytes e fonte diária de 2026-11-01 no manifesto; tooling atual somente de governança/prova e ausência de `supabase/`. Conferência com `Intl` do Node no período confirma que 04:00Z corresponde a 00:00 em Cuiabá nas duas fronteiras de outubro/2026. Casos `100 − 3 + 5 = 102` e `365 × 142 = 51.830` conferem; o último é a ilustração de município-dias, não uma medição do histórico real.
+- Pontos de aprovação mantêm manifestação humana posterior ao veredito, autorização por issue, merge específico com checks verdes, atos administrativos humanos e autorização própria de verificação em produção. A revisão não escolhe regra para a eventual parada H3 nem habilita modo contínuo.
+- Capacidade real, quotas disponíveis, elegibilidade do uso, licenças/versões no ponto de instalação, RLS/Google implementados, latência mobile e reconstrução continuam verificações das entregas. Este parecer não revalida preço/conta de provedor nem transforma suporte documental em prova operacional. Uma condição não atendida leva à parada prevista, sem upgrade ou redução automática do recorte.
+- G3: nenhuma identidade real, segredo ou material privado bruto no texto examinado. A direção mobile first, os pisos de fonte e os papéis de cor permanecem critérios de implementação; não houve validação visual de uma aplicação nesta revisão.
+- GitHub observado somente por leitura: o MCP GitHub Docker retornou 401; o fallback `gh` confirmou `main` em `78267a79363aa49286fc1a8e2b7be2a5fe1e9d38`, nenhuma PR aberta e nenhuma issue aberta. Nenhum efeito remoto foi executado.
+- `cycles.md` continua com a descrição preexistente de v4 aguardando rodada 3: o revisor não altera esse arquivo. O próximo workflow mutante de aprovação/publicação deve reconciliar a descrição com o parecer, sem mudar o estado `Planejamento` por inferência.
+
+#### Validação local da rodada 3
+
+- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas. `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros.
+- Corpo do plano até "Próximo passo", desconsiderando apenas campos de status/revisão/veredito permitidos ao revisor, preservado com SHA-256 normalizado LF `51dfa93c65a8c923a766d0bef94c9043f520d4d1aa3fa9c5e9e96b27965cb4af`. Histórico anterior inteiro preservado com `cb5521c291d23dc23c64d045d229b2fa43b78aac2b3560eb2f2e4b97785a7ba9`; rodadas 1 e 2 mantêm os hashes `ed4b8b54…2ef3` e `38ab97b6…e4f8` registrados anteriormente. Pós-mortem e `cycles.md` também ficaram idênticos à entrada deste workflow.
+- Alterações deste revisor restritas aos campos de revisão/veredito, próximo passo, handoff e nova rodada 3. Alterações preexistentes de outro agente preservadas, sem staging, commit ou publicação nesta revisão. Os gates verificam governança documental; não comprovam capacidade, banco, interface, autenticação real ou aprovação humana.
+
+**Veredito:** `APTO PARA APROVAÇÃO`. Sem bloqueadores ou ressalvas remanescentes nesta revisão. A aprovação exige manifestação humana **posterior** a este parecer — "aprovo o plano do ciclo 003" — que ratifica o contrato de G1 e mantém a parada H3 para eventual decisão futura baseada no alcance medido. O plano permanece `Em Revisão`, com aprovação humana `Pendente`. Nenhuma aprovação, promoção, issue, implementação, publicação ou integração foi realizada por este workflow.
 
 ## Pós-mortem
 
