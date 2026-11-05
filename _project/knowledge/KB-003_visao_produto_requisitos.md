@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-04"
+last_updated: "2026-11-05"
 origin_cycle: "000"
 ---
 
@@ -36,13 +36,24 @@ Fatos do ciclo 001 que as próximas etapas devem respeitar:
 - **Limites da evidência:** os 15 casos foram conferidos pelo agente, a pedido do responsável, e não por pessoa, e usando a base de limites do INPE para a posição; a comparação com o FIRMS valida o processamento da série VIIRS, não a observação física. Os crescimentos mensais não apareceram nos dados (queda de agosto a outubro).
 - **Dados e privacidade:** brutos, saídas e imagens ficam em `local/prova-dados/`, fora do Git. O repositório versiona só scripts, fixtures fictícias, o relatório e `casos.json` (dados públicos do INPE).
 
-Próximas etapas técnicas precisam validar capacidades, custos e arquitetura com evidências. A fundação técnica deverá definir ambientes, segredos, fluxo de autenticação, matriz de acesso/RLS, migrações e testes. São assuntos para triagem e autorização próprias, sem reservar demandas no backlog ou ciclos futuros.
+### Avaliação documental de focos e limites IBGE, sem camadas adicionais de sobreposição; duração e consumo de processamento indeterminados
+
+O ciclo 002 avalia um protótipo de um usuário em Mato Grosso, com janela variável de até dois anos, atualização sob demanda e restrição de custo zero. As hipóteses de persistência permanecem separadas: S1 (`AQUA_M-T`), S2 (principal mais VIIRS) e S3 (todos os satélites). Nenhuma foi escolhida para a fundação.
+
+O parecer compara processamento local com publicação de resultados mínimos, Supabase/PostGIS em lotes e funções Vercel com persistência no Supabase. Resultado: **evidência insuficiente nas três alternativas e nos 27 cenários de cada uma**, tanto na carga inicial quanto na operação comum. Volume estadual, armazenamento/índices/cópias, processamento, acesso implementado, recuperação e elegibilidade/custo completo continuam materiais e não comprovados. Só a contagem projetada de um MAU tem compatibilidade isolada e condicional; não prova login seguro ou suficiência do conjunto.
+
+Há incompatibilidades demonstradas para rotas que exijam os CSVs nacionais mensais históricos integrais como objetos Storage Free ou como corpo de entrada de função Vercel. Elas não descartam todos os caminhos de uma alternativa. A proposta local mantém o conjunto completo localmente e uma parcela publicada ainda sem contrato; não se presume redução de volume suficiente para caber na nuvem. Camadas adicionais e seleção de áreas não foram avaliadas.
+
+O relatório do item 3 propõe acessos permitidos/negados para anônimo, responsável autorizado, outro autenticado e executor controlado, além de cinco protocolos de provas futuras. **Nenhuma política, teste de segurança, benchmark ou prova de recuperação foi executada.** Não há arquitetura aceita nem garantia de gratuidade; Vercel, Supabase e login Google permanecem requisitos.
+
+Próximas etapas técnicas exigem definir contrato de dados e acesso, finalidade/elegibilidade, consultas, capacidade e objetivos de operação/recuperação; provas futuras e fundação dependem de triagem, plano e autorizações próprios. O ciclo 002 permanece em execução até integrar as entregas e o encerramento documental separado. Não se reservam demandas no backlog ou ciclos futuros.
 
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
 - ADR-002: requisitos de infraestrutura; ADR-003: acesso/privacidade; KB-001: inventário de componentes de origem. Fontes externas, URLs fixadas e blobs constam de KB-001.
 - Ciclo `001`: relatório `_project/executed/001_prova_de_dados/001_research_viabilidade.md` e `scripts/prova-dados/fontes.json` (URLs, datas de acesso, tamanhos e SHA-256 das fontes de focos, malha e FIRMS).
+- Ciclo `002`: [cenários](../drafts/002_validacao_arquitetura/002_research_cenarios.md), [capacidades e custos](../drafts/002_validacao_arquitetura/002_research_capacidades_custos.md) e [parecer de arquiteturas](../drafts/002_validacao_arquitetura/002_research_arquitetura.md). Os dois primeiros estão integrados na base `2cb40044bd42edefac94cbd1d360dd8ebcd9f67d`; o parecer acompanha a entrega da issue #14. Fontes oficiais, seções, datas e limites constam dos relatórios. São evidências documentais, sem autoridade para adotar arquitetura ou autorizar provas/serviços.
 
 ## Histórico
 
@@ -50,3 +61,4 @@ Próximas etapas técnicas precisam validar capacidades, custos e arquitetura co
 | :-- | :-- | :-- |
 | 2026-10-31 | `000` | Síntese formal autossuficiente, sem leitura/cópia do brainstorm |
 | 2026-11-04 | `001` | Resultado e limites da prova de dados de Colniza (conclusão de viabilidade com ressalvas) e fatos que as próximas etapas devem respeitar |
+| 2026-11-05 | `002` | Comparação documental de três alternativas para S1/S2/S3, insuficiência nos 27 cenários por alternativa, incompatibilidades de rotas específicas, proposta de acesso e provas futuras não executadas; sem arquitetura aceita |
