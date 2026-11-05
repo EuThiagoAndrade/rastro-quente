@@ -2,13 +2,13 @@
 
 > **Ciclo:** `002`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#12`
 > **Plano:** `_project/drafts/002_validacao_arquitetura/002_plan.md`
 > **Branch:** `chore/issue-12`
 > **PR:** [#15](https://github.com/EuThiagoAndrade/rastro-quente/pull/15)
-> **Integração:** `Pendente`
+> **Integração:** `PR #15 integrada em main em 2026-11-05; Governance aprovado na PR e em main`
 > **Autorização inicial:** "autorizo a implementação da issue #12" em 2026-11-05
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-05
@@ -61,6 +61,7 @@ Não se aplica.
 | `git diff --check` | Passou na conferência local. |
 | Publicação | Commit de entrega `d9aecbe602582dafe1d113d0db34c2b9e3ece1b0` publicado; PR #15 aberta e quatro arquivos conferidos pelo GitHub. Este registro documental é atualizado em commit posterior da mesma PR. |
 | Checks remotos | Workflow `Governance`, job `Validate governance`, observado como `QUEUED` na abertura da PR #15 sobre `d9aecbe`; o último push reexecuta os checks. O estado atual e o resultado de cada execução são verificáveis na PR, sem presumir aprovação. |
+| Reconciliação após integração | Em 2026-11-05: PR #15 `MERGED` às 17:09:34Z, issue #12 `CLOSED`; `Validate governance` concluído com `SUCCESS` na PR e em main ([execução de main](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/42071841932/job/127401565607)). O próximo workflow mutante reconciliou esta task; relatório do item 1 preservado. |
 | Revisões preservadas | Seção `Revisão crítica` idêntica à base integrada; SHA-256 `15b20aedee0189a4f3016e800c6e37c6c055149dff3934f3523a731a72cb80a3`. |
 
 ## Revisão da correção
@@ -75,6 +76,7 @@ Não se aplica.
 - G3 e conferências manuais: diff contém somente governança de execução e sínteses públicas/sensibilidades fictícias. Sem dados pessoais, credenciais, geometrias ou arquivos de trabalho; nenhuma leitura de `local/`. Referências locais conferidas; autorização literal e limites de G1/G2 revistos. Não há afirmação de design system, deploy ou exclusão remota testados.
 - O levantamento histórico não havia localizado orientação de citação do INPE; a pergunta 36 do FAQ oficial foi localizada nesta entrega e registrada no novo relatório, sem reescrever a evidência do ciclo 001. A licença específica da malha/API continua uma lacuna.
 - A referência isolada à cota de banco Supabase serve somente à conferência abaixo/no limite/acima exigida na estratégia do plano. Não antecipa a pesquisa completa de capacidades/custos da #13 nem conclui compatibilidade.
+- Reconciliação em 2026-11-05 durante o início autorizado da #13: integração efetiva conferida no GitHub; autorização literal "autorizo a implementação da issue #13" recebida e registrada na nova task `002_task_issue-13.md`, que assume o papel de artefato ativo. Não foi presumida autorização para a #14 nem realizado novo merge.
 
 ## Encerramento
 
@@ -84,22 +86,22 @@ Não se aplica. Primeira issue de ciclo completo; nenhuma movimentação para `e
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 002 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/15
-Diga: "aprovo o merge da PR #15"
+Situação: Pronto para continuar — ciclo 002 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 002"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-12/item-1 + 1e794cf91d46276b14a12b3ecd1de187e22b87af`
-- `effect_class`: `remote_mutation`
+- `effect_class`: `local_mutation`
 - `state_before`: plano v2 aprovado e integrado; issue #12 aberta, sem task ou PR; autorização explícita recebida em 2026-11-05.
-- `state_after`: relatório do item 1 publicado na PR #15; task `Aguardando integração`, plano `Em Execução`, ciclo `Em execução`; merge pendente, sem iniciar itens 2 e 3.
-- `result`: `executed`
-- `evidence`: autorização literal no cabeçalho; precondições e base verificadas, worktree do mesmo Git; relatório com proveniência e contas reproduzidas; 55 testes passaram, validador zero erros/avisos, G3 e staging conferidos; commit de entrega publicado e PR #15 real com quatro arquivos, branch/base e checks consultados.
-- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e aprovação específica "aprovo o merge da PR #15". A issue #13 continua dependente da integração do item 1 e de autorização própria.
+- `state_after`: relatório do item 1 integrado pela PR #15; task `Concluída`, plano `Em Execução` e ciclo `Em execução`. Integração reconciliada neste workflow mutante, sem alterar o relatório; próximo item autorizado na task #13.
+- `result`: `already_executed_and_reconciled`
+- `evidence`: autorização literal no cabeçalho, contas e gates da publicação preservados; PR #15 integrada, issue #12 fechada e checks da PR/main verdes conferidos em 2026-11-05; autorização da #13 registrada no artefato ativo seguinte.
+- `blockers`: nenhum para o item 1 integrado; item 2 tem autorização própria na task #13. Item 3 continua dependente da integração do item 2 e de nova autorização.
 
 ## Referência do bootstrap
 

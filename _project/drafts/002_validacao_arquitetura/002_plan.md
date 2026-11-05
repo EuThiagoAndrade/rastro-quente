@@ -19,7 +19,7 @@
 
 Plano v2 aprovado pelo responsável em 2026-11-05 pela manifestação literal "Aprovo o plano do ciclo 002", posterior ao veredito `APTO PARA APROVAÇÃO` da rodada 2. A aprovação confirma o recorte de evidências, a exclusão de camadas adicionais de sobreposição e de recontagem local, e o processamento esperado como indeterminado. Cobre a publicação da PR documental do lote do ciclo e, após sua integração e confirmação dos payloads, a criação das issues; não autoriza merge ou implementação de entregas.
 
-**Execução do item 1:** autorização literal "autorizo a implementação da issue #12" recebida em 2026-11-05. A task `002_task_issue-12.md` é o artefato ativo; somente a entrega documental da #12 está em execução. O escopo e as rodadas da v2 aprovada permanecem preservados.
+**Execução:** item 1 autorizado por "autorizo a implementação da issue #12" em 2026-11-05 e integrado pela PR #15. Item 2 autorizado por "autorizo a implementação da issue #13" em 2026-11-05; `002_task_issue-13.md` é o artefato ativo. O escopo e as rodadas da v2 aprovada permanecem preservados; item 3 não iniciado.
 
 ## Problema e contexto
 
@@ -269,9 +269,10 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#12](https://github.com/EuThiagoAndrade/rastro-quente/issues/12) (item 1), [#13](https://github.com/EuThiagoAndrade/rastro-quente/issues/13) (item 2), [#14](https://github.com/EuThiagoAndrade/rastro-quente/issues/14) (item 3) |
-| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11), integrada em 2026-11-05; [#15 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/pull/15), aberta, integração pendente |
-| Branch(es) | Plano: `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395`; item 1: `chore/issue-12`, base integrada `1e794cf91d46276b14a12b3ecd1de187e22b87af` |
-| Entrega do item 1 | `002_research_cenarios.md`; registro ativo em `002_task_issue-12.md` |
+| PR(s) | [#11 — ideação e plano](https://github.com/EuThiagoAndrade/rastro-quente/pull/11) e [#15 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/pull/15), integradas em 2026-11-05; [#16 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/pull/16), aberta, integração pendente |
+| Branch(es) | Plano: `chore/cycle-002-plan`, derivada da ideação local em `97d7e7676c03aef306ca4978e249abc2e9eb7395`; item 1: `chore/issue-12`, base integrada `1e794cf91d46276b14a12b3ecd1de187e22b87af`; item 2: `chore/issue-13`, base `d8fb3b3d7b2459e11e63c0e3a26cebb1051f3778` |
+| Entrega do item 1 | `002_research_cenarios.md`; task `002_task_issue-12.md` reconciliada como concluída |
+| Entrega do item 2 | `002_research_capacidades_custos.md`; registro ativo em `002_task_issue-13.md` |
 | Destino após conclusão | `_project/executed/002_validacao_arquitetura/002_plan.md` |
 
 ## Próximo passo
@@ -280,11 +281,22 @@ Fontes oficiais externas de capacidades e custos serão localizadas e verificada
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 002 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/15
-Diga: "aprovo o merge da PR #15"
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/16
+Diga: "aprovo o merge da PR #16"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `rastro-quente + 002 + implementar_issue + issue-13/item-2 + d8fb3b3d7b2459e11e63c0e3a26cebb1051f3778`.
+- `effect_class`: `remote_mutation`
+- `state_before`: plano v2 e ciclo em execução; PR #15 integrada, task #12 ainda aguardando reconciliação; issue #13 aberta, autorização específica recebida.
+- `state_after`: task #12 reconciliada como concluída; item 2 publicado na PR #16 de `chore/issue-13`, task #13 aguardando integração; item 3 não iniciado.
+- `result`: `executed`
+- `evidence`: PR #15 e check da main conferidos no GitHub; autorização literal, relatório e task #13 com fontes datadas, condições, 27 cenários e contas de fronteira; PR #16 real com escopo conferido.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes no último commit e "aprovo o merge da PR #16". Lacunas técnicas limitam a conclusão e não autorizam provas.
+
+### Registro anterior — publicação do item 1
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 002 + implementar_issue + issue-12/item-1 + 1e794cf91d46276b14a12b3ecd1de187e22b87af`.
