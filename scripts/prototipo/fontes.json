@@ -1,0 +1,445 @@
+{
+  "versao": 1,
+  "descricao": "Fontes públicas do item 1 do ciclo 003 (recorte local de AQUA_M-T em Mato Grosso). URLs sem segredo; brutos em local/dados-prototipo/brutos/ (fora do Git). Janela e itens fixados por scripts/prototipo/prototipo.mjs (modos janela e obter).",
+  "contrato": {
+    "satelite": "AQUA_M-T",
+    "estado": {
+      "codigoIbge": "51",
+      "nome": "Mato Grosso"
+    },
+    "unidade": "Registro publicado do INPE; linhas distintas preservadas; id original preservado como id_fonte, sem deduplicação.",
+    "territorio": "Polígono municipal IBGE v4 (qualidade máxima), coordenadas originais, borda incluída, sem arredondamento nem tolerância.",
+    "tempo": "data_hora_gmt; janela principal em GMT com início inclusivo e fim exclusivo; sensibilidade America/Cuiaba em campo separado."
+  },
+  "condicoesDeUso": {
+    "observacao": "Condições lidas nos ciclos 001 (2026-11-03) e 002 (2026-11-05), com links abaixo; em 2026-11-07 as páginas responderam, mas o texto integral não foi relido nesta entrega. Não é parecer jurídico. Focos e malhas não comprovam incêndio, dano, autoria ou infração.",
+    "fontes": [
+      {
+        "fonte": "INPE (Programa Queimadas): focos e avisos",
+        "uso": "permitido",
+        "resumo": "Dados abertos de acesso livre e sem custo (FAQ, perguntas 3 e 5); a pergunta 36 orienta atribuição ao INPE com data de acesso. Licença formal específica dos CSV não localizada.",
+        "links": [
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_downloads/dados-abertos/",
+          "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/faq/"
+        ]
+      },
+      {
+        "fonte": "IBGE (malhas API v4 e localidades)",
+        "uso": "permitido com atribuição",
+        "resumo": "Notas metodológicas da MMD 2024 declaram licença compatível com CC BY 4.0; licença específica da API e da revisão 2025 não localizada. A malha é aproximada e o IBGE não define limites legais.",
+        "links": [
+          "https://biblioteca.ibge.gov.br/visualizacao/livros/liv102169.pdf",
+          "https://servicodados.ibge.gov.br/api/docs/malhas?versao=4"
+        ]
+      },
+      {
+        "fonte": "NASA MODAPS (tabela de interrupções MODIS/Aqua)",
+        "uso": "permitido",
+        "resumo": "Política de dados da NASA de compartilhamento pleno e aberto. Usada só como conferência do alcance do histórico de avisos.",
+        "links": [
+          "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-information-policy",
+          "https://modaps.modaps.eosdis.nasa.gov/services/production/outages_aqua.html"
+        ]
+      }
+    ]
+  },
+  "janela": {
+    "meses": [
+      "2025-11",
+      "2025-12",
+      "2026-01",
+      "2026-02",
+      "2026-03",
+      "2026-04",
+      "2026-05",
+      "2026-06",
+      "2026-07",
+      "2026-08",
+      "2026-09",
+      "2026-10"
+    ],
+    "inicio": "2025-11-01",
+    "fim": "2026-11-01",
+    "fuso": "GMT",
+    "fimExclusivo": true,
+    "fixadaEm": "2026-11-07T19:56:24.514Z",
+    "criterio": "Doze meses consecutivos mais recentes cujo arquivo mensal oficial existe e tem Last-Modified posterior ao fim do mês; mês em formação não entra."
+  },
+  "sondasMensais": {
+    "2026-11": {
+      "status": 200,
+      "lastModified": "Sat, 07 Nov 2026 17:56:13 GMT",
+      "tamanho": 18329687
+    },
+    "2026-10": {
+      "status": 200,
+      "lastModified": "Sun, 01 Nov 2026 23:56:43 GMT",
+      "tamanho": 144148591
+    },
+    "2026-09": {
+      "status": 200,
+      "lastModified": "Thu, 01 Oct 2026 23:56:29 GMT",
+      "tamanho": 123024987
+    },
+    "2026-08": {
+      "status": 200,
+      "lastModified": "Tue, 01 Sep 2026 23:56:24 GMT",
+      "tamanho": 103708076
+    },
+    "2026-07": {
+      "status": 200,
+      "lastModified": "Sat, 01 Aug 2026 23:56:11 GMT",
+      "tamanho": 25345226
+    },
+    "2026-06": {
+      "status": 200,
+      "lastModified": "Tue, 21 Jul 2026 19:28:03 GMT",
+      "tamanho": 21025265
+    },
+    "2026-05": {
+      "status": 200,
+      "lastModified": "Tue, 21 Jul 2026 19:26:46 GMT",
+      "tamanho": 13082300
+    },
+    "2026-04": {
+      "status": 200,
+      "lastModified": "Fri, 17 Jul 2026 14:55:34 GMT",
+      "tamanho": 5032753
+    },
+    "2026-03": {
+      "status": 200,
+      "lastModified": "Fri, 17 Jul 2026 14:54:23 GMT",
+      "tamanho": 6832706
+    },
+    "2026-02": {
+      "status": 200,
+      "lastModified": "Fri, 17 Jul 2026 14:52:59 GMT",
+      "tamanho": 6747588
+    },
+    "2026-01": {
+      "status": 200,
+      "lastModified": "Fri, 17 Jul 2026 14:51:14 GMT",
+      "tamanho": 13586384
+    },
+    "2025-12": {
+      "status": 200,
+      "lastModified": "Thu, 01 Jan 2026 23:56:11 GMT",
+      "tamanho": 23897889
+    },
+    "2025-11": {
+      "status": 200,
+      "lastModified": "Mon, 01 Dec 2025 23:56:16 GMT",
+      "tamanho": 56289561
+    },
+    "2025-10": {
+      "status": 200,
+      "lastModified": "Sat, 01 Nov 2025 23:56:29 GMT",
+      "tamanho": 130562825
+    },
+    "2025-09": {
+      "status": 200,
+      "lastModified": "Wed, 01 Oct 2025 23:56:29 GMT",
+      "tamanho": 131327049
+    }
+  },
+  "envelope": {
+    "fuso": "America/Cuiaba",
+    "desvioHoras": -4,
+    "antes": null,
+    "depois": {
+      "inicio": "2026-11-01T00:00:00.000Z",
+      "fim": "2026-11-01T04:00:00.000Z"
+    }
+  },
+  "itens": [
+    {
+      "id": "inpe-mensal-202511",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202511.csv",
+      "destino": "inpe/focos_mensal_br_202511.csv",
+      "obtidoEm": "2026-11-07T19:56:34.881Z",
+      "tamanho": 56289561,
+      "sha256": "15414aac26788ba6125f2522549797cafc7195c1f70e6c8e8554e447a748a24e",
+      "lastModified": "Mon, 01 Dec 2025 23:56:16 GMT",
+      "etag": "\"35ae919-644ecb9890800\""
+    },
+    {
+      "id": "inpe-mensal-202512",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202512.csv",
+      "destino": "inpe/focos_mensal_br_202512.csv",
+      "obtidoEm": "2026-11-07T19:56:36.365Z",
+      "tamanho": 23897889,
+      "sha256": "b6f9b421725faa47c8008c21f765bc600919a632351108751fde586a6d84802c",
+      "lastModified": "Thu, 01 Jan 2026 23:56:11 GMT",
+      "etag": "\"16ca721-6475c56515cc0\""
+    },
+    {
+      "id": "inpe-mensal-202601",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202601.csv",
+      "destino": "inpe/focos_mensal_br_202601.csv",
+      "obtidoEm": "2026-11-07T19:56:37.401Z",
+      "tamanho": 13586384,
+      "sha256": "d497f7c85bcd0c3a3efa3b4ed2309734fa12b5128b8850127d2ef544a889bf71",
+      "lastModified": "Fri, 17 Jul 2026 14:51:14 GMT",
+      "etag": "\"cf4fd0-656cfb0299c80\""
+    },
+    {
+      "id": "inpe-mensal-202602",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202602.csv",
+      "destino": "inpe/focos_mensal_br_202602.csv",
+      "obtidoEm": "2026-11-07T19:56:38.319Z",
+      "tamanho": 6747588,
+      "sha256": "62dab291af922c71f2bb1378148ef4b8949863ac312832deacd693a29c2f94e1",
+      "lastModified": "Fri, 17 Jul 2026 14:52:59 GMT",
+      "etag": "\"66f5c4-656cfb66bc8c0\""
+    },
+    {
+      "id": "inpe-mensal-202603",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202603.csv",
+      "destino": "inpe/focos_mensal_br_202603.csv",
+      "obtidoEm": "2026-11-07T19:56:39.935Z",
+      "tamanho": 6832706,
+      "sha256": "c5253b7f00be76ca5d9d4e56bfd3544f5607dc1bfd6d9532ad79aa85bbcd83a7",
+      "lastModified": "Fri, 17 Jul 2026 14:54:23 GMT",
+      "etag": "\"684242-656cfbb6d85c0\""
+    },
+    {
+      "id": "inpe-mensal-202604",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202604.csv",
+      "destino": "inpe/focos_mensal_br_202604.csv",
+      "obtidoEm": "2026-11-07T19:56:41.010Z",
+      "tamanho": 5032753,
+      "sha256": "f5f148015c66e6af18b8878f535b8b3d35556a56a77df955b896c478594f999c",
+      "lastModified": "Fri, 17 Jul 2026 14:55:34 GMT",
+      "etag": "\"4ccb31-656cfbfa8e580\""
+    },
+    {
+      "id": "inpe-mensal-202605",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202605.csv",
+      "destino": "inpe/focos_mensal_br_202605.csv",
+      "obtidoEm": "2026-11-07T19:56:44.155Z",
+      "tamanho": 13082300,
+      "sha256": "352d625a68a75c2857e48ddc279a19f5ee29668ecfe874e52d32ceb7e8993754",
+      "lastModified": "Tue, 21 Jul 2026 19:26:46 GMT",
+      "etag": "\"c79ebc-6572400e96980\""
+    },
+    {
+      "id": "inpe-mensal-202606",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202606.csv",
+      "destino": "inpe/focos_mensal_br_202606.csv",
+      "obtidoEm": "2026-11-07T19:56:48.640Z",
+      "tamanho": 21025265,
+      "sha256": "cc446e981774db3e3ac61dc7efcace43af22c754da035b572244b8f4451c57da",
+      "lastModified": "Tue, 21 Jul 2026 19:28:03 GMT",
+      "etag": "\"140d1f1-65724058056c0\""
+    },
+    {
+      "id": "inpe-mensal-202607",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202607.csv",
+      "destino": "inpe/focos_mensal_br_202607.csv",
+      "obtidoEm": "2026-11-07T19:56:55.364Z",
+      "tamanho": 25345226,
+      "sha256": "8ef86ddfe417b9fb719f34a0ddb7efdca10425dddffdc9aa84c337b9cfe784d9",
+      "lastModified": "Sat, 01 Aug 2026 23:56:11 GMT",
+      "etag": "\"182bcca-658050cacdcc0\""
+    },
+    {
+      "id": "inpe-mensal-202608",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202608.csv",
+      "destino": "inpe/focos_mensal_br_202608.csv",
+      "obtidoEm": "2026-11-07T19:57:19.936Z",
+      "tamanho": 103708076,
+      "sha256": "4574013b15b785f42078fe72dfa73b0b48a773666e88025ebe5ef440cc3694da",
+      "lastModified": "Tue, 01 Sep 2026 23:56:24 GMT",
+      "etag": "\"62e75ac-65a74aa87da00\""
+    },
+    {
+      "id": "inpe-mensal-202609",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202609.csv",
+      "destino": "inpe/focos_mensal_br_202609.csv",
+      "obtidoEm": "2026-11-07T19:57:45.831Z",
+      "tamanho": 123024987,
+      "sha256": "69ecef072d0e0db63698f7e3adc101cd68f593294eefc3dcd97eeaf554bd0248",
+      "lastModified": "Thu, 01 Oct 2026 23:56:29 GMT",
+      "etag": "\"755365b-65cd02a116540\""
+    },
+    {
+      "id": "inpe-mensal-202610",
+      "tipo": "inpe-focos",
+      "papel": "principal",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202610.csv",
+      "destino": "inpe/focos_mensal_br_202610.csv",
+      "obtidoEm": "2026-11-07T19:58:16.817Z",
+      "tamanho": 144148591,
+      "sha256": "e8e09447152280c85935c83d65d818900593246070c96fbac61260a6ba94b64f",
+      "lastModified": "Sun, 01 Nov 2026 23:56:43 GMT",
+      "etag": "\"897886f-65f3fc7fba4c0\""
+    },
+    {
+      "id": "inpe-diario-20261101",
+      "tipo": "inpe-focos",
+      "papel": "envelope",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/diario/Brasil/focos_diario_br_20261101.csv",
+      "destino": "inpe/focos_diario_br_20261101.csv",
+      "obtidoEm": "2026-11-07T19:58:17.994Z",
+      "tamanho": 3799558,
+      "sha256": "4fe513730a99e3a73660d95d2ae6178824a48c38b8e9c46269899cca01e92474",
+      "lastModified": "Mon, 02 Nov 2026 12:05:03 GMT",
+      "etag": "\"39fa06-65f49f4b4b9c0\""
+    },
+    {
+      "id": "inpe-mensal-202611-parcial",
+      "tipo": "inpe-focos",
+      "papel": "conferencia",
+      "fonte": "INPE",
+      "url": "https://dataserver-coids.inpe.br/queimadas/queimadas/focos/csv/mensal/Brasil/focos_mensal_br_202611.csv",
+      "destino": "inpe/focos_mensal_br_202611_parcial_20261107.csv",
+      "observacao": "Arquivo mensal ainda em formação; usado só para conferir a completude do envelope, nunca como fonte de contagem.",
+      "obtidoEm": "2026-11-07T19:58:22.738Z",
+      "tamanho": 18329687,
+      "sha256": "a01e7e33104f475f88afa066f605a454320ac7a07eaa8da5c9c3a549ca9234d4",
+      "lastModified": "Sat, 07 Nov 2026 17:56:13 GMT",
+      "etag": "\"117b057-65fb371c84940\""
+    },
+    {
+      "id": "ibge-malha-mt-municipios-maxima",
+      "tipo": "ibge-malha",
+      "papel": "territorio",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/estados/51?formato=application/vnd.geo+json&qualidade=maxima&intrarregiao=municipio",
+      "destino": "ibge/malha_mt_municipios_v4_maxima.geojson",
+      "obtidoEm": "2026-11-07T19:58:23.586Z",
+      "tamanho": 5138459,
+      "sha256": "7c9d263143d2171fb3f3fd78931fab0401b7ae59d87c7d3896874fd9f5cecdfe",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-malha-mt-municipios-intermediaria",
+      "tipo": "ibge-malha",
+      "papel": "exibicao",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/estados/51?formato=application/vnd.geo+json&qualidade=intermediaria&intrarregiao=municipio",
+      "destino": "ibge/malha_mt_municipios_v4_intermediaria.geojson",
+      "obtidoEm": "2026-11-07T19:58:23.668Z",
+      "tamanho": 988732,
+      "sha256": "f10e30f1727590c5f21652772b6f5d0ef6a7d46c61b8e820d56b97d4988be4f1",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-malha-mt-municipios-minima",
+      "tipo": "ibge-malha",
+      "papel": "exibicao",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/estados/51?formato=application/vnd.geo+json&qualidade=minima&intrarregiao=municipio",
+      "destino": "ibge/malha_mt_municipios_v4_minima.geojson",
+      "obtidoEm": "2026-11-07T19:58:23.738Z",
+      "tamanho": 241043,
+      "sha256": "ed3674c15154ddae63daab8246ebb16f4daa8e9c495434841a931056d35149e3",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-malha-mt-estado-maxima",
+      "tipo": "ibge-malha",
+      "papel": "territorio",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/estados/51?formato=application/vnd.geo+json&qualidade=maxima",
+      "destino": "ibge/malha_mt_estado_v4_maxima.geojson",
+      "obtidoEm": "2026-11-07T19:58:23.807Z",
+      "tamanho": 65744,
+      "sha256": "fb662176b38f19eaee9810c72e43f5db0a4d2f2120affb1cd194f95310e83bbd",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-metadados-mt",
+      "tipo": "ibge-metadados",
+      "papel": "territorio",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v4/malhas/estados/51/metadados",
+      "destino": "ibge/metadados_mt_v4.json",
+      "obtidoEm": "2026-11-07T19:58:23.872Z",
+      "tamanho": 325,
+      "sha256": "22a6e5e72f07c665ed9124148de43a7c76c09a71e6acc93ff5729e1381b79209",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "ibge-municipios-mt",
+      "tipo": "ibge-localidades",
+      "papel": "territorio",
+      "fonte": "IBGE",
+      "url": "https://servicodados.ibge.gov.br/api/v1/localidades/estados/51/municipios",
+      "destino": "ibge/municipios_mt_v1.json",
+      "obtidoEm": "2026-11-07T19:58:23.936Z",
+      "tamanho": 64818,
+      "sha256": "6a5506b41f96b2aa1dbab29a85c235d8550dfef95a484d37605db23a9645a9e4",
+      "lastModified": null,
+      "etag": null
+    },
+    {
+      "id": "inpe-avisos",
+      "tipo": "inpe-avisos",
+      "papel": "avisos",
+      "fonte": "INPE",
+      "url": "https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/",
+      "destino": "inpe/avisos_20261107.html",
+      "observacao": "Página mutável; o SHA-256 fixa o conteúdo lido.",
+      "obtidoEm": "2026-11-07T19:58:24.216Z",
+      "tamanho": 14456,
+      "sha256": "6f6994ac7de47f4170c0de2d0264e17e9af788a3bf752a7d2472aea12d2765d0",
+      "lastModified": "Fri, 02 Oct 2026 13:02:11 GMT",
+      "etag": "W/\"6abfab53-3878\""
+    },
+    {
+      "id": "nasa-modaps-interrupcoes-aqua",
+      "tipo": "nasa-interrupcoes",
+      "papel": "avisos",
+      "fonte": "NASA MODAPS",
+      "url": "https://modaps.modaps.eosdis.nasa.gov/services/production/outages_aqua.html",
+      "destino": "nasa/outages_aqua_20261107.html",
+      "observacao": "Página mutável; o SHA-256 fixa o conteúdo lido. Lista interrupções da cadeia de dados da NASA; não delimita área nem representa a recepção própria do INPE.",
+      "obtidoEm": "2026-11-07T19:58:54.855Z",
+      "tamanho": 87818,
+      "sha256": "ed297da7f9bdedd703f337b256d551fd4042063ad5bc7f1a5bba9f9fec42a0a7",
+      "lastModified": null,
+      "etag": null
+    }
+  ]
+}

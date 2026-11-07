@@ -1,10 +1,10 @@
 # Plano de Implementação — Fundação e implementação do protótipo
 
 > **Ciclo:** `003`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v4`
 > **Data de criação:** 2026-11-05
-> **Última atualização:** 2026-11-05
+> **Última atualização:** 2026-11-07
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -44,6 +44,8 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merge, implementação de issues, ações humanas externas, carga hospedada nem verificação em produção. Cada um desses passos tem frase própria.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial). Em 2026-11-07 o responsável decidiu literalmente "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)."; a decisão de G1 e seus efeitos estão na task e no relatório `003_research_medicao_recorte.md`. Escopo e rodadas da v4 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -387,9 +389,10 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | —; cinco propostas, nenhuma criada |
-| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integração pendente |
-| Branch(es) | `chore/cycle-003-plan`, publicada, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b` |
+| Issue(s) | [#20](https://github.com/EuThiagoAndrade/rastro-quente/issues/20) (item 1), [#21](https://github.com/EuThiagoAndrade/rastro-quente/issues/21) (item 2), [#22](https://github.com/EuThiagoAndrade/rastro-quente/issues/22) (item 3), [#23](https://github.com/EuThiagoAndrade/rastro-quente/issues/23) (item 4), [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) (item 5) |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), aberta, integração pendente |
+| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, publicada, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977` |
+| Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro ativo em `003_task_issue-20.md` |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo
@@ -398,11 +401,22 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/19
-Diga: "aprovo o merge da PR #19"
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/25
+Diga: "aprovo o merge da PR #25"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9f7c8be4b611a13a75d82dc387171d0977`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano v4 `Aprovado` e integrado pela PR #19 (`fcf15b9`); ciclo `003` em `Planejamento`; issues #20–#24 abertas no GitHub, sem registro local; nenhuma implementação.
+- `state_after`: plano `Em Execução`, ciclo `Em execução`; item 1 implementado e medido; decisão H3 registrada; PR #25 aberta de `feature/issue-20`; task `Aguardando integração`.
+- `result`: `executed`
+- `evidence`: autorização literal "autorizo a implementação da issue #20" em 2026-11-07; decisão H3 literal e confirmação humana dos payloads das issues em 2026-11-07, registradas na task; issues #20–#24 conferidas no GitHub; PR #25 real; evidências em `003_task_issue-20.md` e `003_research_medicao_recorte.md`.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes e "aprovo o merge da PR #25". Itens 2 a 5 não iniciados.
+
+### Registro anterior — aprovação e publicação do plano
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + atualizar_docs + aprovacao_publicacao_plano + v4@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf+rodada-3`

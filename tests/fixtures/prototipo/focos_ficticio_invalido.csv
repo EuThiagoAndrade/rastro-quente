@@ -1,0 +1,6 @@
+id,lat,lon,data_hora_gmt,satelite,municipio,estado,pais,municipio_id,estado_id,pais_id,numero_dias_sem_chuva,precipitacao,risco_fogo,bioma,frp
+v01, -91.000000, -59.500000,2026-10-05 18:00:00,AQUA_M-T,FICTICIO,FICTICIA,Brasil,9900001,99,33,1.0,0.0,0.5,Amazônia,10.0
+v02, -9.500000, abc,2026-10-05 18:00:00,AQUA_M-T,FICTICIO,FICTICIA,Brasil,9900001,99,33,1.0,0.0,0.5,Amazônia,10.0
+v03, -9.500000, -59.500000,2026-02-30 18:00:00,AQUA_M-T,FICTICIO,FICTICIA,Brasil,9900001,99,33,1.0,0.0,0.5,Amazônia,10.0
+v04, -9.500000, -59.500000,2026-10-05 18:00:00,AQUA_M-T,FICTICIO,FICTICIA,Brasil,9900001
+v05, -9.500000, -59.500000,2026-10-05 18:00:00,AQUA_M-T,FICTICIO,FICTICIA,Brasil,9900001,99,33,1.0,0.0,0.5,Amazônia,10.0
