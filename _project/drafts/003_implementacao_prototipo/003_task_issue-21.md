@@ -2,12 +2,12 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#21`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-21`
-> **PR:** —
+> **PR:** [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #21" em 2026-11-07
 > **Modo contínuo:** `—`
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Medição base do banco com volume sintético fictício (`npm run medir:banco`).
 - [x] ADR-005, `.env.example`, README e passo de CI.
 - [x] Reconciliar a task #20 (PR #25 integrada) e o plano.
-- [ ] Publicar a branch e abrir a PR com `Closes #21`.
+- [x] Publicar `feature/issue-21` (base `origin/main` em `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad` conferida) e abrir a PR #26 com `Closes #21`.
 
 ## Evidências
 
@@ -62,10 +62,11 @@ Não se aplica.
 | Ambiente | Windows 11, Docker 29.9.2, Node.js `v24.15.0`, Supabase CLI `2.122.1`, Postgres `17.11` local. Outro projeto Supabase local ocupava as portas padrão e não foi tocado. |
 | `npm run test:rls` | Reset do zero com as 3 migrações; pgTAP 105/105 (`01_estrutura` 19, `02_matriz_acesso` 47, `03_consultas` 39); API 3/3 testes. |
 | Medição base | Ver "Medição base do banco". |
-| Testes existentes | `npm run test:prototipo`, `npm run test:prova-dados` e `node --test scripts/validate-governance.test.mjs`: ver registro da publicação. |
-| Validador | Pendente da publicação. |
-| `git diff --check` | Pendente da publicação. |
-| Checks remotos | Pendente. |
+| Testes existentes | `npm run test:prototipo` 32/32; `npm run test:prova-dados` 57/57; `node --test scripts/validate-governance.test.mjs` 55/55. |
+| Validador | `node scripts/validate-governance.mjs`: zero erros e zero avisos; nove itens manuais. |
+| `git diff --check` | Passou. Varredura G3 do diff: só UUIDs `00000000-0000-4000-8000-…` e e-mails `.test` fictícios; nenhuma chave ou senha; lockfile só com `registry.npmjs.org`. |
+| Publicação | Commit `3fcd895` publicado; PR [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26) aberta de `feature/issue-21` para `main`. Este registro documental vai em commit posterior da mesma PR. |
+| Checks remotos | Jobs `Validate governance` e `Database RLS and query contract` disparados pela PR; o resultado do último commit é verificável na PR, sem presumir aprovação. |
 
 ### Medição base do banco
 
@@ -115,10 +116,10 @@ Não se aplica. Segunda issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 003 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 003"
+Situação: Aguardando merge — ciclo 003 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/26
+Diga: "aprovo o merge da PR #26"
 ```
 
 ## Handoff de saída
@@ -127,10 +128,10 @@ Diga: "continue o ciclo 003"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-21/item-2 + f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`
 - `effect_class`: `remote_mutation`
 - `state_before`: item 1 integrado pela PR #25; task #20 `Aguardando integração` sem reconciliação; issue #21 aberta, sem task, branch, banco ou migração.
-- `state_after`: item 2 implementado e testado localmente; task #20 reconciliada como `Concluída`; publicação da PR pendente.
+- `state_after`: item 2 implementado e testado localmente; task #20 reconciliada como `Concluída`; branch `feature/issue-21` publicada e PR #26 aberta; task `Aguardando integração`.
 - `result`: `executed`
-- `evidence`: autorização literal registrada; `npm run test:rls` com 105 asserções pgTAP e 3 testes de API aprovados; medição base registrada.
-- `blockers`: publicação pendente neste mesmo workflow.
+- `evidence`: autorização literal registrada; `npm run test:rls` com 105 asserções pgTAP e 3 testes de API aprovados; 144 testes das demais suítes; validador sem erros ou avisos; `git diff --check` limpo; varredura G3; medição base registrada; PR #26 real com `Closes #21`.
+- `blockers`: nenhum para a entrega publicada. A integração exige checks verdes no último commit e "aprovo o merge da PR #26". A issue #22 depende da integração do item 2 e de autorização própria.
 
 ## Referência do bootstrap
 
