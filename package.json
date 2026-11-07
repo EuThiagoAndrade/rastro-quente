@@ -9,6 +9,11 @@
     "test:governance": "node --test scripts/validate-governance.test.mjs",
     "test:prova-dados": "node --test \"scripts/prova-dados/*.test.mjs\"",
     "test:prototipo": "node --test \"scripts/prototipo/*.test.mjs\"",
-    "check:governance": "node scripts/validate-governance.mjs"
+    "check:governance": "node scripts/validate-governance.mjs",
+    "test:rls": "supabase db reset && supabase test db && node --test --test-concurrency=1 scripts/banco/api.test.mjs scripts/banco/executor.test.mjs scripts/banco/migracao.test.mjs",
+    "medir:banco": "supabase db reset && node scripts/banco/medir.mjs"
+  },
+  "devDependencies": {
+    "supabase": "2.122.1"
   }
 }

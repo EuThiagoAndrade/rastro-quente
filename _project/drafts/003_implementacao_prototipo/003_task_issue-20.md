@@ -2,13 +2,13 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#20`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-20`
 > **PR:** [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25)
-> **Integração:** `Pendente`
+> **Integração:** `PR #25 integrada em main em 2026-11-07 (f8106a5); Governance aprovado na PR e em main`
 > **Autorização inicial:** "autorizo a implementação da issue #20" em 2026-11-07
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-07
@@ -101,22 +101,22 @@ Não se aplica. Primeira issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/25
-Diga: "aprovo o merge da PR #25"
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9f7c8be4b611a13a75d82dc387171d0977`
-- `effect_class`: `remote_mutation`
-- `state_before`: plano v4 `Aprovado` e integrado; ciclo `003` em `Planejamento`; issues #20–#24 abertas sem registro local; sem task, branch ou código do item 1.
-- `state_after`: plano `Em Execução`, ciclo `Em execução`; parada H3 apresentada antes de publicar e decidida pelo responsável; regra aplicada e janela reexecutada sem paradas; branch `feature/issue-20` publicada e PR #25 aberta; task `Aguardando integração`.
-- `result`: `executed`
-- `evidence`: autorizações e decisões literais registradas; 22 fontes com SHA-256 em `scripts/prototipo/fontes.json`; execução e conferência independente aprovadas; Colniza 516/246/62; 144 testes passaram nas três suítes; validador sem erros ou avisos; `git diff --check` limpo; varredura G3 sem e-mail, UUID ou segredo; PR #25 real com `Closes #20`.
-- `blockers`: nenhum para a entrega publicada. A integração exige checks verdes no último commit e "aprovo o merge da PR #25". A issue #21 depende da integração do item 1 e de autorização própria.
+- `effect_class`: `local_mutation`
+- `state_before`: PR #25 aberta, task `Aguardando integração`.
+- `state_after`: entrega do item 1 integrada pela PR #25; task `Concluída`; plano `Em Execução` e ciclo `Em execução`. Integração reconciliada no workflow mutante seguinte (issue #21), sem alterar código, relatório ou KB; item 2 autorizado na task #21.
+- `result`: `already_executed_and_reconciled`
+- `evidence`: PR #25 `MERGED` em 2026-11-07 (squash `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`); issue #20 fechada; Governance verde na PR e no push em main, conferidos em 2026-11-07. Evidências da execução preservadas acima.
+- `blockers`: nenhum para o item 1 integrado. Itens 3 a 5 dependem das entregas anteriores e de autorizações próprias.
 
 ## Referência do bootstrap
 
