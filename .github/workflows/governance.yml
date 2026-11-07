@@ -68,3 +68,28 @@ jobs:
             exit 1
           fi
           echo "Migrações: nenhuma alteração proibida em ${RANGE}."
+
+  rls:
+    name: Database RLS and query contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        # actions/checkout v6.1.0
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Setup Node.js 24
+        # actions/setup-node v6.5.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install pinned Supabase CLI (lockfile)
+        run: npm ci
+      - name: Start local Supabase (fictitious data only, no secrets)
+        # A saída traz apenas chaves de demonstração locais; não é exibida.
+        run: npx supabase start > /dev/null
+      - name: Test RLS, access matrix and query contract
+        run: npm run test:rls
+      - name: Stop local Supabase
+        if: always()
+        run: npx supabase stop --no-backup

@@ -1,0 +1,78 @@
+# Supabase local do protótipo (ciclo 003, issue #21).
+# Somente desenvolvimento e testes com dados fictícios. Nenhum segredo real neste arquivo:
+# valores sensíveis usam env(...) e ficam fora do Git (ver .env.example).
+# Portas 5532x para não colidir com outros projetos Supabase locais nas portas padrão.
+
+project_id = "rastro-quente"
+
+[api]
+enabled = true
+port = 55321
+# Somente o schema public é exposto pela API; o schema privado (lista RP) não.
+schemas = ["public"]
+extra_search_path = ["public", "extensions"]
+# Limite técnico de linhas por resposta de tabela/view.
+max_rows = 1000
+
+[db]
+port = 55322
+shadow_port = 55320
+major_version = 17
+
+[db.pooler]
+enabled = false
+
+[db.migrations]
+enabled = true
+
+[db.seed]
+# Sem seed: os testes criam e removem seus próprios dados fictícios.
+enabled = false
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+port = 55323
+
+[local_smtp]
+enabled = false
+port = 55324
+
+[storage]
+enabled = false
+
+[edge_runtime]
+enabled = false
+
+[analytics]
+enabled = false
+port = 55327
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:5173"
+additional_redirect_urls = ["http://localhost:5173"]
+jwt_expiry = 3600
+enable_refresh_token_rotation = true
+refresh_token_reuse_interval = 10
+# Cadastro necessário ao primeiro login OAuth; login não autoriza leitura (lista RP privada).
+enable_signup = true
+enable_anonymous_sign_ins = false
+enable_manual_linking = false
+minimum_password_length = 12
+
+[auth.email]
+# Necessário aos testes locais com contas fictícias (login por senha). Autocadastro local também
+# só gera usuário OA: login nunca autoriza leitura. A configuração hospedada é do item 5.
+enable_signup = true
+enable_confirmations = false
+
+[auth.external.google]
+# Preparado para o item 5; desligado localmente. Valores reais só no ambiente do responsável.
+enabled = false
+client_id = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID)"
+secret = "env(SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET)"
+redirect_uri = ""
+skip_nonce_check = false

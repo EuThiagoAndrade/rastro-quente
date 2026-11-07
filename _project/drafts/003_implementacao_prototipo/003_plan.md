@@ -45,7 +45,9 @@ Cobre:
 
 Não cobre merge, implementação de issues, ações humanas externas, carga hospedada nem verificação em produção. Cada um desses passos tem frase própria.
 
-**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial). Em 2026-11-07 o responsável decidiu literalmente "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)."; a decisão de G1 e seus efeitos estão na task e no relatório `003_research_medicao_recorte.md`. Escopo e rodadas da v4 aprovada permanecem preservados.
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial). Em 2026-11-07 o responsável decidiu literalmente "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)."; a decisão de G1 e seus efeitos estão na task e no relatório `003_research_medicao_recorte.md`. Escopo e rodadas da v4 aprovada permanecem preservados. A PR #25 foi integrada em 2026-11-07 (`f8106a5`).
+
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #21" recebida em 2026-11-07. A task `003_task_issue-21.md` é o artefato ativo; a decisão técnica está no ADR-005. Somente o item 2 está em execução.
 
 ## Problema e contexto
 
@@ -390,22 +392,34 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#20](https://github.com/EuThiagoAndrade/rastro-quente/issues/20) (item 1), [#21](https://github.com/EuThiagoAndrade/rastro-quente/issues/21) (item 2), [#22](https://github.com/EuThiagoAndrade/rastro-quente/issues/22) (item 3), [#23](https://github.com/EuThiagoAndrade/rastro-quente/issues/23) (item 4), [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) (item 5) |
-| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), aberta, integração pendente |
-| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, publicada, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977` |
-| Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro ativo em `003_task_issue-20.md` |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), integrada em 2026-11-07 (`f8106a5`); item 2: PR pendente de abertura |
+| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977`; item 2: `feature/issue-21`, base `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad` |
+| Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro em `003_task_issue-20.md` |
+| Entrega do item 2 | `supabase/`, `scripts/banco/` e `ADR-005_banco_autorizacao_prototipo.md`; registro ativo em `003_task_issue-21.md` |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/25
-Diga: "aprovo o merge da PR #25"
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-21/item-2 + f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `Em Execução`; item 1 integrado pela PR #25 (`f8106a5`), task #20 ainda `Aguardando integração`; issue #21 aberta, sem task, banco ou migração.
+- `state_after`: item 2 implementado e testado localmente na branch `feature/issue-21`; task #20 reconciliada como `Concluída`; ADR-005 registrado; publicação da PR pendente.
+- `result`: `executed`
+- `evidence`: autorização literal "autorizo a implementação da issue #21" em 2026-11-07; evidências em `003_task_issue-21.md`.
+- `blockers`: publicação pendente neste mesmo workflow; itens 3 a 5 não iniciados.
+
+### Registro anterior — item 1
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9f7c8be4b611a13a75d82dc387171d0977`
