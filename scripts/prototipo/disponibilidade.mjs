@@ -1,12 +1,16 @@
 // Disponibilidade D1 (plano 003): dia GMT × satélite × município IBGE, separada da presença de detecção.
 // Classes por precedência: lacuna_conhecida > incidencia_indeterminada > sem_evidencia_de_lacuna.
 // 'sem_incidencia' só descreve a relação aviso × município; não é classe de disponibilidade nem prova cobertura.
-// Histórico de avisos ausente ou incompleto: H1 (incidência indeterminada, motivo historico_ausente_ou_incompleto),
-// com parada H3 antes de publicar.
+// Histórico de avisos ausente ou incompleto: H1 (incidência indeterminada, motivo historico_ausente_ou_incompleto) é o
+// padrão local, com parada H3 antes de publicar. A decisão humana pode trocar a regra (REGRAS_HISTORICO).
 
 export const CLASSES = ['lacuna_conhecida', 'incidencia_indeterminada', 'sem_evidencia_de_lacuna'];
 export const ALCANCES = ['verificado', 'parcial', 'indisponivel'];
 export const AVISO_SEM_EVIDENCIA = 'cobertura não comprovada';
+// H1: padrão do plano. H2: dia sem aviso fica sem evidência, motivo historico_nao_verificado.
+// H2_interrupcoes_nasa (decisão de 2026-11-07): H2 e, nos dias com interrupção MODIS/Aqua da NASA, incidência
+// indeterminada com motivo interrupcao_aqua_nasa; nunca lacuna conhecida.
+export const REGRAS_HISTORICO = ['H1', 'H2', 'H2_interrupcoes_nasa'];
 
 // Relação de um polígono municipal com um semiplano de falta de dados ({ eixo: 'lon'|'lat', lado: 'menor'|'maior', valor }).
 // O semiplano é convexo: todos os vértices dentro (estritamente) → município inteiro na área; todos fora → afastamento
@@ -51,8 +55,9 @@ export function incidenciaDoAviso(aviso, municipio) {
 const ordem = (classe) => CLASSES.indexOf(classe);
 
 // Classe de um município num dia/satélite. avisosDoDia: avisos já filtrados pelo dia e satélite.
-export function classificarMunicipioDia({ avisosDoDia, municipio, historico }) {
+export function classificarMunicipioDia({ avisosDoDia, municipio, historico, regraHistorico = 'H1', interrupcaoNasa = false }) {
   if (!ALCANCES.includes(historico)) throw new Error(`Alcance de histórico inválido: ${historico}`);
+  if (!REGRAS_HISTORICO.includes(regraHistorico)) throw new Error(`Regra de histórico inválida: ${regraHistorico}`);
   const motivos = [];
   const avisos = [];
   let classe = 'sem_evidencia_de_lacuna';
@@ -63,23 +68,29 @@ export function classificarMunicipioDia({ avisosDoDia, municipio, historico }) {
     motivos.push(inc.motivo);
     if (ordem(inc.classe) < ordem(classe)) classe = inc.classe;
   }
-  if (historico !== 'verificado') {
-    motivos.push('historico_ausente_ou_incompleto');
+  const indeterminar = (motivo) => {
+    motivos.push(motivo);
     if (ordem('incidencia_indeterminada') < ordem(classe)) classe = 'incidencia_indeterminada';
+  };
+  if (historico !== 'verificado') {
+    if (regraHistorico === 'H1') indeterminar('historico_ausente_ou_incompleto');
+    else motivos.push('historico_nao_verificado');
   }
+  if (regraHistorico === 'H2_interrupcoes_nasa' && interrupcaoNasa) indeterminar('interrupcao_aqua_nasa');
   if (classe === 'sem_evidencia_de_lacuna') motivos.push('sem_aviso_incidente');
   return { classe, motivos: [...new Set(motivos)], historico, avisos, aviso: classe === 'sem_evidencia_de_lacuna' ? AVISO_SEM_EVIDENCIA : null };
 }
 
 // Tabela completa. avisos: [{ id, dias: ['AAAA-MM-DD'], satelites: [...], delimitacao, validacaoHumana }].
-// historicoDoDia(dia) → 'verificado' | 'parcial' | 'indisponivel'.
-export function disponibilidadeMunicipal({ dias, satelite, municipios, avisos, historicoDoDia }) {
+// historicoDoDia(dia) → 'verificado' | 'parcial' | 'indisponivel'. diasInterrupcaoNasa: Set de dias (só na regra que os usa).
+export function disponibilidadeMunicipal({ dias, satelite, municipios, avisos, historicoDoDia, regraHistorico = 'H1', diasInterrupcaoNasa = new Set() }) {
   const linhas = [];
   for (const dia of dias) {
     const avisosDoDia = avisos.filter((a) => a.dias.includes(dia) && a.satelites.includes(satelite));
     const historico = historicoDoDia(dia);
+    const interrupcaoNasa = diasInterrupcaoNasa.has(dia);
     for (const municipio of municipios) {
-      linhas.push({ dia, satelite, municipio: municipio.codigo, ...classificarMunicipioDia({ avisosDoDia, municipio, historico }) });
+      linhas.push({ dia, satelite, municipio: municipio.codigo, ...classificarMunicipioDia({ avisosDoDia, municipio, historico, regraHistorico, interrupcaoNasa }) });
     }
   }
   return linhas;

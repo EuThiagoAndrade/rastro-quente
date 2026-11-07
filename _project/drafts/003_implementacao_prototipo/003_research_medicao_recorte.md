@@ -84,9 +84,9 @@ Total obtido: 22 itens, 571.451.966 bytes. URL, SHA-256 completo e data de cada 
 | Dias | 0 | 365 | 0 |
 | Meses | 0 | 12 | 0 |
 
-**Resultado com H1 (padrão local aplicado):** 51.830 município-dias em `incidencia_indeterminada`, todos com motivo `historico_ausente_ou_incompleto`. Em 426 (3 dias × 142 municípios), há também o motivo `aviso_sem_area_delimitada`. Nenhum dia é `lacuna_conhecida` ou `sem_evidencia_de_lacuna`. As contagens de focos não mudam.
+**Resultado com H1 (padrão local, antes da decisão):** 51.830 município-dias em `incidencia_indeterminada`, todos com motivo `historico_ausente_ou_incompleto`. Em 426 (3 dias × 142 municípios), há também o motivo `aviso_sem_area_delimitada`. Nenhum dia é `lacuna_conhecida` ou `sem_evidencia_de_lacuna`. As contagens de focos não mudam.
 
-**Parada H3:** com histórico parcial, a entrega está em `Parado` antes de publicar. Efeito de cada alternativa na disponibilidade exibida (os 3 avisos sem área continuam indeterminados até a validação humana):
+**Parada H3:** com histórico parcial, a entrega parou antes de publicar e apresentou ao responsável o efeito de cada alternativa na disponibilidade exibida (os 3 avisos sem área indeterminados em todas):
 
 | Alternativa | `lacuna_conhecida` | `incidencia_indeterminada` | `sem_evidencia_de_lacuna` | Leitura na interface |
 | :-- | --: | --: | --: | :-- |
@@ -94,9 +94,21 @@ Total obtido: 22 itens, 571.451.966 bytes. URL, SHA-256 completo e data de cada 
 | H2 — `sem_evidencia_de_lacuna`, motivo `historico_nao_verificado` | 0 | 426 | 51.404 | Só os 3 dias de aviso INPE aparecem indeterminados; os demais trazem "cobertura não comprovada" e o motivo do histórico. |
 | Outra regra (sugestão) — H2, mais `incidencia_indeterminada` com motivo `interrupcao_aqua_nasa` nos dias da tabela da NASA | 0 | 11.218 | 40.612 | 79 dias indeterminados em todos os municípios; nos 286 restantes, "cobertura não comprovada" e `historico_nao_verificado`. |
 
-**Sugestão do autor: a outra regra.** Ela usa a única fonte oficial independente encontrada para marcar incerteza onde ela é documentada. Nunca converte interrupção em lacuna conhecida e evita que H1 apague toda a informação de disponibilidade. Limite: a tabela da NASA não delimita área nem representa a recepção do INPE. Por isso a regra só cria indeterminação, e o recorte por horário (30 dias) não é sugerido, dada a divergência de 2026-07-22. A escolha é decisão humana de G1.
+**Sugestão apresentada: a outra regra.** Ela usa a única fonte oficial independente encontrada para marcar incerteza onde ela é documentada. Nunca converte interrupção em lacuna conhecida e evita que H1 apague toda a informação de disponibilidade. Limite: a tabela da NASA não delimita área nem representa a recepção do INPE. Por isso a regra só cria indeterminação, e o recorte por horário (30 dias) não é sugerido, dada a divergência de 2026-07-22.
 
-**Avisos sem área (validação humana pendente):** os 3 avisos do INPE remetem a imagens do Worldview. Sem validação, a regra aprovada os mantém como `incidencia_indeterminada` nos 142 municípios. Alternativas: (a) manter assim, com o efeito descrito; (b) o responsável valida, por município, uma proposta preparada com as imagens indicadas (GIBS/Worldview), como na prova `001`. O registro `validacaoHumana` de `avisos.json` aceita o resultado, e o agente não interpreta a imagem sozinho.
+**Decisão humana (G1), 2026-11-07:** "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)." Registrada em `scripts/prototipo/avisos.json` (`decisaoH3.regra = H2_interrupcoes_nasa`; `validacaoHumana` dos três avisos = manter indeterminada) e na task.
+
+**Resultado aplicado (reexecução de 2026-11-07):**
+
+| Classe | Município-dias | Motivos |
+| :-- | --: | :-- |
+| `lacuna_conhecida` | 0 | — |
+| `incidencia_indeterminada` | 11.218 | `interrupcao_aqua_nasa` em 79 dias × 142 municípios; nos 3 dias de aviso também `aviso_sem_area_delimitada` (426) |
+| `sem_evidencia_de_lacuna` | 40.612 | `sem_aviso_incidente`, com o texto "cobertura não comprovada" |
+
+Todas as 51.830 linhas trazem também `historico_nao_verificado` e o alcance `parcial`, para que a interface não apresente o histórico como completo. As contagens de focos não mudaram.
+
+**Avisos sem área:** os 3 avisos do INPE remetem a imagens do Worldview. Foram apresentadas as alternativas (a) manter `incidencia_indeterminada` nos 142 municípios ou (b) validar por município uma proposta feita com as imagens. O responsável escolheu (a). Uma validação futura por município pode ser registrada em `validacaoHumana.municipios` de `avisos.json`, sem mudar o código.
 
 ## 7. Geometria de classificação e de exibição
 
@@ -121,10 +133,10 @@ Máquina local do responsável (Windows 11, Node.js 24.15.0), rede doméstica; t
 | Carga da malha e do contorno | 0,08 s |
 | Leitura em fluxo e classificação territorial | 7,5 s |
 | Agregação, disponibilidade (51.830 linhas) e alcance | 0,08 s |
-| Processamento total, incluindo medição de malhas e escrita | 9,3 s |
-| Pico de memória (RSS) | 280 MB (máximo do processo); 270 MB por amostragem |
-| Disco local | brutos 571,5 MB; saídas 6,7 MB (pico: brutos + saídas, nada é apagado) |
-| Saídas | `deteccoes.csv` 1.744.772 bytes (10.640 linhas); `disponibilidade.csv` 4.956.730 bytes (51.830 linhas); `divergencias.csv` 14.483 bytes (93 linhas); `agregados.json` 83.098 bytes |
+| Processamento total, incluindo medição de malhas e escrita | 9,3 s na primeira execução; 9,1 s na reexecução com a regra decidida |
+| Pico de memória (RSS) | 288 MB (máximo do processo, reexecução); 280 MB na primeira |
+| Disco local | brutos 571,5 MB; saídas 8,5 MB (pico: brutos + saídas, nada é apagado) |
+| Saídas (reexecução) | `deteccoes.csv` 1.744.772 bytes (10.640 linhas); `disponibilidade.csv` 6.627.644 bytes (51.830 linhas, com motivos); `divergencias.csv` 14.483 bytes (93 linhas); `agregados.json` 83.240 bytes |
 
 Esses números não estimam o banco: tipos, índices, sobrecarga por linha, TOAST e geometria persistida ainda não existem.
 
@@ -134,14 +146,14 @@ Esses números não estimam o banco: tipos, índices, sobrecarga por linha, TOAS
 - Tempo e transação da carga completa, idempotência por identidade técnica e retenção de versões.
 - Custo das consultas por período/município com total exato, série diária e sensibilidade na mesma versão.
 - Transferência real da geometria de exibição por município, número de requisições e tempo em celular (item 4).
-- Efeito, no volume persistido, da decisão H3 e da validação dos avisos. As contagens de focos não mudam.
+- Representação persistida da disponibilidade (classe, motivos, alcance e avisos por município-dia) já com a regra decidida.
 
 ## 10. Reprodução
 
 ```sh
 node scripts/prototipo/prototipo.mjs janela --ultimo-mes 2026-11   # já fixada; repetir exige --refixar
 node scripts/prototipo/prototipo.mjs obter                         # baixa ou confere os SHA-256 do manifesto
-node scripts/prototipo/prototipo.mjs processar                     # dry-run; sai com código 3 quando há parada
+node scripts/prototipo/prototipo.mjs processar                     # dry-run; sai com código 3 quando há parada (0 com a decisão H3 registrada)
 node scripts/prototipo/prototipo.mjs conferir                      # agregação independente e referência de Colniza
 npm run test:prototipo
 ```

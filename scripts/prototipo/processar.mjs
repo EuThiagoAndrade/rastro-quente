@@ -256,12 +256,17 @@ export async function executar() {
       const p = registroAvisos.historico.find((h) => h.satelite === fontes.contrato.satelite && dia >= h.inicio && dia < h.fim);
       return p ? p.alcance : 'indisponivel';
     };
-    const disponibilidade = disponibilidadeMunicipal({ dias, satelite: fontes.contrato.satelite, municipios: malha.municipios, avisos: registroAvisos.avisos, historicoDoDia });
-    const alcance = alcanceDoHistorico({ dias, municipios: malha.municipios, historicoDoDia });
     const interrupcoes = lerInterrupcoesAqua(await readFile(caminho('nasa-modaps-interrupcoes-aqua'), 'utf8'));
     const naJanela = interrupcoes.filter((x) => x.dia >= janela.inicio && x.dia < janela.fim);
     const diasComAvisoInpe = new Set(registroAvisos.avisos.flatMap((a) => a.dias));
     const diasInterrupcao = [...new Set(naJanela.map((x) => x.dia))].sort();
+    const decisaoH3 = registroAvisos.decisaoH3 ?? null;
+    const regraHistorico = decisaoH3?.regra ?? 'H1';
+    const disponibilidade = disponibilidadeMunicipal({
+      dias, satelite: fontes.contrato.satelite, municipios: malha.municipios, avisos: registroAvisos.avisos, historicoDoDia,
+      regraHistorico, diasInterrupcaoNasa: new Set(diasInterrupcao),
+    });
+    const alcance = alcanceDoHistorico({ dias, municipios: malha.municipios, historicoDoDia });
     const avisosPendentes = registroAvisos.avisos.filter((a) => (!a.delimitacao || a.delimitacao.tipo === 'nao_delimitada') && !a.validacaoHumana).map((a) => a.id);
     const tAgregacao = marcar('agregacao', t0);
 
@@ -299,7 +304,7 @@ export async function executar() {
     if (recorte.ambiguos.length) paradas.push(`pontos_ambiguos:${recorte.ambiguos.length}`);
     if (!listaConfere) paradas.push('lista_de_municipios_diverge_da_malha');
     if (!confEnvelope.identicos) paradas.push('envelope_diverge_da_conferencia');
-    if (alcance.exigeParadaH3) paradas.push('h3_historico_parcial_ou_indisponivel');
+    if (alcance.exigeParadaH3 && !decisaoH3) paradas.push('h3_historico_parcial_ou_indisponivel');
     if (avisosPendentes.length) paradas.push(`avisos_aguardam_validacao_humana:${avisosPendentes.length}`);
 
     const tTotal = marcar('total', t.inicio);
@@ -329,6 +334,8 @@ export async function executar() {
       contagens: { estadoPorMes: agregados.estadoPorMes, sensibilidadeCuiabaEstadoPorMes: agregados.cuiaba.estadoPorMes, diferencaCuiabaMenosGmtPorMes: agregados.diferencaCuiabaMenosGmtPorMes, desvioHoras: desvio },
       disponibilidade: {
         unidade: 'dia GMT × satélite × município IBGE',
+        regraHistorico,
+        decisaoH3,
         municipioDias: disponibilidade.length,
         porClasse: diasPorClasse(disponibilidade),
         porMotivo: disponibilidade.reduce((m, d) => { for (const x of d.motivos) inc(m, x); return m; }, {}),
@@ -338,7 +345,7 @@ export async function executar() {
         ...alcance,
         fontes: [registroAvisos.paginaInpe, registroAvisos.interrupcoesNasa],
         interrupcoesNasaNaJanela: { registros: naJanela.length, dias: diasInterrupcao.length, diasSemAvisoInpe: diasInterrupcao.filter((d) => !diasComAvisoInpe.has(d)).length },
-        alternativas: ['H1 (padrão local aplicado)', 'H2: sem_evidencia_de_lacuna com motivo historico_nao_verificado', 'outra regra proposta'],
+        decisaoRegistrada: decisaoH3 ? { regra: decisaoH3.regra, em: decisaoH3.em } : null,
       },
       geometrias: Object.fromEntries(Object.entries(geometrias).map(([k, v]) => [k, { ...v, porMunicipio: undefined }])),
       saidas,

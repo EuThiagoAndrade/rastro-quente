@@ -45,7 +45,7 @@ Cobre:
 
 Não cobre merge, implementação de issues, ações humanas externas, carga hospedada nem verificação em produção. Cada um desses passos tem frase própria.
 
-**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial), aguardando decisão humana registrada na task. Escopo e rodadas da v4 aprovada permanecem preservados.
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial). Em 2026-11-07 o responsável decidiu literalmente "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)."; a decisão de G1 e seus efeitos estão na task e no relatório `003_research_medicao_recorte.md`. Escopo e rodadas da v4 aprovada permanecem preservados.
 
 ## Problema e contexto
 

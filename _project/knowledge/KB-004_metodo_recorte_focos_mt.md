@@ -19,7 +19,7 @@ Registra como a CLI `scripts/prototipo/` obtém, valida, recorta, agrega e quali
 
 ## Limite de autoridade
 
-Conhecimento de referência. As regras de método são as do plano `003` aprovado (contrato de dados, D1, H3 e sensibilidade por consulta); esta base descreve a implementação, não as altera. Não decide a regra final de alcance do histórico (H3), a validação dos avisos sem área, a representação de exibição, o schema ou a retenção de versões. Focos e sobreposições não comprovam incêndio, dano, autoria ou infração; nada aqui ordena ou prioriza municípios.
+Conhecimento de referência. As regras de método são as do plano `003` aprovado (contrato de dados, D1, H3 e sensibilidade por consulta); esta base descreve a implementação, não as altera. A regra de histórico adotada (H3) e o tratamento dos avisos sem área são decisões humanas de 2026-11-07, registradas em `scripts/prototipo/avisos.json` e na task da issue #20; esta base só os descreve. Não decide representação de exibição, schema ou retenção de versões. Focos e sobreposições não comprovam incêndio, dano, autoria ou infração; nada aqui ordena ou prioriza municípios.
 
 ## Conteúdo
 
@@ -42,8 +42,8 @@ Reaproveita da prova `001`, sem alterá-los: `geo.mjs` (ponto no polígono), `sa
 - **Território:** malha municipal IBGE v4 `qualidade=maxima` da UF 51, coordenadas originais, borda incluída, buracos e multipolígonos respeitados. O ponto é atribuído só quando cai em exatamente um município; em mais de um, vai para a lista de ambíguos e há parada (nunca se escolhe o primeiro ou o menor código). Fora de todos, é excluído. O código do INPE é confrontado com a atribuição (outro município, outra UF, UF 51 fora da malha) e com o contorno estadual (contorno sem município, município fora do contorno).
 - **Escopos:** `principal` (linha do arquivo mensal dentro do próprio mês) e `envelope` (linha do arquivo diário dentro do intervalo do envelope). O envelope só entra na sensibilidade. O arquivo mensal em formação serve apenas para conferir o envelope: os dois conjuntos devem coincidir.
 - **Tempo:** total e séries principais em GMT. Sensibilidade `America/Cuiaba` com o desvio conferido no período (falha se houver horário de verão), em campo separado. `contarConsulta` implementa a consulta por datas inclusivas, com o exemplo 100 − 3 + 5 = 102 coberto por teste.
-- **Disponibilidade (D1):** unidade dia GMT × satélite × município. A incidência de cada aviso no município é `lacuna_conhecida` (área cobre o município inteiro), `incidencia_indeterminada` (cobertura parcial ou área não delimitada) ou `sem_incidencia` (afastamento demonstrado). A delimitação suportada hoje é `semiplano` por meridiano/paralelo, por ser convexa e verificável pelos vértices. Validação humana por município prevalece. Precedência: lacuna > indeterminada > sem evidência, preservando todos os motivos. Histórico não verificado aplica H1 (`historico_ausente_ou_incompleto`). Dia sem evidência leva o texto "cobertura não comprovada". Não existe classe "coberto".
-- **Alcance H3:** `avisos.json` registra os avisos (síntese, satélites, delimitação, validação) e o alcance do histórico por período. O processamento conta município-dias, dias e meses por alcance e para se houver parcial ou indisponível. A tabela de interrupções MODIS/Aqua da NASA é lida só para relatar dias com interrupção sem aviso do INPE; não cria lacuna.
+- **Disponibilidade (D1):** unidade dia GMT × satélite × município. A incidência de cada aviso no município é `lacuna_conhecida` (área cobre o município inteiro), `incidencia_indeterminada` (cobertura parcial ou área não delimitada) ou `sem_incidencia` (afastamento demonstrado). A delimitação suportada hoje é `semiplano` por meridiano/paralelo, por ser convexa e verificável pelos vértices. Validação humana por município prevalece. Precedência: lacuna > indeterminada > sem evidência, preservando todos os motivos. Regras de histórico suportadas: `H1` (padrão do plano: histórico não verificado → indeterminada, `historico_ausente_ou_incompleto`), `H2` (motivo `historico_nao_verificado`, sem mudar a classe) e `H2_interrupcoes_nasa`, **adotada em 2026-11-07**: H2 e, nos dias com interrupção na tabela MODIS/Aqua da NASA, `incidencia_indeterminada` com motivo `interrupcao_aqua_nasa` em todos os municípios, nunca lacuna. A regra vem de `decisaoH3` em `avisos.json`; sem ela, vale H1. Dia sem evidência leva o texto "cobertura não comprovada". Não existe classe "coberto".
+- **Alcance H3:** `avisos.json` registra os avisos (síntese, satélites, delimitação, validação) e o alcance do histórico por período. O processamento conta município-dias, dias e meses por alcance e para se houver parcial ou indisponível sem `decisaoH3` registrada. A tabela de interrupções MODIS/Aqua da NASA relata os dias com interrupção sem aviso do INPE e, na regra adotada, indetermina esses dias; não cria lacuna.
 
 ### Saídas locais (fora do Git)
 
@@ -55,8 +55,9 @@ Reaproveita da prova `001`, sem alterá-los: `geo.mjs` (ponto no polígono), `sa
 
 ### Limitações conhecidas
 
-- O alcance do histórico de avisos não é demonstrável com as fontes atuais (decisão H3 pendente).
-- Avisos sem área ficam indeterminados até validação humana.
+- O alcance do histórico de avisos não é demonstrável com as fontes atuais; a regra adotada marca a incerteza, mas não a resolve.
+- A tabela da NASA não delimita área nem representa a recepção própria do INPE; alguns dos dias indeterminados podem ter tido dados no catálogo.
+- Os três avisos sem área ficam indeterminados nos 142 municípios, por decisão humana.
 - A revisão da malha (2025) é inferida das notas de liberação do IBGE, pois a API não a informa.
 - Linhas inválidas de outros satélites não são validadas além do número de colunas, porque não entram no recorte.
 
@@ -74,4 +75,4 @@ Reaproveita da prova `001`, sem alterá-los: `geo.mjs` (ponto no polígono), `sa
 
 | Data | Ciclo | Alteração |
 | :-- | :-- | :-- |
-| 2026-11-07 | `003` | Criação na implementação do item 1 (issue #20) |
+| 2026-11-07 | `003` | Criação na implementação do item 1 (issue #20), com a decisão H3 e o tratamento dos avisos sem área registrados |

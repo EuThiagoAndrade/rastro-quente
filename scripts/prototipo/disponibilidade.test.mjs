@@ -77,3 +77,35 @@ test('tabela de interrupções da NASA é lida em UTC', () => {
   const html = '<table><tr><th>Year-Day</th></tr><tr>\n<td>2026-290</td>\n<td>October 17, 2026</td><td>13:45:00</td><td>18:00:00</td><td>EDOS Outage</td></tr></table>';
   assert.deepEqual(lerInterrupcoesAqua(html), [{ dia: '2026-10-17', inicio: '13:45:00', fim: '18:00:00', comentario: 'EDOS Outage' }]);
 });
+
+test('H2: histórico não verificado vira motivo, sem mudar a classe', () => {
+  const z = classificarMunicipioDia({ avisosDoDia: [], municipio: Z, historico: 'parcial', regraHistorico: 'H2' });
+  assert.equal(z.classe, 'sem_evidencia_de_lacuna');
+  assert.deepEqual(z.motivos, ['historico_nao_verificado', 'sem_aviso_incidente']);
+  assert.equal(z.aviso, 'cobertura não comprovada');
+  const y = classificarMunicipioDia({ avisosDoDia: [SEM_AREA], municipio: Y, historico: 'parcial', regraHistorico: 'H2' });
+  assert.equal(y.classe, 'incidencia_indeterminada');
+});
+
+test('regra decidida em 2026-11-07: interrupção da NASA indetermina, nunca vira lacuna', () => {
+  const r = classificarMunicipioDia({ avisosDoDia: [], municipio: Z, historico: 'parcial', regraHistorico: 'H2_interrupcoes_nasa', interrupcaoNasa: true });
+  assert.equal(r.classe, 'incidencia_indeterminada');
+  assert.deepEqual(r.motivos, ['historico_nao_verificado', 'interrupcao_aqua_nasa']);
+  const x = classificarMunicipioDia({ avisosDoDia: [OESTE], municipio: X, historico: 'parcial', regraHistorico: 'H2_interrupcoes_nasa', interrupcaoNasa: true });
+  assert.equal(x.classe, 'lacuna_conhecida');
+  assert.deepEqual(x.motivos, ['aviso_abrange_municipio', 'historico_nao_verificado', 'interrupcao_aqua_nasa']);
+  // Sem a regra, a mesma interrupção é ignorada (H2 puro).
+  assert.equal(classificarMunicipioDia({ avisosDoDia: [], municipio: Z, historico: 'parcial', regraHistorico: 'H2', interrupcaoNasa: true }).classe, 'sem_evidencia_de_lacuna');
+  assert.throws(() => classificarMunicipioDia({ avisosDoDia: [], municipio: Z, historico: 'parcial', regraHistorico: 'H9' }), /Regra/);
+});
+
+test('tabela da regra decidida: dia com interrupção e dia com aviso mantido ficam indeterminados', () => {
+  const dias = ['2026-10-05', '2026-10-06', '2026-10-07'];
+  const avisoMantido = { ...SEM_AREA, validacaoHumana: { decisao: 'manter_incidencia_indeterminada', municipios: {} } };
+  const linhas = disponibilidadeMunicipal({
+    dias, satelite: 'AQUA_M-T', municipios: [Z, W], avisos: [avisoMantido], historicoDoDia: () => 'parcial',
+    regraHistorico: 'H2_interrupcoes_nasa', diasInterrupcaoNasa: new Set(['2026-10-05']),
+  });
+  assert.deepEqual(diasPorClasse(linhas), { lacuna_conhecida: 0, incidencia_indeterminada: 4, sem_evidencia_de_lacuna: 2 });
+  assert.deepEqual(linhas.filter((l) => l.dia === '2026-10-06').map((l) => l.motivos), [['aviso_sem_area_delimitada', 'historico_nao_verificado'], ['aviso_sem_area_delimitada', 'historico_nao_verificado']]);
+});
