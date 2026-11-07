@@ -38,9 +38,18 @@ O plano `003` exige provar autorização além do login (PF3) antes de qualquer 
 
 Gatilhos garantem, para qualquer papel: carga nasce em preparação; transições só `preparacao→publicada`, `preparacao→retirada` e `publicada→retirada`; campos da carga são imutáveis; a publicação confere as contagens declaradas, o escopo temporal das detecções e as duas malhas; linhas só entram em carga em preparação, nunca mudam e não saem de carga publicada. Carga parcial, portanto, nunca fica legível.
 
+**Correções da revisão G2 (migração `20261107230000_correcoes_revisao_g2.sql`).**
+
+- A publicação exige `READ COMMITTED`: o gatilho roda depois do bloqueio exclusivo da carga e cada contagem usa snapshot novo; `REPEATABLE READ` e `SERIALIZABLE` são recusados.
+- A publicação exige um manifesto em `privado.manifestos_aprovados` com a mesma identidade e os mesmos campos declarados. A tabela é gravada só pelo proprietário; o EX apenas lê. Exige também janela em dias GMT inteiros e grade D1 completa (municípios × dias).
+- O EX insere em `cargas` só pelas colunas de ingestão.
+- `TEMPORARY` sai de `PUBLIC` e volta a cada papel existente, exceto o EX.
+- `privado.conferir_papel_executor(name)`, executada ao fim da migração, interrompe a aplicação diante de um `rq_executor` preexistente com associação, membros, propriedade, configuração ou privilégio fora do previsto.
+- Decisões do responsável (2026-11-07, opção a em D1 a D3, registradas na task #21): o responsável registra o manifesto aprovado por SQL administrativo; o manifesto fixa `metodo` sem regra H3 nova; o EX fica sem `LOGIN` fora da janela de carga, e `privado.auditar_exposicao()` (só o proprietário) aponta extensão em `public`/`privado`, função exposta a `anon`/`authenticated`, relação fora do contrato e EX com `LOGIN` ligado.
+
 **Autorização.** Schema `privado`, fora da API, com `responsaveis_autorizados (user_id → auth.users.id)`. A única função `security definer` é `privado.eh_responsavel()`: responde só se `auth.uid()` está na lista, com `search_path` vazio. Nada autoriza por e-mail, nome ou metadado. As políticas de leitura (`to authenticated`) exigem `eh_responsavel()` e carga publicada. `anon` não tem privilégio em tabela ou função; `authenticated` tem só `SELECT` nas tabelas e `EXECUTE` nas três consultas. O cadastro e a revogação do RP são administração externa (SQL como proprietário), nunca pela aplicação ou pelo EX.
 
-**Executor EX.** Papel `rq_executor`, criado em migração com `LOGIN` sem senha, sem `SUPERUSER`, `BYPASSRLS`, `CREATEROLE`, `CREATEDB`, replicação, herança ou associação a outro papel, e sem posse de objetos. Lê o schema de dados, insere e apaga linhas (gatilhos limitam), muda só `cargas.estado` e a publicação vigente. Não acessa `privado`, não executa funções do projeto, não altera schema, grants nem RLS. A senha é definida pelo responsável fora do repositório (item 5).
+**Executor EX.** Papel `rq_executor`, criado em migração sem senha e, depois da correção G2, sem `LOGIN` fora das janelas de carga, sem `SUPERUSER`, `BYPASSRLS`, `CREATEROLE`, `CREATEDB`, replicação, herança ou associação a outro papel, e sem posse de objetos. Lê o schema de dados e os manifestos aprovados, insere e apaga linhas (gatilhos limitam), muda só `cargas.estado` e a publicação vigente. Não lê a lista RP, não executa funções do projeto, não cria objetos (nem temporários), não altera schema, grants nem RLS. O responsável liga `LOGIN` e define a senha fora do repositório só durante a janela de carga e desliga ao final (item 5).
 
 **Contrato de consulta.** Três funções `security invoker`, `stable`, com `search_path` vazio, cada uma devolvendo a carga usada:
 
@@ -58,6 +67,7 @@ Datas são dias GMT inclusivos; o principal exclui o envelope, inclusive na fron
 | Ler carga em preparação ou retirada | Negado | Zero linhas; `carga_indisponivel` | Zero linhas | Lê |
 | Inserir, corrigir, publicar, retirar | Negado | Negado | Negado | Dentro do protocolo dos gatilhos |
 | Ler ou alterar a lista RP, schema, RLS ou grants | Negado | Negado | Negado | Negado |
+| Aprovar manifesto de carga | Negado | Negado | Negado | Negado (só lê) |
 
 ### Roteiro e comandos
 
@@ -86,6 +96,8 @@ Sem Docker ou sem permissão para instalá-lo gratuitamente, a situação vira `
 - O helper `security definer` é necessário porque a lista RP fica fora do alcance do usuário; seu escopo é só a resposta booleana.
 - `service_role` mantém os privilégios padrão do Supabase nas tabelas `public`. É credencial administrativa, nunca vai ao cliente nem substitui o EX (plano, item 5); não alcança a lista RP.
 - Os gatilhos acrescentam custo por linha inserida (medido: cerca de 1 s para 51.830 linhas de disponibilidade).
+- **Lacuna da plataforma, aceita com controle (D3):** o `supautils` cria as extensões privilegiadas como `supabase_admin` para qualquer papel com login, sem exigir `CREATE` e sem gatilhos de evento. Um EX com login pode, assim, criar funções em `public` executáveis por `anon`. Nenhuma migração impede; o risco fica restrito à janela de carga, seguida da auditoria e da comparação das extensões. O comportamento do projeto hospedado é conferido no item 5.
+- `sem_publicacao` e `carga_indisponivel` (P0002) chegam como HTTP 500 pelo PostgREST local; o erro é explícito, mas o código HTTP não.
 
 ## Alternativas consideradas
 

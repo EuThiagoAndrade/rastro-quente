@@ -1,12 +1,46 @@
 // Ciclo 003, issue #21 — matriz AN/RP/OA pela API real local (PostgREST + Auth), com identidades
-// e dados fictícios. Requer `npx supabase start`; roda em `npm run test:rls`.
+// e dados fictícios: as três consultas por papel e as tabelas filhas pelo ID de cargas em
+// preparação e retiradas. Requer `npx supabase start`; roda em `npm run test:rls`.
 import { test, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import { randomBytes } from 'node:crypto';
 import { statusLocal, sqlAdmin, requisitar, assinarJwt, adulterarJwt, lerJwt } from './local.mjs';
 
 const IDENTIDADE = 'f'.repeat(63) + '1';
+const PREPARACAO = 'f'.repeat(63) + '2'; // carga parcial, nunca publicada
+const RETIRADA = 'f'.repeat(63) + '3'; // carga completa, publicada e retirada
+const DA_API = `select id from public.cargas where identidade like '${'f'.repeat(63)}%'`;
 const TOTAL_PRINCIPAL = 1005; // acima do max_rows (1000) para conferir o limite técnico da API
+const TABELAS_FILHAS = ['fontes', 'malhas', 'municipios', 'deteccoes', 'disponibilidade'];
+const RPCS = ['consultar_resumo', 'consultar_deteccoes', 'consultar_disponibilidade'];
+
+// Carga pequena (1 município × 1 dia de setembro) com linhas em todas as tabelas filhas.
+const cargaPequena = (ident, totalPrincipal) => `
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade)
+values ('${ident}', 'AQUA_M-T', '2026-09-01T00:00Z', '2026-09-02T00:00Z', ${totalPrincipal}, 0, 1, 1);
+insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
+select c.id, k.chave, 'ficticia', 'https://exemplo.test/' || k.chave, repeat('9', 64), 1, '2026-11-02T00:00Z', 'fictícia'
+from public.cargas c, (values ('focos'), ('malha_max'), ('malha_min')) k(chave) where c.identidade = '${ident}';
+insert into public.malhas (carga_id, uso, fonte_chave, qualidade)
+select c.id, k.uso, k.fonte, k.q from public.cargas c,
+  (values ('classificacao', 'malha_max', 'maxima'), ('exibicao', 'malha_min', 'minima')) k(uso, fonte, q)
+where c.identidade = '${ident}';
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, 9900001, 'Município Fictício', '{}' from public.cargas c where c.identidade = '${ident}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao)
+select c.id, 'api-' || c.id, 'focos', 1, 'principal', '2026-09-01T18:00Z', -10, -55, 9900001, 'interior'
+from public.cargas c where c.identidade = '${ident}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
+select c.id, '2026-09-01', 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado'], 'parcial'
+from public.cargas c where c.identidade = '${ident}';`;
+
+// Fixture: o administrador aprova o manifesto declarado (a conferência é tema dos testes SQL).
+const aprovar = (ident) => `
+insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+from public.cargas where identidade = '${ident}';`;
 
 const FIXTURE = `
 begin;
@@ -31,18 +65,25 @@ from public.cargas c, generate_series(1, ${TOTAL_PRINCIPAL + 2}) n where c.ident
 insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
 select c.id, d::date, 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado', 'sem_aviso_incidente'], 'parcial'
 from public.cargas c, generate_series('2026-10-01'::date, '2026-10-31'::date, interval '1 day') d where c.identidade = '${IDENTIDADE}';
+${aprovar(IDENTIDADE)}
 update public.cargas set estado = 'publicada' where identidade = '${IDENTIDADE}';
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${IDENTIDADE}';
+${cargaPequena(PREPARACAO, 5)}
+${cargaPequena(RETIRADA, 1)}
+${aprovar(RETIRADA)}
+update public.cargas set estado = 'publicada' where identidade = '${RETIRADA}';
+update public.cargas set estado = 'retirada' where identidade = '${RETIRADA}';
 commit;`;
 
 // Remoção pelo próprio protocolo: sai da vigência, é retirada, perde as linhas e o registro.
 const LIMPEZA = `
 begin;
-delete from public.publicacao_vigente where carga_id in (select id from public.cargas where identidade = '${IDENTIDADE}');
-update public.cargas set estado = 'retirada' where identidade = '${IDENTIDADE}' and estado <> 'retirada';
-delete from public.fontes where carga_id in (select id from public.cargas where identidade = '${IDENTIDADE}');
-delete from public.municipios where carga_id in (select id from public.cargas where identidade = '${IDENTIDADE}');
-delete from public.cargas where identidade = '${IDENTIDADE}';
+delete from public.publicacao_vigente where carga_id in (${DA_API});
+update public.cargas set estado = 'retirada' where id in (${DA_API}) and estado = 'publicada';
+delete from public.fontes where carga_id in (${DA_API});
+delete from public.municipios where carga_id in (${DA_API});
+delete from public.cargas where id in (${DA_API});
+delete from privado.manifestos_aprovados where identidade like '${'f'.repeat(63)}%';
 commit;`;
 
 let L;
@@ -71,12 +112,30 @@ async function entrar(id, email) {
 const ler = (token, caminho) => requisitar(L.api, `/rest/v1/${caminho}`, { chave: L.anon, token });
 const rpc = (token, nome, corpo) => requisitar(L.api, `/rest/v1/rpc/${nome}`, { metodo: 'POST', chave: L.anon, token, corpo });
 const OUTUBRO = { p_inicio: '2026-10-01', p_fim: '2026-10-31' };
+const ids = {};
+
+// As três consultas, com o mesmo período, para a matriz de papéis.
+async function consultarTodas(token) {
+  const r = {};
+  for (const nome of RPCS) r[nome] = await rpc(token, nome, OUTUBRO);
+  return r;
+}
+
+function todasNegadas(respostas, quem) {
+  for (const [nome, r] of Object.entries(respostas)) {
+    assert.equal(r.status, 403, `${quem} ${nome}: ${r.status} ${r.texto}`);
+    assert.equal(r.json.message, 'acesso_negado', `${quem} ${nome}`);
+  }
+}
 
 before(async () => {
   L = statusLocal();
   const ocupado = sqlAdmin('select count(*) from public.cargas;');
   assert.equal(ocupado, '0', 'banco local deve estar vazio; rode `npx supabase db reset`.');
   sqlAdmin(FIXTURE);
+  ids.preparacao = sqlAdmin(`select id from public.cargas where identidade = '${PREPARACAO}';`);
+  ids.retirada = sqlAdmin(`select id from public.cargas where identidade = '${RETIRADA}' and estado = 'retirada';`);
+  assert.ok(ids.preparacao && ids.retirada, 'cargas em preparação e retirada montadas');
   usuarios.rp = { email: 'rp-api@exemplo.test' };
   usuarios.oa = { email: 'oa-api@exemplo.test' };
   usuarios.rp.id = await criarUsuario(usuarios.rp.email);
@@ -98,8 +157,10 @@ test('AN: sem sessão, nenhuma tabela, consulta ou lista privada', async () => {
     assert.ok([401, 403].includes(r.status), `${t}: ${r.status}`);
     assert.ok(!Array.isArray(r.json), `${t} não devolve linhas`);
   }
-  const c = await rpc(undefined, 'consultar_resumo', OUTUBRO);
-  assert.ok([401, 403, 404].includes(c.status), `rpc: ${c.status}`);
+  for (const [nome, c] of Object.entries(await consultarTodas(undefined))) {
+    assert.equal(c.status, 401, `${nome}: ${c.status} ${c.texto}`);
+    assert.equal(c.json.code, '42501', `${nome}: sem permissão de execução`);
+  }
   const p = await ler(undefined, 'responsaveis_autorizados?select=*');
   assert.equal(p.status, 404, 'schema privado não é exposto');
 });
@@ -110,9 +171,11 @@ test('OA: autenticado com metadados de RP não lê nem grava', async () => {
   const d = await ler(token, 'deteccoes?select=id_tecnico&limit=5');
   assert.equal(d.status, 200);
   assert.deepEqual(d.json, []);
-  const c = await rpc(token, 'consultar_resumo', OUTUBRO);
-  assert.equal(c.status, 403);
-  assert.equal(c.json.message, 'acesso_negado');
+  todasNegadas(await consultarTodas(token), 'OA');
+  for (const t of TABELAS_FILHAS) {
+    const r = await ler(token, `${t}?select=carga_id&carga_id=in.(${ids.preparacao},${ids.retirada})`);
+    assert.deepEqual([r.status, r.json], [200, []], `OA ${t} pelo ID`);
+  }
   const w = await requisitar(L.api, '/rest/v1/deteccoes?id_tecnico=eq.api1', { metodo: 'DELETE', chave: L.anon, token, cabecalhos: { Prefer: 'return=minimal' } });
   assert.ok([401, 403].includes(w.status), `delete: ${w.status}`);
   assert.equal(sqlAdmin(`select count(*) from public.deteccoes where id_tecnico = 'api1';`), '1', 'linha preservada');
@@ -123,10 +186,33 @@ test('RP: primeiro login → cadastro → leitura → revogação', async () => 
 
   // Primeiro login, ainda sem cadastro: nenhum dado.
   assert.deepEqual((await ler(token, 'deteccoes?select=id_tecnico&limit=5')).json, []);
-  assert.equal((await rpc(token, 'consultar_resumo', OUTUBRO)).status, 403);
+  todasNegadas(await consultarTodas(token), 'RP sem cadastro');
 
   // Cadastro administrativo pelo UUID (fora da aplicação).
   sqlAdmin(`insert into privado.responsaveis_autorizados (user_id) values ('${usuarios.rp.id}');`);
+
+  for (const [nome, r] of Object.entries(await consultarTodas(token))) {
+    assert.equal(r.status, 200, `RP ${nome}: ${r.texto}`);
+    assert.equal(String(r.json.carga.id), sqlAdmin('select carga_id from public.publicacao_vigente;'), `RP ${nome} usa a carga vigente`);
+  }
+
+  // Tabelas filhas pelo ID de cargas em preparação e retirada, sem JOIN com cargas.
+  for (const [estado, id] of Object.entries({ preparacao: ids.preparacao, retirada: ids.retirada })) {
+    assert.ok(Number(sqlAdmin(`select count(*) from public.deteccoes where carga_id = ${id};`)) > 0, `controle: a carga ${estado} tem linhas`);
+    const c = await ler(token, `cargas?select=id&id=eq.${id}`);
+    assert.deepEqual([c.status, c.json], [200, []], `RP cargas ${estado} pelo ID`);
+    for (const t of TABELAS_FILHAS) {
+      const r = await ler(token, `${t}?select=carga_id&carga_id=eq.${id}`);
+      assert.deepEqual([r.status, r.json], [200, []], `RP ${t} da carga ${estado} pelo ID`);
+    }
+    for (const nome of RPCS) {
+      const r = await rpc(token, nome, { p_inicio: '2026-09-01', p_fim: '2026-09-01', p_carga: Number(id) });
+      // Sem dados: erro explícito. O PostgREST da pilha local não mapeia P0002 e responde 500 (ver task #21).
+      assert.equal(r.json?.message, 'carga_indisponivel', `RP ${nome} com a carga ${estado}: ${r.status} ${r.texto}`);
+      assert.equal(r.json?.code, 'P0002', `RP ${nome} com a carga ${estado}`);
+      assert.notEqual(r.status, 200, `RP ${nome} com a carga ${estado}`);
+    }
+  }
 
   const resumo = await rpc(token, 'consultar_resumo', OUTUBRO);
   assert.equal(resumo.status, 200, resumo.texto);
@@ -173,7 +259,6 @@ test('RP: primeiro login → cadastro → leitura → revogação', async () => 
   // Revogação: a mesma sessão deixa de ler na consulta seguinte.
   sqlAdmin(`delete from privado.responsaveis_autorizados where user_id = '${usuarios.rp.id}';`);
   assert.deepEqual((await ler(token, 'deteccoes?select=id_tecnico&limit=5')).json, []);
-  const negado = await rpc(token, 'consultar_resumo', OUTUBRO);
-  assert.equal(negado.status, 403);
+  todasNegadas(await consultarTodas(token), 'RP revogado');
   token = null;
 });

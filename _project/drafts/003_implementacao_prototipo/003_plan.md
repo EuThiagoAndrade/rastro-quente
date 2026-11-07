@@ -417,7 +417,7 @@ Diga: "aprovo o merge da PR #26"
 - `state_after`: item 2 implementado e testado localmente; task #20 reconciliada como `Concluída`; ADR-005 registrado; PR #26 aberta de `feature/issue-21`; task #21 `Aguardando integração`.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a implementação da issue #21" em 2026-11-07; PR #26 real; evidências em `003_task_issue-21.md`.
-- `blockers`: nenhum para a entrega publicada; integração exige checks verdes e "aprovo o merge da PR #26". Itens 3 a 5 não iniciados.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes e "aprovo o merge da PR #26". Itens 3 a 5 não iniciados. Atualização de 2026-11-07: a revisão de segurança G2 da PR #26 levou o item 2 a `Parado`; o responsável decidiu D1 a D3 (opção a, registradas na task #21, com efeitos no roteiro do item 5); correções publicadas na PR #26 sob a autorização "Commit e push"; o item 2 volta a `Aguardando merge`.
 
 ### Registro anterior — item 1
 

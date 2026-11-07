@@ -52,6 +52,13 @@ begin
   from generate_series('2025-11-01'::date, '2026-10-31'::date, interval '1 day') d, generate_series(1, 142) m;
   insert into medidas values ('disponibilidade_51830', extract(epoch from clock_timestamp() - t) * 1000);
 
+  -- Manifesto aprovado pelo administrador (fixture fictícia; exigido pela publicação).
+  insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+    fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+  select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+    fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+  from public.cargas where id = cid;
+
   t := clock_timestamp();
   update public.cargas set estado = 'publicada' where id = cid;
   insert into public.publicacao_vigente (carga_id) values (cid);

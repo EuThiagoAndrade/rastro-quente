@@ -55,6 +55,12 @@ from public.cargas c, generate_series('2026-10-01'::date, '2026-10-31'::date, in
   (values (9900001), (9900002)) m(codigo)
 where c.identidade = repeat('1', 64);
 
+-- Fixture: o administrador aprova o manifesto declarado (a conferência é tema de 02 e 04).
+insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+from public.cargas where identidade = repeat('1', 64);
 update public.cargas set estado = 'publicada' where identidade = repeat('1', 64);
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = repeat('1', 64);
 
@@ -118,7 +124,7 @@ reset role;
 
 -- Carga B: nova versão, sem envelope (sensibilidade do fim de outubro fica incompleta).
 insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade)
-values (repeat('3', 64), 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', 10, 0, 1, 0);
+values (repeat('3', 64), 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', 10, 0, 1, 31);
 insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
 select c.id, k.chave, 'ficticia', 'https://exemplo.test/' || k.chave, repeat('4', 64), 1, '2026-11-03T00:00Z', 'fictícia'
 from public.cargas c, (values ('focos'), ('malha_max'), ('malha_min')) k(chave) where c.identidade = repeat('3', 64);
@@ -131,6 +137,9 @@ select c.id, 9900001, 'Beta Fictício', '{}' from public.cargas c where c.identi
 insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao)
 select c.id, 'b' || n, 'focos', n, 'principal', '2026-10-15T18:00Z', -10, -55, 9900001, 'interior'
 from public.cargas c, generate_series(1, 10) n where c.identidade = repeat('3', 64);
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
+select c.id, d::date, 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado', 'sem_aviso_incidente'], 'parcial'
+from public.cargas c, generate_series('2026-10-01'::date, '2026-10-31'::date, interval '1 day') d where c.identidade = repeat('3', 64);
 
 -- Identificadores guardados pelo administrador, pois o RP não enxerga cargas fora de publicação.
 select set_config('teste.carga_a', (select id::text from public.cargas where identidade = repeat('1', 64)), true);
@@ -142,6 +151,12 @@ select throws_ok(format('select public.consultar_resumo(%L, %L, null, %s)', '202
   current_setting('teste.carga_b')), 'P0002', 'carga_indisponivel', 'carga em preparação não é legível');
 reset role;
 
+-- Fixture: o administrador aprova o manifesto declarado (a conferência é tema de 02 e 04).
+insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+from public.cargas where identidade = repeat('3', 64);
 update public.cargas set estado = 'publicada' where identidade = repeat('3', 64);
 update public.publicacao_vigente set carga_id = (select id from public.cargas where identidade = repeat('3', 64)), atualizada_em = now();
 
