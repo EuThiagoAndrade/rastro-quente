@@ -1,0 +1,57 @@
+{
+  "versao": 1,
+  "descricao": "Registro dos avisos de falta de dados e do alcance do histórico para a janela do item 1 (ciclo 003). Transcrição sintética da página de avisos do INPE fixada por SHA-256 em fontes.json; a página continua sendo a fonte. Delimitação ambígua aguarda validação humana; o agente não interpreta livremente o aviso.",
+  "paginaInpe": {
+    "itemFonte": "inpe-avisos",
+    "sha256": "6f6994ac7de47f4170c0de2d0264e17e9af788a3bf752a7d2472aea12d2765d0",
+    "consultadaEm": "2026-11-07"
+  },
+  "interrupcoesNasa": {
+    "itemFonte": "nasa-modaps-interrupcoes-aqua",
+    "sha256": "ed297da7f9bdedd703f337b256d551fd4042063ad5bc7f1a5bba9f9fec42a0a7",
+    "consultadaEm": "2026-11-07",
+    "uso": "Somente conferência do alcance do histórico. Interrupção da cadeia da NASA não é aviso do INPE, não delimita área e não vira lacuna por inferência."
+  },
+  "avisos": [
+    {
+      "id": "inpe-aviso-2026-07-10-aqua",
+      "dias": ["2026-07-10"],
+      "satelites": ["AQUA_M-T"],
+      "titulo": "Falta de imageamento do satélite AQUA",
+      "sintese": "O AQUA não imageou parte da América do Sul nessa data; não há dados do satélite de referência para as áreas não imageadas.",
+      "satelitesFonte": "O aviso trata do satélite de referência, que o FAQ do INPE define como AQUA_M-T.",
+      "delimitacao": { "tipo": "nao_delimitada", "texto": "parte da América do Sul; o aviso remete à imagem do Worldview" },
+      "validacaoHumana": null
+    },
+    {
+      "id": "inpe-aviso-2026-07-22-aqua",
+      "dias": ["2026-07-22"],
+      "satelites": ["AQUA_M-T"],
+      "titulo": "Falta de imageamento do satélite AQUA",
+      "sintese": "O AQUA não imageou parte da América do Sul nessa data; não há dados do satélite de referência para as áreas não imageadas.",
+      "satelitesFonte": "O aviso trata do satélite de referência, que o FAQ do INPE define como AQUA_M-T.",
+      "delimitacao": { "tipo": "nao_delimitada", "texto": "parte da América do Sul; o aviso remete à imagem do Worldview" },
+      "validacaoHumana": null
+    },
+    {
+      "id": "inpe-aviso-2026-08-12-aqua",
+      "dias": ["2026-08-12"],
+      "satelites": ["AQUA_M-T"],
+      "titulo": "Falta de imageamento do satélite AQUA",
+      "sintese": "O AQUA não imageou parte da América do Sul nessa data; não há dados do satélite de referência para as áreas não imageadas.",
+      "satelitesFonte": "O aviso trata do satélite de referência, que o FAQ do INPE define como AQUA_M-T.",
+      "delimitacao": { "tipo": "nao_delimitada", "texto": "parte da América do Sul; o aviso remete à imagem do Worldview" },
+      "validacaoHumana": null,
+      "observacao": "Na prova 001, a imagem indicada sugeria Colniza fora da área não imageada, sem evidência conclusiva; ficou como incidência indeterminada. Não se estende essa leitura aos demais municípios."
+    }
+  ],
+  "historico": [
+    {
+      "inicio": "2025-11-01",
+      "fim": "2026-11-01",
+      "satelite": "AQUA_M-T",
+      "alcance": "parcial",
+      "justificativa": "A página de avisos do INPE cobre o período (tem avisos antes, durante e depois dele), mas não declara ser exaustiva. A tabela da NASA lista interrupções de dados MODIS/Aqua em dias da janela sem aviso do INPE; como o INPE tem recepção própria, essas interrupções não comprovam lacuna no catálogo, mas impedem demonstrar que o histórico de avisos está completo. Nenhum dia da janela tem histórico demonstradamente completo."
+    }
+  ]
+}

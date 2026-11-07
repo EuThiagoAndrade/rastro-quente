@@ -13,4 +13,6 @@ node --test scripts/validate-governance.test.mjs
 node scripts/validate-governance.mjs
 ```
 
+Recorte local de focos do protótipo (ciclo `003`, sem banco): `node scripts/prototipo/prototipo.mjs <janela | obter | processar | conferir>`, com dados em `local/dados-prototipo/`; testes com fixtures em `npm run test:prototipo`. Método em `_project/knowledge/KB-004_metodo_recorte_focos_mt.md`.
+
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.

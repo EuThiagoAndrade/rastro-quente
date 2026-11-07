@@ -37,6 +37,8 @@ jobs:
         run: node --test scripts/validate-governance.test.mjs
       - name: Validate governance
         run: node scripts/validate-governance.mjs
+      - name: Test prototype pipeline (fixtures)
+        run: node --test "scripts/prototipo/*.test.mjs"
       - name: Check migrations are append-only (G4)
         env:
           EVENT_NAME: ${{ github.event_name }}

@@ -1,10 +1,10 @@
 # Plano de Implementação — Fundação e implementação do protótipo
 
 > **Ciclo:** `003`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v4`
 > **Data de criação:** 2026-11-05
-> **Última atualização:** 2026-11-05
+> **Última atualização:** 2026-11-07
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -44,6 +44,8 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merge, implementação de issues, ações humanas externas, carga hospedada nem verificação em produção. Cada um desses passos tem frase própria.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial), aguardando decisão humana registrada na task. Escopo e rodadas da v4 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -387,22 +389,34 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | —; cinco propostas, nenhuma criada |
-| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integração pendente |
-| Branch(es) | `chore/cycle-003-plan`, publicada, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b` |
+| Issue(s) | [#20](https://github.com/EuThiagoAndrade/rastro-quente/issues/20) (item 1), [#21](https://github.com/EuThiagoAndrade/rastro-quente/issues/21) (item 2), [#22](https://github.com/EuThiagoAndrade/rastro-quente/issues/22) (item 3), [#23](https://github.com/EuThiagoAndrade/rastro-quente/issues/23) (item 4), [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) (item 5) |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1 ainda sem PR (parado antes de publicar) |
+| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, local, base `fcf15b9e14c3b05bbbd36eebfdf1a2fec67c3b00` |
+| Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro ativo em `003_task_issue-20.md` |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
+Situação: Parado — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/19
-Diga: "aprovo o merge da PR #19"
+Conferir: A pergunta registrada na task 003_task_issue-20.md: regra H3 para o histórico de avisos parcial (H1, H2 ou outra regra) e tratamento dos 3 avisos sem área
+Diga: sua resposta à pergunta registrada
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9e14c3b05bbbd36eebfdf1a2fec67c3b00`
+- `effect_class`: `local_mutation`
+- `state_before`: plano v4 `Aprovado` e integrado pela PR #19 (`fcf15b9`); ciclo `003` em `Planejamento`; issues #20–#24 abertas no GitHub, sem registro local; nenhuma implementação.
+- `state_after`: plano `Em Execução`, ciclo `Em execução`; item 1 implementado e medido na branch local `feature/issue-20`; task `Bloqueada` em `Parado` antes de publicar, pela regra H3. Nada publicado.
+- `result`: `executed`
+- `evidence`: autorização literal "autorizo a implementação da issue #20" em 2026-11-07; issues #20–#24 conferidas no GitHub; execução e evidências em `003_task_issue-20.md` e `003_research_medicao_recorte.md`.
+- `blockers`: decisão humana H3 e tratamento dos avisos sem área; a confirmação dos payloads das issues não está registrada no repositório e fica para conferência manual.
+
+### Registro anterior — aprovação e publicação do plano
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + atualizar_docs + aprovacao_publicacao_plano + v4@89e060db1aba0706b4d2f0eb1f70b664c5d1f6cf+rodada-3`

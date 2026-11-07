@@ -8,6 +8,7 @@
   "scripts": {
     "test:governance": "node --test scripts/validate-governance.test.mjs",
     "test:prova-dados": "node --test \"scripts/prova-dados/*.test.mjs\"",
+    "test:prototipo": "node --test \"scripts/prototipo/*.test.mjs\"",
     "check:governance": "node scripts/validate-governance.mjs"
   }
 }

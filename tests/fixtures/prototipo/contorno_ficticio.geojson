@@ -1,0 +1,2 @@
+{ "type": "Feature", "properties": { "codarea": "99" },
+  "geometry": { "type": "Polygon", "coordinates": [[[-60, -10], [-54.5, -10], [-54.5, -9], [-60, -9], [-60, -10]]] } }
