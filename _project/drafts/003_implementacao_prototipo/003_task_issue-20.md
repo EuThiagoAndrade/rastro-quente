@@ -2,12 +2,12 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#20`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-20`
-> **PR:** —
+> **PR:** [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #20" em 2026-11-07
 > **Modo contínuo:** `—`
@@ -44,7 +44,7 @@ Não se aplica.
 
 - [x] Confirmar issue #20 aberta, plano v4 `Aprovado` e integrado (PR #19, merge `fcf15b9`), base `main` limpa e autorização literal.
 - [x] Ler autoridades, `implementar_issue`, templates de task, PR e KB, `governance-check` e `lessons_learned`.
-- [x] Criar `feature/issue-20` a partir de `fcf15b9e14c3b05bbbd36eebfdf1a2fec67c3b00`.
+- [x] Criar `feature/issue-20` a partir de `fcf15b9f7c8be4b611a13a75d82dc387171d0977`.
 - [x] Fixar a janela 2025-11-01 a 2026-11-01 e o envelope 2026-11-01 00h–04h Z; obter e registrar 22 fontes.
 - [x] Implementar leitura validada, território, recorte, agregação, D1, alcance H3, medição e conferência independente.
 - [x] Testes com fixtures fictícias e execução completa local da janela.
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Parar em H3 antes de publicar e apresentar números e alternativas (commit local `7468e42`).
 - [x] Registrar as decisões humanas H3 e dos 3 avisos sem área nesta task e em `avisos.json`.
 - [x] Implementar a regra `H2_interrupcoes_nasa` com testes; reexecutar `processar` e `conferir` sem paradas.
-- [ ] Publicar a branch e abrir a PR.
+- [x] Publicar `feature/issue-20` (base `origin/main` em `fcf15b9f7c8be4b611a13a75d82dc387171d0977` conferida) e abrir a PR #25 com `Closes #20`.
 
 ## Evidências
 
@@ -63,7 +63,8 @@ Não se aplica.
 | Testes | Node.js `v24.15.0`. `npm run test:prototipo`: 32 passaram; `npm run test:prova-dados`: 57 passaram; `node --test scripts/validate-governance.test.mjs`: 55 passaram. |
 | Validador | `node scripts/validate-governance.mjs`: zero erros e zero avisos; nove itens manuais. |
 | `git diff --check` | Passou. |
-| Checks remotos | Pendente; nada publicado. |
+| Publicação | Commits `7468e42` e `aa26044` publicados; PR [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25) aberta de `feature/issue-20` para `main`. Este registro documental vai em commit posterior da mesma PR. |
+| Checks remotos | Workflow `Governance` disparado pela PR; o resultado do último commit é verificável na PR, sem presumir aprovação. |
 
 ## Revisão da correção
 
@@ -88,6 +89,7 @@ Parada H3 apresentada em 2026-11-07 com os números da seção 6 do relatório (
 - **Envelope vazio:** é resultado medido, não presumido. Os dois arquivos oficiais que cobrem o intervalo foram lidos e coincidem, e a distribuição horária (17h–20h GMT) explica a diferença Cuiabá − GMT nula.
 - **Reprocessamento do INPE:** os mensais de 2026-01 a 2026-06 têm `Last-Modified` de julho/2026. O critério da janela aceita reprocessamento posterior ao fim do mês. Futuras execuções detectam mudança por SHA-256 e param.
 - **Representação de exibição:** as malhas oficiais intermediária e mínima foram medidas como candidatas; a escolha fica para os itens 3 e 4, conforme o plano.
+- **SHA da base:** o primeiro commit registrou um SHA completo incorreto para `fcf15b9`; corrigido para `fcf15b9f7c8be4b611a13a75d82dc387171d0977` neste registro, conferido por `git rev-parse origin/main`.
 - **Fixture:** um teste tinha uma expectativa digitada errada (10 em vez de 9 colunas na linha `v04`); corrigida a expectativa, não o código, após recontagem manual.
 - **CI:** acrescentado o passo `Test prototype pipeline (fixtures)`; não usa rede, `local/` ou segredo.
 
@@ -99,22 +101,22 @@ Não se aplica. Primeira issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 003 (completo)
+Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: A pergunta registrada: (1) regra H3 para o histórico de avisos parcial em 51.830 município-dias (H1, H2 ou a outra regra sugerida, com efeitos na seção 6 de 003_research_medicao_recorte.md); (2) avisos de 2026-07-10, 2026-07-22 e 2026-08-12 sem área: manter indeterminados nos 142 municípios ou validar proposta por imagem
-Diga: sua resposta à pergunta registrada
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/25
+Diga: "aprovo o merge da PR #25"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9e14c3b05bbbd36eebfdf1a2fec67c3b00`
-- `effect_class`: `local_mutation`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-20/item-1 + fcf15b9f7c8be4b611a13a75d82dc387171d0977`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v4 `Aprovado` e integrado; ciclo `003` em `Planejamento`; issues #20–#24 abertas sem registro local; sem task, branch ou código do item 1.
-- `state_after`: plano `Em Execução`, ciclo `Em execução`; branch local `feature/issue-20` com a CLI, testes, fixtures, KB-004, relatório e esta task em commit local; task `Bloqueada`, situação `Parado` antes de publicar (H3). Nada publicado.
+- `state_after`: plano `Em Execução`, ciclo `Em execução`; parada H3 apresentada antes de publicar e decidida pelo responsável; regra aplicada e janela reexecutada sem paradas; branch `feature/issue-20` publicada e PR #25 aberta; task `Aguardando integração`.
 - `result`: `executed`
-- `evidence`: autorização literal no cabeçalho; 22 fontes com SHA-256 em `scripts/prototipo/fontes.json`; execução completa e conferência independente aprovadas; Colniza 516/246/62; 141 testes passaram nas três suítes; validador sem erros ou avisos; `git diff --check` limpo.
-- `blockers`: decisão humana H3 (H1, H2 ou outra regra) e decisão sobre os 3 avisos sem área. Depois dela: reexecutar, publicar a branch e abrir a PR; merge exige checks verdes e "aprovo o merge da PR #N".
+- `evidence`: autorizações e decisões literais registradas; 22 fontes com SHA-256 em `scripts/prototipo/fontes.json`; execução e conferência independente aprovadas; Colniza 516/246/62; 144 testes passaram nas três suítes; validador sem erros ou avisos; `git diff --check` limpo; varredura G3 sem e-mail, UUID ou segredo; PR #25 real com `Closes #20`.
+- `blockers`: nenhum para a entrega publicada. A integração exige checks verdes no último commit e "aprovo o merge da PR #25". A issue #21 depende da integração do item 1 e de autorização própria.
 
 ## Referência do bootstrap
 
