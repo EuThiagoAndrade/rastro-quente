@@ -2,12 +2,12 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#23`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-23`
-> **PR:** —
+> **PR:** [#28](https://github.com/EuThiagoAndrade/rastro-quente/pull/28)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #23" em 2026-11-07
 > **Modo contínuo:** `—`
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Medir primeira exibição e navegação da geometria em celular emulado com a carga real (`medir:interface`) e decidir a representação (ADR-007).
 - [x] ADR-007, guia da interface no runbook, README, `.env.example`, `.gitignore` (`dist/`, `dist-e2e/`) e passo de CI.
 - [x] Gates locais e inspeção de `governance-check`.
-- [ ] Publicar `feature/issue-23` e abrir a PR com `Closes #23`; gravar o bloco "Aguardando merge".
+- [x] Publicar `feature/issue-23` (base `origin/main` em `9094b03a079ab141b3ef28fc9478456b7878f278` conferida), abrir a PR [#28](https://github.com/EuThiagoAndrade/rastro-quente/pull/28) com `Closes #23` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -65,7 +65,7 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: 0 erro(s), 0 aviso(s), 9 manuais |
 | `git diff --check` | Limpo |
 | Varredura G3 | Sem e-mail real, UUID, JWT, senha ou chave nos arquivos novos; só `@exemplo.test` e códigos `99000xx`; medições detalhadas ficam em `local/` (ignorado) |
-| Checks remotos | Pendente (PR ainda não aberta; o passo novo de CI da interface só se prova na execução remota) |
+| Checks remotos | Pendente (PR #28 aberta; o passo novo de CI da interface só se prova na execução remota) |
 
 ## Revisão da correção
 
@@ -94,8 +94,8 @@ Não se aplica. Quarta issue de ciclo completo.
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR (a abrir)
-Diga: "aprovo o merge da PR #N"
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/28
+Diga: "aprovo o merge da PR #28"
 ```
 
 ## Handoff de saída
@@ -104,7 +104,7 @@ Diga: "aprovo o merge da PR #N"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-23/item-4 + 9094b03a079ab141b3ef28fc9478456b7878f278`
 - `effect_class`: `remote_mutation`
 - `state_before`: plano `Em Execução`; itens 1 a 3 integrados; task #22 `Aguardando integração` sem reconciliação; issue #23 aberta, sem task, branch ou código.
-- `state_after`: item 4 implementado e testado localmente; task #22 reconciliada como `Concluída`; ADR-007, guia da interface e passo de CI registrados; commit local em `feature/issue-23`; branch e PR ainda não publicadas.
+- `state_after`: item 4 implementado e testado localmente; task #22 reconciliada como `Concluída`; ADR-007, guia da interface e passo de CI registrados; branch `feature/issue-23` publicada e PR #28 aberta; task `Aguardando integração`.
 - `result`: `executed`
-- `evidence`: autorização literal "autorizo a implementação da issue #23" em 2026-11-07; `test:e2e` 35, `test:interface` 39, `test:rls` 168 + 35, `test:prototipo` 32, governança 55; validador sem erros ou avisos; medição real em celular emulado.
-- `blockers`: nenhum para a publicação. Integração exige checks verdes e "aprovo o merge da PR #N". O item 5 não foi iniciado.
+- `evidence`: autorização literal "autorizo a implementação da issue #23" em 2026-11-07; `test:e2e` 35, `test:interface` 39, `test:rls` 168 + 35, `test:prototipo` 32, governança 55; validador sem erros ou avisos; medição real em celular emulado; commit `0b8851d`; PR #28 real com `Closes #23`.
+- `blockers`: nenhum para a publicação. Integração exige checks verdes e "aprovo o merge da PR #28". O item 5 não foi iniciado.
