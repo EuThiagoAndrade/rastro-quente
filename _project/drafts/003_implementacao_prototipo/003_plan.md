@@ -49,7 +49,9 @@ Não cobre merge, implementação de issues, ações humanas externas, carga hos
 
 **Execução do item 2:** autorização literal "autorizo a implementação da issue #21" recebida em 2026-11-07. A task `003_task_issue-21.md` é o artefato ativo; a decisão técnica está no ADR-005. Somente o item 2 está em execução. A PR #26 foi integrada em 2026-11-07 (`e8b79b5`).
 
-**Execução do item 3:** autorização literal "autorizo a implementação da issue #22" recebida em 2026-11-07. A task `003_task_issue-22.md` é o artefato ativo; a decisão técnica e as medições estão no ADR-006 e no runbook. Somente o item 3 está em execução.
+**Execução do item 3:** autorização literal "autorizo a implementação da issue #22" recebida em 2026-11-07. A task `003_task_issue-22.md` é o artefato ativo; a decisão técnica e as medições estão no ADR-006 e no runbook. Somente o item 3 está em execução. A PR #27 foi integrada em 2026-11-08 (`9094b03`).
+
+**Execução do item 4:** autorização literal "autorizo a implementação da issue #23" recebida em 2026-11-07. A task `003_task_issue-23.md` é o artefato ativo; a decisão técnica e a medição em celular estão no ADR-007 e o guia da interface em `docs/runbook.md`. Somente o item 4 está em execução.
 
 ## Problema e contexto
 

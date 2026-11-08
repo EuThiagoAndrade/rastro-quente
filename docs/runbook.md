@@ -1,6 +1,6 @@
 # Runbook do protótipo — carga, cópia, expiração, recuperação e rotação do EX
 
-Escopo: operação **local** da carga de dados (ciclo `003`, item 3). A operação hospedada (contas, migrações no destino, senha do EX, deploy, primeiro login, cadastro do RP) é o roteiro do item 5, e atos administrativos são do responsável. O guia da interface será acrescentado pelo item 4. Decisão e medições: [ADR-006](../_project/decisions/ADR-006_carga_idempotente_unica_transacao.md). Papéis e matriz de acesso: [ADR-005](../_project/decisions/ADR-005_banco_autorizacao_prototipo.md). Focos e sobreposições não comprovam incêndio, dano, autoria ou infração.
+Escopo: operação **local** da carga de dados (ciclo `003`, item 3). A operação hospedada (contas, migrações no destino, senha do EX, deploy, primeiro login, cadastro do RP) é o roteiro do item 5, e atos administrativos são do responsável. O guia da interface está na seção 10. Decisão e medições: [ADR-006](../_project/decisions/ADR-006_carga_idempotente_unica_transacao.md). Papéis e matriz de acesso: [ADR-005](../_project/decisions/ADR-005_banco_autorizacao_prototipo.md). Focos e sobreposições não comprovam incêndio, dano, autoria ou infração.
 
 Nada aqui autoriza teste destrutivo em produção. Nenhum comando abaixo pede segredo como argumento: a senha do EX vive só em `RQ_EXECUTOR_PASSWORD`, no ambiente do processo.
 
@@ -87,8 +87,46 @@ Reconstrução medida com a carga real (`node scripts/banco/reconstruir.mjs`, m�
 | Abertura sem geometria / com geometria do conjunto (`intermediaria`) | 2 requisições, 28,6 KB bruta / 3 requisições, 1.013 KB bruta (268 KB gzip estimado) |
 | Consultas do RP (bruta; tempo) | resumo da janela 22 KB, 88 ms; detecções, página de 1.000, 360 KB, 28 ms; disponibilidade por município, 365 dias, 87 KB, 24 ms |
 
-O Supabase local **não comprime** respostas: "bruta" é o tamanho que trafegou; "gzip estimado" é `gzip -6` local e não prova o tráfego hospedado. O egress real depende da compressão do destino e será medido no item 5. A escolha final da representação (`intermediaria` é o padrão da carga) é do item 4, com a conferência em celular. Estas medidas valem para o recorte de 12 meses de AQUA_M-T em MT, em máquina local.
+O Supabase local **não comprime** respostas: "bruta" é o tamanho que trafegou; "gzip estimado" é `gzip -6` local e não prova o tráfego hospedado. O egress real depende da compressão do destino e será medido no item 5. A representação `intermediaria` foi mantida pelo item 4, com a conferência em celular (seção 10 e ADR-007). Estas medidas valem para o recorte de 12 meses de AQUA_M-T em MT, em máquina local.
 
 ## 9. Fora do que foi provado
 
-Banco hospedado, quotas e preços do provedor, disponibilidade contínua, restauração de Auth e segredos, `pg_dump` e `VACUUM FULL`, compressão e egress reais, medição em celular e carga com mais de um satélite ou de outra janela.
+Banco hospedado, quotas e preços do provedor, disponibilidade contínua, restauração de Auth e segredos, `pg_dump` e `VACUUM FULL`, compressão e egress reais, compressão e egress reais no destino, Google OAuth real, medição em celular fora da emulação e carga com mais de um satélite ou de outra janela.
+
+## 10. Guia da interface
+
+Aplicação estática (ADR-007). Diretrizes **efetivamente implementadas** neste protótipo; não são design system nem contrato visual canônico.
+
+### Comandos
+
+| Comando | O que faz |
+| :-- | :-- |
+| `npm run typecheck` | `tsc --noEmit` sobre `src/` |
+| `npm run build` | `vite build` em `dist/` (ignorado pelo Git); exige as variáveis públicas abaixo |
+| `npm run test:interface` | Contraste dos pares de cor, lógica pura e inspeção do bundle de produção (sem `local/`, sem segredo, sem dados, sem login por senha) |
+| `npm run test:e2e` | `supabase db reset`, build de teste, Chrome do sistema: sessão, acesso, consulta, estados, acessibilidade (35 testes, dados fictícios) |
+| `npm run medir:interface` | Medição em celular emulado com a carga real local (grava em `local/dados-prototipo/`) |
+
+Variáveis do build (nomes em `.env.example`): `VITE_SUPABASE_URL` (https fora do loopback) e `VITE_SUPABASE_CHAVE_PUBLICAVEL` (chave anon). `VITE_AUTH_SENHA_LOCAL=true` habilita o login por senha **só** em build local de teste. Sem as duas primeiras a página mostra "Configuração ausente" e nenhum dado. A chave de serviço, a senha do EX e o segredo do Google nunca entram no bundle. O destino de deploy, as variáveis da Vercel e os cabeçalhos (CSP, cache) são do item 5.
+
+### Estrutura e papéis de cor
+
+- Mobile first: uma coluna; filtros, resumo, mapa, série, disponibilidade, registros, municípios e proveniência, nessa ordem. A partir de 70 rem o mapa fica à esquerda e resumo, série e disponibilidade à direita. Sem painel lateral fixo.
+- Fundo `#f5f6f2`, superfícies brancas, texto `#243c31`, identidade verde `#254b39` (cabeçalho e contexto). **Ação primária:** azul `#1d4ed8`, preenchido, texto branco, verbo explícito ("Consultar", "Entrar com o Google"). **Secundária:** superfície clara, contorno de 2 px e rótulo. Laranja `#f97316` só para detecção. Mapa `#152e27`; seleção azul claro `#93c5fd` com anel tracejado e indicador textual.
+- Tipografia de sistema (`Segoe UI`, Arial), base `1rem`, entrelinha 1,5, piso de `0.875rem` em etiquetas, legendas e atribuição, nomes de municípios com `1rem` ou mais. Alvos de `2.75rem` (44 px no padrão). Foco visível de 3 px. Tudo em unidades relativas; o zoom do navegador não é limitado.
+- Classes de disponibilidade e seleção não dependem só de cor: símbolo, texto e padrão de borda (sólida, tracejada, pontilhada).
+
+### Comportamento
+
+- **Estados distintos:** sem sessão; verificando; acesso negado; sem publicação; fonte indisponível; sessão expirada; versão substituída; zero detecções; sensibilidade pendente (nunca zero nem valor parcial); configuração ausente.
+- **GMT e Cuiabá:** filtros, série, total, mapa e tabela são dias GMT, rotulados. "Sensibilidade — America/Cuiaba" é um campo separado, com contagem, diferença com sinal, limites e versão.
+- **Disponibilidade:** três classes por município-dia GMT, com motivo, alcance do histórico e "cobertura não comprovada"; na visão estadual não há status único de Mato Grosso.
+- **Dados da fonte** entram como texto. **Nenhum dado de consulta** vai a armazenamento ou cache; sair limpa a tela na hora.
+- **Mapa:** sem tiles de terceiros; mostra a página corrente da tabela e declara quantos pontos exibe de quantos existem; tabela como alternativa de teclado; em tela de toque o arraste de um dedo é opt-in.
+- **Geometria:** um município por requisição, o conjunto só por pedido; legenda de simplificação quando a malha de exibição não é `maxima`.
+
+### Verificação e limites
+
+- Reflow a 320 px e texto a 200% foram verificados por script (sem rolagem horizontal global nem conteúdo cortado), com as exceções bidimensionais do mapa e das tabelas. Escala de cinza: verificada por estilos e por captura de trabalho em `test-results/` (ignorada); o contraste azul/verde não é o que distingue ação primária de secundária.
+- Não foi provado: leitor de tela real, toque físico, Google OAuth real, desempenho em aparelho real, conformidade integral com a WCAG, egress hospedado.
+- Dados do E2E: três municípios inventados (`99000xx`), contas `.test` criadas e removidas pelo próprio teste, senhas geradas na hora.

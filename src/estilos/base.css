@@ -1,0 +1,93 @@
+/* Base: fontes de sistema, unidades relativas e escala que respeita o tamanho do navegador. */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--fundo);
+  color: var(--texto);
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: var(--t-base);
+  line-height: 1.5;
+  overflow-wrap: break-word;
+}
+
+/* O atributo hidden precisa vencer qualquer display de componente. */
+[hidden] {
+  display: none !important;
+}
+
+h1,
+h2,
+h3 {
+  margin: 0 0 0.5rem;
+  line-height: 1.25;
+}
+
+h3 {
+  font-size: var(--t-medio);
+  margin-top: 1rem;
+}
+
+p {
+  margin: 0 0 0.75rem;
+}
+
+code {
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: var(--t-pequeno);
+  overflow-wrap: anywhere;
+}
+
+:focus-visible,
+input:focus-within {
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+}
+
+main:focus {
+  outline: none;
+}
+
+.pular {
+  position: absolute;
+  left: -100vw;
+  top: 0.5rem;
+  z-index: 10;
+  padding: 0.75rem 1rem;
+  background: var(--superficie);
+  color: var(--texto);
+  border: 2px solid var(--contorno);
+}
+
+.pular:focus {
+  left: 0.5rem;
+}
+
+.so-leitor {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}

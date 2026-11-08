@@ -93,3 +93,37 @@ jobs:
       - name: Stop local Supabase
         if: always()
         run: npx supabase stop --no-backup
+
+  interface:
+    name: Interface typecheck, build and E2E
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - name: Checkout
+        # actions/checkout v6.1.0
+        uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803
+      - name: Setup Node.js 24
+        # actions/setup-node v6.5.0
+        uses: actions/setup-node@249970729cb0ef3589644e2896645e5dc5ba9c38
+        with:
+          node-version: 24
+          package-manager-cache: false
+      - name: Install dependencies (lockfile)
+        run: npm ci
+      - name: Typecheck
+        run: npm run typecheck
+      - name: Build (public placeholder values only)
+        env:
+          VITE_SUPABASE_URL: https://projeto-exemplo.supabase.co
+          VITE_SUPABASE_CHAVE_PUBLICAVEL: ficticia
+        run: npm run build
+      - name: Test interface logic, contrast and production bundle
+        run: npm run test:interface
+      - name: Start local Supabase (fictitious data only, no secrets)
+        # A saída traz apenas chaves de demonstração locais; não é exibida.
+        run: npx supabase start > /dev/null
+      - name: E2E with system Chrome, local Auth and fictitious data
+        run: npm run test:e2e
+      - name: Stop local Supabase
+        if: always()
+        run: npx supabase stop --no-backup

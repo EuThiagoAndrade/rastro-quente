@@ -18,3 +18,7 @@ coverage/
 test-results/
 playwright-report/
 .next/
+
+# Build da interface (ciclo 003, issue #23).
+dist/
+dist-e2e/

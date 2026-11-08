@@ -2,13 +2,13 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#22`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-22`
 > **PR:** [#27](https://github.com/EuThiagoAndrade/rastro-quente/pull/27)
-> **Integração:** `Pendente`
+> **Integração:** `PR #27 integrada em main em 2026-11-08 (9094b03)`
 > **Autorização inicial:** "autorizo a implementação da issue #22" em 2026-11-07
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-07
@@ -64,7 +64,7 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: 0 erro(s), 0 aviso(s), 9 manuais |
 | `git diff --check` | Limpo |
 | Varredura G3 | Sem e-mail real, UUID real, senha ou chave nos arquivos novos; saídas das medições ficam em `local/` (ignorado) |
-| Checks remotos | Pendente (PR #27 aberta; aguardando a execução do Governance) |
+| Checks remotos | PR #27 integrada em `main` (9094b03) em 2026-11-08, com os checks do Governance aprovados na PR |
 
 ## Revisão da correção
 
@@ -91,10 +91,10 @@ Não se aplica. Terceira issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/27
-Diga: "aprovo o merge da PR #27"
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída
