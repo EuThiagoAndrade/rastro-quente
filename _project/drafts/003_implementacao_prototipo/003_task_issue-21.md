@@ -2,13 +2,13 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#21`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-21`
 > **PR:** [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26)
-> **Integração:** `Pendente`
+> **Integração:** `PR #26 integrada em main em 2026-11-07 (e8b79b5); Governance aprovado na PR (Validate governance e Database RLS and query contract)`
 > **Autorização inicial:** "autorizo a implementação da issue #21" em 2026-11-07
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-07
@@ -152,10 +152,10 @@ Alternativas apresentadas:
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/26
-Diga: "aprovo o merge da PR #26"
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída
