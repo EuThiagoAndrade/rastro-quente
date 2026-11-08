@@ -1,0 +1,40 @@
+/* Papéis de cor do protótipo (ciclo 003). Diretrizes do plano, não um design system: ação primária em
+   azul royal preenchido com texto branco; secundárias claras com contorno; verde só em identidade e
+   contexto; laranja só para detecção. Pares de texto/superfície conferidos por tests/unit/contraste.test.mjs. */
+:root {
+  --fundo: #f5f6f2;
+  --superficie: #ffffff;
+  --superficie-suave: #eef1ea;
+  --texto: #243c31;
+  --texto-suave: #46594e;
+  --identidade: #254b39;
+  --sobre-identidade: #ffffff;
+  --acento: #1d4ed8;
+  --sobre-acento: #ffffff;
+  --acento-claro: #93c5fd;
+  --foco: #1d4ed8;
+  --contorno: #5b6d63;
+  --contorno-suave: #cfd6cc;
+  --mapa-fundo: #152e27;
+  --deteccao: #f97316;
+  --deteccao-escura: #7c2d12;
+  --limite: #6f9a88;
+  --erro: #9b1c1c;
+  --aviso-fundo: #fff7e0;
+  --aviso-borda: #8a5a00;
+  --aviso-texto: #4a3200;
+  --classe-lacuna: #8a1c1c;
+  --classe-indeterminada: #6b4a00;
+  --classe-sem-evidencia: #2f4a3c;
+  --barra: #b45309;
+
+  --t-base: 1rem;
+  --t-pequeno: 0.875rem;
+  --t-medio: 1.125rem;
+  --t-titulo: 1.25rem;
+  --t-numero: 2rem;
+  --alvo: 2.75rem;
+  --raio: 0.75rem;
+  --raio-pequeno: 0.5rem;
+  --espaco: 1rem;
+}

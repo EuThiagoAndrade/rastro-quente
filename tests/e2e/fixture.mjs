@@ -1,0 +1,149 @@
+// Fixture fictícia do E2E (ciclo 003, issue #23): três municípios inventados (códigos 99000xx, polígonos
+// retangulares), 100 detecções principais, 5 no envelope e a grade D1 completa. Nenhum dado real.
+// Valores esperados são independentes da interface: principal 100; sensibilidade 100 − 3 + 5 = 102 (+2).
+// Alfa 60 (3 nas quatro primeiras horas), Beta 30 (+5 no envelope), Gama 10.
+export const PREFIXO = 'e'.repeat(63);
+export const IDENTIDADE = `${PREFIXO}1`;
+export const IDENTIDADE_NOVA = `${PREFIXO}2`;
+export const MUNICIPIOS = {
+  alfa: { codigo: 9900001, nome: 'Município Alfa', lon: [-57, -56] },
+  beta: { codigo: 9900002, nome: 'Município Beta', lon: [-56, -55] },
+  gama: { codigo: 9900003, nome: 'Município Gama', lon: [-55, -54] },
+};
+export const XSS_ID = '<img src=x onerror="window.__xss=1">';
+export const XSS_AVISO = '<script>window.__xss=2</script>';
+
+const poligono = ([a, b]) => JSON.stringify({ type: 'Polygon', coordinates: [[[a, -12], [b, -12], [b, -11], [a, -11], [a, -12]]] });
+
+// Detecções: [id_tecnico, municipio, instante, escopo, id_fonte, municipio_inpe, estado_inpe]
+function deteccoes() {
+  const linhas = [];
+  let n = 0;
+  const add = (m, instante, escopo, idFonte, inpe = MUNICIPIOS[m].codigo, estadoInpe = 99) => {
+    n += 1;
+    const [a, b] = MUNICIPIOS[m].lon;
+    const lon = (a + b) / 2 + ((n % 7) - 3) * 0.05;
+    const lat = -11.5 + ((n % 5) - 2) * 0.08;
+    linhas.push({ id: `fx${String(n).padStart(3, '0')}`, m, instante, escopo, lat, lon, idFonte, inpe, estadoInpe, linha: n });
+  };
+  // Alfa: 3 nas quatro primeiras horas (fora da sensibilidade) e 57 depois.
+  for (const h of [1, 2, 3]) add('alfa', `2026-10-01T0${h}:00:00Z`, 'principal', `INPE-A${h}`);
+  for (let i = 1; i <= 57; i += 1) {
+    const dia = 2 + (i % 20);
+    const idFonte = i === 5 ? XSS_ID : i === 6 ? null : `INPE-A${i + 3}`;
+    const inpe = i === 7 ? MUNICIPIOS.beta.codigo : MUNICIPIOS.alfa.codigo;
+    const estadoInpe = i === 8 ? 11 : 99;
+    add('alfa', `2026-10-${String(dia).padStart(2, '0')}T12:${String(i % 60).padStart(2, '0')}:00Z`, 'principal', idFonte, inpe, estadoInpe);
+  }
+  for (let i = 1; i <= 30; i += 1) add('beta', `2026-10-${String(5 + (i % 10)).padStart(2, '0')}T09:${String(i % 60).padStart(2, '0')}:00Z`, 'principal', `INPE-B${i}`);
+  for (let i = 1; i <= 10; i += 1) add('gama', `2026-10-${String(2 + i).padStart(2, '0')}T15:00:00Z`, 'principal', `INPE-G${i}`);
+  // Envelope: cinco registros de Beta nas quatro horas após o fim da janela GMT.
+  for (const [i, hm] of ['00:30', '01:00', '01:30', '02:00', '03:00'].entries()) add('beta', `2026-11-01T${hm}:00Z`, 'envelope', `INPE-E${i + 1}`);
+  return linhas;
+}
+
+const aspas = (s) => `'${String(s).replaceAll("'", "''")}'`;
+
+function disponibilidade() {
+  const linhas = [];
+  for (let dia = 1; dia <= 31; dia += 1) {
+    const d = `2026-10-${String(dia).padStart(2, '0')}`;
+    // Alfa (X): aviso cobre o município nos dias 1 e 2.
+    linhas.push(dia <= 2
+      ? { m: 'alfa', d, classe: 'lacuna_conhecida', motivos: ['aviso_cobre_municipio'], alcance: 'verificado', avisos: ['aviso ficticio 1: falta de AQUA_M-T a oeste de 58 graus O'] }
+      : { m: 'alfa', d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'], alcance: 'verificado', avisos: [] });
+    // Beta (Y): aviso parcial nos dias 1 e 2; histórico ausente no dia 3.
+    linhas.push(dia <= 2
+      ? { m: 'beta', d, classe: 'incidencia_indeterminada', motivos: ['aviso_parcial_no_municipio'], alcance: 'verificado', avisos: [XSS_AVISO] }
+      : dia === 3
+        ? { m: 'beta', d, classe: 'incidencia_indeterminada', motivos: ['historico_ausente_ou_incompleto'], alcance: 'indisponivel', avisos: [] }
+        : { m: 'beta', d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'], alcance: 'verificado', avisos: [] });
+    // Gama (Z): sem evidência de lacuna; o último dia com histórico parcial.
+    linhas.push(dia === 31
+      ? { m: 'gama', d, classe: 'sem_evidencia_de_lacuna', motivos: ['historico_nao_verificado'], alcance: 'parcial', avisos: [] }
+      : { m: 'gama', d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'], alcance: 'verificado', avisos: [] });
+  }
+  return linhas;
+}
+
+const aprovar = (ident) => `
+insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+from public.cargas where identidade = '${ident}';`;
+
+const fontes = (ident) => `
+insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
+select c.id, k.chave, k.papel, 'https://exemplo.test/' || k.chave, repeat('9', 64), 1234, '2026-11-02T00:00Z', 'fonte fictícia, uso livre'
+from public.cargas c, (values ('focos', 'focos'), ('malha_max', 'malha de classificação'), ('malha_min', 'malha de exibição')) k(chave, papel)
+where c.identidade = '${ident}';
+insert into public.malhas (carga_id, uso, fonte_chave, qualidade, parametros)
+select c.id, k.uso, k.fonte, k.q, k.p::jsonb from public.cargas c,
+  (values ('classificacao', 'malha_max', 'maxima', '{}'), ('exibicao', 'malha_min', 'intermediaria', '{"tolerancia":"ficticia"}')) k(uso, fonte, q, p)
+where c.identidade = '${ident}';`;
+
+// VALUES com literais de texto resolveriam para text: cada tipo vai explícito no literal.
+const tsz = (t) => `'${t}'::timestamptz`;
+
+export function sqlFixture() {
+  const m = Object.values(MUNICIPIOS);
+  const d = deteccoes();
+  const disp = disponibilidade();
+  const linhasD = d.map((x) => `('${x.id}', 'focos', ${x.linha}, ${x.idFonte === null ? 'null::text' : aspas(x.idFonte)}, '${x.escopo}', ${tsz(x.instante)}, ${x.lat}::float8, ${x.lon}::float8, ${MUNICIPIOS[x.m].codigo}, '${x.linha % 11 === 0 ? 'borda' : 'interior'}', ${x.inpe}, ${x.estadoInpe})`).join(',\n');
+  const linhasV = disp.map((x) => `('${x.d}'::date, 'AQUA_M-T', ${MUNICIPIOS[x.m].codigo}, '${x.classe}', array[${x.motivos.map(aspas).join(',')}]::text[], '${x.alcance}', array[${x.avisos.map(aspas).join(',')}]::text[])`).join(',\n');
+  return `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  total_principal, total_envelope, total_municipios, total_disponibilidade, metodo)
+values ('${IDENTIDADE}', 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', '2026-11-01T00:00Z', '2026-11-01T04:00Z',
+  100, 5, 3, ${disp.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004"}');
+${fontes(IDENTIDADE)}
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, v.codigo, v.nome, v.geom::jsonb from public.cargas c, (values
+${m.map((x) => `  (${x.codigo}, '${x.nome}', '${poligono(x.lon)}')`).join(',\n')}
+) v(codigo, nome, geom) where c.identidade = '${IDENTIDADE}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, id_fonte, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao, municipio_inpe, estado_inpe)
+select c.id, v.* from public.cargas c, (values
+${linhasD}
+) v where c.identidade = '${IDENTIDADE}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico, avisos)
+select c.id, v.* from public.cargas c, (values
+${linhasV}
+) v where c.identidade = '${IDENTIDADE}';
+${aprovar(IDENTIDADE)}
+update public.cargas set estado = 'publicada' where identidade = '${IDENTIDADE}';
+insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${IDENTIDADE}';
+commit;`;
+}
+
+// Segunda versão, para o teste de troca de versão: um município, um dia, uma detecção.
+export function sqlVersaoNova() {
+  return `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade)
+values ('${IDENTIDADE_NOVA}', 'AQUA_M-T', '2026-09-01T00:00Z', '2026-09-02T00:00Z', 1, 0, 1, 1);
+${fontes(IDENTIDADE_NOVA)}
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, 9900001, 'Município Alfa', '${poligono(MUNICIPIOS.alfa.lon)}'::jsonb from public.cargas c where c.identidade = '${IDENTIDADE_NOVA}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao)
+select c.id, 'nova1', 'focos', 1, 'principal', '2026-09-01T18:00Z', -11.5, -56.5, 9900001, 'interior' from public.cargas c where c.identidade = '${IDENTIDADE_NOVA}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
+select c.id, '2026-09-01', 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['sem_aviso_incidente'], 'verificado' from public.cargas c where c.identidade = '${IDENTIDADE_NOVA}';
+${aprovar(IDENTIDADE_NOVA)}
+update public.cargas set estado = 'publicada' where identidade = '${IDENTIDADE_NOVA}';
+update public.publicacao_vigente set carga_id = (select id from public.cargas where identidade = '${IDENTIDADE_NOVA}'), atualizada_em = now() where unica;
+update public.cargas set estado = 'retirada' where identidade = '${IDENTIDADE}';
+commit;`;
+}
+
+// Remoção pelo próprio protocolo: sai da vigência, é retirada, perde as linhas e o registro.
+export const SQL_LIMPEZA = `
+begin;
+delete from public.publicacao_vigente where carga_id in (select id from public.cargas where identidade like '${PREFIXO}%');
+update public.cargas set estado = 'retirada' where identidade like '${PREFIXO}%' and estado = 'publicada';
+delete from public.fontes where carga_id in (select id from public.cargas where identidade like '${PREFIXO}%');
+delete from public.municipios where carga_id in (select id from public.cargas where identidade like '${PREFIXO}%');
+delete from public.cargas where identidade like '${PREFIXO}%';
+delete from privado.manifestos_aprovados where identidade like '${PREFIXO}%';
+commit;`;

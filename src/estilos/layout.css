@@ -1,0 +1,129 @@
+/* Layout mobile first: uma coluna; o espaço extra vai ao mapa e aos detalhes, nunca a fontes menores. */
+.topo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem 1rem;
+  padding: 0.75rem var(--espaco);
+  background: var(--identidade);
+  color: var(--sobre-identidade);
+  --foco: #bfdbfe;
+}
+
+.topo__titulo {
+  margin: 0;
+  font-size: 1.5rem;
+}
+
+.topo__subtitulo {
+  margin: 0;
+  font-size: var(--t-pequeno);
+}
+
+.topo__sessao {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 0.75rem;
+}
+
+.topo__estado {
+  margin: 0;
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+}
+
+main {
+  max-width: 110rem;
+  margin: 0 auto;
+  padding: var(--espaco);
+}
+
+.cartao {
+  margin-bottom: var(--espaco);
+  padding: var(--espaco);
+  border: 1px solid var(--contorno-suave);
+  border-radius: var(--raio);
+  background: var(--superficie);
+  box-shadow: 0 1px 3px rgb(36 60 49 / 0.1);
+  min-width: 0;
+}
+
+.cartao--aviso {
+  border-left: 0.375rem solid var(--identidade);
+}
+
+.cartao__titulo {
+  font-size: var(--t-titulo);
+}
+
+.grade {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: var(--espaco);
+}
+
+.grade > .cartao {
+  margin-bottom: 0;
+}
+
+.grade__filtros { grid-area: filtros; }
+.grade__resumo { grid-area: resumo; }
+.grade__mapa { grid-area: mapa; }
+.grade__serie { grid-area: serie; }
+.grade__disponibilidade { grid-area: disp; }
+.grade__registros { grid-area: registros; }
+.grade__municipios { grid-area: municipios; }
+.grade__proveniencia { grid-area: proveniencia; }
+
+.grade {
+  grid-template-areas:
+    'filtros'
+    'resumo'
+    'mapa'
+    'serie'
+    'disp'
+    'registros'
+    'municipios'
+    'proveniencia';
+}
+
+/* Tablet: campos lado a lado. */
+@media (min-width: 48rem) {
+  .campos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .numeros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Telas largas: o mapa ganha espaço e os detalhes ficam ao lado. */
+@media (min-width: 70rem) {
+  .grade {
+    grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+    grid-template-areas:
+      'filtros filtros'
+      'mapa resumo'
+      'mapa serie'
+      'mapa disp'
+      'registros registros'
+      'municipios proveniencia';
+  }
+
+  .grade__mapa {
+    align-self: start;
+  }
+
+  .numeros {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 90rem) {
+  .numeros {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

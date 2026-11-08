@@ -1,0 +1,125 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="referrer" content="no-referrer" />
+    <title>Rastro Quente — consulta territorial</title>
+  </head>
+  <body>
+    <a class="pular" href="#principal">Ir para o conteúdo</a>
+
+    <header class="topo">
+      <div class="topo__marca">
+        <h1 class="topo__titulo">Rastro Quente</h1>
+        <p class="topo__subtitulo">Consulta territorial de detecções de calor</p>
+      </div>
+      <div class="topo__sessao">
+        <p id="sessao-estado" class="topo__estado" role="status">Verificando sessão…</p>
+        <button id="botao-sair" type="button" class="botao botao--sobre-escuro" hidden>Sair</button>
+      </div>
+    </header>
+
+    <main id="principal" tabindex="-1">
+      <noscript><p class="cartao">Esta consulta precisa de JavaScript.</p></noscript>
+
+      <section class="cartao cartao--aviso" aria-labelledby="t-aviso">
+        <h2 id="t-aviso" class="cartao__titulo">Como ler esta consulta</h2>
+        <p>
+          Cada ponto é uma <strong>detecção de calor</strong> do satélite AQUA_M-T (INPE) dentro dos limites municipais do IBGE em
+          Mato Grosso. Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>, e não há
+          ranking ambiental de municípios.
+        </p>
+        <p>
+          Datas, totais e séries usam <strong>dia GMT</strong>. A sensibilidade em America/Cuiaba é um campo separado, nunca
+          substitui o total principal. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.
+        </p>
+      </section>
+
+      <section class="cartao" id="acesso" aria-labelledby="t-acesso" hidden>
+        <h2 id="t-acesso" class="cartao__titulo" tabindex="-1">Acesso</h2>
+        <div id="acesso-corpo"></div>
+      </section>
+
+      <div id="conteudo" class="grade" hidden>
+        <section class="cartao grade__filtros" aria-labelledby="t-filtros">
+          <h2 id="t-filtros" class="cartao__titulo">Consulta</h2>
+          <form id="form-consulta" novalidate>
+            <div class="campos">
+              <div class="campo">
+                <label for="f-municipio">Município</label>
+                <select id="f-municipio"></select>
+              </div>
+              <div class="campo">
+                <label for="f-inicio">Início (dia GMT)</label>
+                <input id="f-inicio" type="date" required aria-describedby="f-ajuda f-erro" />
+              </div>
+              <div class="campo">
+                <label for="f-fim">Fim (dia GMT, inclusivo)</label>
+                <input id="f-fim" type="date" required aria-describedby="f-ajuda f-erro" />
+              </div>
+            </div>
+            <p id="f-ajuda" class="ajuda"></p>
+            <p id="f-erro" class="erro" role="alert" hidden></p>
+            <div class="acoes">
+              <button id="botao-consultar" type="submit" class="botao botao--primario">Consultar</button>
+              <button id="botao-janela" type="button" class="botao botao--secundario">Usar a janela inteira</button>
+            </div>
+          </form>
+        </section>
+
+        <section class="cartao grade__resumo" aria-labelledby="t-resumo">
+          <h2 id="t-resumo" class="cartao__titulo">Resumo do período</h2>
+          <div id="estado-consulta" role="status"></div>
+          <div id="resumo-corpo"></div>
+        </section>
+
+        <section class="cartao grade__mapa" aria-labelledby="t-mapa">
+          <h2 id="t-mapa" class="cartao__titulo">Mapa</h2>
+          <div class="ferramentas-mapa">
+            <button id="botao-limites" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar limites municipais</button>
+            <button id="botao-arrastar" type="button" class="botao botao--secundario" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
+            <button id="botao-enquadrar" type="button" class="botao botao--secundario">Enquadrar os dados</button>
+          </div>
+          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A tabela de registros é a alternativa em texto." tabindex="-1"></div>
+          <p id="mapa-contagem" class="ajuda" role="status"></p>
+          <p id="mapa-selecao" class="selecao" role="status"></p>
+          <ul class="legenda" aria-label="Legenda do mapa">
+            <li><span class="legenda__amostra legenda__amostra--deteccao" aria-hidden="true"></span> Detecção AQUA_M-T</li>
+            <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
+            <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Seleção (contorno tracejado azul claro)</li>
+          </ul>
+          <p id="mapa-aviso" class="ajuda" hidden></p>
+          <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>
+        </section>
+
+        <section class="cartao grade__serie" aria-labelledby="t-serie">
+          <h2 id="t-serie" class="cartao__titulo">Série diária (dias GMT)</h2>
+          <div id="serie-corpo"></div>
+        </section>
+
+        <section class="cartao grade__disponibilidade" aria-labelledby="t-disp">
+          <h2 id="t-disp" class="cartao__titulo">Disponibilidade dos dados</h2>
+          <div id="disp-corpo"></div>
+        </section>
+
+        <section class="cartao grade__registros" aria-labelledby="t-registros">
+          <h2 id="t-registros" class="cartao__titulo">Registros de detecção</h2>
+          <div id="registros-corpo"></div>
+        </section>
+
+        <section class="cartao grade__municipios" aria-labelledby="t-municipios">
+          <h2 id="t-municipios" class="cartao__titulo">Municípios</h2>
+          <div id="municipios-corpo"></div>
+        </section>
+
+        <section class="cartao grade__proveniencia" aria-labelledby="t-proveniencia">
+          <h2 id="t-proveniencia" class="cartao__titulo">Versão, fontes e limitações</h2>
+          <div id="proveniencia-corpo"></div>
+        </section>
+      </div>
+    </main>
+
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>

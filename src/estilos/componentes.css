@@ -1,0 +1,345 @@
+/* Componentes: botões, campos, avisos, números, classes de disponibilidade e tabelas. */
+
+/* Botões. Primário: preenchido, texto branco, verbo explícito. Secundário: claro, contorno e rótulo.
+   A diferença é estrutural (preenchimento x contorno) e sobrevive à escala de cinza. */
+.botao {
+  min-height: var(--alvo);
+  min-width: var(--alvo);
+  padding: 0.5rem 1rem;
+  border: 2px solid transparent;
+  border-radius: var(--raio-pequeno);
+  font: inherit;
+  font-weight: 700;
+  line-height: 1.25;
+  cursor: pointer;
+}
+
+.botao--primario {
+  background: var(--acento);
+  color: var(--sobre-acento);
+  border-color: var(--acento);
+}
+
+.botao--secundario {
+  background: var(--superficie);
+  color: var(--texto);
+  border-color: var(--contorno);
+}
+
+.botao--sobre-escuro {
+  background: var(--superficie);
+  color: var(--identidade);
+  border-color: var(--superficie);
+}
+
+.botao--compacto {
+  padding: 0.25rem 0.75rem;
+  white-space: nowrap;
+}
+
+.botao[aria-pressed='true']::before {
+  content: '✓ ';
+}
+
+.botao--secundario[aria-pressed='true'] {
+  background: var(--superficie-suave);
+  border-width: 3px;
+  padding: calc(0.5rem - 1px) calc(1rem - 1px);
+}
+
+.botao:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.botao-nome {
+  min-height: var(--alvo);
+  padding: 0.25rem 0;
+  border: 0;
+  background: none;
+  color: var(--acento);
+  font: inherit;
+  font-weight: 700;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+  cursor: pointer;
+}
+
+.botao-nome[aria-pressed='true']::before {
+  content: '✓ ';
+}
+
+/* Campos. */
+.campos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.campo {
+  min-width: 0;
+}
+
+.campo label {
+  display: block;
+  margin-bottom: 0.25rem;
+  font-weight: 700;
+}
+
+.campo select,
+.campo input {
+  display: block;
+  width: 100%;
+  min-height: var(--alvo);
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--contorno);
+  border-radius: var(--raio-pequeno);
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+}
+
+.campo[aria-invalid='true'] input,
+input[aria-invalid='true'] {
+  border-color: var(--erro);
+}
+
+.campo--curto {
+  max-width: 14rem;
+}
+
+.acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.form-local {
+  margin-top: 1.25rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--contorno-suave);
+}
+
+/* Textos de apoio e estados. */
+.ajuda {
+  font-size: var(--t-pequeno);
+  color: var(--texto-suave);
+}
+
+.etiqueta {
+  display: block;
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.erro {
+  margin: 0.5rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.25rem solid var(--erro);
+  color: var(--erro);
+  font-weight: 600;
+}
+
+.aviso-estado {
+  margin: 0 0 0.75rem;
+  padding: 0.75rem;
+  border-left: 0.25rem solid var(--aviso-borda);
+  border-radius: 0 var(--raio-pequeno) var(--raio-pequeno) 0;
+  background: var(--aviso-fundo);
+  color: var(--aviso-texto);
+}
+
+.selecao {
+  min-height: 1.5rem;
+  font-weight: 600;
+}
+
+/* Números do resumo. */
+.numeros {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.75rem;
+  margin: 0 0 0.75rem;
+}
+
+.numero {
+  padding: 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: var(--raio-pequeno);
+  background: var(--superficie-suave);
+}
+
+.numero dt {
+  font-weight: 700;
+}
+
+.numero dd {
+  margin: 0;
+}
+
+.numero__valor {
+  font-size: var(--t-numero);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+/* Classes de disponibilidade: texto, símbolo e padrão de borda; nunca só cor. */
+.blocos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(10rem, 100%), 1fr));
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.bloco {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--contorno);
+  border-radius: var(--raio-pequeno);
+  background: var(--superficie);
+}
+
+.classe__valor {
+  font-size: var(--t-titulo);
+}
+
+.classe--lacuna_conhecida {
+  color: var(--classe-lacuna);
+}
+
+.classe--incidencia_indeterminada {
+  color: var(--classe-indeterminada);
+}
+
+.classe--sem_evidencia_de_lacuna {
+  color: var(--classe-sem-evidencia);
+}
+
+.bloco.classe--lacuna_conhecida {
+  border-style: solid;
+  border-color: var(--classe-lacuna);
+}
+
+.bloco.classe--incidencia_indeterminada {
+  border-style: dashed;
+  border-color: var(--classe-indeterminada);
+}
+
+.bloco.classe--sem_evidencia_de_lacuna {
+  border-style: dotted;
+  border-color: var(--classe-sem-evidencia);
+}
+
+.classe {
+  font-weight: 700;
+}
+
+/* Tabelas e listas. */
+.rolavel {
+  max-height: 26rem;
+  overflow: auto;
+  border: 1px solid var(--contorno);
+  border-radius: var(--raio-pequeno);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9375rem;
+}
+
+th,
+td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--contorno-suave);
+  text-align: left;
+  vertical-align: top;
+}
+
+th {
+  position: sticky;
+  top: 0;
+  background: var(--superficie-suave);
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+td code {
+  white-space: normal;
+}
+
+tr.selecionada td {
+  background: #dbeafe;
+  box-shadow: inset 0.25rem 0 0 var(--acento);
+}
+
+.municipios {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.municipios li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--contorno-suave);
+}
+
+.lista-simples {
+  margin: 0 0 0.75rem;
+  padding-left: 1.25rem;
+}
+
+.detalhes {
+  margin: 0.75rem 0;
+}
+
+.detalhes summary {
+  display: flex;
+  align-items: center;
+  min-height: var(--alvo);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.definicoes {
+  display: grid;
+  gap: 0.25rem 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.definicoes dt {
+  font-weight: 700;
+}
+
+.definicoes dd {
+  margin: 0 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+/* Gráfico de barras diárias. */
+.grafico {
+  display: block;
+  width: 100%;
+  height: 8rem;
+  background: var(--superficie-suave);
+  border-radius: 0.25rem;
+}
+
+.grafico__barra {
+  fill: var(--barra);
+}
+
+.grafico__eixo {
+  display: flex;
+  justify-content: space-between;
+}
+
+/* Em telas estreitas ou com texto ampliado, nenhuma palavra longa deve forçar rolagem horizontal. */
+.cartao :where(p, dd, dt, li, label, summary, h2, h3) {
+  overflow-wrap: anywhere;
+}
