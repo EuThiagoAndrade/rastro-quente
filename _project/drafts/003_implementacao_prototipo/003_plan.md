@@ -47,7 +47,9 @@ Não cobre merge, implementação de issues, ações humanas externas, carga hos
 
 **Execução do item 1:** autorização literal "autorizo a implementação da issue #20" recebida em 2026-11-07. A task `003_task_issue-20.md` é o artefato ativo; somente o item 1 está em execução. A entrega parou antes de publicar pela regra H3 (histórico de avisos parcial). Em 2026-11-07 o responsável decidiu literalmente "Adote a outra regra sugerida para H3 e mantenho os três avisos sem área como incidência indeterminada (opção a)."; a decisão de G1 e seus efeitos estão na task e no relatório `003_research_medicao_recorte.md`. Escopo e rodadas da v4 aprovada permanecem preservados. A PR #25 foi integrada em 2026-11-07 (`f8106a5`).
 
-**Execução do item 2:** autorização literal "autorizo a implementação da issue #21" recebida em 2026-11-07. A task `003_task_issue-21.md` é o artefato ativo; a decisão técnica está no ADR-005. Somente o item 2 está em execução.
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #21" recebida em 2026-11-07. A task `003_task_issue-21.md` é o artefato ativo; a decisão técnica está no ADR-005. Somente o item 2 está em execução. A PR #26 foi integrada em 2026-11-07 (`e8b79b5`).
+
+**Execução do item 3:** autorização literal "autorizo a implementação da issue #22" recebida em 2026-11-07. A task `003_task_issue-22.md` é o artefato ativo; a decisão técnica e as medições estão no ADR-006 e no runbook. Somente o item 3 está em execução.
 
 ## Problema e contexto
 
@@ -392,10 +394,11 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#20](https://github.com/EuThiagoAndrade/rastro-quente/issues/20) (item 1), [#21](https://github.com/EuThiagoAndrade/rastro-quente/issues/21) (item 2), [#22](https://github.com/EuThiagoAndrade/rastro-quente/issues/22) (item 3), [#23](https://github.com/EuThiagoAndrade/rastro-quente/issues/23) (item 4), [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) (item 5) |
-| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), integrada em 2026-11-07 (`f8106a5`); item 2: [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26), aberta, integração pendente |
-| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977`; item 2: `feature/issue-21`, publicada, base `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad` |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), integrada em 2026-11-07 (`f8106a5`); item 2: [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26), integrada em 2026-11-07 (`e8b79b5`); item 3: PR pendente de abertura |
+| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977`; item 2: `feature/issue-21`, publicada, base `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`; item 3: `feature/issue-22`, base `e8b79b5a332089eeefe67feb67c8a7ae8be085e6` |
 | Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro em `003_task_issue-20.md` |
-| Entrega do item 2 | `supabase/`, `scripts/banco/` e `ADR-005_banco_autorizacao_prototipo.md`; registro ativo em `003_task_issue-21.md` |
+| Entrega do item 2 | `supabase/`, `scripts/banco/` e `ADR-005_banco_autorizacao_prototipo.md`; registro em `003_task_issue-21.md` |
+| Entrega do item 3 | `scripts/banco/` (carga, manifesto, medições e testes), `docs/runbook.md` e `ADR-006_carga_idempotente_unica_transacao.md`; registro ativo em `003_task_issue-22.md` |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo

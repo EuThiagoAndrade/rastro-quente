@@ -27,7 +27,19 @@ export function statusLocal() {
   const s = JSON.parse(saida.slice(inicio, fim + 1));
   const api = s.API_URL;
   if (!/^http:\/\/127\.0\.0\.1:\d+$/.test(api)) throw new Error('API local inesperada; os testes só rodam em 127.0.0.1.');
-  return { api, anon: s.ANON_KEY, servico: s.SERVICE_ROLE_KEY, segredoJwt: s.JWT_SECRET };
+  const db = new URL(s.DB_URL);
+  if (db.hostname !== '127.0.0.1') throw new Error('Banco local inesperado; os testes só rodam em 127.0.0.1.');
+  return { api, anon: s.ANON_KEY, servico: s.SERVICE_ROLE_KEY, segredoJwt: s.JWT_SECRET, bancoPorta: Number(db.port) };
+}
+
+// Conexão do EX ao banco local (host e porta publicados; a senha vem do chamador, nunca daqui).
+export function alvoExecutorLocal(senha) {
+  return { host: '127.0.0.1', port: statusLocal().bancoPorta, user: 'rq_executor', password: senha, database: 'postgres', ssl: false };
+}
+
+// Tamanho em bytes de um caminho dentro do contêiner do banco local (disco real, inclusive WAL).
+export function bytesNoConteiner(caminho) {
+  return Number(execFileSync('docker', ['exec', CONTEINER_DB, 'du', '-sb', caminho], { encoding: 'utf8' }).split(/\s+/)[0]);
 }
 
 // Executa SQL como administrador local (postgres) e devolve a saída sem alinhamento.

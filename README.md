@@ -17,4 +17,6 @@ Recorte local de focos do protótipo (ciclo `003`, sem banco): `node scripts/pro
 
 Banco local do protótipo (ciclo `003`, Supabase CLI fixada no lockfile, exige Docker): `npm ci`, `npx supabase start` e `npm run test:rls` (migrações do zero, RLS, matriz de acesso e contrato de consulta com dados fictícios). Decisão, matriz e comandos em `_project/decisions/ADR-005_banco_autorizacao_prototipo.md`.
 
+Carga local de dados (ciclo `003`, issue #22): `node scripts/banco/carga.mjs <plan | apply | expirar | resumo> --alvo postgresql://rq_executor@HOST:PORTA/BANCO`, com a senha do EX só em `RQ_EXECUTOR_PASSWORD`; uma transação, identidade pelo manifesto canônico e reconciliação por identidade. Decisão e medições em `_project/decisions/ADR-006_carga_idempotente_unica_transacao.md`; atualização, cópia, expiração, recuperação e rotação do EX em `docs/runbook.md`. `npm run medir:carga` e `node scripts/banco/reconstruir.mjs` medem e reconstroem com os dados de `local/dados-prototipo/`.
+
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.
