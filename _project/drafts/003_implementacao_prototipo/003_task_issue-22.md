@@ -2,12 +2,12 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#22`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-22`
-> **PR:** —
+> **PR:** [#27](https://github.com/EuThiagoAndrade/rastro-quente/pull/27)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #22" em 2026-11-07
 > **Modo contínuo:** `—`
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Medição integral com a carga real do item 1 (`npm run medir:carga`) e reconstrução em banco novo com perda do banco no meio (`scripts/banco/reconstruir.mjs`); teste de reconstrução com carga fictícia em `test:rls`.
 - [x] ADR-006 com a decisão e a justificativa pela medição; `docs/runbook.md`; README e `.env.example`.
 - [x] Gates locais e inspeção de `governance-check`.
-- [ ] Publicar `feature/issue-22`, abrir a PR com `Closes #22` e gravar o bloco "Aguardando merge".
+- [x] Publicar `feature/issue-22` (base `origin/main` em `e8b79b5a332089eeefe67feb67c8a7ae8be085e6` conferida), abrir a PR [#27](https://github.com/EuThiagoAndrade/rastro-quente/pull/27) com `Closes #22` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -64,7 +64,7 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: 0 erro(s), 0 aviso(s), 9 manuais |
 | `git diff --check` | Limpo |
 | Varredura G3 | Sem e-mail real, UUID real, senha ou chave nos arquivos novos; saídas das medições ficam em `local/` (ignorado) |
-| Checks remotos | Pendente (PR ainda não aberta) |
+| Checks remotos | Pendente (PR #27 aberta; aguardando a execução do Governance) |
 
 ## Revisão da correção
 
@@ -91,19 +91,19 @@ Não se aplica. Terceira issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 003 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 003"
+Situação: Aguardando merge — ciclo 003 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/27
+Diga: "aprovo o merge da PR #27"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-22/item-3 + e8b79b5a332089eeefe67feb67c8a7ae8be085e6`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano `Em Execução`; itens 1 e 2 integrados; task #21 ainda `Aguardando integração`; issue #22 aberta, sem task, branch ou código.
-- `state_after`: branch `feature/issue-22` criada, task #21 reconciliada, task #22 criada; implementação em andamento.
+- `state_after`: item 3 implementado e testado localmente; task #21 reconciliada como `Concluída`; ADR-006 e runbook registrados; branch `feature/issue-22` publicada e PR #27 aberta; task #22 `Aguardando integração`.
 - `result`: `executed`
-- `evidence`: autorização literal "autorizo a implementação da issue #22" em 2026-11-07; PR #26 integrada (`e8b79b5`).
-- `blockers`: nenhum.
+- `evidence`: autorização literal "autorizo a implementação da issue #22" em 2026-11-07; commit `50fce06`; PR #27 real com `Closes #22`; `npm run test:rls` (pgTAP 168 e Node 35), `test:prototipo` 32, governança 55; validador sem erros ou avisos; carga e reconstrução reais medidas.
+- `blockers`: nenhum para a entrega publicada; integração exige checks verdes e "aprovo o merge da PR #27". Itens 4 e 5 não iniciados. Os gatilhos de reavaliação da transação única (ADR-006) aguardam confirmação do responsável.
