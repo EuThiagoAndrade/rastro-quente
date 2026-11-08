@@ -15,6 +15,7 @@ const env = {
   VITE_SUPABASE_CHAVE_PUBLICAVEL: L.anon,
   VITE_AUTH_SENHA_LOCAL: 'true',
   RQ_OUT_DIR: 'dist-e2e',
+  RQ_CABECALHOS_DO_DEPLOY: '1', // issue #24: serve os cabeçalhos (CSP) de vercel.json
 };
 
 const build = spawnSync(process.execPath, [VITE, 'build'], { cwd: RAIZ, env, stdio: ['ignore', 'ignore', 'inherit'] });

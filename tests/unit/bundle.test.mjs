@@ -69,3 +69,33 @@ test('o upload (.vercelignore) exclui local/ e o Git ignora o build', () => {
   const git = readFileSync(path.join(RAIZ, '.gitignore'), 'utf8').split(/\r?\n/);
   assert.ok(git.includes('dist/') && git.includes('dist-e2e/') && git.includes('/local/'));
 });
+
+test('vercel.json: build estático, CSP restrita ao Supabase, sem segredo e sem previews fora de main', () => {
+  const texto = readFileSync(path.join(RAIZ, 'vercel.json'), 'utf8');
+  const v = JSON.parse(texto);
+  assert.equal(v.outputDirectory, 'dist');
+  assert.equal(v.buildCommand, 'npm run build');
+  assert.equal(v.installCommand, 'npm ci');
+  assert.equal(v.git.deploymentEnabled.main, true);
+  assert.equal(v.git.deploymentEnabled['**'], false, 'branches e PRs não geram deploy');
+  assert.ok(!('env' in v) && !('build' in v), 'variáveis ficam no painel da Vercel, nunca no arquivo');
+  assert.ok(!/(service_role|rq_executor|eyJ[\w-]+\.|sb_secret_|postgres(ql)?:\/\/)/i.test(texto), 'sem segredo');
+  const gerais = Object.fromEntries(v.headers.find((h) => h.source === '/(.*)').headers.map((h) => [h.key, h.value]));
+  const csp = Object.fromEntries(gerais['Content-Security-Policy'].split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...r]) => [k, r]));
+  assert.deepEqual(csp['default-src'], ["'none'"]);
+  assert.deepEqual(csp['script-src'], ["'self'"]);
+  assert.deepEqual(csp['connect-src'], ["'self'", 'https://*.supabase.co']);
+  assert.ok(!JSON.stringify(csp).includes('unsafe-'), 'sem unsafe-inline/unsafe-eval');
+  assert.deepEqual(csp['frame-ancestors'], ["'none'"]);
+  assert.equal(gerais['X-Content-Type-Options'], 'nosniff');
+  assert.equal(gerais['Referrer-Policy'], 'no-referrer');
+  const cache = Object.fromEntries(v.headers.filter((h) => h.headers.some((x) => x.key === 'Cache-Control')).map((h) => [h.source, h.headers[0].value]));
+  assert.match(cache['/assets/(.*)'], /immutable/);
+  assert.equal(cache['/'], 'no-cache');
+  assert.equal(cache['/index.html'], 'no-cache');
+});
+
+test('o upload (.vercelignore) também exclui credenciais, dependências e resultados', () => {
+  const vercel = readFileSync(path.join(RAIZ, '.vercelignore'), 'utf8').split(/\r?\n/);
+  for (const item of ['local/', '.env', '.env.*', 'node_modules/', 'dist/', 'test-results/']) assert.ok(vercel.includes(item), item);
+});

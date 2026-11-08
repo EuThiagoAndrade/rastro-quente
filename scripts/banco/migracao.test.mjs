@@ -45,7 +45,7 @@ test('papel preexistente associado a service_role (INHERIT FALSE, SET TRUE): mig
   try {
     const falha = aplicar('rq_migracao_associado');
     assert.ok(falha, 'a migração deveria falhar');
-    assert.equal(falha.migracao, MIGRACOES.at(-1), 'falha na migração de correção, depois de as anteriores aceitarem o papel');
+    assert.equal(falha.migracao, '20261107230000_correcoes_revisao_g2.sql', 'falha na migração de correção, depois de as anteriores aceitarem o papel');
     assert.match(falha.erro, /papel_executor_incompativel: membro de outro papel/);
   } finally {
     sqlAdmin('revoke service_role from rq_executor;');
