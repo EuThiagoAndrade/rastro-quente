@@ -185,13 +185,14 @@ select rolname, rolcanlogin, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb,
   from pg_roles where rolname = 'rq_executor';
 select privado.conferir_papel_executor('rq_executor');
 select * from privado.auditar_exposicao();
+select has_table_privilege('service_role', 'public.deteccoes', 'SELECT') as service_role_le;
 select n.nspname, c.relname, c.relrowsecurity
   from pg_class c join pg_namespace n on n.oid = c.relnamespace
   where n.nspname in ('public', 'privado') and c.relkind = 'r' order by 1, 2;
 select extname from pg_extension order by 1;
 ```
 
-Esperado: as versões do repositório; `rq_executor` com `rolcanlogin` falso e todos os demais atributos falsos; a função sem erro; `auditar_exposicao()` vazia; `relrowsecurity` verdadeiro em todas as tabelas; **guarde a lista de extensões** para compará-la depois da carga. Se o EX no destino se comportar diferente do local (ADR-005, D3), pare.
+Esperado: as versões do repositório; `rq_executor` com `rolcanlogin` falso e todos os demais atributos falsos; a função sem erro; `auditar_exposicao()` vazia; `service_role_le` falso (a migração `20261108120000` revoga os privilégios de `service_role` em `public`); `relrowsecurity` verdadeiro em todas as tabelas; **guarde a lista de extensões** para compará-la depois da carga. Se o EX no destino se comportar diferente do local (ADR-005, D3), pare.
 
 ### Etapa 3 — senha do EX
 

@@ -23,7 +23,7 @@ Entregar o item 5 do plano `003` v4 em duas partes. **Parte 1, esta PR técnica:
 
 Issue [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) e item 5 do plano. A autorização "autorizo a implementação da issue #24" cobre, conforme o plano: o roteiro e os artefatos locais, a publicação da PR técnica (com `Refs #24`, pois a integração não comprova deploy nem produção) e, **somente depois** de a PR técnica estar integrada e as etapas 1 a 6 do roteiro conferidas, dry-run e carga pelo EX para o alvo, a janela e o manifesto fixados nesta task.
 
-Não cobre: merge; atos administrativos do responsável (contas, migrações hospedadas, senha do EX, deploy, Google OAuth, primeiro login, cadastro do UUID); cobrança; migração nova; ensaio destrutivo no destino; verificação em produção, que exige "autorizo a verificação em produção do ciclo 003".
+Não cobre: merge; atos administrativos do responsável (contas, migrações hospedadas, senha do EX, deploy, Google OAuth, primeiro login, cadastro do UUID); cobrança; migração nova (exceção única: a revogação de `service_role`, decidida pelo responsável em 2026-11-07, "Sim, criar"); ensaio destrutivo no destino; verificação em produção, que exige "autorizo a verificação em produção do ciclo 003".
 
 ## Origem no backlog
 
@@ -38,9 +38,9 @@ Não se aplica.
 | Barreira | Aplica-se? | Evidência ou justificativa |
 | :-- | :-- | :-- |
 | G1 — exatidão analítica e interpretação geoespacial | Sim | Esta PR não muda método, fontes, janela nem contagem. Na parte 2 a carga publica o manifesto aprovado do item 1 (identidade SHA-256 fixada); o `resumo` do destino é comparado com a referência local (identidade, totais e SHA-256 por tabela) e as contagens da verificação, com o total de referência. Nenhuma regra ambiental nova. |
-| G2 — autenticação, autorização e isolamento por RLS | Sim | Nenhuma migração nem política nova nesta PR. O roteiro manda conferir no destino as migrações, `rolcanlogin` falso e atributos do EX, `privado.conferir_papel_executor`, `auditar_exposicao()` vazia e RLS em toda tabela, e depois da carga a lista de extensões. Mudança de código: o alvo da carga aceita o usuário do pooler `rq_executor.<referência>` (mesmo papel; `rq_executor_admin`, `postgres.<ref>` e `rq_executor.` vazio continuam recusados, testado). O bloqueio de AN e OA no destino só se prova na verificação em produção. Pendência herdada do ADR-005 em "Decisões incidentais". |
+| G2 — autenticação, autorização e isolamento por RLS | Sim | Uma migração aditiva (`20261108120000_revogar_service_role_public.sql`, decisão do responsável em 2026-11-07) revoga os privilégios de `service_role` nas tabelas e na sequência de `public`; nenhuma política nova, EX e lista RP intactos. Teste pgTAP novo `05_service_role.test.sql` (5 asserções: sem privilégio em tabela, sequência ou função; `authenticated` e EX preservados). O roteiro manda conferir no destino as migrações, `rolcanlogin` falso e atributos do EX, `privado.conferir_papel_executor`, `auditar_exposicao()` vazia e RLS em toda tabela, e depois da carga a lista de extensões. Mudança de código: o alvo da carga aceita o usuário do pooler `rq_executor.<referência>` (mesmo papel; `rq_executor_admin`, `postgres.<ref>` e `rq_executor.` vazio continuam recusados, testado). O bloqueio de AN e OA no destino só se prova na verificação em produção. Pendência herdada do ADR-005 tratada: ver "Decisões incidentais". |
 | G3 — privacidade de dados | Sim | Nada de segredo, UUID, e-mail, referência real do projeto ou domínio real em commit. O roteiro usa `<REF>` e `<DOMINIO>`; a senha do EX vive só em `local/segredos/ex.env` (ignorado pelo Git e pelo upload, conferido com `git check-ignore`) e o agente não a lê. O `vercel.json` não contém variáveis nem segredo (testado). |
-| G4 — migrações só acrescentam | Sim | Nenhuma migração criada, alterada, renomeada ou removida. |
+| G4 — migrações só acrescentam | Sim | Uma migração nova (`20261108120000_revogar_service_role_public.sql`); nenhuma existente alterada, renomeada ou removida. O teste `migracao.test.mjs` deixou de presumir que a correção G2 é a última migração e passou a nomeá-la. |
 
 ## Execução
 
@@ -51,6 +51,7 @@ Não se aplica.
 - [x] Conferir as condições dos provedores na documentação oficial em 2026-11-07 (Supabase Free e conexão; Vercel Hobby, Git, `vercel.json`).
 - [x] `vercel.json` (build estático, CSP, cabeçalhos, cache, só `main` gera deploy), `.vercelignore` ampliado, E2E servido com esses cabeçalhos.
 - [x] Alvo da carga aceita o usuário do pooler, com teste.
+- [x] Migração aditiva que revoga `service_role` em `public`, com teste pgTAP, ADR-005 emendado e conferência no roteiro (decisão do responsável).
 - [x] Roteiro do item 5 (runbook, seção 11) e correção da ordem da seção 2.
 - [x] Gates locais e inspeção de `governance-check`.
 - [x] Publicar a branch e abrir a PR técnica [#29](https://github.com/EuThiagoAndrade/rastro-quente/pull/29) com `Refs #24`.
@@ -61,7 +62,7 @@ Não se aplica.
 
 | Validação | Resultado |
 | :-- | :-- |
-| Testes | `npm run test:e2e` 35/35 **servido com os cabeçalhos do `vercel.json`** (CSP sem `unsafe-inline`); `test:interface` 41/41 (39 anteriores e 2 novos: `vercel.json` e `.vercelignore`); `test:rls` pgTAP 168 e Node 35 (inalterado; inclui o teste do alvo com usuário do pooler); `test:prototipo` 32/32; `test:governance` 55/55 |
+| Testes | `npm run test:e2e` 35/35 **servido com os cabeçalhos do `vercel.json`** (CSP sem `unsafe-inline`); `test:interface` 41/41 (39 anteriores e 2 novos: `vercel.json` e `.vercelignore`); `test:rls` pgTAP 173 (168 anteriores e 5 novos) e Node 35 (inclui o teste do alvo com usuário do pooler); `test:prototipo` 32/32; `test:governance` 55/55 |
 | Typecheck e build | `npm run typecheck` sem erros; `npm run build` com valores públicos fictícios: JS 396 KB (110 KB gzip), CSS 24,5 KB, bundle inspecionado pelo `test:interface` |
 | Validador | `node scripts/validate-governance.mjs`: 0 erro(s), 0 aviso(s), 9 manuais |
 | `git diff --check` | Limpo |
@@ -82,8 +83,8 @@ Não se aplica.
 - **CSP.** `connect-src` usa `https://*.supabase.co` porque a referência do projeto não existe ainda; fixar a URL exata exigiria nova PR depois da criação do projeto. O E2E troca só esse curinga pela origem do Supabase local.
 - **Teste de escala de cinza** passou a usar CSSOM em vez de `<style>` injetado, que a CSP (corretamente) bloqueia. Não muda o que o teste verifica.
 - **Não confirmado na documentação, a conferir na execução:** papel personalizado pelo pooler (formato `papel.<ref>` é o documentado), cadeia de certificados do pooler, onde o painel da Vercel mostra o SHA do deployment, existência do `psql` na máquina do responsável, se o limite de 2 projetos Free é por conta ou por organização, procedimento de retomada de projeto pausado.
-- **Pendência herdada que pede decisão do responsável antes do merge:** revogação dos privilégios de `service_role` nas tabelas `public` (task #21 e ADR-005). Hoje `service_role` não alcança `privado` e não publica, mas lê cargas em preparação e grava contornando RLS. Não é criada migração sem decisão: seria mudança de G2 fora do que o plano nomeia.
-- **Escopo preservado:** sem migração, sem conta, sem credencial, sem efeito remoto além da publicação da própria PR.
+- **`service_role` revogado em `public`.** Pendência herdada (task #21, ADR-005): `service_role` não alcançava `privado` nem publicava, mas lia cargas em preparação e gravava contornando RLS. Decisão do responsável, "Sim, criar", em 2026-11-07, depois de apresentada a pendência na PR #29. Migração aditiva e teste pgTAP; o ADR-005 recebeu uma emenda datada. Nada no produto usava `service_role` nas tabelas; o E2E, que cria contas pelo Auth, confirma. Não cobre funções ou tabelas de outros schemas.
+- **Escopo preservado:** a única migração é a revogação decidida acima; sem conta, sem credencial, sem efeito remoto além da publicação da própria PR.
 
 ## Encerramento
 
@@ -95,7 +96,7 @@ Não se aplica. Quinta issue de ciclo completo; o encerramento prospectivo é a 
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29; decisão sobre os privilégios de service_role (ver Decisões incidentais)
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29, incluindo a migração que revoga service_role
 Diga: "aprovo o merge da PR #29"
 ```
 
@@ -108,4 +109,4 @@ Diga: "aprovo o merge da PR #29"
 - `state_after`: parte 1 do item 5 implementada e testada localmente; task #23 reconciliada como `Concluída`; branch `chore/issue-24` com o roteiro, `vercel.json` e o ajuste do alvo; PR #29 aberta de `chore/issue-24` com `Refs #24`; task `Aguardando integração`.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a implementação da issue #24" em 2026-11-07; E2E 35/35 sob os cabeçalhos do deploy; `test:rls` 168 + 35, `test:interface` 41, `test:prototipo` 32, governança 55; validador sem erros.
-- `blockers`: nenhum para publicar a PR técnica. A parte 2 depende de PR técnica integrada ("aprovo o merge da PR #29" e checks verdes), das ações externas do responsável ("concluí a ação externa da issue #24" por etapa) e, para a verificação, de "autorizo a verificação em produção do ciclo 003". Decisão pendente sobre `service_role`.
+- `blockers`: nenhum para publicar a PR técnica. A parte 2 depende de PR técnica integrada ("aprovo o merge da PR #29" e checks verdes), das ações externas do responsável ("concluí a ação externa da issue #24" por etapa) e, para a verificação, de "autorizo a verificação em produção do ciclo 003". Sem decisão pendente.

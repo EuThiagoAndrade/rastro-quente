@@ -53,7 +53,7 @@ Não cobre merge, implementação de issues, ações humanas externas, carga hos
 
 **Execução do item 4:** autorização literal "autorizo a implementação da issue #23" recebida em 2026-11-07. A task `003_task_issue-23.md` é o artefato ativo; a decisão técnica e a medição em celular estão no ADR-007 e o guia da interface em `docs/runbook.md`. Somente o item 4 está em execução. A PR #28 foi integrada em 2026-11-08 (`68f3dc2`).
 
-**Execução do item 5:** autorização literal "autorizo a implementação da issue #24" recebida em 2026-11-07. A task `003_task_issue-24.md` é o artefato ativo. A execução tem duas partes: a PR técnica (configuração estática da Vercel, ajuste do alvo da carga ao pooler do Supabase e roteiro do responsável no runbook, seção 11) e, só depois da sua integração e das ações externas conferidas, a carga pelo EX e a verificação, esta com a frase própria de produção. Escopo e rodadas da v4 aprovada permanecem preservados.
+**Execução do item 5:** autorização literal "autorizo a implementação da issue #24" recebida em 2026-11-07. A task `003_task_issue-24.md` é o artefato ativo. A execução tem duas partes: a PR técnica (configuração estática da Vercel, ajuste do alvo da carga ao pooler do Supabase, revogação dos privilégios de `service_role` em `public` por migração aditiva, decidida pelo responsável em 2026-11-07, e roteiro do responsável no runbook, seção 11) e, só depois da sua integração e das ações externas conferidas, a carga pelo EX e a verificação, esta com a frase própria de produção. Escopo e rodadas da v4 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -413,7 +413,7 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29 (item 5); decisão sobre os privilégios de service_role (task #24)
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29 (item 5), incluindo a migração que revoga service_role
 Diga: "aprovo o merge da PR #29"
 ```
 
