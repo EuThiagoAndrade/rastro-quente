@@ -1,6 +1,6 @@
 # Runbook do protótipo — carga, cópia, expiração, recuperação e rotação do EX
 
-Escopo: operação **local** da carga de dados (ciclo `003`, item 3). A operação hospedada (contas, migrações no destino, senha do EX, deploy, primeiro login, cadastro do RP) é o roteiro do item 5, e atos administrativos são do responsável. O guia da interface está na seção 10. Decisão e medições: [ADR-006](../_project/decisions/ADR-006_carga_idempotente_unica_transacao.md). Papéis e matriz de acesso: [ADR-005](../_project/decisions/ADR-005_banco_autorizacao_prototipo.md). Focos e sobreposições não comprovam incêndio, dano, autoria ou infração.
+Escopo das seções 1 a 9: operação **local** da carga de dados (ciclo `003`, item 3). A operação hospedada (contas, migrações no destino, senha do EX, deploy, primeiro login, cadastro do RP) é o roteiro da seção 11 (item 5), e atos administrativos são do responsável. O guia da interface está na seção 10 e o roteiro hospedado do item 5, na seção 11. Decisão e medições: [ADR-006](../_project/decisions/ADR-006_carga_idempotente_unica_transacao.md). Papéis e matriz de acesso: [ADR-005](../_project/decisions/ADR-005_banco_autorizacao_prototipo.md). Focos e sobreposições não comprovam incêndio, dano, autoria ou infração.
 
 Nada aqui autoriza teste destrutivo em produção. Nenhum comando abaixo pede segredo como argumento: a senha do EX vive só em `RQ_EXECUTOR_PASSWORD`, no ambiente do processo.
 
@@ -13,12 +13,12 @@ Nada aqui autoriza teste destrutivo em produção. Nenhum comando abaixo pede se
 ## 2. Atualizar os dados (versão nova)
 
 1. **Gerar os insumos.** `janela`, `obter` e `processar` do item 1. Fonte corrigida, janela diferente ou método corrigido mudam os hashes e, portanto, a identidade.
-2. **Plano, sem escrita.** `node scripts/banco/carga.mjs plan --alvo postgresql://rq_executor@127.0.0.1:55322/postgres --sql aprovacao.sql`
-   (a URL não leva senha; fora do loopback exige `?sslmode=require`). Sem `--alvo`, `--offline` só calcula o manifesto e **para** (`sem_consulta_ao_alvo`): sem o consumo do alvo não há prova de margem. Opções: `--exibicao maxima|intermediaria|minima` (padrão `intermediaria`) e `--revisao N` (padrão 1).
+2. **Abrir a janela do EX (administrador).** O `plan` com `--alvo` consulta o banco como EX, e o EX nasce sem `LOGIN`: sem esta etapa o plano falha na conexão. `\password rq_executor` no `psql` (a senha é cifrada no cliente e não aparece no log) e `alter role rq_executor login;`. Guardar a senha em cofre ou ambiente local ignorado.
+3. **Plano, sem escrita.** `node scripts/banco/carga.mjs plan --alvo postgresql://rq_executor@127.0.0.1:55322/postgres --sql aprovacao.sql`
+   (a URL não leva senha; fora do loopback exige `?sslmode=require`; no pooler do Supabase o usuário é `rq_executor.<referência do projeto>`). Sem `--alvo`, `--offline` só calcula o manifesto e **para** (`sem_consulta_ao_alvo`): sem o consumo do alvo não há prova de margem. Opções: `--exibicao maxima|intermediaria|minima` (padrão `intermediaria`) e `--revisao N` (padrão 1).
    O plano mostra: identidade, totais, bytes a gravar, consumo existente, pico previsto e margem em relação ao teto de **400.000.000 bytes**, versão vigente, estado da carga e pendências.
-3. **Conferir o plano.** Paradas (`pico_acima_do_teto_de_banco`, `estimativa_insuficiente_para_provar_margem`, `carga_retirada`, `carga_em_estado_ambiguo`) interrompem. Pico igual ao teto não para, mas não dispensa conferir disco, egress, conta/organização, CI e Vercel (item 5), sem somar franquias diferentes.
-4. **Aprovar o manifesto (administrador).** Revisar `aprovacao.sql` e executá-lo como proprietário do banco. O EX só lê `privado.manifestos_aprovados`.
-5. **Abrir a janela do EX (administrador).** `\password rq_executor` no `psql` (a senha é cifrada no cliente e não aparece no log) e `alter role rq_executor login;`. Guardar a senha em cofre ou ambiente local ignorado.
+4. **Conferir o plano.** Paradas (`pico_acima_do_teto_de_banco`, `estimativa_insuficiente_para_provar_margem`, `carga_retirada`, `carga_em_estado_ambiguo`) interrompem. Pico igual ao teto não para, mas não dispensa conferir disco, egress, conta/organização, CI e Vercel (item 5), sem somar franquias diferentes.
+5. **Aprovar o manifesto (administrador).** Revisar `aprovacao.sql` e executá-lo como proprietário do banco. O EX só lê `privado.manifestos_aprovados`.
 6. **Aplicar.** `RQ_EXECUTOR_PASSWORD=… node scripts/banco/carga.mjs apply --alvo … --identidade <hex do plano>`. Sem a identidade do plano revisado o `apply` não prossegue. Faz de novo o plano e para se houver parada.
 7. **Conferir.** `node scripts/banco/carga.mjs resumo --alvo …` (identidade, totais e SHA-256 do conteúdo por tabela da versão vigente). Guardar o JSON, sem dados de detecção, junto da cópia local (seção 4).
 8. **Fechar a janela e auditar (administrador).** `alter role rq_executor nologin;` e `select * from privado.auditar_exposicao();` (só o proprietário). A lista esperada fora da janela é vazia.
@@ -130,3 +130,135 @@ Variáveis do build (nomes em `.env.example`): `VITE_SUPABASE_URL` (https fora d
 - Reflow a 320 px e texto a 200% foram verificados por script (sem rolagem horizontal global nem conteúdo cortado), com as exceções bidimensionais do mapa e das tabelas. Escala de cinza: verificada por estilos e por captura de trabalho em `test-results/` (ignorada); o contraste azul/verde não é o que distingue ação primária de secundária.
 - Não foi provado: leitor de tela real, toque físico, Google OAuth real, desempenho em aparelho real, conformidade integral com a WCAG, egress hospedado.
 - Dados do E2E: três municípios inventados (`99000xx`), contas `.test` criadas e removidas pelo próprio teste, senhas geradas na hora.
+
+## 11. Roteiro do item 5 — operação hospedada (atos do responsável)
+
+Escopo: issue #24 do ciclo `003`. **Nada daqui começa antes da PR técnica integrada** (merge aprovado, commit na `main`). O agente prepara este roteiro, confere por leitura o que alcançar e executa só a carga pelo EX; todo o resto é seu. O agente nunca recebe senha de proprietário, token da CLI, chave secreta (`sb_secret_…`, `service_role`), segredo do Google, senha do EX no chat, UUID ou e-mail reais. Ao concluir cada etapa, responda "concluí a ação externa da issue #24" **dizendo o número da etapa** e colando só as saídas sanitizadas pedidas. Dúvida, divergência, cobrança, cartão, trial, cota insuficiente ou comando que não bate com o esperado: **pare e conte ao agente**.
+
+Condições conferidas na documentação dos provedores em 2026-11-07 e que devem ser conferidas de novo no painel no momento: Supabase Free (500 MB de banco por projeto, 5 GB de egress, 50.000 usuários ativos, limite de 2 projetos ativos, pausa após 1 semana de inatividade, sem backups automáticos); Vercel Hobby (uso pessoal e não comercial, 100 GB/mês de transferência, sem compra de excedente; repositório privado só de conta pessoal). Nada disso prova o saldo da sua conta.
+
+| # | Etapa | Quem | Retorno ao agente (sem segredo) |
+| :-- | :-- | :-- | :-- |
+| 0 | Confirmar a finalidade | Responsável | Texto curto: o protótipo é de uso pessoal e não comercial? |
+| 1 | Contas e projeto Supabase | Responsável | Plano, região, referência do projeto, cotas e consumo exibidos |
+| 2 | Migrações e papel EX | Responsável | Saída do `--dry-run` e das consultas de conferência |
+| 3 | Senha do EX e cofre | Responsável | "Senha definida; EX continua sem login" |
+| 4 | Vercel, Google OAuth e Supabase Auth | Responsável | Domínio, commit do deploy, variáveis presentes (só os nomes) |
+| 5 | Primeiro login, ainda sem dados | Responsável | "Login funcionou e a consulta foi negada" |
+| 6 | Cadastro do UUID do responsável | Responsável | Contagem da lista (1), sem o UUID |
+| 7 | Dry-run, aprovação e carga | Agente (EX) + responsável nas partes administrativas | Conferido pelo agente na carga |
+
+### Etapa 0 — finalidade
+
+A Vercel limita o Hobby a uso pessoal e não comercial (comercial inclui receber para criar ou hospedar o site, vender produto ou serviço, anúncios). Escreva ao agente se este protótipo se enquadra. **O aceite das sugestões do plano não comprova isso.** Em dúvida (uso em nome de instituição, projeto financiado, cliente), pare: as opções são decidir com a Vercel ou outra hospedagem estática, sem contratar plano. Não se presume enquadramento.
+
+### Etapa 1 — contas e projeto
+
+1. Supabase: conta gratuita, **sem cartão e sem upgrade**. Crie um projeto novo (nome neutro) na região que preferir. Guarde a **senha do banco** só em cofre. Anote a **referência do projeto** (`<REF>`, 20 caracteres, não é segredo) e a URL `https://<REF>.supabase.co`.
+2. Confira no painel (Settings, Usage): plano Free, banco em uso e cota de egress. Informe os números ao agente. Banco acima de 400 MB já é parada do plano; abaixo disso, ainda valem as demais cotas.
+3. Vercel: conta Hobby **sem cartão**, ligada à sua conta pessoal do GitHub (o repositório `EuThiagoAndrade/rastro-quente` é privado e de conta pessoal). Ainda não importe nada.
+4. Google Cloud: projeto próprio, sem faturamento, para o cliente OAuth (etapa 4).
+
+Parar se: cobrança, cartão ou trial aparecerem; o plano não for Free/Hobby; o projeto já existir com dados; a cota for insuficiente.
+
+### Etapa 2 — migrações e papel EX
+
+Na raiz do repositório, em `main` atualizada e limpa, na sua máquina:
+
+```bash
+npx supabase login
+npx supabase link --project-ref <REF>
+npx supabase db push --dry-run
+```
+
+O `login` usa um token pessoal e o `link` pede a senha do banco (ou `SUPABASE_DB_PASSWORD` no seu processo). Nenhum dos dois vai ao agente, à Vercel ou à CI. O `--dry-run` deve listar **exatamente** as migrações de `supabase/migrations/`, em ordem, e nenhuma outra. Envie a lista ao agente. Divergência, projeto já com histórico ou pedido de reset/repair: pare.
+
+```bash
+npx supabase db push
+```
+
+Conferência no SQL Editor do painel (cole só os resultados; não há segredo neles):
+
+```sql
+select version from supabase_migrations.schema_migrations order by 1;
+select rolname, rolcanlogin, rolsuper, rolbypassrls, rolcreaterole, rolcreatedb, rolreplication
+  from pg_roles where rolname = 'rq_executor';
+select privado.conferir_papel_executor('rq_executor');
+select * from privado.auditar_exposicao();
+select n.nspname, c.relname, c.relrowsecurity
+  from pg_class c join pg_namespace n on n.oid = c.relnamespace
+  where n.nspname in ('public', 'privado') and c.relkind = 'r' order by 1, 2;
+select extname from pg_extension order by 1;
+```
+
+Esperado: as versões do repositório; `rq_executor` com `rolcanlogin` falso e todos os demais atributos falsos; a função sem erro; `auditar_exposicao()` vazia; `relrowsecurity` verdadeiro em todas as tabelas; **guarde a lista de extensões** para compará-la depois da carga. Se o EX no destino se comportar diferente do local (ADR-005, D3), pare.
+
+### Etapa 3 — senha do EX
+
+Com o `psql` (cliente PostgreSQL), conectado como proprietário pelo **pooler de sessão** (host copiado do diálogo Connect do painel; usuário `postgres.<REF>`; porta 5432; `sslmode=require`):
+
+```text
+\password rq_executor
+```
+
+A senha é cifrada no cliente e não aparece em log. Sem `psql`, a alternativa é `alter role rq_executor password '…';` no SQL Editor, que **grava a senha no histórico de consultas do painel**: só se você aceitar esse risco e rotacionar depois (seção 7). Não ligue o `LOGIN` agora. Guarde a senha em cofre e, para a carga, num arquivo **ignorado pelo Git**, fora do chat: `local/segredos/ex.env`, com uma linha `RQ_EXECUTOR_PASSWORD=…`. O agente só passa o caminho desse arquivo a `node --env-file`; ele não lê nem imprime seu conteúdo.
+
+### Etapa 4 — Vercel, Google OAuth e Supabase Auth
+
+**4a. Vercel.** Importe o repositório (Git integration), branch de produção `main`, framework Vite (ou Other): o `vercel.json` já fixa `npm ci`, `npm run build` e a saída `dist`, e desliga deploys de outras branches e de PRs. Antes do primeiro deploy, defina **somente** estas duas variáveis, no escopo **Production**:
+
+| Variável | Valor | É público? |
+| :-- | :-- | :-- |
+| `VITE_SUPABASE_URL` | `https://<REF>.supabase.co` | Sim, vai no bundle |
+| `VITE_SUPABASE_CHAVE_PUBLICAVEL` | chave **publicável** (`sb_publishable_…`, Settings, API Keys) ou a `anon` legada | Sim, vai no bundle |
+
+Nunca crie variável com a senha do banco, a do EX, `sb_secret_…`, `service_role` ou o segredo do Google, em nenhum escopo. Não use `VITE_AUTH_SENHA_LOCAL`. Faça o deploy e anote o **domínio** (`<DOMINIO>`, por exemplo `https://nome.vercel.app`) e o **SHA do commit** do deployment; ele deve ser o da `main` integrada. Mudança de variável só vale para deploys novos.
+
+**4b. Google Cloud.** Google Auth Platform: tela de consentimento externa (pode ficar em modo de teste; acrescente como usuário de teste sua conta e a conta de teste que será usada como "outro autenticado"), depois Clients, tipo **Web application**. Em *Authorized JavaScript origins*, `<DOMINIO>`; em *Authorized redirect URIs*, o endereço de retorno **copiado da página do provedor Google no painel do Supabase** (Authentication, Providers). Escopos: os padrões (`openid`, e-mail e perfil). Guarde o ID e o segredo do cliente só no cofre.
+
+**4c. Supabase Auth.** Authentication, Providers, Google: ative e cole o ID e o segredo (o segredo fica **só** no Supabase). Authentication, URL Configuration: *Site URL* = `<DOMINIO>`, *Redirect URLs* = o mesmo endereço exato, sem curinga. Recomendado e opcional: desligar o provedor de e-mail e o login anônimo, pois a interface só usa Google (quem entrar por outro caminho seria "outro autenticado", sem dados).
+
+Confirmar ao agente: domínio, SHA do commit, nomes das variáveis (sem valores), plano ainda Hobby. Parar se a Vercel pedir cartão, plano pago ou apontar uso comercial; se o deploy não vier da `main` integrada; se aparecer variável sensível.
+
+### Etapa 5 — primeiro login, ainda sem dados
+
+Abra `<DOMINIO>` no seu navegador e entre com a conta Google que será a do responsável. O esperado é a sessão abrir e a interface mostrar **acesso negado** (você ainda não está na lista). Se aparecer qualquer dado, pare: é falha de acesso.
+
+### Etapa 6 — cadastro do UUID
+
+1. Painel, Authentication, Users: confira que a linha é da **sua** conta, provedor Google, e copie o **User UID**. Não o envie ao agente, a issue, commit ou log.
+2. No SQL Editor, como proprietário, e só com o seu UUID no lugar:
+
+```sql
+insert into privado.responsaveis_autorizados (user_id) values ('<seu UUID>');
+select count(*) from privado.responsaveis_autorizados;
+```
+
+Esperado: contagem 1 e nenhuma outra conta cadastrada. Retorne só "contagem 1". Troca ou revogação posterior é administração sua, com `delete` nessa tabela; a próxima consulta já nega.
+
+### Etapa 7 — dry-run, aprovação e carga
+
+Só depois das etapas 1 a 6 conferidas, da PR técnica integrada e de o agente registrar na task o alvo, o manifesto e o consumo. A autorização do agente é a frase "autorizo a implementação da issue #24" (já registrada na task); ela cobre **somente** o que segue, pelo EX, e nada mais:
+
+1. **Responsável** abre a janela: `alter role rq_executor login;` (SQL Editor ou `psql`). Avise o agente.
+2. **Agente**, na máquina dele, com `RQ_EXECUTOR_PASSWORD` vindo de `local/segredos/ex.env`:
+
+```bash
+node --env-file=local/segredos/ex.env scripts/banco/carga.mjs plan --alvo "postgresql://rq_executor.<REF>@<host do pooler de sessão>:5432/postgres?sslmode=require" --sql local/dados-prototipo/aprovacao.sql
+```
+
+   Usa-se o **pooler de sessão (5432)**, nunca o de transação (6543). A conexão direta (`db.<REF>.supabase.co`) é só IPv6 no plano Free. O plano mostra consumo existente, pico previsto e margem; acima de 400.000.000 bytes ou sem estimativa, **para**. Se a conexão falhar por certificado, baixe o certificado da CA do Supabase em Database, Settings, SSL, salve em `local/segredos/supabase-ca.crt` e o agente repete com `NODE_EXTRA_CA_CERTS` apontando para ele: não se desliga a verificação. Se falhar com "Tenant or user not found", o host ou o usuário do pooler estão errados: pare e confira no diálogo Connect.
+3. **Responsável** revisa `aprovacao.sql` (conferir identidade, hashes e totais do plano) e o executa como proprietário no SQL Editor.
+4. **Agente** executa `apply --identidade <hex do plano>` e depois `resumo`. A carga é uma transação: falha antes do commit mantém o banco como estava.
+5. **Responsável** fecha a janela: `alter role rq_executor nologin;`, roda `select * from privado.auditar_exposicao();` (esperado: vazia) e compara `select extname from pg_extension order by 1;` com a lista guardada na etapa 2.
+6. **Agente** registra na task o consumo antes e depois, a duração e o `resumo` sanitizado.
+
+Reexecutar o mesmo `apply` é seguro (reconcilia pela identidade). Não existe `force`; reversão é nova revisão do mesmo conteúdo (seção 3). **Não se faz ensaio destrutivo, expurgo ou reset no destino.**
+
+### Depois da carga
+
+O agente pede a frase **"autorizo a verificação em produção do ciclo 003"** e só então executa o roteiro previsto no plano: login do responsável, bloqueio de anônimo e de "outro autenticado", filtros e contagens contra o total de referência, mapa, tabela, proveniência e estados. A inspeção do bundle publicado e as chamadas anônimas diretas à API entram nessa verificação.
+
+### Pausa e retomada (não simuladas)
+
+O Supabase Free pausa o projeto após uma semana de inatividade. **Isso não foi simulado nem testado.** O que se sabe: a retomada é manual, no painel, e o que a recarga de dados não restaura são contas, Auth, segredos, o cadastro do responsável e o provedor Google (seção 6). Sem promessa de disponibilidade contínua, de prazo de recuperação ou de gratuidade incondicional.

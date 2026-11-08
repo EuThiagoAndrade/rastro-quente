@@ -26,14 +26,15 @@ export function resolverAlvo(texto, ambiente = process.env) {
   const u = new URL(texto);
   if (!['postgres:', 'postgresql:'].includes(u.protocol)) throw new Error('O alvo precisa ser uma URL postgresql://.');
   if (u.password) throw new Error('A URL do alvo não pode conter senha; use a variável RQ_EXECUTOR_PASSWORD.');
-  if (decodeURIComponent(u.username) !== 'rq_executor') throw new Error('O alvo deve usar o papel rq_executor (EX), nunca outra credencial.');
+  // O pooler do Supabase exige `papel.<referência do projeto>`; o papel continua sendo o EX.
+  if (!/^rq_executor(\.[a-z0-9]{8,32})?$/.test(decodeURIComponent(u.username))) throw new Error('O alvo deve usar o papel rq_executor (EX), nunca outra credencial.');
   const local = LOOPBACK.has(u.hostname);
   const modo = u.searchParams.get('sslmode');
   if (!local && !['require', 'verify-ca', 'verify-full'].includes(modo)) throw new Error('Alvo fora do loopback exige sslmode=require (ou verify-*).');
   const senha = ambiente.RQ_EXECUTOR_PASSWORD;
   if (!senha) throw new Error('Defina RQ_EXECUTOR_PASSWORD no ambiente do processo (nunca como argumento).');
   return {
-    host: u.hostname.replace(/^\[|\]$/g, ''), port: Number(u.port || 5432), user: 'rq_executor', password: senha,
+    host: u.hostname.replace(/^\[|\]$/g, ''), port: Number(u.port || 5432), user: decodeURIComponent(u.username), password: senha,
     database: decodeURIComponent(u.pathname.slice(1)) || 'postgres', ssl: local ? false : true, local,
   };
 }

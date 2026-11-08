@@ -1,2 +1,11 @@
 # Materiais privados não devem integrar uploads ou deploys.
 local/
+# Credenciais e configurações locais; nada disso pertence ao upload (issue #24).
+.env
+.env.*
+# Dependências, builds e resultados de teste são regenerados no build remoto.
+node_modules/
+dist/
+dist-e2e/
+test-results/
+playwright-report/

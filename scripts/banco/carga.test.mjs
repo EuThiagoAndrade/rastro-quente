@@ -113,6 +113,12 @@ test('alvo: exige URL sem senha, papel EX, TLS fora do loopback e senha no ambie
   assert.deepEqual([local.host, local.port, local.user, local.database, local.ssl], ['127.0.0.1', 55322, 'rq_executor', 'postgres', false]);
   const remoto = resolverAlvo('postgresql://rq_executor@db.exemplo.test/postgres?sslmode=require', env);
   assert.deepEqual([remoto.host, remoto.port, remoto.ssl], ['db.exemplo.test', 5432, true]);
+  // Pooler: `rq_executor.<referência>` é o mesmo papel; outro papel com o mesmo prefixo, não.
+  const pooler = resolverAlvo('postgresql://rq_executor.abcdefghijklmnopqrst@pooler.exemplo.test:5432/postgres?sslmode=require', env);
+  assert.deepEqual([pooler.user, pooler.port, pooler.ssl], ['rq_executor.abcdefghijklmnopqrst', 5432, true]);
+  assert.throws(() => resolverAlvo('postgresql://rq_executor_admin@pooler.exemplo.test/postgres?sslmode=require', env), /rq_executor/);
+  assert.throws(() => resolverAlvo('postgresql://rq_executor.@pooler.exemplo.test/postgres?sslmode=require', env), /rq_executor/);
+  assert.throws(() => resolverAlvo('postgresql://postgres.abcdefghijklmnopqrst@pooler.exemplo.test/postgres?sslmode=require', env), /rq_executor/);
   try {
     resolverAlvo('postgresql://rq_executor:segredo-de-teste@127.0.0.1/x', env);
   } catch (e) {

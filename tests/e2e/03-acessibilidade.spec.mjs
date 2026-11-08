@@ -158,7 +158,8 @@ test('escala de cinza: a ação primária se distingue por preenchimento e a sec
   // O contorno do secundário também é bem distinto da superfície.
   expect(cinza(secundario.bg) - cinza(secundario.bordaCor)).toBeGreaterThan(100);
   // Captura de trabalho em cinza (não versionada).
-  await page.addStyleTag({ content: 'html { filter: grayscale(1); }' });
+  // Via CSSOM, não por <style> injetado: o E2E serve os cabeçalhos do deploy (CSP sem 'unsafe-inline').
+  await page.evaluate(() => { document.documentElement.style.filter = 'grayscale(1)'; });
   await page.locator('.grade__filtros').screenshot({ path: 'test-results/cinza-filtros.png' });
   await page.locator('#mapa').scrollIntoViewIfNeeded();
   await page.locator('.grade__mapa').screenshot({ path: 'test-results/cinza-mapa.png' });

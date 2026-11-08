@@ -2,17 +2,17 @@
 
 > **Ciclo:** `003`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#23`
 > **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-23`
 > **PR:** [#28](https://github.com/EuThiagoAndrade/rastro-quente/pull/28)
-> **Integração:** `Pendente`
+> **Integração:** `PR #28 integrada em main em 2026-11-08 (68f3dc2)`
 > **Autorização inicial:** "autorizo a implementação da issue #23" em 2026-11-07
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-07
-> **Última atualização:** 2026-11-07
+> **Última atualização:** 2026-11-08
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -65,7 +65,7 @@ Não se aplica.
 | Validador | `node scripts/validate-governance.mjs`: 0 erro(s), 0 aviso(s), 9 manuais |
 | `git diff --check` | Limpo |
 | Varredura G3 | Sem e-mail real, UUID, JWT, senha ou chave nos arquivos novos; só `@exemplo.test` e códigos `99000xx`; medições detalhadas ficam em `local/` (ignorado) |
-| Checks remotos | Pendente (PR #28 aberta; o passo novo de CI da interface só se prova na execução remota) |
+| Checks remotos | PR #28: `Validate governance`, `Database RLS and query contract` e `Interface typecheck, build and E2E` (o passo novo de CI da interface) concluídos com sucesso no GitHub; PR integrada em 2026-11-08 |
 
 ## Revisão da correção
 
@@ -92,10 +92,10 @@ Não se aplica. Quarta issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/28
-Diga: "aprovo o merge da PR #28"
+Situação: Pronto para continuar — ciclo 003 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 003"
 ```
 
 ## Handoff de saída

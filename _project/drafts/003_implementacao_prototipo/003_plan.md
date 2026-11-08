@@ -51,7 +51,9 @@ Não cobre merge, implementação de issues, ações humanas externas, carga hos
 
 **Execução do item 3:** autorização literal "autorizo a implementação da issue #22" recebida em 2026-11-07. A task `003_task_issue-22.md` é o artefato ativo; a decisão técnica e as medições estão no ADR-006 e no runbook. Somente o item 3 está em execução. A PR #27 foi integrada em 2026-11-08 (`9094b03`).
 
-**Execução do item 4:** autorização literal "autorizo a implementação da issue #23" recebida em 2026-11-07. A task `003_task_issue-23.md` é o artefato ativo; a decisão técnica e a medição em celular estão no ADR-007 e o guia da interface em `docs/runbook.md`. Somente o item 4 está em execução.
+**Execução do item 4:** autorização literal "autorizo a implementação da issue #23" recebida em 2026-11-07. A task `003_task_issue-23.md` é o artefato ativo; a decisão técnica e a medição em celular estão no ADR-007 e o guia da interface em `docs/runbook.md`. Somente o item 4 está em execução. A PR #28 foi integrada em 2026-11-08 (`68f3dc2`).
+
+**Execução do item 5:** autorização literal "autorizo a implementação da issue #24" recebida em 2026-11-07. A task `003_task_issue-24.md` é o artefato ativo. A execução tem duas partes: a PR técnica (configuração estática da Vercel, ajuste do alvo da carga ao pooler do Supabase e roteiro do responsável no runbook, seção 11) e, só depois da sua integração e das ações externas conferidas, a carga pelo EX e a verificação, esta com a frase própria de produção. Escopo e rodadas da v4 aprovada permanecem preservados.
 
 ## Problema e contexto
 
@@ -189,7 +191,7 @@ São diretrizes deste protótipo, não um design system definitivo. A entrega 4 
 | :-- | :-- | :-- | :-- | :-- |
 | Autorizar rascunho — "autorizo o rascunho do plano do ciclo 003" | Ideação, escolhas humanas registradas e autorização já recebida | Este rascunho local, reconciliação da ideação e registro do ciclo | Revisão, aprovação, issues, implementação e publicação | R1/S1/12 meses/I1/T1, matriz, inspiração visual delimitada e condicionantes |
 | Aprovar plano — "aprovo o plano do ciclo 003" | Revisão formal com veredito apto e manifestação humana posterior | Plano revisado, publicação da PR documental; issues após integração documental e confirmação dos payloads; encerramento após entregas | Implementação das issues, merge, configuração/aceite externo e verificação em produção | Ressalvas, cinco itens, orçamento zero sem garantia de capacidade, fontes/método, acesso e dependências de ambiente. Aprovar fixa como decisões humanas de G1: o protocolo D1 (unidade município-dia GMT, três classes, precedência, validação humana de avisos ambíguos, H1 como padrão local para histórico ausente), a parada H3 antes de publicar e a sensibilidade Cuiabá por consulta |
-| Aprovar merge — "aprovo o merge da PR #N" | PR concreta, checks verdes no último commit e diff conferido | Somente merge daquela PR, por squash | Outras PRs, conta externa, deploy e nova entrega | Lote documental ou issue correspondente, privacidade, G1–G4, checks e estado real |
+| Aprovar merge — "aprovo o merge da PR #29" | PR concreta, checks verdes no último commit e diff conferido | Somente merge daquela PR, por squash | Outras PRs, conta externa, deploy e nova entrega | Lote documental ou issue correspondente, privacidade, G1–G4, checks e estado real |
 | Autorizar implementação — "autorizo a implementação da issue #N" | Plano aprovado/integrado, issue válida e dependências integradas | Implementação/testes e preparação/publicação da PR delimitada. No item 5, agente prepara o roteiro e, somente após PR técnica integrada e ações externas conferidas, faz dry-run e carga/publicação pelo EX para o alvo/manifesto/janela previstos, conforme tabela específica | Merge, atos administrativos reservados ao responsável (DDL hospedado, contas, OAuth, EX/segredos e cadastro RP), cobrança, expansão de escopo ou verificação em produção sem sua frase | Escopo, credencial EX limitada, alvo/manifesto, gates e separação entre administração humana e carga de dados |
 | Ação humana externa — "concluí a ação externa da issue #N" | Roteiro concreto preparado na task dos itens 2 ou 5; no item 5, PR técnica integrada antes de efeitos remotos | Retorno do responsável sobre atos que ele próprio executa: ambiente e, no item 5, contas/configuração, migrações hospedadas, provisionamento de EX, deploy, primeiro login e cadastro RP, na ordem da tabela. Confirmar etapa executada sem segredo/UUID real no registro | Não autoriza agente a usar credencial administrativa ou repetir esses atos; não comprova automaticamente elegibilidade nem substitui merge ou autorização de verificação em produção | Evidências sanitizadas por etapa, histórico de migrações, alvo/commit, flags de privilégio, conta autorizada e acesso EX disponível só no ambiente controlado |
 | Verificar produção — "autorizo a verificação em produção do ciclo 003" | Entregas técnicas integradas, ações externas conferidas, gates locais de método/acesso/capacidade aprovados e deploy identificado por commit | Login e consultas delimitadas, conferência de acesso e consumo no destino real | Carga/expurgo destrutivo de teste, migração nova, gasto ou mudança de método | Versão/carga, total de referência, privacidade do bundle, login RP, bloqueio de AN/OA e orçamento disponível |
@@ -396,11 +398,13 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#20](https://github.com/EuThiagoAndrade/rastro-quente/issues/20) (item 1), [#21](https://github.com/EuThiagoAndrade/rastro-quente/issues/21) (item 2), [#22](https://github.com/EuThiagoAndrade/rastro-quente/issues/22) (item 3), [#23](https://github.com/EuThiagoAndrade/rastro-quente/issues/23) (item 4), [#24](https://github.com/EuThiagoAndrade/rastro-quente/issues/24) (item 5) |
-| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), integrada em 2026-11-07 (`f8106a5`); item 2: [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26), integrada em 2026-11-07 (`e8b79b5`); item 3: [#27](https://github.com/EuThiagoAndrade/rastro-quente/pull/27), aberta, integração pendente |
-| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977`; item 2: `feature/issue-21`, publicada, base `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`; item 3: `feature/issue-22`, publicada, base `e8b79b5a332089eeefe67feb67c8a7ae8be085e6` |
+| PR(s) | PR documental [#19](https://github.com/EuThiagoAndrade/rastro-quente/pull/19), integrada em 2026-11-05 (`fcf15b9`); item 1: [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25), integrada em 2026-11-07 (`f8106a5`); item 2: [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26), integrada em 2026-11-07 (`e8b79b5`); item 3: [#27](https://github.com/EuThiagoAndrade/rastro-quente/pull/27), integrada em 2026-11-08 (`9094b03`); item 4: [#28](https://github.com/EuThiagoAndrade/rastro-quente/pull/28), integrada em 2026-11-08 (`68f3dc2`) |
+| Branch(es) | Plano: `chore/cycle-003-plan`, derivada da ideação em `23896d64d1724e8d62745f7b1a366f63d6a48b9b`; item 1: `feature/issue-20`, base `fcf15b9f7c8be4b611a13a75d82dc387171d0977`; item 2: `feature/issue-21`, publicada, base `f8106a56f12c7d8e0354fb693f36d98db7b2c0ad`; item 3: `feature/issue-22`, publicada, base `e8b79b5a332089eeefe67feb67c8a7ae8be085e6`; item 4: `feature/issue-23`, base `9094b03a079ab141b3ef28fc9478456b7878f278`; item 5: `chore/issue-24`, base `68f3dc2d0b54fc0cd3f7c5e7e461dbc755a17f36` |
 | Entrega do item 1 | `scripts/prototipo/`, `003_research_medicao_recorte.md` e `KB-004_metodo_recorte_focos_mt.md`; registro em `003_task_issue-20.md` |
 | Entrega do item 2 | `supabase/`, `scripts/banco/` e `ADR-005_banco_autorizacao_prototipo.md`; registro em `003_task_issue-21.md` |
-| Entrega do item 3 | `scripts/banco/` (carga, manifesto, medições e testes), `docs/runbook.md` e `ADR-006_carga_idempotente_unica_transacao.md`; registro ativo em `003_task_issue-22.md` |
+| Entrega do item 3 | `scripts/banco/` (carga, manifesto, medições e testes), `docs/runbook.md` e `ADR-006_carga_idempotente_unica_transacao.md`; registro em `003_task_issue-22.md` |
+| Entrega do item 4 | `src/`, `index.html`, `tests/e2e/`, `tests/unit/`, `scripts/interface/`, `ADR-007_interface_consulta_prototipo.md` e guia da interface no runbook; registro em `003_task_issue-23.md` |
+| Entrega do item 5 | Parte 1: `vercel.json`, `.vercelignore`, ajuste do alvo em `scripts/banco/carga.mjs` e roteiro em `docs/runbook.md` (seção 11); registro ativo em `003_task_issue-24.md`. Parte 2 (carga e verificação): após as ações externas |
 | Destino após conclusão | `_project/executed/003_implementacao_prototipo/003_plan.md` |
 
 ## Próximo passo
@@ -409,20 +413,25 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 003 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/27
-Diga: "aprovo o merge da PR #27"
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29 (item 5); decisão sobre os privilégios de service_role (task #24)
+Diga: "aprovo o merge da PR #29"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-22/item-3 + e8b79b5a332089eeefe67feb67c8a7ae8be085e6`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-24/item-5-parte-1 + 68f3dc2d0b54fc0cd3f7c5e7e461dbc755a17f36`
 - `effect_class`: `remote_mutation`
-- `state_before`: plano `Em Execução`; itens 1 e 2 integrados (PR #25 `f8106a5`, PR #26 `e8b79b5`), task #21 ainda `Aguardando integração`; issue #22 aberta, sem task, branch ou código.
-- `state_after`: item 3 implementado e testado localmente; task #21 reconciliada como `Concluída`; ADR-006 e runbook registrados; PR #27 aberta de `feature/issue-22`; task #22 `Aguardando integração`.
+- `state_before`: plano `Em Execução`; itens 1 a 4 integrados (PRs #25 a #28); task #23 ainda `Aguardando integração`; issue #24 aberta, sem task, branch ou código.
+- `state_after`: parte 1 do item 5 implementada e testada localmente; task #23 reconciliada como `Concluída`; task #24 `Aguardando integração`; PR técnica #29 aberta.
 - `result`: `executed`
-- `evidence`: autorização literal "autorizo a implementação da issue #22" em 2026-11-07; PR #27 real; evidências em `003_task_issue-22.md`.
-- `blockers`: nenhum para a entrega publicada; integração exige checks verdes e "aprovo o merge da PR #27". Itens 4 e 5 não iniciados.
+- `evidence`: autorização literal "autorizo a implementação da issue #24" em 2026-11-07; evidências em `003_task_issue-24.md`.
+- `blockers`: nenhum para publicar. A parte 2 exige a PR técnica integrada, as ações externas do responsável por etapa e, para verificar, "autorizo a verificação em produção do ciclo 003".
+
+### Registro anterior — item 3
+
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-22/item-3 + e8b79b5a332089eeefe67feb67c8a7ae8be085e6`
+- `result`: `executed`; PR #27 integrada em 2026-11-08 (`9094b03`). Item 4 então não iniciado; a partir daí, registrado em `003_task_issue-23.md` (PR #28, `68f3dc2`).
 
 ### Registro anterior — item 2
 
