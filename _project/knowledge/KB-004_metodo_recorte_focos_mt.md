@@ -15,7 +15,7 @@ origin_cycle: "003"
 
 ## Finalidade
 
-Registra como a CLI `scripts/prototipo/` obtém, valida, recorta, agrega e qualifica as detecções `AQUA_M-T` de Mato Grosso para o protótipo do ciclo `003`. É consultada por quem implementar o banco, a carga e a interface (itens 2 a 4) e por quem revisar G1. As medições e números da primeira execução ficam em `_project/drafts/003_implementacao_prototipo/003_research_medicao_recorte.md` (depois do encerramento, em `executed/`).
+Registra como a CLI `scripts/prototipo/` obtém, valida, recorta, agrega e qualifica as detecções `AQUA_M-T` de Mato Grosso para o protótipo do ciclo `003`. É consultada por quem implementar o banco, a carga e a interface (itens 2 a 4) e por quem revisar G1. As medições e números da primeira execução ficam em `_project/executed/003_implementacao_prototipo/003_research_medicao_recorte.md`.
 
 ## Limite de autoridade
 
@@ -69,7 +69,7 @@ Reaproveita da prova `001`, sem alterá-los: `geo.mjs` (ponto no polígono), `sa
 | INPE — avisos | Histórico de lacunas | https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/ | SHA-256 `6f6994ac…65d0` (2026-11-07) | Não declara ser exaustivo |
 | IBGE — malhas API v4 e localidades | Território | https://servicodados.ibge.gov.br/api/docs/malhas?versao=4 | SHA-256 por item em `fontes.json` | Malha aproximada; IBGE não define limites legais |
 | NASA MODAPS — interrupções MODIS/Aqua | Conferência do histórico | https://modaps.modaps.eosdis.nasa.gov/services/production/outages_aqua.html | SHA-256 `ed297da7…a0a7` (2026-11-07) | Cadeia da NASA; não delimita área nem representa a recepção do INPE |
-| Plano `003` | Regras de método | `_project/drafts/003_implementacao_prototipo/003_plan.md` (depois, `executed/`) | v4 aprovado em 2026-11-05 | Autoridade das regras; esta KB não a substitui |
+| Plano `003` | Regras de método | `_project/executed/003_implementacao_prototipo/003_plan.md` | v4 aprovado em 2026-11-05 | Autoridade das regras; esta KB não a substitui |
 
 ## Histórico
 

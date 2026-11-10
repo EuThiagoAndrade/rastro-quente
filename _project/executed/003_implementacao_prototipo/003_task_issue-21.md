@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#21`
-> **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
+> **Plano:** `_project/executed/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-21`
 > **PR:** [#26](https://github.com/EuThiagoAndrade/rastro-quente/pull/26)
 > **Integração:** `PR #26 integrada em main em 2026-11-07 (e8b79b5); Governance aprovado na PR (Validate governance e Database RLS and query contract)`
@@ -152,10 +152,10 @@ Alternativas apresentadas:
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 003 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 003 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 003"
+Diga: —
 ```
 
 ## Handoff de saída

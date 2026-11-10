@@ -87,11 +87,11 @@ Reconstrução medida com a carga real (`node scripts/banco/reconstruir.mjs`, m�
 | Abertura sem geometria / com geometria do conjunto (`intermediaria`) | 2 requisições, 28,6 KB bruta / 3 requisições, 1.013 KB bruta (268 KB gzip estimado) |
 | Consultas do RP (bruta; tempo) | resumo da janela 22 KB, 88 ms; detecções, página de 1.000, 360 KB, 28 ms; disponibilidade por município, 365 dias, 87 KB, 24 ms |
 
-O Supabase local **não comprime** respostas: "bruta" é o tamanho que trafegou; "gzip estimado" é `gzip -6` local e não prova o tráfego hospedado. O egress real depende da compressão do destino e será medido no item 5. A representação `intermediaria` foi mantida pelo item 4, com a conferência em celular (seção 10 e ADR-007). Estas medidas valem para o recorte de 12 meses de AQUA_M-T em MT, em máquina local.
+O Supabase local não comprime as respostas. “Bruta” é o tamanho que trafegou, e “gzip estimado” é a estimativa com `gzip -6` local. Os indicadores hospedados estão na seção 11. A representação `intermediaria` foi mantida pelo item 4, com a conferência em celular (seção 10 e ADR-007). Estas medidas valem para o recorte de 12 meses de AQUA_M-T em MT em máquina local.
 
 ## 9. Fora do que foi provado
 
-Banco hospedado, quotas e preços do provedor, disponibilidade contínua, restauração de Auth e segredos, `pg_dump` e `VACUUM FULL`, compressão e egress reais, compressão e egress reais no destino, Google OAuth real, medição em celular fora da emulação e carga com mais de um satélite ou de outra janela.
+Disponibilidade contínua, pausa e retomada no projeto Free, restauração de Auth e segredos, `pg_dump` e `VACUUM FULL`, compressão e consumo sob uso contínuo, medição em celular fora da emulação e carga com mais de um satélite ou de outra janela.
 
 ## 10. Guia da interface
 
@@ -168,13 +168,13 @@ Na raiz do repositório, em `main` atualizada e limpa, na sua máquina:
 ```bash
 npx supabase login
 npx supabase link --project-ref <REF>
-npx supabase db push --dry-run
+npx supabase db push --linked --dry-run
 ```
 
 O `login` usa um token pessoal e o `link` pede a senha do banco (ou `SUPABASE_DB_PASSWORD` no seu processo). Nenhum dos dois vai ao agente, à Vercel ou à CI. O `--dry-run` deve listar **exatamente** as migrações de `supabase/migrations/`, em ordem, e nenhuma outra. Envie a lista ao agente. Divergência, projeto já com histórico ou pedido de reset/repair: pare.
 
 ```bash
-npx supabase db push
+npx supabase db push --linked
 ```
 
 Conferência no SQL Editor do painel (cole só os resultados; não há segredo neles):
@@ -259,6 +259,12 @@ Reexecutar o mesmo `apply` é seguro (reconcilia pela identidade). Não existe `
 ### Depois da carga
 
 O agente pede a frase **"autorizo a verificação em produção do ciclo 003"** e só então executa o roteiro previsto no plano: login do responsável, bloqueio de anônimo e de "outro autenticado", filtros e contagens contra o total de referência, mapa, tabela, proveniência e estados. A inspeção do bundle publicado e as chamadas anônimas diretas à API entram nessa verificação.
+
+### Primeira operação hospedada
+
+Em 2026-11-10, a carga inicial da janela GMT de novembro de 2025 a outubro de 2026 levou 20,6 s. O banco lógico passou de 11,9 MB para 29,5 MB (`pg_database_size`), com 10.640 detecções em 142 municípios. Identidade, contagens e hashes das cinco tabelas coincidiram com a reprodução local. Depois da carga, o responsável fechou o `LOGIN` do EX, confirmou a auditoria vazia e conferiu a lista de extensões.
+
+Após a verificação, o painel exibiu Database Size de 0,045/0,5 GB, Egress de 0/5 GB (menos de 1%) e Cached Egress de 0/5 GB. Os valores refletem a precisão e o período exibidos pelo painel. A interface confirmou o login do responsável, as contagens de Mato Grosso e Colniza e o bloqueio da segunda conta. A API bloqueou as consultas anônimas testadas. A reconstrução local levou 5,8 s.
 
 ### Pausa e retomada (não simuladas)
 

@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#20`
-> **Plano:** `_project/drafts/003_implementacao_prototipo/003_plan.md`
+> **Plano:** `_project/executed/003_implementacao_prototipo/003_plan.md`
 > **Branch:** `feature/issue-20`
 > **PR:** [#25](https://github.com/EuThiagoAndrade/rastro-quente/pull/25)
 > **Integração:** `PR #25 integrada em main em 2026-11-07 (f8106a5); Governance aprovado na PR e em main`
@@ -101,10 +101,10 @@ Não se aplica. Primeira issue de ciclo completo.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 003 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 003 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 003"
+Diga: —
 ```
 
 ## Handoff de saída

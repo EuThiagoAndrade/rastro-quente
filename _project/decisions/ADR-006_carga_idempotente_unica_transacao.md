@@ -81,6 +81,6 @@ Com essa folga (45,9 MB de banco lógico no pico contra o teto de 400 MB) e 2 s 
 
 ## Referências
 
-- Plano `_project/drafts/003_implementacao_prototipo/003_plan.md`, item 3, e task `003_task_issue-22.md`.
+- Plano `_project/executed/003_implementacao_prototipo/003_plan.md`, item 3, e task `003_task_issue-22.md`.
 - [ADR-005](ADR-005_banco_autorizacao_prototipo.md) e [KB-004](../knowledge/KB-004_metodo_recorte_focos_mt.md).
 - `docs/runbook.md`, `scripts/banco/carga.mjs`, `manifesto.mjs`, `carga.test.mjs`, `reconstrucao.test.mjs`, `medir-carga.mjs`, `reconstruir.mjs`.

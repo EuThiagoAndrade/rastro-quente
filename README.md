@@ -2,9 +2,9 @@
 
 Análise territorial de detecções de calor e seleção explicável de áreas para avaliação técnica. Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.
 
-Projeto em fundação local; materiais privados permanecem em `local/`.
+O protótipo está publicado na Vercel Hobby, com banco no Supabase Free e login Google. A consulta é restrita à conta autorizada. A carga inicial cobre 10.640 detecções `AQUA_M-T` em 142 municípios de Mato Grosso, de novembro de 2025 a outubro de 2026 em GMT. Materiais privados permanecem em `local/`.
 
-Governança implantada pelo ciclo `000` (PR #1 integrada em `main`). A aplicação web existe só localmente e o banco não está hospedado (abaixo).
+Governança implantada pelo ciclo `000` (PR #1 integrada em `main`).
 
 Com Node.js 24 ou superior, sem instalar dependências:
 
@@ -21,6 +21,6 @@ Carga local de dados (ciclo `003`, issue #22): `node scripts/banco/carga.mjs <pl
 
 Interface de consulta (ciclo `003`, issue #23): aplicação estática Vite + TypeScript + Leaflet com login Google (Supabase Auth). `npm ci`, `npm run typecheck`, `npm run build` (precisa de `VITE_SUPABASE_URL` e `VITE_SUPABASE_CHAVE_PUBLICAVEL`; ver `.env.example`), `npm run test:interface` (contraste, lógica e inspeção do bundle) e `npm run test:e2e` (Playwright com Chrome do sistema, Supabase local, Auth local e dados fictícios). `npm run medir:interface` mede a geometria em celular com a carga real local. Decisão em `_project/decisions/ADR-007_interface_consulta_prototipo.md`; guia da interface em `docs/runbook.md`.
 
-Implantação (ciclo `003`, issue #24): `vercel.json` (build estático, CSP e cabeçalhos; só `main` gera deploy) e o roteiro do responsável em `docs/runbook.md`, seção 11. Nada está implantado ainda: contas, banco hospedado, Google OAuth e carga dependem das ações externas do roteiro.
+Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.
