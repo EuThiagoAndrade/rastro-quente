@@ -1,10 +1,10 @@
 # Plano de Implementação — Fundação e implementação do protótipo
 
 > **Ciclo:** `003`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v4`
 > **Data de criação:** 2026-11-05
-> **Última atualização:** 2026-11-07
+> **Última atualização:** 2026-11-10
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -411,13 +411,24 @@ Fontes consultadas em 2026-11-05. Documentação de suporte não comprova config
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 003 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/29 (item 5), incluindo a migração que revoga service_role
-Diga: "aprovo o merge da PR #29"
+Situação: Concluído — ciclo 003 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + atualizar_docs + encerramento + b376c989a830dd258d37a2613fa22a2b76fa9465`
+- `effect_class`: `local_mutation`
+- `state_before`: ciclo em execução, PRs #25 a #29 integradas, operação hospedada verificada e testes aceitos pelo responsável.
+- `state_after`: encerramento prospectivo com plano, tasks e relatório em `executed/`. A integração efetiva depende da PR de encerramento.
+- `result`: `executed`
+- `evidence`: task #24 reúne a carga, o acesso e as medições. A task de encerramento registra a conferência das entregas.
+- `blockers`: integração condicionada aos checks e à aprovação específica da PR de encerramento.
+
+### Registro anterior — item 5, parte técnica
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 003 + implementar_issue + issue-24/item-5-parte-1 + 68f3dc2d0b54fc0cd3f7c5e7e461dbc755a17f36`
@@ -787,9 +798,9 @@ Nenhum bloqueador ou ressalva nova.
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
-- **Lições comprovadas:** —
+- **Conclusão prospectiva:** efetiva após o merge da PR de encerramento. Em 2026-11-10, o responsável aceitou os testes técnicos. As decisões sobre funcionalidades e interface ficam para discussão posterior.
+- **Resultado:** primeira carga hospedada em 20,6 s, com 10.640 detecções `AQUA_M-T` em 142 municípios de Mato Grosso de novembro de 2025 a outubro de 2026. As contagens, o login do responsável, o bloqueio de outra conta na interface e a negativa anônima na API foram conferidos.
+- **Desvios e limites:** a conexão ao banco pela rede corporativa foi interrompida durante o TLS. As operações pela porta 5432 foram realizadas em rede alternativa autorizada. A reconstrução foi exercitada localmente. Pausa e retomada e restauração de Auth permanecem sem ensaio no destino.
 
 ## Referência do bootstrap
 

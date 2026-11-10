@@ -110,6 +110,6 @@ Sem Docker ou sem permissão para instalá-lo gratuitamente, a situação vira `
 
 ## Referências
 
-- Plano `_project/drafts/003_implementacao_prototipo/003_plan.md` (item 2, matriz de acesso, contrato de dados) e task `003_task_issue-21.md`.
+- Plano `_project/executed/003_implementacao_prototipo/003_plan.md` (item 2, matriz de acesso, contrato de dados) e task `003_task_issue-21.md`.
 - `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` e relatório `003_research_medicao_recorte.md` (volume do item 1).
 - [Supabase — desenvolvimento local](https://supabase.com/docs/guides/local-development), [RLS](https://supabase.com/docs/guides/database/postgres/row-level-security) e [papéis](https://supabase.com/docs/guides/database/postgres/roles), lidos para o plano em 2026-11-05. O comportamento efetivo (privilégios padrão, `CREATEROLE` do `postgres`, códigos HTTP do PostgREST e login por e-mail do Auth) foi conferido na pilha local da CLI `2.122.1` (Postgres 17.11), não na documentação.
