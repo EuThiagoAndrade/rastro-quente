@@ -192,19 +192,39 @@ Detalhe que o plano deve fechar, sem alterar as decisões: como a lente de recor
 - ~~Decisão de A7, com G2~~: atendido. L3 e G2 = Não, condicionado a não surgir função, tabela ou política nova.
 - ~~Contrato (A6) decidido~~: atendido (C1).
 - Pendente no plano: casos de referência independentes para cada lente e para o contrato, e as verificações listadas em "Decisões do responsável".
-- Pendente do responsável: a autorização "autorizo o rascunho do plano do ciclo 004".
+- ~~Autorização do rascunho~~: recebida em 2026-11-10 ("Autorizo o rascunho do plano do ciclo 004").
 
 ## Próximo passo
 
+A autorização do rascunho foi recebida em 2026-11-10: **"Autorizo o rascunho do plano do ciclo 004"**. Antes de redigir, o autor perguntou sobre quatro detalhes de método que esta ideação não fechava, com recomendação, alternativas e exemplo numérico. O responsável escolheu a recomendação nos quatro:
+
+- D13: união conservadora na cobertura de célula;
+- D14: o mês tocado conta na recorrência;
+- D15: o foco observado em dia indeterminado conta na persistência;
+- D16: os empatados no corte N=10 entram.
+
+As decisões, com exemplos, estão no plano. O rascunho único foi criado em `_project/drafts/004_contrato_lentes_selecao/004_plan.md`, que passa a ser o artefato ativo do ciclo em `Planejamento`.
+
 ```text
 PRÓXIMO PASSO
-Situação: Ideação registrada — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Decisões do responsável (Q1 a Q12), G2 = Não e verificações que o plano deve fazer
-Diga: "autorizo o rascunho do plano do ciclo 004"
+Situação: Aguardando revisão (rodada 1) — ciclo 004 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 004"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v1@c51ad73`
+- `effect_class`: `local_mutation`
+- `state_before`: ideação em `Ideação`, com Q1 a Q12 decididas, commitada localmente em `c51ad73` (`chore/cycle-004-ideation`); sem plano.
+- `state_after`: autorização do rascunho e decisões D13 a D16 registradas; plano `v1` em `Rascunho` criado; ciclo em `Planejamento`; branch local `chore/cycle-004-plan`. Nenhuma publicação.
+- `result`: `executed`
+- `evidence`: frase de autorização e respostas do responsável às quatro perguntas, em 2026-11-10; handoff completo no plano.
+- `blockers`: nenhum para a redação; revisão formal pendente.
+
+### Registro anterior — ideação
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 004 + idear + contrato_lentes_selecao + 85b444d`
