@@ -8,8 +8,21 @@ const COR_DETECCAO = '#f97316';
 const COR_BORDA_PONTO = '#fff7ed';
 const COR_LIMITE = '#6f9a88';
 const COR_SELECAO = '#93c5fd';
+const COR_DESTAQUE = '#fde68a';
+
+/** Destaque de lente no mapa: contorno do município (geometria de exibição) ou retângulo da célula. */
+export interface DestaqueMapa {
+  id: string;
+  geometria?: unknown;
+  retangulo?: [[number, number], [number, number]];
+}
 
 export interface Mapa {
+  definirDestaques(itens: DestaqueMapa[]): void;
+  selecionarDestaque(id: string | null): void;
+  limparDestaques(): void;
+  enquadrarDestaques(): void;
+  aoSelecionarDestaque(f: (id: string) => void): void;
   definirPontos(registros: Registro[]): void;
   definirLimites(limites: Limite[], selecionado: number | null): void;
   limparLimites(): void;
@@ -19,7 +32,7 @@ export interface Mapa {
   permitirArrastar(ativo: boolean): void;
   arrastoAtivo(): boolean;
   aoSelecionar(f: (id: string) => void): void;
-  contagem(): { pontos: number; limites: number };
+  contagem(): { pontos: number; limites: number; destaques: number };
 }
 
 export function criarMapa(elemento: HTMLElement): Mapa {
@@ -31,6 +44,12 @@ export function criarMapa(elemento: HTMLElement): Mapa {
   mapa.setView([-13, -56], 5);
 
   const camadaLimites = L.layerGroup().addTo(mapa);
+  // Destaques da lente: camada própria, separada dos pontos da página de registros. A limpeza da
+  // consulta comum (limparTudo) não a toca; o controlador limpa a lente explicitamente.
+  const camadaDestaques = L.layerGroup().addTo(mapa);
+  const destaques = new Map<string, L.Rectangle | L.GeoJSON>();
+  let destaqueSelecionado: string | null = null;
+  let aoSelecionarDestaqueF: (id: string) => void = () => {};
   const camadaPontos = L.layerGroup().addTo(mapa);
   const camadaSelecao = L.layerGroup().addTo(mapa);
   const marcadores = new Map<string, L.CircleMarker>();
@@ -60,7 +79,54 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     return true;
   }
 
+  // Destaque comum: contorno contínuo; selecionado: tracejado azul claro mais grosso (não só cor).
+  const estiloDestaque = (selecionado: boolean): L.PathOptions => selecionado
+    ? { color: COR_SELECAO, weight: 4, dashArray: '8 5', fillColor: COR_SELECAO, fillOpacity: 0.2 }
+    : { color: COR_DESTAQUE, weight: 2, fillColor: COR_DESTAQUE, fillOpacity: 0.08 };
+
   return {
+    definirDestaques(itens) {
+      camadaDestaques.clearLayers();
+      destaques.clear();
+      destaqueSelecionado = null;
+      for (const item of itens) {
+        let camada: L.Rectangle | L.GeoJSON | null = null;
+        if (item.retangulo) camada = L.rectangle(item.retangulo, estiloDestaque(false));
+        else if (item.geometria) camada = L.geoJSON(item.geometria as never, { style: estiloDestaque(false) });
+        if (!camada) continue;
+        camada.on('click', () => aoSelecionarDestaqueF(item.id));
+        camada.addTo(camadaDestaques);
+        destaques.set(item.id, camada);
+      }
+    },
+    selecionarDestaque(id) {
+      if (destaqueSelecionado !== null) destaques.get(destaqueSelecionado)?.setStyle(estiloDestaque(false));
+      destaqueSelecionado = null;
+      const c = id === null ? undefined : destaques.get(id);
+      if (!c || id === null) return;
+      destaqueSelecionado = id;
+      c.setStyle(estiloDestaque(true));
+      c.bringToFront();
+      const b = c.getBounds();
+      if (b.isValid()) mapa.fitBounds(b, { padding: [24, 24], maxZoom: 11, animate: false });
+    },
+    limparDestaques() {
+      camadaDestaques.clearLayers();
+      destaques.clear();
+      destaqueSelecionado = null;
+    },
+    enquadrarDestaques() {
+      mapa.invalidateSize();
+      let alvo: L.LatLngBounds | null = null;
+      for (const c of destaques.values()) {
+        const b = c.getBounds();
+        if (b.isValid()) alvo = alvo ? alvo.extend(b) : b;
+      }
+      if (alvo?.isValid()) mapa.fitBounds(alvo, { padding: [24, 24], maxZoom: 11, animate: false });
+    },
+    aoSelecionarDestaque(f) {
+      aoSelecionarDestaqueF = f;
+    },
     definirPontos(registros) {
       camadaPontos.clearLayers();
       camadaSelecao.clearLayers();
@@ -119,6 +185,6 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     aoSelecionar(f) {
       aoSelecionarF = f;
     },
-    contagem: () => ({ pontos: marcadores.size, limites: camadaLimites.getLayers().length }),
+    contagem: () => ({ pontos: marcadores.size, limites: camadaLimites.getLayers().length, destaques: destaques.size }),
   };
 }

@@ -1,0 +1,118 @@
+// Contrato de lente de seleção C1 (plano 004, KB do ciclo 004). Todo resultado é função pura de:
+// carga, janela, parâmetros fixos, registros principais da janela e disponibilidade dos municípios.
+// Mesma entrada, mesma saída, com ordem estável. Destaques orientam avaliação técnica; não comprovam
+// incêndio, dano, autoria ou infração.
+import type { ClasseDisponibilidade } from '../tipos.ts';
+
+/** Muda junto com qualquer parâmetro ou regra (nova decisão de G1 e novo plano). */
+export const VERSAO_METODO = 'lentes-004-v1';
+
+export type TipoLente = 'concentracao' | 'recorrencia' | 'persistencia';
+
+/** Registro principal da janela, como devolvido por `consultar_deteccoes`. */
+export interface RegistroLente {
+  id_tecnico: string;
+  data_hora_gmt: string;
+  latitude: number;
+  longitude: number;
+  municipio_codigo: number;
+}
+
+/** Dia de disponibilidade D1 de um município, já validado pela integridade T3. */
+export interface DiaLente {
+  dia: string;
+  classe: ClasseDisponibilidade;
+  motivos: string[];
+}
+
+/** Disponibilidade por município: dias validados, ou a falha de leitura daquele município. */
+export type DisponibilidadeMunicipio = { estado: 'ok'; dias: Map<string, DiaLente> } | { estado: 'falha'; motivo: string };
+
+export interface Janela {
+  inicio: string;
+  fim: string;
+}
+
+export interface CargaLente {
+  id: number;
+  identidade: string;
+}
+
+export type Unidade =
+  | { tipo: 'municipio'; codigo: number; nome: string }
+  | { tipo: 'celula_005'; id: string; sul: string; oeste: string; norte: string; leste: string };
+
+/** Dia que não está `sem_evidencia_de_lacuna`, com a classe da unidade (T7) e a de cada município. */
+export interface DiaRestritivo {
+  dia: string;
+  classe: Exclude<ClasseDisponibilidade, 'sem_evidencia_de_lacuna'>;
+  municipios: { codigo: number; classe: ClasseDisponibilidade; motivos: string[] }[];
+}
+
+export type Cobertura =
+  | { estado: 'pendente'; municipios: number[] }
+  | { estado: 'falha'; municipios: number[]; motivo: string }
+  | {
+    estado: 'completa';
+    municipios: number[];
+    dias_janela: number;
+    dias_sem_evidencia_de_lacuna: number;
+    demais_dias: DiaRestritivo[];
+  };
+
+export interface Destaque {
+  /** Lente + unidade (+ dia inicial na persistência). Com carga, janela e versão, chave para a combinação futura. */
+  id_destaque: string;
+  unidade: Unidade;
+  motivo: string;
+  evidencia: { deteccoes: string[]; valor: number; datas: string[] };
+  ordem?: number;
+  cobertura: Cobertura;
+  ressalvas: string[];
+}
+
+export interface Parametro {
+  nome: string;
+  valor: string;
+}
+
+export interface ResultadoLente {
+  lente: TipoLente;
+  versao_metodo: string;
+  carga: CargaLente;
+  janela: Janela & { referencia: 'dias GMT inclusivos' };
+  recorte: { tipo: 'estado'; municipio: null };
+  parametros: Parametro[];
+  estado: 'com_destaques' | 'sem_destaques' | 'janela_insuficiente';
+  ordenacao: null | { criterio: string; rotulo: string };
+  /** Observações sobre o corte (por exemplo, empatados incluídos). */
+  observacoes: string[];
+  destaques: Destaque[];
+  conferencia: { registros_lidos: number; ids_distintos: number; total_resumo: number };
+  limitacoes: string[];
+}
+
+/** Entrada comum das lentes: registros já lidos e conferidos pelo carregador. */
+export interface EntradaLente {
+  carga: CargaLente;
+  janela: Janela;
+  registros: RegistroLente[];
+  totalResumo: number;
+  nomes: Map<number, string>;
+}
+
+/** Leitura inconsistente: a lente não é exibida (sem destaques parciais). */
+export class ErroLente extends Error {
+  readonly tipo = 'leitura_inconsistente' as const;
+}
+
+export const AVISO_DOMINIO =
+  'Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração.';
+
+export const LIMITACOES_COMUNS = [
+  AVISO_DOMINIO,
+  'Contagem principal em dias GMT; a sensibilidade America/Cuiaba aparece só no resumo da consulta.',
+  'Disponibilidade não comprova cobertura.',
+];
+
+export const ROTULO_ORDENACAO = 'ordenado por contagem de detecções, não por prioridade, gravidade ou risco';

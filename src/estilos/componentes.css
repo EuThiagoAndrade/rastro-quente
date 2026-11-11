@@ -343,3 +343,28 @@ tr.selecionada td {
 .cartao :where(p, dd, dt, li, label, summary, h2, h3) {
   overflow-wrap: anywhere;
 }
+
+/* Lentes de seleção (ciclo 004): lista de destaques e painel de motivo e evidência, reaproveitando
+   os botões de nome e as etiquetas existentes; sem novo design. */
+.destaques {
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.destaques li {
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--contorno-suave);
+}
+
+.painel-lente {
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+  border: 2px solid var(--contorno);
+  border-radius: var(--raio-pequeno);
+  background: var(--superficie-suave);
+}
+
+.painel-lente h3 {
+  font-size: var(--t-medio);
+}

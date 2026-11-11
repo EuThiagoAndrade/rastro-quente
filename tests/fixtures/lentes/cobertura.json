@@ -1,0 +1,52 @@
+{
+  "descricao": "Casos de referência fictícios do qualificador de cobertura (plano 004, V-1, V-2 e V-4). Só os dias que não estão sem evidência de lacuna são listados; os demais dias da janela são sem evidência de lacuna. Valores esperados escritos à mão.",
+  "casos": [
+    {
+      "id": "V-1",
+      "janela": { "inicio": "2026-08-01", "fim": "2026-10-29" },
+      "municipios": [9910001],
+      "restritivos": {
+        "9910001": [
+          ["2026-08-03", "incidencia_indeterminada"], ["2026-08-17", "incidencia_indeterminada"],
+          ["2026-09-01", "incidencia_indeterminada"], ["2026-09-02", "incidencia_indeterminada"],
+          ["2026-10-10", "incidencia_indeterminada"], ["2026-10-29", "incidencia_indeterminada"]
+        ]
+      },
+      "esperado": {
+        "texto": "84 de 90 dias sem evidência de lacuna (cobertura não comprovada)",
+        "demais": [
+          ["2026-08-03", "incidencia_indeterminada"], ["2026-08-17", "incidencia_indeterminada"],
+          ["2026-09-01", "incidencia_indeterminada"], ["2026-09-02", "incidencia_indeterminada"],
+          ["2026-10-10", "incidencia_indeterminada"], ["2026-10-29", "incidencia_indeterminada"]
+        ]
+      }
+    },
+    {
+      "id": "V-2",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-10" },
+      "municipios": [9910001, 9910002],
+      "restritivos": {
+        "9910001": [["2026-10-03", "incidencia_indeterminada"]],
+        "9910002": [["2026-10-07", "lacuna_conhecida"]]
+      },
+      "esperado": {
+        "texto": "8 de 10 dias sem evidência de lacuna (cobertura não comprovada)",
+        "demais": [["2026-10-03", "incidencia_indeterminada"], ["2026-10-07", "lacuna_conhecida"]]
+      }
+    },
+    {
+      "id": "V-4",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-10" },
+      "municipios": [9910001, 9910002],
+      "restritivos": {
+        "9910001": [["2026-10-07", "lacuna_conhecida"]],
+        "9910002": [["2026-10-07", "incidencia_indeterminada"]]
+      },
+      "esperado": {
+        "texto": "9 de 10 dias sem evidência de lacuna (cobertura não comprovada)",
+        "demais": [["2026-10-07", "lacuna_conhecida"]],
+        "municipios_do_dia": [[9910001, "lacuna_conhecida"], [9910002, "incidencia_indeterminada"]]
+      }
+    }
+  ]
+}
