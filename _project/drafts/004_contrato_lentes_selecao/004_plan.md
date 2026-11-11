@@ -2,9 +2,9 @@
 
 > **Ciclo:** `004`
 > **Status:** `Em Revisão`
-> **Versão:** `v1`
+> **Versão:** `v2`
 > **Data de criação:** 2026-11-10
-> **Última atualização:** 2026-11-10
+> **Última atualização:** 2026-11-11
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -16,6 +16,8 @@
 > **handoff_schema_version:** `2`
 
 **Autorização do rascunho:** "Autorizo o rascunho do plano do ciclo 004", em 2026-11-10. Autor: Claude Code (Opus 5.5). Antes de redigir, o autor apresentou quatro detalhes de método que a ideação deixou abertos, cada um com recomendação, alternativas e exemplo numérico. O responsável escolheu a opção recomendada nos quatro (decisões D13 a D16 abaixo). Essas escolhas não são aprovação do plano após revisão, nem autorização de issue ou de implementação.
+
+**Autorização da correção — v2, 2026-11-11:** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 integralmente e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova foi tomada nesta correção. A escolha do recorte espacial (M1, antes T2) e os detalhes T1 e T3 a T7 seguem como propostas a ratificar na aprovação, com alternativas e exemplos numéricos.
 
 ## Problema e contexto
 
@@ -89,7 +91,21 @@ Perguntas feitas antes do rascunho, com recomendação, alternativas e exemplo n
 | **D15 — Dia indeterminado com foco na persistência** | **Foco observado conta.** Um dia com detecção na célula entra na sequência, qualquer que seja sua classe, com a ressalva "inclui dia indeterminado". Só um dia **sem** detecção interrompe a sequência. Se esse dia for indeterminado ou lacuna, gera a ressalva "sequência adjacente a dia indeterminado; pode ser mais longa". | Focos nos dias 10, 11 e 12, com o 11 indeterminado → sequência de 3 dias, destacada com ressalva. |
 | **D16 — Empate no corte N=10 da concentração** | **Incluir os empatados.** A lista pode passar de N e declara o motivo ("11 municípios por empate no 10º lugar"). Município com 0 detecções nunca entra. | 10º e 11º com 85 cada → ambos entram. |
 
-Consequência verificada de D15: como só dias sem detecção interrompem, **a disponibilidade não altera quais sequências são destacadas**, apenas as ressalvas. A seleção da persistência é o conjunto de sequências de 3 ou mais dias GMT consecutivos com detecção na célula.
+**D15 refina Q6.** Q6 diz que "um dia indeterminado interrompe a sequência". D15 delimita essa regra: interrompe o dia **sem detecção** na célula, qualquer que seja sua classe (`sem_evidencia_de_lacuna`, `incidencia_indeterminada` ou `lacuna_conhecida`). Um dia **com detecção** observada nunca interrompe. A classe observada de cada dia é preservada e exibida (ver "Ressalvas por classe" em "Regras por lente"); D15 não funde `lacuna_conhecida` com `incidencia_indeterminada`.
+
+Consequência verificada de D15: como só dias sem detecção interrompem, **a disponibilidade não altera quais sequências são destacadas**, apenas as ressalvas. A seleção da persistência é o conjunto de sequências de 3 ou mais dias GMT consecutivos com detecção na célula. O mesmo vale para as outras duas lentes: nenhuma seleção depende da disponibilidade, que só qualifica.
+
+### Escolha de método a ratificar — recorte espacial de entrada (M1)
+
+O filtro de município da consulta comum muda o conjunto de detecções que entra nas três lentes. Por isso é escolha de método (G1), e não detalhe técnico (R1-1). Exemplo fictício: janela de agosto a outubro, filtro em Colniza. O estado tem 10 detecções; Colniza, 4. A célula K fica na divisa: em Colniza tem detecções em agosto e setembro; no município vizinho, em outubro.
+
+| Opção | Entrada das lentes | Efeito no exemplo |
+| :-- | :-- | :-- |
+| **M1-a — Estado inteiro, ignorando o filtro (proposta)** | Todos os registros principais de MT na janela; a interface avisa que o filtro de município não se aplica às lentes | Concentração lista os municípios de MT (até 10, com empates); K tem 3 meses distintos (ago, set e out) e é destacada pela recorrência |
+| **M1-b — Só as detecções do município filtrado** | Registros com `municipio_codigo` igual ao filtro | Concentração mostra um único município, sem valor comparativo; K tem 2 meses (ago e set) e **não** é destacada, porque as detecções do vizinho foram cortadas |
+| **M1-c — Estado inteiro, exibindo só os destaques que tocam o município** | Cálculo como M1-a; a lista mostra só destaques com evidência no município filtrado | K é destacada (3 meses), mas a concentração continua sem sentido com um município; a lista muda conforme o filtro sem mudar o cálculo |
+
+Proposta: **M1-a**, porque mantém o resultado independente do filtro e não corta células na divisa. A escolha só vale com a aprovação do plano. Em qualquer opção, o resumo usado na conferência dos totais é o do mesmo recorte de entrada: em M1-a, `consultar_resumo` com `p_municipio: null`.
 
 ### Detalhes técnicos propostos para ratificação na aprovação
 
@@ -97,12 +113,21 @@ Não são novas regras analíticas de escolha livre: decorrem de Q3, Q6, Q8, Q12
 
 | Detalhe | Proposta | Exemplo | Alternativa considerada |
 | :-- | :-- | :-- | :-- |
-| **T1 — Grade de 0,05°** | Ancorada em 0° de latitude e 0° de longitude. A célula é o intervalo semiaberto `[k·0,05; (k+1)·0,05)` em cada eixo, com as bordas sul e oeste incluídas. Índices calculados por aritmética decimal exata (inteiros na escala das casas decimais da fonte, conferida na carga), nunca por divisão em ponto flutuante. | Latitude −15,05 → célula de −15,05 a −15,00. Latitude −15,0501 → célula de −15,10 a −15,05. Em ponto flutuante, `−56,05 / 0,05` dá `−1120,9999999999998`: o erro de arredondamento pode trocar a célula de um ponto na borda. | Outra âncora (por exemplo, o canto da caixa de MT) desloca todas as células sem ganho de método. |
-| **T2 — Abrangência espacial** | As três lentes rodam sobre o estado inteiro na janela da consulta. O filtro de município da consulta **não** se aplica às lentes, e a interface diz isso. | Consulta de Colniza em outubro → a concentração mostra os municípios de MT em outubro, com aviso. | Restringir a lente ao município filtrado anula a concentração e corta células na divisa. |
-| **T3 — Dia sem linha de disponibilidade** | Um município-dia sem linha em `disponibilidade` conta contra a cobertura e aparece como "sem informação de disponibilidade" (conservador, como D13). A conferência mede se o caso ocorre na carga real. | Janela de 10 dias, 1 dia sem linha → "9 de 10 dias…" e o dia listado. | Ignorar o dia infla a cobertura. |
+| **T1 — Grade de 0,05°** | Ancorada em 0° de latitude e 0° de longitude. A célula é o intervalo semiaberto `[k·0,05; (k+1)·0,05)` em cada eixo, com as bordas sul e oeste incluídas. Índices calculados por aritmética decimal exata sobre o **valor canônico** definido abaixo, nunca por divisão em ponto flutuante. | Latitude −15,05 → célula de −15,05 a −15,00. Latitude −15,0501 → célula de −15,10 a −15,05. Em ponto flutuante, `−56,05 / 0,05` dá `−1120,9999999999998`: o erro de arredondamento pode trocar a célula de um ponto na borda. | Outra âncora (por exemplo, o canto da caixa de MT) desloca todas as células sem ganho de método. |
+| **T2 — (substituído)** | Passou a ser a escolha de método M1, acima, por R1-1. | — | — |
+| **T3 — Integridade da disponibilidade lida** | Não é regra de cobertura. A publicação garante a grade D1 completa: uma linha por município e dia GMT da janela, no satélite da carga (RS-3, `20261107230000_correcoes_revisao_g2.sql`). Uma resposta de `consultar_disponibilidade` com dia faltante, repetido, fora da janela ou de outro satélite é **falha de leitura**, não evidência: o qualificador do município fica `falha`, sem "N de M", com a ação "Tentar de novo". | Janela de 10 dias e resposta com 9 linhas → "cobertura não verificada: leitura incompleta", e não "9 de 10". | Contar o dia faltante contra a cobertura (v1) esconderia uma leitura incompleta sob um número plausível. |
 | **T4 — Sequência na borda da janela** | Persistência que começa no primeiro dia ou termina no último dia da janela recebe a ressalva "sequência no limite da janela; pode ser mais longa". A ressalva não muda a seleção. | Janela de 01/10 a 31/10, focos em 01, 02 e 03/10 → destacada, com ressalva. | Sem ressalva, o usuário lê como início real. |
 | **T5 — Ordem sem ranking** | Recorrência: código da célula (norte→sul, depois oeste→leste). Persistência: data de início da sequência, depois código da célula. Concentração: contagem decrescente, com empate por nome do município e depois por código IBGE, **só para exibição**, porque o corte já incluiu todos os empatados (D16). | — | Ordenar recorrência pelo número de meses pareceria ranking (vedado por Q8). |
 | **T6 — Várias sequências na mesma célula** | Cada sequência de 3 ou mais dias é um destaque próprio, identificado pela célula e pelo dia inicial. | Célula com 05–07/08 e 20–23/08 → 2 destaques. | Um destaque por célula, com a lista de sequências, perde a identidade por evento para a combinação futura. |
+| **T7 — Classe do dia da célula** | O dia da célula recebe a classe mais restritiva entre os municípios considerados (precedência D1: `lacuna_conhecida` > `incidencia_indeterminada` > `sem_evidencia_de_lacuna`). O painel lista, por município, a classe e os motivos daquele dia, sem fundir motivos. | No dia 7, A tem `lacuna_conhecida` e B tem `incidencia_indeterminada` → o dia da célula é "lacuna conhecida"; o painel mostra A (lacuna, motivos de A) e B (indeterminada, motivos de B). | Tratar toda classe diferente de "sem evidência" como "indeterminado" (v1) rotularia errado um dia de lacuna conhecida. |
+
+**Valor canônico das coordenadas (T1, R1-2).** A fonte traz texto com 6 casas decimais (por exemplo, o valor fictício `-12.345670`). A carga converte esse texto para `Number` (`scripts/banco/manifesto.mjs`), o banco guarda `double precision` e a RPC devolve número JSON. O valor canônico no cliente é a **representação decimal mais curta que reconstrói o mesmo `double`**: a de `Number.prototype.toString` em JavaScript, que é também a usada pelo PostgreSQL desde a versão 12 na saída de `double precision` com `extra_float_digits` padrão. Para textos de até 15 algarismos significativos, essa representação é igual ao texto da fonte, sem os zeros à direita (`-12.345670` → `-12.34567`). O módulo:
+
+- converte a string canônica para inteiro decimal (sinal, parte inteira e parte fracionária, sem passar por multiplicação em ponto flutuante) e calcula o índice com divisão inteira com piso;
+- rejeita como entrada inválida, sem classificar, a coordenada cuja string canônica use notação exponencial, não seja finita ou tenha mais de 15 algarismos significativos. A precisão não preservada aparece assim como erro explícito, e não como célula silenciosamente diferente;
+- é testado nos dois lados de cada borda com coordenadas negativas (caso G-1).
+
+A conferência independente compara, **por `id_tecnico`**, a célula calculada em SQL a partir do texto decimal da saída local do recorte (`local/dados-prototipo/saidas/deteccoes.csv`, coluna `lat`/`lon` como texto, convertida para `numeric` sem passar por `double`) com a célula do caminho RPC → TypeScript. **Qualquer diferença de célula leva a "Parado"**, com os casos, as alternativas e o efeito nos destaques apresentados ao responsável antes de adotar outra regra.
 
 ### Contrato de lente C1
 
@@ -118,7 +143,8 @@ Tipos em `src/lentes/contrato.ts`. Todo resultado é função pura de: carga, ja
 | `estado` | `com_destaques`, `sem_destaques` ou `janela_insuficiente` (só a recorrência) |
 | `ordenacao` | Só na concentração: `{ criterio: 'contagem de detecções', rotulo: 'ordenado por contagem de detecções, não por prioridade, gravidade ou risco' }`; nas demais, `null` |
 | `destaques[]` | Ver abaixo |
-| `conferencia` | Total de registros lidos e total principal de `consultar_resumo` na mesma carga e janela. A lente só é exibida se os dois forem iguais. |
+| `recorte` | O recorte espacial de entrada (M1; na proposta M1-a, `estado`, com `municipio: null`) |
+| `conferencia` | Total de registros lidos, número de `id_tecnico` distintos e total principal de `consultar_resumo` **chamado com o mesmo recorte** (em M1-a, `p_municipio: null`), na mesma carga e janela das páginas. A lente só é exibida se os três forem iguais. O resumo da consulta comum, que pode estar filtrado por município, nunca é usado nessa conferência. |
 | `limitacoes[]` | Textos fixos por lente (abaixo) e o aviso de domínio |
 
 Cada destaque traz:
@@ -128,8 +154,8 @@ Cada destaque traz:
 - **`motivo`:** frase gerada pelo módulo (por exemplo, "Detecções em 3 meses GMT distintos na janela: ago, set e out");
 - **`evidencia`:** `id_tecnico` das detecções que sustentam o destaque, o valor medido (contagem, meses ou dias) e as datas (meses ou dias da sequência);
 - **`ordem`:** opcional, só na concentração;
-- **`cobertura`:** municípios considerados (D13), `dias_janela` (M), `dias_sem_evidencia_de_lacuna` (N) e a lista dos demais dias com classe e motivos. O texto é "N de M dias sem evidência de lacuna (cobertura não comprovada)", nunca "coberto". Enquanto a disponibilidade não chega, o estado é `pendente`, exibido como tal;
-- **`ressalvas[]`:** as de D14, D15, T3 e T4, quando se aplicarem.
+- **`cobertura`:** estado `pendente`, `completa` ou `falha`. Em `completa`: municípios considerados (D13), `dias_janela` (M), `dias_sem_evidencia_de_lacuna` (N) e a lista dos demais dias com a classe do dia (T7) e, por município, classe e motivos. O texto é "N de M dias sem evidência de lacuna (cobertura não comprovada)", nunca "coberto". Em `pendente`, "cobertura: carregando". Em `falha` (chamada com erro ou resposta que não passa em T3), "cobertura não verificada", com o motivo e a ação "Tentar de novo"; nunca um "N de M" parcial;
+- **`ressalvas[]`:** as de D14, D15 (por classe, T7) e T4, quando se aplicarem. Na persistência, enquanto a cobertura não estiver `completa`, a ressalva "ressalvas de disponibilidade ainda não verificadas" substitui as de D15.
 
 **Limitações exibidas.** Todas as lentes: "Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração"; "Contagem principal em dias GMT; a sensibilidade America/Cuiaba aparece só no resumo da consulta" (Q12); "Disponibilidade não comprova cobertura". Concentração: "Contagem absoluta favorece municípios grandes" (Q4). Recorrência e persistência: "Focos vizinhos em células diferentes não são lidos como o mesmo local; a célula não segue divisas" (Q3); "A cobertura da célula usa os municípios das detecções, não a área da célula" (D13).
 
@@ -137,23 +163,64 @@ Cada destaque traz:
 
 - **Concentração (U1, K1):** conta os registros principais da janela por `municipio_codigo`. Os destaques são os municípios com contagem > 0 cuja contagem é maior ou igual à do 10º colocado (D16). Com menos de 10 municípios com detecção, entram todos os que têm detecção. A contagem por município deve ser igual a `consultar_resumo.principal.por_municipio`, e a soma, igual ao total principal.
 - **Recorrência (U2, Q5, D14):** meses GMT tocados pela janela; com menos de 3, o estado é `janela_insuficiente`, sem destaques, com o texto "a janela toca N meses GMT; a recorrência exige pelo menos 3". Os destaques são as células com detecções em 3 ou mais meses GMT distintos. O mês de cada detecção vem de `data_hora_gmt`.
-- **Persistência (U2, Q6, D15, T4, T6):** dias GMT com detecção por célula; os destaques são as sequências de 3 ou mais dias consecutivos. As ressalvas consultam a disponibilidade da célula (D13): um dia da sequência que não está `sem_evidencia_de_lacuna` gera "inclui dia indeterminado"; um dia vizinho, antes ou depois, sem detecção e não `sem_evidencia_de_lacuna` gera "adjacente…"; o limite da janela gera a ressalva T4. Não se infere detecção em dia sem informação.
-- **Cobertura (V2, Q7, D13, T3):** qualificador comum, sem limiar e sem selecionar. `incidencia_indeterminada` e `lacuna_conhecida` contam contra.
+- **Persistência (U2, Q6 refinada por D15, T4, T6, T7):** dias GMT com detecção por célula; os destaques são as sequências de 3 ou mais dias consecutivos. As ressalvas consultam a classe do dia da célula (T7). Não se infere detecção em dia sem informação, e o limite da janela gera a ressalva T4.
+- **Ressalvas por classe (D15, T7).** O texto preserva a classe observada:
+
+| Situação | Classe do dia da célula | Ressalva |
+| :-- | :-- | :-- |
+| Dia **da sequência** (com detecção) | `incidencia_indeterminada` | "inclui dia indeterminado (DD/MM)" |
+| Dia **da sequência** (com detecção) | `lacuna_conhecida` | "inclui dia com lacuna conhecida (DD/MM)" |
+| Dia **vizinho**, antes ou depois, **sem detecção** | `incidencia_indeterminada` | "adjacente a dia indeterminado (DD/MM); pode ser mais longa" |
+| Dia **vizinho**, antes ou depois, **sem detecção** | `lacuna_conhecida` | "adjacente a dia com lacuna conhecida (DD/MM); pode ser mais longa" |
+| Qualquer dia acima | `sem_evidencia_de_lacuna` | nenhuma |
+
+  No painel, cada ressalva leva aos municípios do dia, com classe e motivos de cada um (T7).
+- **Cobertura (V2, Q7, D13, T3, T7):** qualificador comum, sem limiar e sem selecionar. `incidencia_indeterminada` e `lacuna_conhecida` contam contra, cada uma com seu nome.
 
 ### Carregamento de dados e arquitetura
 
 - **Módulo puro:** `src/lentes/` (`contrato.ts`, `grade.ts`, `cobertura.ts`, `concentracao.ts`, `recorrencia.ts`, `persistencia.ts`), sem rede, DOM ou relógio, importável por `node --test`.
-- **Leitura:** um carregador em `src/consulta.ts` (ou em `src/lentes/carregar.ts`) pagina `consultar_deteccoes` com limite 1.000 e `p_carga` fixo até ler o total, confere que a soma é igual a `total` e a `consultar_resumo` e aborta se a carga ou a geração mudarem. A disponibilidade é pedida por município, só para os municípios dos destaques, sem repetição e com concorrência limitada. A geometria é pedida só para os municípios destacados pela concentração (cache de memória do ADR-007).
-- **Ciclo de vida:** a lente é calculada sob pedido, ao escolhê-la, e não a cada consulta. O resultado fica em memória por carga e janela, é descartado ao mudar a janela ou a carga, e é limpo ao sair, expirar ou perder acesso, pelas mesmas gerações do ADR-007. Nada vai para `localStorage`, `sessionStorage`, Cache ou IndexedDB.
-- **Orçamento proposto (a medir no item 1):** na janela inteira, medir bytes brutos, gzip estimado, número de requisições e tempo no perfil do ADR-007, separando registros, disponibilidade e geometria. **Parada:** se o tempo estimado com gzip para a lente completa passar de 20 s, ou os bytes brutos passarem de 10 MB, a situação passa a "Parado", com os números e as alternativas: aceitar com progresso visível; janela padrão menor; ou função agregadora nova no banco (G2 = Sim, G4 = Sim e retriagem do nível, Q10). Nenhuma delas é escolhida pelo agente.
+- **Leitura dos registros (R1-1, R1-4):** um carregador em `src/lentes/carregar.ts` chama `consultar_resumo` e pagina `consultar_deteccoes`, ambos com o recorte de M1 (em M1-a, `p_municipio: null`), `p_carga` fixo, a janela da aplicação e limite 1.000. Cada página só é aceita se:
+  - `carga.id`, `periodo.inicio`, `periodo.fim` e `municipio` forem os pedidos;
+  - `limite` e `deslocamento` ecoarem o pedido;
+  - `total` for igual ao da primeira página e ao total principal do resumo do mesmo recorte;
+  - o número de registros for `min(1000, total − deslocamento)`;
+  - nenhum `id_tecnico` repetir o de outra página, e a ordem `(data_hora_gmt, id_tecnico)` crescer estritamente também entre páginas.
+
+  Exemplo do revisor: duas páginas com os mesmos 1.000 registros somam 2.000 linhas, mas só 1.000 `id_tecnico` distintos, e a lente falha. Qualquer verificação falha ou erro de chamada leva a lente inteira ao estado `falha` ("leitura inconsistente" ou "fonte indisponível"), sem destaques parciais, com a ação "Tentar de novo" e sem nova tentativa automática.
+- **Leitura da disponibilidade:** `consultar_disponibilidade` com `p_municipio` de cada município envolvido, sem repetição, com até 4 chamadas simultâneas. Cada resposta confere carga, período, município e a integridade T3. Erro ou falha de integridade afeta só o qualificador dos destaques que dependem daquele município (`falha`); a seleção não muda, porque nenhuma lente seleciona pela disponibilidade.
+- **Geometria:** só para os municípios destacados pela concentração, pelo cache de memória do ADR-007.
+- **Concorrência entre aplicações de lente (R1-4):** uma terceira geração, `geracaoLente`, soma-se às de sessão e de consulta do ADR-007. Ela é incrementada ao aplicar qualquer lente, ao escolher `Nenhuma`, ao mudar a janela ou a carga e a cada mudança da geração de sessão. Toda continuação assíncrona da lente confere a geração de sessão e a de lente antes de tocar estado ou tela. Ao invalidar, a lista, a camada do mapa, o painel e os dados em memória daquela aplicação são limpos antes de a rede responder. Assim, se a concentração começa antes e termina depois da recorrência, a resposta atrasada é descartada.
+- **Memória:** registros já validados podem ser reaproveitados entre lentes enquanto a sessão, a carga, a janela e o recorte forem os mesmos; o reaproveitamento é limpo ao sair, expirar ou perder acesso. Nada vai para `localStorage`, `sessionStorage`, Cache ou IndexedDB.
+- **Ciclo de vida:** a lente é calculada sob pedido ("Aplicar lente"), e não a cada consulta.
+
+### Orçamento e procedimento de medição (R1-5)
+
+O orçamento proposto é uma decisão técnica a ratificar na aprovação. **Ele vale sempre para a janela inteira da carga**, para cada uma das três lentes, mesmo que se adote depois uma janela padrão menor, porque a janela inteira continua acessível.
+
+| Aspecto | Gate local de cada item (`npm run medir:lentes`) | Roteiro hospedado (verificação em produção) |
+| :-- | :-- | :-- |
+| Ambiente | `supabase db reset`, carga real local recarregada pelo próprio script, identidade da carga registrada; interface construída (`vite build`) servida localmente | Deploy de `main` identificado por commit; carga vigente com a mesma identidade da conferência local |
+| Perfil | Chrome do sistema via CDP, 390×844 com toque, latência de 150 ms, 1,6 Mbit/s de descida, 750 kbit/s de subida e CPU 4× mais lenta (ADR-007) | Chrome no computador do responsável, DevTools com perfil de rede personalizado de mesmos valores e CPU 4× mais lenta |
+| Cache | `Network.setCacheDisabled` ligado e contexto novo do navegador por execução (memória da lente vazia); login feito antes do início | "Disable cache" ligado; página recarregada antes de cada execução; login feito antes do início |
+| Compressão | Duas passagens: **bruta** (direto na API local, que não comprime) e **comprimida**, por um proxy local em `node:http` com `node:zlib` (gzip nível 6, `Content-Encoding: gzip` quando o navegador aceita) entre a interface e a API. O tempo comprimido é **medido**, não estimado | A do provedor, qualquer que seja; registrar o `Content-Encoding` observado |
+| Início | Clique em "Aplicar lente" | Clique em "Aplicar lente" |
+| Fim | Atributo `data-estado-lente="completo"` no cartão. O controlador só o grava quando: a conferência passou, a lista está renderizada, a camada do mapa está desenhada (com as geometrias da concentração) e todo destaque tem cobertura `completa`. Uma execução com qualquer `falha` é inválida e repetida; falha persistente leva a "Parado" | O mesmo evento. O cartão exibe "Lente concluída em X,X s", medido pelo próprio controlador com `performance.now()` entre os dois pontos |
+| Unidades | Tempo em segundos, com uma casa; bytes por `encodedDataLength` do CDP; requisições com e sem preflight CORS | Tempo exibido pelo cartão; "transferred" do painel Network, filtrado por `rest/v1`, com o log limpo antes do clique |
+| Repetições | 3 por lente e por passagem; vale a mediana, e o máximo é registrado | 3 por lente; vale a mediana |
+| **Orçamento** | Mediana comprimida ≤ 20,0 s **e** bytes brutos ≤ 10.000.000 por lente | Mediana ≤ 20,0 s por lente |
+
+**Parada local:** fora do orçamento, a situação passa a "Parado" antes da PR do item, com os números por lente e por parte (registros, disponibilidade e geometria) e as alternativas: aceitar com progresso visível; janela padrão menor, mantendo o gate da janela inteira medido e informado ao usuário; ou função agregadora nova no banco (G2 = Sim, G4 = Sim e retriagem do nível, Q10). Nenhuma é escolhida pelo agente.
+
+**Parada em produção, antes do encerramento:** se a mediana hospedada passar do orçamento, ou se o número de destaques de alguma lente, ou o valor de algum destaque, divergir da conferência local com a mesma identidade de carga, a situação passa a "Parado". As alternativas para decisão do responsável: aceitar e registrar o desvio no encerramento; corrigir por trilha curta (se for defeito de algo especificado) ou por novo ciclo; ou reverter as entregas na ordem da seção de rollback. O encerramento só é preparado depois da decisão registrada.
 
 ### Interface mínima
 
-- Novo cartão "Lentes de seleção" dentro da grade existente, com seletor (`Nenhuma`, `Concentração`, `Recorrência`, `Persistência`) e a ação primária "Aplicar lente". Mostra a janela e a carga usadas e o aviso T2.
+- Novo cartão "Lentes de seleção" dentro da grade existente, com seletor (`Nenhuma`, `Concentração`, `Recorrência`, `Persistência`) e a ação primária "Aplicar lente". Mostra a janela, a carga e o recorte usados e, em M1-a, o aviso "o filtro de município não se aplica às lentes".
 - Lista de destaques em ordem T5, com unidade, valor e estado da cobertura; seleção por teclado e toque.
 - Mapa: camada própria de destaques, separada dos pontos da página de registros. Municípios como contorno e células como retângulos, com o estilo de seleção do ADR-007 (contorno tracejado azul claro e indicador textual) e legenda textual. A lista é a alternativa em texto ao mapa.
 - Painel de motivo e evidência: motivo, parâmetros, datas (meses ou dias), cobertura com a lista de dias que contam contra, ressalvas e limitações. Para célula, a tabela das detecções da evidência, paginada e declarando "N de M". Para município, a contagem e a ação "Consultar este município", que aplica o filtro existente na mesma janela, em vez de listar centenas de linhas.
-- Estados distintos e testados: carregando (com progresso "registros X de Y" e "disponibilidade X de Y municípios"), sem destaques, janela insuficiente, cobertura pendente, divergência de conferência (lente não exibida), versão substituída e falha da fonte.
+- Estados distintos e testados: carregando (com progresso "registros X de Y" e "disponibilidade X de Y municípios"), completo (com "Lente concluída em X,X s"), sem destaques, janela insuficiente, cobertura pendente, cobertura não verificada por município, leitura inconsistente (lente não exibida), versão substituída, falha da fonte e cancelada (troca de lente, `Nenhuma`, nova janela ou saída).
 - Sem redesenho: reutilizar tokens, componentes e regras de acessibilidade do ADR-007 (alvos de 44 × 44 CSS px, foco visível, contraste, 200% e reflow a 320 CSS px). Qualquer mudança visual além disso é BL-007.
 
 ### Pontos de aprovação
@@ -161,18 +228,18 @@ Cada destaque traz:
 | Ponto | Precondição | Cobre | Não cobre | Conferir |
 | :-- | :-- | :-- | :-- | :-- |
 | Autorizar rascunho — "autorizo o rascunho do plano do ciclo 004" | Ideação registrada (Q1 a Q12) | Este rascunho local, as perguntas D13 a D16, a reconciliação da ideação e a linha do ciclo em `cycles.md` | Revisão, aprovação, publicação, issues e implementação | Recebida em 2026-11-10 |
-| Aprovar plano — "aprovo o plano do ciclo 004" | Revisão formal com veredito apto e manifestação humana posterior | O plano revisado; publicação da PR documental (ideação, plano e registro do ciclo); depois da integração documental e da confirmação dos payloads, a criação das três issues; o encerramento, depois das entregas | Implementação, merges e verificação em produção | Como decisões humanas de G1: Q1 a Q12, D13 a D16, T1 a T6, o contrato C1, os textos de limitação, o fatiamento em três issues (com a cobertura dentro do item 1) e o orçamento com parada |
+| Aprovar plano — "aprovo o plano do ciclo 004" | Revisão formal com veredito apto e manifestação humana posterior | O plano revisado; publicação da PR documental (ideação, plano e registro do ciclo); depois da integração documental e da confirmação dos payloads, a criação das três issues; o encerramento, depois das entregas | Implementação, merges e verificação em produção | Como decisões humanas de G1: Q1 a Q12, D13 a D16 (com D15 refinando Q6), a escolha M1 (proposta M1-a), T1 com o valor canônico das coordenadas, T3 a T7, o contrato C1, as ressalvas por classe e os textos de limitação. Também: o fatiamento em três issues (com a cobertura dentro do item 1), o orçamento e o procedimento de medição, com as duas paradas |
 | Autorizar implementação — "autorizo a implementação da issue #N" | Plano aprovado e integrado, issue criada e itens anteriores integrados | Branch, task, implementação, testes, conferência local com a carga real em `local/` e a PR da issue | Merge, migração ou função nova, mudança de parâmetro e decisão de orçamento após parada | Escopo da issue, barreiras e gates |
 | Aprovar merge — "aprovo o merge da PR #N" | PR concreta, checks verdes no último commit e diff conferido | Somente o merge daquela PR, por squash, **e o deploy de produção automático que ele dispara na Vercel** | Outras PRs, verificação em produção e nova entrega | Diff, G1 a G4, privacidade, conferência das lentes e estado real |
-| Verificar produção — "autorizo a verificação em produção do ciclo 004" | Itens 1 a 3 integrados e deploy de `main` identificado por commit | O roteiro curto do item 3: o responsável, na própria sessão, aplica cada lente na janela inteira e informa tempo, bytes transferidos (DevTools) e as contagens exibidas; o agente confere com a conferência local da mesma carga | Login pelo agente, carga, migração, mudança de dados ou de método | Commit do deploy, carga vigente, contagens iguais à conferência local e orçamento hospedado |
+| Verificar produção — "autorizo a verificação em produção do ciclo 004" | Itens 1 a 3 integrados e deploy de `main` identificado por commit | O roteiro curto do item 3: o responsável, na própria sessão, aplica cada lente na janela inteira pelo procedimento hospedado da seção de orçamento e informa tempo, bytes transferidos e destaques exibidos; o agente confere com a conferência local da mesma carga | Login pelo agente, carga, migração, mudança de dados ou de método, e a decisão que a parada em produção exigir | Commit do deploy, identidade da carga vigente, destaques e valores iguais à conferência local, mediana hospedada dentro do orçamento |
 
-Não há ação humana externa prevista: nenhuma migração ou configuração hospedada muda. Cada PR, inclusive a documental e a de encerramento, tem aprovação própria de merge. No ciclo completo não há modo contínuo. Toda cadeia autorizada para em "Parado" quando: a conferência independente divergir do módulo sem explicação; o orçamento for excedido; surgir a necessidade de função, tabela, política ou migração (G2 e G4, com retriagem); um caso de borda não previsto em Q1 a Q12, D13 a D16 ou T1 a T6 mudar a seleção; ou houver dúvida de privacidade. A concessão não dispensa a conferência da precondição.
+Não há ação humana externa prevista: nenhuma migração ou configuração hospedada muda. Cada PR, inclusive a documental e a de encerramento, tem aprovação própria de merge. No ciclo completo não há modo contínuo. Toda cadeia autorizada para em "Parado" quando: a conferência independente divergir do módulo sem explicação; qualquer `id_tecnico` cair em célula diferente nos dois caminhos (T1); o orçamento for excedido, localmente ou em produção; a produção divergir da conferência local na mesma carga; surgir a necessidade de função, tabela, política ou migração (G2 e G4, com retriagem); um caso de borda não previsto em Q1 a Q12, D13 a D16, M1 ou T1 a T7 mudar a seleção; ou houver dúvida de privacidade. A concessão não dispensa a conferência da precondição.
 
 ## Barreiras de domínio
 
 | Barreira | Aplica-se? | Como o ciclo a atende ou justificativa |
 | :-- | :-- | :-- |
-| G1 — exatidão analítica e interpretação geoespacial | Sim | Critério de seleção novo: unidade, contagem, janela, grade e empates. Atendida por decisões humanas registradas (Q1 a Q12 e D13 a D16, com T1 a T6 ratificados na aprovação); casos de referência fictícios com valores esperados escritos neste plano antes do código; conferência sobre a carga real por caminho independente (SQL no banco local, sem importar o módulo); igualdade com `consultar_resumo`; proveniência por carga, janela, parâmetros e versão do método; limitações e aviso de domínio em cada resultado. |
+| G1 — exatidão analítica e interpretação geoespacial | Sim | Critério de seleção novo: unidade, contagem, janela, grade e empates. Atendida por decisões humanas registradas (Q1 a Q12 e D13 a D16, com M1 e T1 a T7 ratificados na aprovação); casos de referência fictícios com valores esperados escritos neste plano antes do código; conferência sobre a carga real por caminho independente (SQL no banco local, sem importar o módulo), inclusive célula por `id_tecnico` a partir do texto decimal da fonte; igualdade com `consultar_resumo` do mesmo recorte; proveniência por carga, janela, parâmetros e versão do método; limitações e aviso de domínio em cada resultado. |
 | G2 — autenticação, autorização e isolamento por RLS | Não | Nenhuma função, tabela, view, política ou grant novo: as lentes só chamam as RPCs existentes sob a sessão do usuário (ADR-005). A limpeza dos resultados ao sair ou expirar segue o ADR-007 e é testada no E2E, sem alterar a matriz de acesso. Se surgir objeto novo no banco, a situação passa a "Parado" e o trabalho é retriado (Q10). |
 | G3 — privacidade de dados | Sim | Sem dados pessoais. Fixtures de lentes fictícias em `tests/fixtures/lentes/` e no E2E. A carga real (pública, INPE e IBGE) só é usada localmente, em `local/`. O relatório versionado traz apenas agregados públicos (contagens por município ou por célula e totais), sem brutos. Nenhum resultado no bundle ou em armazenamento do navegador. |
 | G4 — migrações só acrescentam | Não | Nenhuma migração é criada ou alterada. Uma migração necessária leva a "Parado" e à retriagem; o passo de CI do G4 continua ativo. |
@@ -188,26 +255,45 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 | C-2 Menos de N com detecção | A=4, B=1, demais 0; N=10 | A e B apenas |
 | C-3 Borda da janela | Janela de 01/10 a 31/10; detecções em `2026-10-31T23:59:59Z` e `2026-11-01T00:00:00Z` | Só a primeira conta (a segunda não vem da RPC na mesma janela; o módulo também a rejeita) |
 | C-4 Conferência | Soma das contagens diferente do total do resumo | Resultado não exibido, estado de divergência |
-| G-1 Grade T1 | Latitudes −15,05, −15,0499 e −15,0501; longitudes −56,05 e −56,0500001 | Células de sul −15,05, −15,05 e −15,10; de oeste −56,05 e −56,10 |
+| C-5 Empate em N=10 (R1-6), pelo ponto de entrada de produção, sem informar N | 12 municípios com 30, 28, 26, 24, 22, 20, 18, 16, 14, 12, 12 e 5 | 11 destaques; "11 municípios por empate no 10º lugar"; o de 5 fica fora |
+| G-1 Grade T1, dos dois lados das bordas | Latitudes −15,00, −15,0499, −15,05 e −15,0501; longitudes −56,05 e −56,0500001 | Células de sul −15,00, −15,05, −15,05 e −15,10; de oeste −56,05 e −56,10 |
+| G-2 Valor canônico | `-12.34567` (como o `double` de `-12.345670`), `1e-7`, `NaN` e um valor com 17 algarismos significativos | O primeiro é classificado na célula de sul −12,35; os demais são rejeitados como entrada inválida, sem célula |
+| L-1 Páginas duplicadas (R1-4) | 2 páginas com os mesmos 1.000 `id_tecnico`, `total` 2.000 | `falha` ("leitura inconsistente"), nenhum destaque |
+| L-2 Eco divergente | Página com `deslocamento` diferente do pedido, `municipio` diferente de `null` ou outra `carga.id` | `falha`, nenhum destaque |
+| L-3 Resumo de outro recorte (R1-1) | Registros estaduais = 10; resumo com `municipio` = Colniza e total 4 | `falha` por resumo de recorte errado; com o resumo estadual (10), a lente passa |
 | R-1 Recorrência | Célula X com detecções em ago, set e out; célula Y com 10 detecções em ago e set | X destacada (3 meses); Y não |
 | R-2 Mês GMT | Detecção em `2026-09-01T02:00:00Z` (ainda 31/08 em Cuiabá) | Conta para setembro |
 | R-3 Mês parcial (D14) | Janela de 15/08 a 14/10 | Lente roda; agosto e outubro marcados como parciais |
 | R-4 Janela insuficiente | Janela de 15/08 a 30/09 | `janela_insuficiente`, toca 2 meses, nenhum destaque |
 | P-1 Persistência simples | Dias 5, 6 e 7, todos sem lacuna | 1 destaque de 3 dias, sem ressalva de disponibilidade |
 | P-2 Sem sequência | Dias 5, 12 e 20 | Nenhum destaque |
-| P-3 Indeterminado com foco (D15) | Dias 10, 11 e 12; dia 11 indeterminado | 1 destaque de 3 dias, "inclui dia indeterminado" |
+| P-3 Indeterminado com foco (D15) | Dias 10, 11 e 12; dia 11 indeterminado | 1 destaque de 3 dias, "inclui dia indeterminado (11/MM)" |
 | P-4 Indeterminado sem foco | Dias 10, 12, 13 e 14; dia 11 indeterminado sem detecção | 1 destaque, de 12 a 14, "adjacente a dia indeterminado; pode ser mais longa"; o dia 10 isolado não |
 | P-5 Sem inferência | Dias 10 e 11; dia 12 indeterminado sem detecção; dia 13 | Nenhum destaque (2 + 1 dias) |
 | P-6 Borda (T4) e duas sequências (T6) | Janela começando em 01/10; dias 01, 02 e 03 e dias 20, 21 e 22 | 2 destaques; o primeiro com "sequência no limite da janela" |
+| P-7 Classes preservadas (R1-3) | Dias 10, 11 e 12 com detecção; dia 11 `lacuna_conhecida`; dia 13 sem detecção e `incidencia_indeterminada` | 1 destaque; "inclui dia com lacuna conhecida (11/MM)" e "adjacente a dia indeterminado (13/MM); pode ser mais longa"; nenhum dos dois textos troca a classe |
+| P-8 Cobertura não verificada | Como P-1, com a disponibilidade de um município da célula em `falha` | Destaque mantido; "ressalvas de disponibilidade ainda não verificadas"; sem "N de M" |
 | V-1 Cobertura de município | 90 dias, 6 `incidencia_indeterminada` | "84 de 90 dias sem evidência de lacuna (cobertura não comprovada)", 6 dias listados |
 | V-2 União (D13) | Célula com focos em A e B; 10 dias; A indeterminado no dia 3, B lacuna no dia 7 | "8 de 10…", dias 3 e 7 listados com classe e município |
-| V-3 Sem linha (T3) | 10 dias, 1 sem linha | "9 de 10…", dia listado como "sem informação de disponibilidade" |
+| V-3 Integridade (T3) | 10 dias e resposta com 9 linhas; em outro caso, 10 linhas com um dia repetido | Nos dois casos, cobertura `falha`, "cobertura não verificada: leitura incompleta", sem "N de M" |
+| V-4 Lacuna e indeterminação no mesmo dia (T7) | Célula com focos em A e B; 10 dias; no dia 7, A `lacuna_conhecida` e B `incidencia_indeterminada`; demais dias sem lacuna | "9 de 10…"; o dia 7 aparece como "lacuna conhecida", com A (lacuna e motivos de A) e B (indeterminada e motivos de B) |
 | X-1 Determinismo | Mesmos registros em ordem embaralhada | Resultado idêntico (destaques, ordem e evidência) |
 
-- **Conferência independente sobre a carga real (local, fora da CI):** um script `scripts/lentes/conferir.mjs` executa SQL escrito à parte (sem importar `src/lentes/`) diretamente no Supabase local carregado pela operação da seção 1 a 9 do runbook. Ele calcula, para a janela inteira e para duas janelas menores (um mês de pico e uma janela de 2 meses, que exercita a recorrência insuficiente): contagem por município e corte com empates; células por T1; meses distintos por célula; sequências de 3 ou mais dias; e cobertura por união. O resultado é comparado destaque a destaque com o módulo alimentado pelas RPCs. Diferença sem explicação → "Parado". Os números (agregados públicos) entram em `004_research_conferencia_lentes.md`, que também compara com a análise exploratória da ideação e explica as diferenças (grade de 5 km contra 0,05°). A ocorrência de T3 e o número máximo de casas decimais das coordenadas são medidos ali.
-- **Interface (E2E, `tests/e2e/05-lentes.spec.mjs`):** fixture fictícia com destaques conhecidos em `tests/e2e/fixture.mjs`. Cobre seletor, aplicar, lista, mapa e painel; parâmetros e rótulo de ordenação visíveis; janela insuficiente; ressalvas D15 e T4; cobertura com "cobertura não comprovada" e sem a palavra "coberto"; aviso T2; troca de janela e de versão sem mistura; logout limpando a lente; teclado, foco, 360/390 px com toque, 200% e reflow.
-- **Medição:** `scripts/interface/medir-lentes.mjs` (no padrão de `medir-geometria.mjs`), sobre a carga real local, no perfil do ADR-007: bytes brutos, gzip estimado, requisições e tempo por lente na janela inteira. O resultado decide o orçamento proposto.
-- **Gates por PR:** `npm run test:governance`, `npm run check:governance`, `npm run typecheck`, `npm run build`, `npm run test:interface`, `npm run test:e2e`, `npm run test:rls` (sem mudança esperada), `git diff --check` e inspeção do bundle (`tests/unit/bundle.test.mjs`): nenhum dado territorial ou de `local/` embutido.
+- **Conferência independente sobre a carga real (local, fora da CI):** `npm run conferir:lentes` (`supabase db reset && node scripts/lentes/conferir.mjs`). O script parte do banco vazio, publica a carga real de `local/dados-prototipo/` pela mesma CLI de carga do ciclo `003` (como `medir-geometria.mjs`) e registra a identidade da carga no início e no fim. Ele executa SQL escrito à parte (sem importar `src/lentes/`) para quatro janelas:
+  - a janela inteira;
+  - um mês de pico;
+  - uma janela de 2 meses, que exercita a recorrência insuficiente;
+  - uma janela que toca 3 meses GMT com as duas bordas parciais (por exemplo, de 15/07 a 14/09), que exercita D14 (R1-6).
+
+  Em cada uma, calcula a contagem por município com o corte e os empates, as células T1 a partir do texto decimal de `saidas/deteccoes.csv` (convertido para `numeric`, sem `double`), os meses distintos por célula, as sequências de 3 ou mais dias, a classe do dia por união (T7) e a cobertura. O resultado é comparado destaque a destaque com o módulo alimentado pelas RPCs, e a célula é comparada **por `id_tecnico`** (T1). Diferença sem explicação, ou qualquer `id_tecnico` em célula diferente → "Parado". Os números (agregados públicos), a identidade da carga e o commit entram em `004_research_conferencia_lentes.md`, que também compara com a análise exploratória da ideação e explica as diferenças (grade de 5 km contra 0,05°).
+- **Interface (E2E, `tests/e2e/05-lentes.spec.mjs`):** fixture fictícia com destaques conhecidos em `tests/e2e/fixture.mjs`. Cobre:
+  - seletor, aplicar, lista, mapa e painel; parâmetros e rótulo de ordenação visíveis; janela insuficiente; ressalvas por classe (D15, T7) e T4; cobertura com "cobertura não comprovada" e sem a palavra "coberto"; aviso de M1;
+  - **filtro municipal ativo com totais diferentes** (R1-1): consulta comum em um município com 4 detecções, estado com 10; a lente lê 10, passa na conferência estadual e não altera o resumo comum, que continua 4;
+  - **concorrência** (R1-4), com respostas retidas por `page.route`: concentração aplicada e recorrência aplicada antes de a concentração terminar → só a recorrência aparece; `Nenhuma` durante a leitura → nada aparece depois; logout durante a leitura → nada aparece depois e a memória é limpa; página duplicada injetada → "leitura inconsistente"; falha de uma chamada de disponibilidade → "cobertura não verificada" só nos destaques afetados;
+  - troca de janela e de versão sem mistura; teclado, foco, 360/390 px com toque, 200% e reflow.
+- **Medição:** `npm run medir:lentes` (`supabase db reset && node scripts/interface/medir-lentes.mjs`), com o procedimento da seção "Orçamento e procedimento de medição". Também parte do banco vazio, publica a carga real e registra a identidade.
+- **Ordem dos gates com carga real (R1-7):** `test:rls`, `test:e2e`, `conferir:lentes` e `medir:lentes` começam todos por `supabase db reset`. Por isso, em cada item: (1) unitários, `typecheck` e `build`; (2) `conferir:lentes`; (3) `medir:lentes`; (4) `test:rls` e `test:e2e`. Os scripts de carga real não dependem de estado deixado por outro comando: cada um recarrega a carga e falha se a identidade registrada no fim for diferente da do início, ou da identidade citada no relatório.
+- **Gates por PR:** `npm run test:governance`, `npm run check:governance`, `npm run typecheck`, `npm run build`, `npm run test:interface`, `npm run test:e2e`, `npm run test:rls` (sem mudança esperada), `git diff --check` e inspeção do bundle (`tests/unit/bundle.test.mjs`): nenhum dado territorial ou de `local/` embutido. Na CI rodam os determinísticos; `conferir:lentes` e `medir:lentes` usam dados de `local/` e rodam só localmente, com resultado no relatório.
 
 ## Itens de implementação
 
@@ -215,16 +301,16 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 
 **Contexto:** o contrato C1 e a cobertura (Q2, Q9) são comuns a todas as lentes. Entregá-los com a concentração permite que cada lente chegue à produção, por deploy automático, já qualificada e com limitações.
 
-**Ação técnica:** criar `src/lentes/` (contrato, grade T1, cobertura e concentração), o carregador paginado com conferência de totais e a disponibilidade por município; integrar ao `app.ts` com as gerações existentes; criar o cartão, a lista, a camada de mapa e o painel em `apresentacao.ts`, `mapa.ts`, `index.html` e CSS existente; escrever as fixtures e os testes C, G e V; criar o E2E de lentes; criar `scripts/lentes/conferir.mjs` e `scripts/interface/medir-lentes.mjs`; registrar a conferência e a medição em `004_research_conferencia_lentes.md`; criar a KB do contrato e do método (template `.agent/templates/kb.md` lido no ponto de uso; numeração conferida, hoje seria KB-005) e atualizar o guia da interface no runbook (seção 10).
+**Ação técnica:** criar `src/lentes/` (contrato, grade T1, cobertura e concentração), o carregador paginado com as verificações por resposta, a conferência pelo resumo do mesmo recorte e a disponibilidade por município com a integridade T3; integrar ao `app.ts` com as gerações existentes e a nova `geracaoLente`; criar o cartão, a lista, a camada de mapa e o painel em `apresentacao.ts`, `mapa.ts`, `index.html` e CSS existente; escrever as fixtures e os testes C, G e V; criar o E2E de lentes; criar `scripts/lentes/conferir.mjs` e `scripts/interface/medir-lentes.mjs`; registrar a conferência e a medição em `004_research_conferencia_lentes.md`; criar a KB do contrato e do método (template `.agent/templates/kb.md` lido no ponto de uso; numeração conferida, hoje seria KB-005) e atualizar o guia da interface no runbook (seção 10).
 
 **Critérios de aceite:**
 
 - [ ] O contrato C1 está tipado e documentado na KB, com identidade de destaque, estados, limitações e versão do método.
-- [ ] Os casos C-1 a C-4, G-1, V-1 a V-3 e X-1 passam, com valores esperados escritos à mão.
-- [ ] A conferência independente reproduz a concentração e a cobertura na carga real (janela inteira e duas menores), destaque a destaque; a soma das contagens é igual a `consultar_resumo`. O relatório traz a ocorrência de T3 e as casas decimais das coordenadas.
-- [ ] A medição no perfil do ADR-007 está registrada. Se exceder o orçamento, a situação é "Parado", com as alternativas, antes da PR.
-- [ ] A interface mostra seletor, lista, mapa e painel, com parâmetros visíveis e não editáveis, o rótulo "ordenado por contagem de detecções, não por prioridade, gravidade ou risco", o aviso T2, a cobertura "N de M dias sem evidência de lacuna (cobertura não comprovada)" e as limitações. A palavra "coberto" não aparece como qualificação.
-- [ ] Os estados (carregando com progresso, sem destaques, cobertura pendente, divergência, versão substituída e falha) são distintos e testados; troca de janela ou de carga não mistura resultados; sair ou expirar limpa a lente; nada é persistido no navegador.
+- [ ] Os casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4 e X-1 passam, com valores esperados escritos à mão.
+- [ ] A conferência independente reproduz a concentração e a cobertura na carga real, nas quatro janelas, destaque a destaque. A soma das contagens é igual a `consultar_resumo` do mesmo recorte. Todas as detecções caem na mesma célula pelos dois caminhos (por `id_tecnico`). O relatório registra a identidade da carga, o commit e o número máximo de algarismos significativos das coordenadas.
+- [ ] A medição segue o procedimento da seção de orçamento e está registrada por lente e por passagem. Se exceder o orçamento, a situação é "Parado", com as alternativas, antes da PR.
+- [ ] A interface mostra seletor, lista, mapa e painel, com parâmetros visíveis e não editáveis, o rótulo "ordenado por contagem de detecções, não por prioridade, gravidade ou risco", o aviso de M1, a cobertura "N de M dias sem evidência de lacuna (cobertura não comprovada)", a duração da lente e as limitações. A palavra "coberto" não aparece como qualificação.
+- [ ] Os estados (carregando com progresso, completo, sem destaques, cobertura pendente, cobertura não verificada, leitura inconsistente, versão substituída, falha e cancelada) são distintos e testados. O E2E cobre filtro municipal ativo com totais diferentes e a concorrência entre aplicações de lente, `Nenhuma` e logout com respostas retidas. Troca de janela ou de carga não mistura resultados; nada é persistido no navegador.
 - [ ] A acessibilidade do ADR-007 é mantida (teclado, foco, 44 × 44, contraste, 360/390 px, 200% e reflow) e a lista é a alternativa em texto ao mapa.
 - [ ] Os gates passam, e nenhuma migração, função ou política é criada.
 
@@ -237,8 +323,8 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 **Critérios de aceite:**
 
 - [ ] Os casos R-1 a R-4 passam, e os casos do item 1 continuam passando.
-- [ ] A conferência independente reproduz as células com 3 ou mais meses na carga real, nas três janelas, e explica a diferença para as 142 células da grade de 5 km da ideação.
-- [ ] A janela de 2 meses mostra "janela insuficiente", sem destaques; a janela com mês parcial marca os parciais.
+- [ ] A conferência independente reproduz as células com 3 ou mais meses na carga real, nas quatro janelas, inclusive a de 3 meses com bordas parciais, e explica a diferença para as 142 células da grade de 5 km da ideação.
+- [ ] A janela de 2 meses mostra "janela insuficiente", sem destaques; a janela com bordas parciais roda e marca os meses parciais.
 - [ ] A cobertura da célula lista os municípios usados (D13); ordem T5 sem ranking; limitações da célula visíveis.
 - [ ] A medição continua dentro do orçamento ou leva a "Parado"; os gates passam; nenhum objeto novo no banco.
 
@@ -250,16 +336,16 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 
 **Critérios de aceite:**
 
-- [ ] Os casos P-1 a P-6 passam, e os casos dos itens 1 e 2 continuam passando.
-- [ ] A conferência independente reproduz as sequências de 3 ou mais dias e as ressalvas na carga real, e explica a diferença para as 62 sequências da grade de 5 km da ideação.
-- [ ] As ressalvas "inclui dia indeterminado", "adjacente a dia indeterminado; pode ser mais longa" e "sequência no limite da janela" aparecem só onde as regras mandam; nenhuma detecção é inferida.
+- [ ] Os casos P-1 a P-8 passam, e os casos dos itens 1 e 2 continuam passando.
+- [ ] A conferência independente reproduz as sequências de 3 ou mais dias e as ressalvas por classe na carga real, e explica a diferença para as 62 células com 3 ou mais dias seguidos na grade de 5 km da ideação.
+- [ ] As ressalvas da tabela "Ressalvas por classe" e a de T4 aparecem só onde as regras mandam, com a classe observada; nenhuma detecção é inferida.
 - [ ] A medição das três lentes está consolidada no relatório e no guia; os gates passam; nenhum objeto novo no banco.
-- [ ] O roteiro de verificação em produção está pronto na task; ele só é executado depois de "autorizo a verificação em produção do ciclo 004".
+- [ ] O roteiro de verificação em produção está pronto na task, com o procedimento hospedado, os valores locais esperados por lente (destaques e valores da conferência, com a identidade da carga) e a parada em produção. Ele só é executado depois de "autorizo a verificação em produção do ciclo 004".
 
 ## Arquivos afetados
 
-- **Nesta redação:** este plano; a ideação (registro da autorização, das decisões D13 a D16 e do novo artefato ativo); a linha do ciclo `004` em `_project/cycles.md` (`Planejamento` e link do plano).
-- **Na execução proposta:** `src/lentes/*.ts`, `src/consulta.ts`, `src/app.ts`, `src/apresentacao.ts`, `src/mapa.ts`, `src/tipos.ts` (se necessário), `index.html`, `src/estilos/*.css` (só componentes novos, sem redesenho), `tests/unit/lentes.test.mjs`, `tests/fixtures/lentes/`, `tests/e2e/05-lentes.spec.mjs`, `tests/e2e/fixture.mjs`, `scripts/lentes/conferir.mjs`, `scripts/interface/medir-lentes.mjs`, `package.json` (scripts `conferir:lentes` e `medir:lentes`, sem dependência nova), `docs/runbook.md` (seção 10), a KB nova, `_project/drafts/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` e as tasks do ciclo. No encerramento: KB-003 (seleção explicável), README se cabível e o registro do ciclo.
+- **Nesta redação:** este plano; a ideação (registro da autorização, das decisões D13 a D16 e do novo artefato ativo); a linha do ciclo `004` em `_project/cycles.md` (`Planejamento` e link do plano). Na correção v2, só este plano e a versão citada em `cycles.md`.
+- **Na execução proposta:** `src/lentes/*.ts`, `src/consulta.ts`, `src/app.ts`, `src/apresentacao.ts`, `src/mapa.ts`, `src/tipos.ts` (se necessário), `index.html`, `src/estilos/*.css` (só componentes novos, sem redesenho), `tests/unit/lentes.test.mjs`, `tests/fixtures/lentes/`, `tests/e2e/05-lentes.spec.mjs`, `tests/e2e/fixture.mjs`, `scripts/lentes/conferir.mjs`, `scripts/interface/medir-lentes.mjs` (com o proxy local de compressão), `package.json` (scripts `conferir:lentes` e `medir:lentes`, sem dependência nova), `docs/runbook.md` (seção 10), a KB nova, `_project/drafts/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` e as tasks do ciclo. No encerramento: KB-003 (seleção explicável), README se cabível e o registro do ciclo.
 - **Nunca:** `supabase/migrations/`, `supabase/tests/`, políticas, dados reais ou arquivos de `local/`.
 
 ## Decomposição em issues e PRs
@@ -278,7 +364,7 @@ Os números de issue não existem nesta etapa. Cada payload é apresentado e con
 
 ## Dependências e blockers
 
-- **Para aprovar o plano:** veredito apto em revisão formal; ratificação de T1 a T6 e do fatiamento.
+- **Para aprovar o plano:** veredito apto em revisão formal; ratificação de M1, T1, T3 a T7, do orçamento e do fatiamento.
 - **Para a conferência dos itens:** Supabase local disponível (já usado no ciclo `003`) e a carga real local em `local/dados-prototipo/`, recarregável pelo runbook (seções 1 a 9). Sem ela, a conferência não pode ser dispensada: a situação passa a "Parado".
 - **Para a verificação em produção:** deploy da `main` integrada, carga vigente hospedada igual à local conferida (mesma `identidade`) e o responsável disponível para executar o roteiro na própria sessão.
 - **Para o retorno ao BL-001:** encerramento integrado em `main`; o registro e sua publicação seguem `gerenciar_backlog`, com autorização própria para publicar.
@@ -289,14 +375,23 @@ Os números de issue não existem nesta etapa. Cada payload é apresentado e con
 | :-- | :-- |
 | Destaque lido como prova ou prioridade | Aviso de domínio e limitações em toda lente; rótulo da ordenação; nenhum termo de risco, gravidade ou prioridade; revisão de textos na PR. |
 | Volume do carregamento no celular (registros da janela inteira e disponibilidade por município) | Medição no perfil do ADR-007 e orçamento com parada; progresso visível; cobertura `pendente` em vez de omitida. A escolha entre as alternativas é humana. |
-| Ponto flutuante troca a célula de pontos na borda | T1 com aritmética decimal exata e caso G-1; casas decimais medidas na carga real. |
+| Ponto flutuante troca a célula de pontos na borda | T1 com valor canônico e aritmética decimal exata; casos G-1 e G-2; comparação por `id_tecnico` com o texto da fonte; diferença leva a "Parado". |
+| Respostas atrasadas, duplicadas ou de outro recorte | `geracaoLente`, verificações por página (eco, `total`, unicidade e ordem de `id_tecnico`) e resumo do mesmo recorte; casos L e E2E com respostas retidas. |
 | Conferência "independente" contaminada pelo módulo | SQL escrito à parte, sem importar `src/lentes/`; valores esperados dos casos fixados neste plano; diferença sem explicação leva a "Parado". |
 | Deploy automático a cada merge | Cada item entrega lentes completas e qualificadas; as aprovações de merge declaram o deploy; rollback por reverter o commit em nova PR. |
 | Necessidade de objeto no banco (desempenho ou paginação) | Fora do escopo: "Parado", G2 e G4 = Sim e retriagem; nenhum contorno no cliente que faça amostragem oculta. |
 | Cobertura uniforme entre municípios (ideação) faz o qualificador parecer redundante | Exibido mesmo assim; nada no módulo presume a uniformidade, e os casos V testam municípios diferentes. |
 | Reprodutibilidade entre cargas | Carga, janela, parâmetros e versão do método em cada resultado; cargas nunca se misturam. |
 
-Rollback: as lentes não alteram dados nem schema. Reverter uma entrega é uma PR de reversão do commit da issue, com aprovação de merge, e o deploy volta à interface anterior. Não há dado a restaurar.
+Rollback: as lentes não alteram dados nem schema, então não há dado a restaurar. Reverter uma entrega é uma PR de reversão, com aprovação de merge, e o deploy volta à interface anterior. A ordem respeita as dependências (R1-8):
+
+- **A cadeia é 1 ← 2 ← 3.** O item 2 usa o contrato, o carregador, a cobertura e o cartão do item 1. O item 3 usa, além disso, os retângulos de célula e a tabela de evidência criados no item 2.
+- **Retirar o item 3:** reversão do commit da issue; retira a opção do seletor, o módulo, os testes e o trecho da KB e do guia.
+- **Retirar o item 2:** se o item 3 já estiver integrado, revertê-lo antes. Reverter o 2 sozinho quebraria o 3.
+- **Retirar o item 1:** reverter antes o 3 e o 2, nessa ordem.
+- Reversões encadeadas podem ir numa só PR, com um commit de reversão por item, do mais recente para o mais antigo, e todos os gates verdes no último commit. Retirar uma lente intermediária mantendo a posterior exige mover o código compartilhado, o que é mudança de escopo, e não rollback.
+
+Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o item é relatado e decidido pelo responsável.
 
 ## Sequência recomendada
 
@@ -328,13 +423,32 @@ Rollback: as lentes não alteram dados nem schema. Reverter uma entrega é uma P
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando correções (rodada 1) — ciclo 004 (completo)
-Quem: O responsável leva a vez ao autor
-Conferir: Achados da rodada 1 na seção Revisão crítica deste plano
-Diga: "corrija o plano do ciclo 004"
+Situação: Aguardando revisão (rodada 2) — ciclo 004 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 004"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v2@6b6bd89`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v1` em `Em Revisão`, com a rodada 1 (`REQUER NOVA RODADA`, R1-1 a R1-8) registrada e commitada localmente em `6b6bd89`; ciclo em `Planejamento`; situação `Aguardando correções (rodada 1)`.
+- `state_after`: plano `v2` em `Em Revisão`, com resposta a R1-1 a R1-8 e a rodada 1 preservada; último veredito ainda `REQUER NOVA RODADA`; situação `Aguardando revisão (rodada 2)`; `cycles.md` cita a v2. Nenhuma aprovação, issue, implementação, push ou PR.
+- `result`: `executed`
+- `evidence`: frase "corrija o plano do ciclo 004" (2026-11-11), posterior ao veredito; seção "Resposta do autor à rodada 1 — v2"; inspeção de `scripts/banco/manifesto.mjs` (conversão das coordenadas por `Number`), de `local/dados-prototipo/saidas/deteccoes.csv` (cabeçalho e formato do texto decimal, sem copiar dados), de `20261107230000_correcoes_revisao_g2.sql` (RS-3), de `src/app.ts` (resumo do filtro comum) e de `scripts/interface/medir-geometria.mjs` (perfil, banco vazio e carga própria). Validação local registrada abaixo.
+- `blockers`: nenhum para a correção; revisão da rodada 2 pendente.
+
+### Validação local da correção v2
+
+- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas.
+- `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros.
+- Diff restrito a este plano e à versão citada em `cycles.md`. As linhas removidas são todas do texto do autor (v1) e do bloco de próximo passo; a rodada 1 do revisor não foi editada.
+- Conferência manual: G3 (nenhum dado da carga copiado; só o formato do cabeçalho; os exemplos de coordenada são fictícios), nenhuma decisão humana inventada, propostas marcadas como a ratificar, estados e próximo passo coerentes.
+- Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
+
+### Registro anterior — rascunho v1
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v1@c51ad73`
@@ -393,6 +507,26 @@ Diga: "corrija o plano do ciclo 004"
 - A ideia de conferir o módulo por SQL escrito à parte atende à independência do cálculo. A revisão verificou as interfaces e as precondições por inspeção do repositório. A carga real, a medição de desempenho e o ambiente hospedado ficam para as etapas previstas no plano.
 
 **Veredito:** `REQUER NOVA RODADA`. O autor deve responder aos achados, fechar os critérios verificáveis e submeter a versão seguinte à revisão formal.
+
+### Resposta do autor à rodada 1 — v2
+
+- **Data:** 2026-11-11
+- **Autor:** Claude Code (Opus 5.5)
+- **Base:** plano `v1` com a rodada 1, commit `6b6bd89`.
+- **Autorização:** "corrija o plano do ciclo 004".
+
+| Achado | Resposta | Onde |
+| :-- | :-- | :-- |
+| R1-1 | **Corrigido.** O recorte espacial virou a escolha de método M1, com três opções e o efeito numérico de cada uma, a ratificar na aprovação (proposta M1-a). O contrato ganhou o campo `recorte`. A conferência usa `consultar_resumo` com o mesmo recorte (`p_municipio: null` em M1-a), nunca o resumo da consulta comum. A cobertura usa o `p_municipio` de cada chamada. Caso L-3 e E2E com filtro municipal ativo e totais diferentes (4 e 10). | "Escolha de método a ratificar — recorte espacial de entrada (M1)"; contrato C1; "Leitura dos registros"; casos L-3 e E2E |
+| R1-2 | **Corrigido.** Valor canônico definido: a representação decimal mais curta que reconstrói o `double`, convertida para inteiro decimal sem multiplicação em ponto flutuante. Entradas com notação exponencial, não finitas ou com mais de 15 algarismos significativos são rejeitadas. A conferência compara a célula por `id_tecnico` entre o texto da fonte (`numeric`) e o caminho RPC → TypeScript. Qualquer diferença leva a "Parado", com alternativas ao responsável. Casos G-1 (dos dois lados das bordas negativas) e G-2. | T1 e "Valor canônico das coordenadas"; casos G-1 e G-2; conferência |
+| R1-3 | **Corrigido.** T3 deixou de ser regra de cobertura: dia faltante, repetido, fora da janela ou de outro satélite é falha de leitura, conforme a grade completa garantida por RS-3. O qualificador tem os estados `pendente`, `completa` e `falha`, e `falha` nunca mostra "N de M". A classe da célula segue a precedência D1 (T7), e as ressalvas preservam a classe observada (tabela "Ressalvas por classe"). D15 está registrada como refinamento de Q6. Casos V-3, V-4, P-7 e P-8. | T3, T7; contrato (`cobertura`, `ressalvas`); "Regras por lente"; "D15 refina Q6" |
+| R1-4 | **Corrigido.** Nova `geracaoLente`, com os eventos que a incrementam e a limpeza de lista, mapa, painel e memória antes da resposta. Verificações por página: eco de carga, período, município, limite e deslocamento; `total`; número de linhas; unicidade e ordem de `id_tecnico` entre páginas. Falha de página derruba a lente inteira; falha de disponibilidade afeta só os qualificadores dependentes. Casos L-1 e L-2 e E2E com respostas retidas (troca de lente, `Nenhuma`, logout, página duplicada e falha de disponibilidade). | "Leitura dos registros"; "Leitura da disponibilidade"; "Concorrência entre aplicações de lente"; casos L e E2E |
+| R1-5 | **Corrigido.** Nova seção com o procedimento local e o hospedado: ambiente, perfil, cache, compressão medida por proxy gzip local (não estimada), início no clique, fim em `data-estado-lente="completo"` com critérios explícitos, unidades, 3 repetições com mediana e o orçamento (≤ 20,0 s comprimido e ≤ 10.000.000 bytes brutos por lente). O gate vale sempre para a janela inteira. Paradas local e em produção, esta antes do encerramento, com as alternativas para decisão do responsável. | "Orçamento e procedimento de medição"; ponto "Verificar produção"; item 3 |
+| R1-6 | **Corrigido.** Caso C-5 com empate nas posições 10 e 11 pelo ponto de entrada de produção (N=10). A conferência ganhou uma janela que toca 3 meses GMT com as duas bordas parciais. | Casos; conferência; itens 1 e 2 |
+| R1-7 | **Corrigido.** `conferir:lentes` e `medir:lentes` partem de `supabase db reset`, publicam a carga real e conferem a identidade no início, no fim e contra o relatório. Ordem declarada: unitários, `typecheck` e `build`; conferência; medição; `test:rls` e `test:e2e`. | "Ordem dos gates com carga real" |
+| R1-8 | **Corrigido.** Cadeia de dependência 1 ← 2 ← 3 e ordem de reversão do mais recente para o mais antigo, com os casos de retirada de cada item. | "Riscos, suposições e rollback" |
+
+Nenhum achado foi contestado. Nenhuma decisão humana nova foi tomada: M1, T1 e T3 a T7 e o orçamento são propostas a ratificar na aprovação do plano. O fatiamento em três issues não mudou. A rodada 1 está preservada acima, sem edição.
 
 ## Pós-mortem
 
