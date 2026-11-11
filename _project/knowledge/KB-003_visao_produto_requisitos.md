@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-10"
+last_updated: "2026-11-11"
 origin_cycle: "000"
 ---
 
@@ -54,6 +54,18 @@ O protótipo está publicado na Vercel Hobby, com Supabase Free e autenticação
 
 Uma única conta cadastrada pode consultar os dados. A verificação hospedada confirmou a consulta do responsável, o bloqueio de outra conta Google na interface e a negativa de requisições anônimas na API. O processamento e a atualização são locais, sob demanda. O [runbook](../../docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) registra os tempos, o uso observado e as etapas administrativas. Recuperação de Auth, pausa do destino e disponibilidade contínua permanecem fora do que foi verificado.
 
+### Lentes de seleção do ciclo 004
+
+O protótipo ganhou três lentes de seleção sobre a carga publicada, no estado inteiro e na janela da consulta:
+
+- **concentração:** municípios com mais detecções;
+- **recorrência:** células de 0,05° com detecções em 3 ou mais meses GMT;
+- **persistência:** células com detecções em 3 ou mais dias GMT seguidos.
+
+Cada destaque traz motivo, evidência, cobertura de disponibilidade e ressalvas. Uma lente indica onde olhar; não é ranking nem prova de incêndio, dano, autoria ou infração. As lentes leem os dados já publicados, sem função ou tabela nova no banco. O contrato e o método estão na [KB-005](KB-005_contrato_lentes_selecao.md).
+
+Na carga vigente e na janela inteira, a concentração destaca 10 municípios, a recorrência 150 células e a persistência 66 sequências. Esses números foram conferidos localmente por SQL independente, e as contagens se repetiram em produção. A verificação hospedada não mediu o tempo pelo procedimento completo; o registro está no encerramento do ciclo.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -62,6 +74,7 @@ Uma única conta cadastrada pode consultar os dados. A verificação hospedada c
 - Ciclo `002`: [cenários](../executed/002_validacao_arquitetura/002_research_cenarios.md), [capacidades e custos](../executed/002_validacao_arquitetura/002_research_capacidades_custos.md) e [parecer de arquiteturas](../executed/002_validacao_arquitetura/002_research_arquitetura.md). As três entregas foram integradas pelas PRs #15, #16 e #17 em 2026-11-05. Fontes oficiais, seções, datas e limites constam dos relatórios. São evidências documentais, sem autoridade para adotar arquitetura ou autorizar provas/serviços.
 
 - Ciclo `003`: issue #24, runbook e ADRs 005 a 007 para banco, carga e interface. A implantação usa as entregas integradas nas PRs #25 a #29.
+- Ciclo `004`: [plano](../executed/004_contrato_lentes_selecao/004_plan.md), [conferência e medição](../executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md) e [encerramento](../executed/004_contrato_lentes_selecao/004_task_closure.md). As entregas foram integradas nas PRs #36 a #38.
 
 ## Histórico
 
@@ -71,3 +84,4 @@ Uma única conta cadastrada pode consultar os dados. A verificação hospedada c
 | 2026-11-04 | `001` | Resultado e limites da prova de dados de Colniza (conclusão de viabilidade com ressalvas) e fatos que as próximas etapas devem respeitar |
 | 2026-11-05 | `002` | Comparação documental de três alternativas para S1/S2/S3, insuficiência nos 27 cenários por alternativa, incompatibilidades de rotas específicas, proposta de acesso e provas futuras não executadas; sem arquitetura aceita; ciclo concluído pela PR própria de encerramento |
 | 2026-11-10 | `003` | Recorte, funcionamento e limites verificados do protótipo hospedado |
+| 2026-11-11 | `004` | Lentes de seleção (concentração, recorrência e persistência), limites e verificação hospedada parcial |

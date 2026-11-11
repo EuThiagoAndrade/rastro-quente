@@ -21,6 +21,8 @@ Carga local de dados (ciclo `003`, issue #22): `node scripts/banco/carga.mjs <pl
 
 Interface de consulta (ciclo `003`, issue #23): aplicação estática Vite + TypeScript + Leaflet com login Google (Supabase Auth). `npm ci`, `npm run typecheck`, `npm run build` (precisa de `VITE_SUPABASE_URL` e `VITE_SUPABASE_CHAVE_PUBLICAVEL`; ver `.env.example`), `npm run test:interface` (contraste, lógica e inspeção do bundle) e `npm run test:e2e` (Playwright com Chrome do sistema, Supabase local, Auth local e dados fictícios). `npm run medir:interface` mede a geometria em celular com a carga real local. Decisão em `_project/decisions/ADR-007_interface_consulta_prototipo.md`; guia da interface em `docs/runbook.md`.
 
+Lentes de seleção (ciclo `004`): concentração, recorrência e persistência em `src/lentes/`, sobre os dados já publicados. Contrato e método em `_project/knowledge/KB-005_contrato_lentes_selecao.md`. `npm run conferir:lentes` e `npm run medir:lentes` conferem e medem com a carga real local.
+
 Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.

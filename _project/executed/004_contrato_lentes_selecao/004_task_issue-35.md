@@ -2,13 +2,13 @@
 
 > **Ciclo:** `004`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#35`
-> **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
+> **Plano:** `_project/executed/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-35`
 > **PR:** [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38)
-> **Integração:** `Pendente`
+> **Integração:** PR #38 integrada em 2026-11-11 pelo responsável (squash `8e023d81b1acb5572873d11caab7084b4e083b3c`)
 > **Autorização inicial:** "autorizo a implementação da issue #35" em 2026-11-11
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-11
@@ -26,6 +26,7 @@ Issue [#35](https://github.com/EuThiagoAndrade/rastro-quente/issues/35) e item 3
 - **Arquivos:** `src/lentes/persistencia.ts`, `src/lentes/cobertura.ts`, `src/lentes/comum.ts`, `src/app.ts`, `src/apresentacao-lentes.ts`, `index.html`, `tests/unit/lentes.test.mjs`, `tests/fixtures/lentes/persistencia.json`, `tests/e2e/05-lentes.spec.mjs`, `tests/e2e/fixture.mjs`, `scripts/lentes/conferir.mjs`, `scripts/interface/medir-lentes.mjs`, KB-005, `docs/runbook.md` (seção 10), relatório `004_research_conferencia_lentes.md`, plano, esta task e a reconciliação da task da issue #34.
 - **Fora do escopo:** executar a verificação em produção; alterar decisões de método; migração, função, tabela, política ou grant novos; combinação de lentes; fontes externas; encerramento do ciclo.
 - **Autorização:** cobre implementação, testes e preparação e publicação da PR; não cobre merge nem a verificação em produção.
+- **Verificação em produção:** autorização literal "autorizo a verificação em produção do ciclo 004" recebida em 2026-11-11, depois da integração da PR #38. Cobre o roteiro abaixo e a conferência dos dados informados; não cobre login pelo agente, carga, migração, mudança de dados ou de método, nem a decisão de uma parada.
 
 ## Origem no backlog
 
@@ -55,6 +56,9 @@ Não se aplica.
 - [x] Conferência e medição consolidadas das três lentes com a carga real; relatório.
 - [x] KB-005, guia da interface, roteiro de verificação em produção e reconciliação da task da issue #34 (PR #37 integrada).
 - [x] Gates finais; publicar `feature/issue-35` (base `origin/main` em `4e4d56f` conferida, sem branch remota ou PR anterior), abrir a PR [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38) com `Closes #35` e gravar o bloco "Aguardando merge".
+- [x] Reconciliar a integração: PR #38 integrada pelo responsável, issue #35 fechada, checks verdes no último commit da PR e no `main`.
+- [x] Conferir a primeira devolutiva da verificação em produção com os valores locais esperados.
+- [x] Registrar a decisão do responsável: manter a evidência informada e seguir para o encerramento, com o desvio registrado.
 
 ## Evidências
 
@@ -68,7 +72,7 @@ Não se aplica.
 | `npm run test:e2e` | 54 testes (19 na spec de lentes, 3 novos da persistência): 53 passam. "Logout limpa a tela, o estado e a sessão guardada" (`01-acesso`, fora do escopo) falhou nas duas execuções completas neste Windows, como no item 1, e os 5 testes seguintes da mesma spec serial não rodaram; executados à parte (`--grep-invert`), os 11 demais testes de `01-acesso` passam. A CI desta PR é a evidência da suíte completa |
 | Governança | `node --test scripts/validate-governance.test.mjs`: 55 testes, 0 falhas; `node scripts/validate-governance.mjs`: 0 erros, 0 avisos, 9 conferências manuais |
 | `git diff --check` | Sem erros; staging revisado e limitado ao escopo; varredura G3 sem e-mail real, UUID ou segredo nos documentos |
-| Checks remotos | Pendente |
+| Checks remotos | PR #38: "Validate governance", "Database RLS and query contract" e "Interface typecheck, build and E2E" verdes; `main` em `8e023d8`: execução [43064246424](https://github.com/EuThiagoAndrade/rastro-quente/actions/runs/43064246424) verde |
 
 ## Roteiro de verificação em produção
 
@@ -106,6 +110,43 @@ Preparado para o ponto "Verificar produção" do plano. **Só é executado depoi
 
 **Parada em produção (antes do encerramento):** a situação passa a "Parado" se a identidade da carga for outra; se a mediana de alguma lente passar de 20,0 s; se alguma lente não tiver 3 execuções válidas em 6 tentativas; ou se o número de destaques, ou o valor de algum destaque, divergir da conferência local. Alternativas para decisão do responsável, sem escolha do agente: aceitar e registrar o desvio no encerramento; corrigir por trilha curta (defeito de algo especificado) ou por novo ciclo; ou reverter as entregas na ordem da seção de rollback do plano. O encerramento só é preparado depois da decisão registrada.
 
+### Resultado da verificação em produção — primeira devolutiva (2026-11-11)
+
+Dados informados pelo responsável depois de "autorizo a verificação em produção do ciclo 004", conferidos pelo agente com os valores locais esperados acima.
+
+**Precondições:** PRs #36, #37 e #38 integradas; `main` em `8e023d8`, com CI verde. Segundo o responsável, o deploy ativo na Vercel é do commit `8e023d8`. **Conferem.**
+
+| Lente | Tempo (1 execução) | Network (`rest/v1`) | Destaques informados | Esperado | Situação |
+| :-- | --: | :-- | :-- | :-- | :-- |
+| Concentração | 13,0 s | 32 requisições; 571 kB transferidos; 4,8 MB de recursos | 10 municípios | 10, com nomes e números de detecções | Contagem confere. Nomes e números não informados |
+| Recorrência | 11,2 s | 42 requisições; 112 kB transferidos; 3,6 MB de recursos | 150; primeiro "Célula -9.05 a -9.00…", último "Célula -17.75 a -17.70…" | 150; mesmas células na primeira e na última posição | Contagem e células das pontas conferem. Meses e detecções cortados no relato |
+| Persistência | 3,4 s | 11 requisições; 30,6 kB transferidos; 892 kB de recursos | 66; primeiro "Célula -13.10 a -13.05…", último "Célula -12.70 a -12.65…" | 66; mesmas células na primeira e na última posição | Contagem e células das pontas conferem. Dias e detecções cortados no relato |
+
+`Content-Encoding` observado nas três lentes: `gzip`.
+
+**Divergência com a conferência local:** nenhuma encontrada nos dados informados.
+
+**O que falta para concluir o roteiro:**
+
+- **Identidade da carga (passo 2):** não foi informada. Sem ela, os destaques hospedados não podem ser ligados à carga `2134ff14…0db2` da conferência local.
+- **Três execuções válidas por lente (passo 5):** veio uma execução por lente, sem as demais tentativas. Por isso não há mediana, e o orçamento hospedado não pode ser conferido.
+- **Recarga entre execuções:** os volumes da recorrência e da persistência indicam execuções sem recarga, aproveitando a memória da lente (`memoriaLente` em `src/app.ts`, reaproveitada enquanto sessão, carga e janela forem as mesmas):
+  - na concentração, 4,8 MB de recursos, praticamente os 4.859.185 bytes brutos da medição local, como esperado com a memória vazia;
+  - na persistência, 892 kB, contra 6.747.920 bytes brutos locais. Não houve a leitura dos registros, só a disponibilidade e as geometrias que faltavam;
+  - na recorrência, 3,6 MB, contra 8.322.074 bytes.
+
+  Os tempos de 11,2 s e 3,4 s medem a lente com a memória já preenchida, não o procedimento hospedado. Só a concentração (13,0 s) veio de uma leitura completa, e é uma execução só.
+- **Valores dos destaques (passo 6):** faltam a lista da concentração e os textos completos do primeiro e do último item da recorrência e da persistência.
+
+Com isso a verificação fica incompleta, e a situação passa a "Parado". Não se trata da parada em produção do plano, porque nenhum critério dela foi atingido nos dados recebidos. O motivo é que as precondições do registro não puderam ser verificadas. O encerramento do ciclo só é preparado depois que a verificação estiver completa ou que o responsável decidir de outro modo.
+
+**Decisão do responsável (2026-11-11):** depois do "Parado", o responsável respondeu literalmente "Vamos manter os dados que passei apenas. E vamos para a próxima etapa." É a alternativa do plano "aceitar e registrar o desvio no encerramento". A verificação em produção fica registrada com a evidência acima, sem as execuções adicionais. O desvio está no pós-mortem do plano e na task de encerramento. Os pontos sem evidência hospedada são:
+
+- a identidade da carga;
+- a mediana de 3 execuções por lente;
+- os tempos da recorrência e da persistência com a memória vazia;
+- os valores completos dos destaques.
+
 ## Revisão da correção
 
 Não se aplica.
@@ -128,22 +169,22 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #38 (https://github.com/EuThiagoAndrade/rastro-quente/pull/38)
-Diga: "aprovo o merge da PR #38"
+Situação: Concluído — ciclo 004 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + implementar_issue + 35 + 4e4d56f`
-- `effect_class`: `remote_mutation`
-- `state_before`: plano v3 `Em Execução`; itens 1 e 2 integrados (PRs #36 e #37); issue #35 aberta; nenhuma implementação do item 3.
-- `state_after`: item 3 implementado e validado localmente na branch `feature/issue-35` (código em `5ca5cc1`); branch publicada e PR #38 aberta, aguardando checks e merge. Roteiro de verificação em produção pronto na task, não executado.
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + verificar_producao + ciclo 004 + 8e023d8`
+- `effect_class`: `local_mutation`
+- `state_before`: PR #38 integrada pelo responsável em `8e023d8`; issue #35 fechada; CI do `main` verde; task ainda em `Aguardando integração`; roteiro de verificação não executado.
+- `state_after`: task reconciliada (`Concluída`); primeira devolutiva da verificação em produção conferida, sem divergência nos dados recebidos, mas incompleta. Registro feito em commit local na branch `chore/cycle-004-closure`, sem push.
 - `result`: `executed`
-- `evidence`: autorização literal "autorizo a implementação da issue #35"; tabela "Evidências" acima; relatório `004_research_conferencia_lentes.md`; PR https://github.com/EuThiagoAndrade/rastro-quente/pull/38.
-- `blockers`: nenhum para a publicação. O merge depende de checks verdes e de "aprovo o merge da PR #38"; a verificação em produção, de "autorizo a verificação em produção do ciclo 004" depois do merge.
+- `evidence`: autorização literal "autorizo a verificação em produção do ciclo 004"; dados informados pelo responsável; `gh pr view 38` (MERGED, `8e023d8`, três checks verdes); execução 43064246424 do `main`; seção "Resultado da verificação em produção — primeira devolutiva".
+- `blockers`: na primeira devolutiva, faltavam a identidade da carga, as três execuções válidas por lente e os valores completos dos destaques; a recorrência e a persistência tinham sido medidas com a memória da lente preenchida. O responsável decidiu manter a evidência informada ("Vamos manter os dados que passei apenas."), e o desvio foi registrado no encerramento. Nenhum bloqueio restante neste artefato.
 
 ## Referência do bootstrap
 

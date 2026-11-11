@@ -15,7 +15,7 @@ origin_cycle: "004"
 
 ## Finalidade
 
-Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade e as lentes de concentração, recorrência e persistência. É consultada por quem implementar a combinação futura (BL-005) ou uma lente nova e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/drafts/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (depois do encerramento, em `executed/`).
+Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade e as lentes de concentração, recorrência e persistência. É consultada por quem implementar a combinação futura (BL-005) ou uma lente nova e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md`.
 
 ## Limite de autoridade
 
@@ -122,7 +122,7 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 
 | Fonte | Função | URL | Versão fixada | Limite de autoridade |
 | :-- | :-- | :-- | :-- | :-- |
-| Plano `004` | Regras de método e contrato | `_project/drafts/004_contrato_lentes_selecao/004_plan.md` | v3 aprovado em 2026-11-11 | Autoridade das regras; esta KB não a substitui |
+| Plano `004` | Regras de método e contrato | `_project/executed/004_contrato_lentes_selecao/004_plan.md` | v3 aprovado em 2026-11-11 | Autoridade das regras; esta KB não a substitui |
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
 
@@ -133,3 +133,4 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 | 2026-11-11 | `004` | Criação na implementação do item 1 (issue #33): contrato C1, cobertura, grade T1 e concentração |
 | 2026-11-11 | `004` | Item 2 (issue #34): lente de recorrência, meses tocados pela janela, evidência paginada de célula e limitações das células |
 | 2026-11-11 | `004` | Item 3 (issue #35): lente de persistência, ressalvas por classe (D15, T7) e de borda (T4) |
+| 2026-11-11 | `004` | Encerramento: caminhos para `executed/`; verificação hospedada parcial registrada na task da issue #35 |
