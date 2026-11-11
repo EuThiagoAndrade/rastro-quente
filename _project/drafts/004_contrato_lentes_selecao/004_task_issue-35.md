@@ -2,12 +2,12 @@
 
 > **Ciclo:** `004`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#35`
 > **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-35`
-> **PR:** —
+> **PR:** [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #35" em 2026-11-11
 > **Modo contínuo:** `—`
@@ -54,7 +54,7 @@ Não se aplica.
 - [x] E2E da persistência, inclusive a concorrência com a recorrência.
 - [x] Conferência e medição consolidadas das três lentes com a carga real; relatório.
 - [x] KB-005, guia da interface, roteiro de verificação em produção e reconciliação da task da issue #34 (PR #37 integrada).
-- [ ] Gates finais, publicação e PR.
+- [x] Gates finais; publicar `feature/issue-35` (base `origin/main` em `4e4d56f` conferida, sem branch remota ou PR anterior), abrir a PR [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38) com `Closes #35` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -128,22 +128,22 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 004 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 004"
+Situação: Aguardando merge — ciclo 004 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #38 (https://github.com/EuThiagoAndrade/rastro-quente/pull/38)
+Diga: "aprovo o merge da PR #38"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + implementar_issue + 35 + 4e4d56f`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v3 `Em Execução`; itens 1 e 2 integrados (PRs #36 e #37); issue #35 aberta; nenhuma implementação do item 3.
-- `state_after`: implementação do item 3 em curso na branch `feature/issue-35`.
+- `state_after`: item 3 implementado e validado localmente na branch `feature/issue-35` (código em `5ca5cc1`); branch publicada e PR #38 aberta, aguardando checks e merge. Roteiro de verificação em produção pronto na task, não executado.
 - `result`: `executed`
-- `evidence`: autorização literal "autorizo a implementação da issue #35"; `gh pr list` (PR #37 integrada em 2026-11-11); `git log origin/main` em `4e4d56f`.
-- `blockers`: nenhum.
+- `evidence`: autorização literal "autorizo a implementação da issue #35"; tabela "Evidências" acima; relatório `004_research_conferencia_lentes.md`; PR https://github.com/EuThiagoAndrade/rastro-quente/pull/38.
+- `blockers`: nenhum para a publicação. O merge depende de checks verdes e de "aprovo o merge da PR #38"; a verificação em produção, de "autorizo a verificação em produção do ciclo 004" depois do merge.
 
 ## Referência do bootstrap
 
