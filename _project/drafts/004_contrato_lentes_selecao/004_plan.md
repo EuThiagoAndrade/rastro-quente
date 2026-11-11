@@ -40,7 +40,9 @@ Não cobre merges, a implementação das issues nem a verificação em produçã
 
 **Publicação e issues.** A PR documental #32 foi integrada em 2026-11-11 (`fa302b5`). As issues #33 (item 1), #34 (item 2) e #35 (item 3) foram criadas em 2026-11-11.
 
-**Execução do item 1:** autorização literal "autorizo a implementação da issue #33" recebida em 2026-11-11. A task `004_task_issue-33.md` é o artefato ativo; somente o item 1 está em execução.
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #33" recebida em 2026-11-11; PR #36 integrada em 2026-11-11.
+
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #34" recebida em 2026-11-11. A task `004_task_issue-34.md` é o artefato ativo; somente o item 2 está em execução.
 
 **Autorização da correção — v3, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
 
