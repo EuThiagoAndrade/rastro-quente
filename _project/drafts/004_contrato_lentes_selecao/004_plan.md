@@ -1,7 +1,7 @@
 # Plano de Implementação — Contrato de lente de seleção e lentes com dados já carregados
 
 > **Ciclo:** `004`
-> **Status:** `Em Revisão`
+> **Status:** `Aprovado`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-10
 > **Última atualização:** 2026-11-11
@@ -12,12 +12,33 @@
 > **Modo contínuo:** `—`
 > **Revisão formal:** `Concluída`
 > **Veredito da revisão:** `APTO COM RESSALVAS`
-> **Aprovação humana pós-revisão:** `Pendente`
+> **Aprovação humana pós-revisão:** `Aprovada em 2026-11-11`
 > **handoff_schema_version:** `2`
 
 **Autorização do rascunho:** "Autorizo o rascunho do plano do ciclo 004", em 2026-11-10. Autor: Claude Code (Opus 5.5). Antes de redigir, o autor apresentou quatro detalhes de método que a ideação deixou abertos, cada um com recomendação, alternativas e exemplo numérico. O responsável escolheu a opção recomendada nos quatro (decisões D13 a D16 abaixo). Essas escolhas não são aprovação do plano após revisão, nem autorização de issue ou de implementação.
 
-**Autorização da correção — v3, 2026-11-11:** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
+**Aprovação do plano — v3, 2026-11-11:** o responsável manifestou literalmente "aprovo o plano do ciclo 004", depois do veredito `APTO COM RESSALVAS` da rodada 3 (revisor: Codex, GPT-6).
+
+A aprovação ratifica como decisões humanas de G1 os itens enumerados em "Aprovar plano › Conferir":
+
+- Q1 a Q12 e D13 a D16, com D15 refinando Q6;
+- o recorte M1-a: as lentes rodam sobre o estado inteiro, e o filtro de município não se aplica a elas;
+- T1, com o valor canônico das coordenadas, e T3 a T7;
+- o contrato C1, as ressalvas por classe e os textos de limitação.
+
+Ratifica também o fatiamento em três issues, com a cobertura no item 1, e o orçamento com o procedimento de medição e as duas paradas.
+
+**Ressalva R3-1 incorporada ao item 1, sem mudar o escopo.** Na implementação do item 1, o tratamento de `versao_substituida` deve invalidar, assim que o erro for reconhecido, as respostas em trânsito da lente **e** da consulta comum: hoje `aoFalharConsulta` limpa os resultados sem avançar a geração da consulta. O E2E do item 1 libera uma resposta antiga depois desse estado e confere que ela não repovoa mapa, tabela ou lente. A ressalva detalha a verificação de critérios já existentes (limpeza e versão fixada).
+
+Cobre:
+
+- a publicação da PR documental deste lote (ideação, plano e registro do ciclo);
+- depois da integração documental e da confirmação dos payloads, a criação das três issues;
+- o encerramento, depois das entregas.
+
+Não cobre merges, a implementação das issues nem a verificação em produção. Cada um desses passos tem frase própria.
+
+**Autorização da correção — v3, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
 
 **Autorização da correção — v2, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 integralmente e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova foi tomada nesta correção. A escolha do recorte espacial (M1, antes T2) e os detalhes T1 e T3 a T7 seguem como propostas a ratificar na aprovação, com alternativas e exemplos numéricos.
 
@@ -444,13 +465,24 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando aprovação do plano — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Veredito e ressalva da rodada 3 na seção Revisão crítica deste plano
-Diga: "aprovo o plano do ciclo 004"
+Situação: Pronto para continuar — ciclo 004 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 004"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + atualizar_docs + aprovacao_publicacao_plano + v3@d341d35+rodada-3`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` (rodada 3), aprovação `Pendente`, situação `Aguardando aprovação do plano`. Branch `chore/cycle-004-plan` local em `4325a37`, sobre `origin/main` `85b444d`; nenhuma branch remota, PR ou issue do ciclo.
+- `state_after`: plano `v3` `Aprovado` (`Aprovada em 2026-11-11`) por manifestação posterior ao parecer, com R3-1 incorporada ao item 1. A publicação da PR documental, coberta pela aprovação, é o passo seguinte. Ciclo em `Planejamento`; nenhuma issue ou implementação.
+- `result`: `executed`
+- `evidence`: manifestação humana literal "aprovo o plano do ciclo 004" em 2026-11-11, posterior à rodada 3; `git fetch`, `git ls-remote` e `gh pr list` conferiram `origin/main` em `85b444d` e ausência de branch remota ou PR do ciclo.
+- `blockers`: nenhum.
+
+### Registro anterior — correção v3
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v3@3b1b2ed`
