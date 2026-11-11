@@ -1,9 +1,10 @@
-// Casos de referência das lentes (plano 004, item 1): C, G, L, V, E e X. Os valores esperados vêm das
+// Casos de referência das lentes (plano 004, itens 1 e 2): C, G, L, V, E, X e R. Os valores esperados vêm das
 // fixtures fictícias de tests/fixtures/lentes/ e do plano, escritos à mão; nenhum é gerado pelo código.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { concentracao } from '../../src/lentes/concentracao.ts';
+import { recorrencia } from '../../src/lentes/recorrencia.ts';
 import { qualificar, municipiosNecessarios, estadoQualificacao } from '../../src/lentes/comum.ts';
 import { qualificarCobertura, textoCobertura } from '../../src/lentes/cobertura.ts';
 import { ErroLente } from '../../src/lentes/contrato.ts';
@@ -244,4 +245,59 @@ test('X-1: mesmos registros em ordem embaralhada produzem resultado idêntico', 
   const embaralhado = [...e.registros].sort((a, b) => (a.id_tecnico.split('').reverse().join('') < b.id_tecnico.split('').reverse().join('') ? -1 : 1));
   assert.notDeepEqual(embaralhado.map((r) => r.id_tecnico), e.registros.map((r) => r.id_tecnico));
   assert.deepEqual(concentracao({ ...e, registros: embaralhado }), concentracao(e));
+});
+
+// --- Recorrência (item 2) --------------------------------------------------------------------------
+
+const entradaRecorrencia = (caso) => {
+  const registros = caso.registros.map(([id_tecnico, data_hora_gmt, latitude, longitude, municipio_codigo]) =>
+    ({ id_tecnico, data_hora_gmt, latitude, longitude, municipio_codigo }));
+  return { carga: CARGA, janela: caso.janela, registros, totalResumo: registros.length, nomes: new Map() };
+};
+
+test('R-1 a R-4: meses GMT distintos por célula, mês GMT, mês parcial (D14) e janela insuficiente', () => {
+  for (const caso of fixture('recorrencia.json').casos) {
+    const r = recorrencia(entradaRecorrencia(caso));
+    const esp = caso.esperado;
+    assert.equal(r.estado, esp.estado, caso.id);
+    assert.equal(r.ordenacao, null, `${caso.id}: a recorrência não ordena por medida`);
+    assert.deepEqual(r.destaques.map((d) => ({
+      id_destaque: d.id_destaque, unidade: d.unidade, valor: d.evidencia.valor, datas: d.evidencia.datas,
+      deteccoes: d.evidencia.deteccoes, municipios: d.cobertura.municipios, motivo: d.motivo, ressalvas: d.ressalvas,
+    })), esp.destaques, caso.id);
+    for (const d of r.destaques) assert.equal(d.cobertura.estado, 'pendente', caso.id);
+    if (esp.meses) assert.deepEqual(r.janela.meses, esp.meses, caso.id);
+    if (esp.observacoes) assert.deepEqual(r.observacoes, esp.observacoes, caso.id);
+    assert.ok(r.limitacoes.includes('A cobertura da célula usa os municípios das detecções, não a área da célula.'), caso.id);
+  }
+});
+
+test('recorrência: coordenada fora da forma canônica não é classificada (leitura inconsistente)', () => {
+  const caso = fixture('recorrencia.json').casos[1];
+  const e = entradaRecorrencia(caso);
+  e.registros[0] = { ...e.registros[0], latitude: 1e-7 };
+  assert.throws(() => recorrencia(e), ErroLente);
+});
+
+test('recorrência: conferência divergente não produz resultado', () => {
+  const e = entradaRecorrencia(fixture('recorrencia.json').casos[0]);
+  assert.throws(() => recorrencia({ ...e, totalResumo: e.totalResumo + 1 }), ErroLente);
+});
+
+test('X-1 (recorrência): ordem embaralhada produz resultado idêntico; união D13 qualifica a célula', () => {
+  const caso = fixture('recorrencia.json').casos[0];
+  const e = entradaRecorrencia(caso);
+  assert.deepEqual(recorrencia({ ...e, registros: [...e.registros].reverse() }), recorrencia(e));
+  // A célula X tem focos em 9910001 e 9910002: um dia restritivo em cada um conta contra (D13).
+  const r = recorrencia(e);
+  const disp = disponibilidadeDe({
+    janela: caso.janela, municipios: [9910001, 9910002, 9910003],
+    restritivos: { 9910001: [['2026-08-10', 'lacuna_conhecida']], 9910002: [['2026-09-20', 'incidencia_indeterminada']] },
+  });
+  const q = qualificar(r, disp);
+  assert.deepEqual(q.destaques.map((d) => textoCobertura(d.cobertura)), [
+    '92 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
+    '90 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
+  ]);
+  assert.deepEqual(q.destaques.map((d) => d.id_destaque), r.destaques.map((d) => d.id_destaque));
 });

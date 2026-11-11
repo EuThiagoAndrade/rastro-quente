@@ -76,11 +76,20 @@ export interface Parametro {
   valor: string;
 }
 
+/** Mês GMT tocado pela janela (D14): `inicio` e `fim` são os dias da janela dentro do mês. */
+export interface MesJanela {
+  mes: string;
+  parcial: boolean;
+  inicio: string;
+  fim: string;
+}
+
 export interface ResultadoLente {
   lente: TipoLente;
   versao_metodo: string;
   carga: CargaLente;
-  janela: Janela & { referencia: 'dias GMT inclusivos' };
+  /** Na recorrência, `meses` traz os meses GMT tocados, com a marca de parcial (D14). */
+  janela: Janela & { referencia: 'dias GMT inclusivos'; meses?: MesJanela[] };
   recorte: { tipo: 'estado'; municipio: null };
   parametros: Parametro[];
   estado: 'com_destaques' | 'sem_destaques' | 'janela_insuficiente';
@@ -113,6 +122,12 @@ export const LIMITACOES_COMUNS = [
   AVISO_DOMINIO,
   'Contagem principal em dias GMT; a sensibilidade America/Cuiaba aparece só no resumo da consulta.',
   'Disponibilidade não comprova cobertura.',
+];
+
+/** Limitações das lentes por célula (Q3, D13). */
+export const LIMITACOES_CELULA = [
+  'Focos vizinhos em células diferentes não são lidos como o mesmo local; a célula não segue divisas.',
+  'A cobertura da célula usa os municípios das detecções, não a área da célula.',
 ];
 
 export const ROTULO_ORDENACAO = 'ordenado por contagem de detecções, não por prioridade, gravidade ou risco';

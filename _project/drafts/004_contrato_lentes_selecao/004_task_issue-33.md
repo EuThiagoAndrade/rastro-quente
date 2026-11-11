@@ -2,13 +2,13 @@
 
 > **Ciclo:** `004`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#33`
 > **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-33`
 > **PR:** [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
-> **Integração:** `Pendente`
+> **Integração:** `PR #36 integrada em main em 2026-11-11 (69575ad); checks verdes na PR (Validate governance, Database RLS and query contract e Interface typecheck, build and E2E)`
 > **Autorização inicial:** "autorizo a implementação da issue #33" em 2026-11-11
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-11
@@ -68,7 +68,7 @@ Não se aplica.
 | `npm run test:e2e` | 46 de 47 passam; o teste "Logout limpa a tela, o estado e a sessão guardada" falha **neste ambiente local** também em `main` (`fa302b5`) e passa na CI de `main` (run 43027763847). Ver "Decisões incidentais". |
 | Governança | `node --test scripts/validate-governance.test.mjs`: 55 testes, 0 falhas; `node scripts/validate-governance.mjs`: 0 erros, 0 avisos, 9 conferências manuais |
 | `git diff --check` | Sem erros; staging revisado e limitado ao escopo; varredura G3 sem e-mail real, UUID ou segredo nos documentos |
-| Checks remotos | Pendente |
+| Checks remotos | PR #36: Validate governance, Database RLS and query contract e Interface typecheck, build and E2E verdes; run de `main` 43040806837 verde (reconciliado na task da issue #34) |
 
 ## Revisão da correção
 
@@ -93,10 +93,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #36 (https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
-Diga: "aprovo o merge da PR #36"
+Situação: Pronto para continuar — ciclo 004 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 004"
 ```
 
 ## Handoff de saída

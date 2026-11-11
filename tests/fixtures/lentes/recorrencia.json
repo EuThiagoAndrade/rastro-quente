@@ -1,0 +1,122 @@
+{
+  "descricao": "Casos de referência fictícios da lente de recorrência (plano 004, R-1 a R-4). Municípios inventados (códigos 99100xx) e coordenadas fictícias; células calculadas à mão pela grade T1 (índice = piso de coordenada × 20). Os valores esperados foram escritos à mão a partir do plano, não gerados pelo código.",
+  "casos": [
+    {
+      "id": "R-1",
+      "nota": "Célula X com detecções em ago, set e out (dois municípios: união D13); célula Y com 10 detecções só em ago e set; célula Z com 4 detecções em ago, set e out. Z (índice de latitude -250) vem antes de X (-251): norte→sul.",
+      "janela": { "inicio": "2026-08-01", "fim": "2026-10-31" },
+      "registros": [
+        ["x1", "2026-08-05T14:00:00Z", -12.52, -56.48, 9910001],
+        ["x2", "2026-09-12T15:30:00Z", -12.52, -56.48, 9910001],
+        ["x3", "2026-10-20T03:10:00Z", -12.51, -56.46, 9910002],
+        ["y01", "2026-08-01T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y02", "2026-08-02T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y03", "2026-08-03T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y04", "2026-08-04T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y05", "2026-08-05T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y06", "2026-09-01T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y07", "2026-09-02T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y08", "2026-09-03T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y09", "2026-09-04T10:00:00Z", -12.61, -56.33, 9910001],
+        ["y10", "2026-09-30T23:59:59Z", -12.61, -56.33, 9910001],
+        ["z1", "2026-08-02T08:00:00Z", -12.48, -56.71, 9910003],
+        ["z2", "2026-09-03T08:00:00Z", -12.48, -56.71, 9910003],
+        ["z3", "2026-10-04T08:00:00Z", -12.48, -56.71, 9910003],
+        ["z4", "2026-10-30T08:00:00Z", -12.48, -56.71, 9910003]
+      ],
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "recorrencia:celula_005:c-250_-1135",
+            "unidade": { "tipo": "celula_005", "id": "c-250_-1135", "sul": "-12.50", "oeste": "-56.75", "norte": "-12.45", "leste": "-56.70" },
+            "valor": 3, "datas": ["2026-08", "2026-09", "2026-10"], "deteccoes": ["z1", "z2", "z3", "z4"], "municipios": [9910003],
+            "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.",
+            "ressalvas": []
+          },
+          {
+            "id_destaque": "recorrencia:celula_005:c-251_-1130",
+            "unidade": { "tipo": "celula_005", "id": "c-251_-1130", "sul": "-12.55", "oeste": "-56.50", "norte": "-12.50", "leste": "-56.45" },
+            "valor": 3, "datas": ["2026-08", "2026-09", "2026-10"], "deteccoes": ["x1", "x2", "x3"], "municipios": [9910001, 9910002],
+            "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.",
+            "ressalvas": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "R-2",
+      "nota": "w2 às 02:00Z de 01/09 ainda é 31/08 em Cuiabá, mas conta para setembro (mês GMT). Se contasse para agosto, a célula teria 2 meses e não seria destacada.",
+      "janela": { "inicio": "2026-08-01", "fim": "2026-10-31" },
+      "registros": [
+        ["w1", "2026-08-15T12:00:00Z", -12.52, -56.48, 9910001],
+        ["w2", "2026-09-01T02:00:00Z", -12.52, -56.48, 9910001],
+        ["w3", "2026-10-10T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "recorrencia:celula_005:c-251_-1130",
+            "unidade": { "tipo": "celula_005", "id": "c-251_-1130", "sul": "-12.55", "oeste": "-56.50", "norte": "-12.50", "leste": "-56.45" },
+            "valor": 3, "datas": ["2026-08", "2026-09", "2026-10"], "deteccoes": ["w1", "w2", "w3"], "municipios": [9910001],
+            "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.",
+            "ressalvas": []
+          }
+        ]
+      }
+    },
+    {
+      "id": "R-3",
+      "nota": "Janela de 15/08 a 14/10 toca 3 meses GMT (D14): a lente roda e marca agosto e outubro como parciais.",
+      "janela": { "inicio": "2026-08-15", "fim": "2026-10-14" },
+      "registros": [
+        ["p1", "2026-08-20T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p2", "2026-09-10T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p3", "2026-10-05T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "esperado": {
+        "estado": "com_destaques",
+        "meses": [
+          { "mes": "2026-08", "parcial": true, "inicio": "2026-08-15", "fim": "2026-08-31" },
+          { "mes": "2026-09", "parcial": false, "inicio": "2026-09-01", "fim": "2026-09-30" },
+          { "mes": "2026-10", "parcial": true, "inicio": "2026-10-01", "fim": "2026-10-14" }
+        ],
+        "observacoes": [
+          "A janela toca 3 meses GMT: ago/2026 (parcial), set/2026 e out/2026 (parcial).",
+          "Mês parcial conta como mês tocado: ago/2026 (janela de 15/08 a 31/08) e out/2026 (janela de 01/10 a 14/10)."
+        ],
+        "destaques": [
+          {
+            "id_destaque": "recorrencia:celula_005:c-251_-1130",
+            "unidade": { "tipo": "celula_005", "id": "c-251_-1130", "sul": "-12.55", "oeste": "-56.50", "norte": "-12.50", "leste": "-56.45" },
+            "valor": 3, "datas": ["2026-08", "2026-09", "2026-10"], "deteccoes": ["p1", "p2", "p3"], "municipios": [9910001],
+            "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026 (parcial), set/2026 e out/2026 (parcial).",
+            "ressalvas": [
+              "inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)",
+              "inclui mês parcial: out/2026 (janela de 01/10 a 14/10)"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "R-4",
+      "nota": "Janela de 15/08 a 30/09 toca 2 meses GMT: janela insuficiente, sem destaques, mesmo com detecções nos dois meses.",
+      "janela": { "inicio": "2026-08-15", "fim": "2026-09-30" },
+      "registros": [
+        ["q1", "2026-08-20T12:00:00Z", -12.52, -56.48, 9910001],
+        ["q2", "2026-09-10T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "esperado": {
+        "estado": "janela_insuficiente",
+        "observacoes": [
+          "A janela toca 2 meses GMT; a recorrência exige pelo menos 3.",
+          "A janela toca 2 meses GMT: ago/2026 (parcial) e set/2026.",
+          "Mês parcial conta como mês tocado: ago/2026 (janela de 15/08 a 31/08)."
+        ],
+        "destaques": []
+      }
+    }
+  ]
+}

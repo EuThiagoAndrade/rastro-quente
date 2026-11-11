@@ -1,4 +1,4 @@
-// Ciclo 004, issue #33 — lente de concentração, cobertura, recorte M1-a, concorrência (R1-4), destino dos
+// Ciclo 004, issues #33 e #34 — lentes de concentração e recorrência, cobertura, recorte M1-a, concorrência (R1-4), destino dos
 // erros (R2-1) e respostas em trânsito após versão substituída (R3-1). Valores esperados derivados à mão
 // da fixture fictícia (tests/e2e/fixture.mjs), sem usar a interface: em outubro/2026, Alfa 60, Beta 30 e
 // Gama 10 detecções; disponibilidade em 31 dias: Alfa com lacuna nos dias 1 e 2 (29 de 31), Beta
@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
 import { consultar, entrar } from './ajuda.mjs';
-import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture } from './fixture.mjs';
+import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixtureRecorrencia } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
 // A spec 04 publica uma segunda versão e não a desfaz: restaura a fixture original pelo mesmo protocolo.
@@ -263,4 +263,108 @@ test('lente acessível: teclado e 360 px sem rolagem horizontal da página', asy
   expect(largura[0]).toBeLessThanOrEqual(largura[1]);
   const alvo = await page.locator('#botao-lente').boundingBox();
   expect(alvo.height).toBeGreaterThanOrEqual(44);
+});
+
+// --- Issue #34: recorrência por célula de 0,05° -------------------------------------------------------
+// Carga fictícia de três meses (tests/e2e/fixture.mjs, sqlFixtureRecorrencia), com valores esperados
+// derivados à mão: células A (3 meses, 3 detecções, Alfa e Beta), B (3 meses, 23, Alfa) e D (3 meses, 3,
+// Gama); C só em ago e set. Cobertura: A 90 de 92 (união D13), B 91 de 92, D 92 de 92.
+test.describe('recorrência', () => {
+  test.beforeAll(() => {
+    sqlAdmin(SQL_LIMPEZA);
+    sqlAdmin(sqlFixtureRecorrencia());
+  });
+  test.afterAll(() => {
+    sqlAdmin(SQL_LIMPEZA);
+    sqlAdmin(sqlFixture());
+  });
+
+  const ROTULOS_JANELA_INTEIRA = [
+    'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 meses GMT (3 detecções)',
+    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 meses GMT (23 detecções)',
+    'Célula -11.65 a -11.60 · -54.55 a -54.50 — 3 meses GMT (3 detecções)',
+  ];
+
+  test('células com 3 meses GMT, ordem por célula sem ranking, cobertura por união e evidência paginada', async ({ page }) => {
+    await entrar(page, 'rp');
+    await expect(page.locator('#total-principal')).toHaveText('35');
+    await aplicar(page, 'recorrencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
+    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+      '90 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
+      '91 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
+      '92 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
+    ]);
+    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 meses GMT distintos');
+    await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
+    await expect(page.locator('#lente-limitacoes')).toContainText('A cobertura da célula usa os municípios das detecções');
+    expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
+
+    // Célula na divisa: municípios usados na cobertura (D13) e os dois dias que contam contra, com a classe.
+    await itens(page).first().locator('.botao-nome').click();
+    await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'recorrencia:celula_005:c-230_-1120');
+    await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.');
+    await expect(page.locator('#lente-municipios')).toContainText('Município Alfa (9900001); Município Beta (9900002)');
+    await page.getByText('Dias que contam contra (2)').click();
+    expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'incidencia_indeterminada']);
+    await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
+    await expect(page.locator('#lente-evidencia-tabela tbody tr')).toHaveCount(3);
+
+    // Evidência paginada na célula com 23 detecções.
+    await itens(page).nth(1).locator('.botao-nome').click();
+    await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–20 de 23 detecções da evidência.');
+    await page.getByRole('button', { name: 'Próximas detecções' }).click();
+    await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 21–23 de 23 detecções da evidência.');
+    await expect(page.locator('#lente-evidencia-tabela tbody tr')).toHaveCount(3);
+    await expect(page.locator('#lente-evidencia-info')).toBeFocused();
+  });
+
+  test('janela com bordas parciais (15/08 a 14/10) roda e marca os meses parciais (D14)', async ({ page }) => {
+    await entrar(page, 'rp');
+    await page.locator('#f-inicio').fill('2026-08-15');
+    await page.locator('#f-fim').fill('2026-10-14');
+    await aplicar(page, 'recorrencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([
+      'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 meses GMT (3 detecções)',
+      'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 meses GMT (16 detecções)',
+    ]);
+    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+      '60 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
+      '61 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
+    ]);
+    await expect(page.locator('#lente-corpo')).toContainText('A janela toca 3 meses GMT: ago/2026 (parcial), set/2026 e out/2026 (parcial).');
+    await itens(page).first().locator('.botao-nome').click();
+    expect(await page.locator('#lente-ressalvas > li').allInnerTexts()).toEqual([
+      'inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)',
+      'inclui mês parcial: out/2026 (janela de 01/10 a 14/10)',
+    ]);
+  });
+
+  test('janela que toca 2 meses GMT mostra "janela insuficiente", sem destaques', async ({ page }) => {
+    await entrar(page, 'rp');
+    await page.locator('#f-inicio').fill('2026-08-15');
+    await page.locator('#f-fim').fill('2026-09-30');
+    await aplicar(page, 'recorrencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'janela_insuficiente');
+    await expect(page.locator('#lente-estado')).toContainText('A janela toca 2 meses GMT; a recorrência exige pelo menos 3.');
+    await expect(itens(page)).toHaveCount(0);
+    await expect(page.locator('#lente-limitacoes')).toBeVisible();
+  });
+
+  test('concorrência: recorrência aplicada com a concentração ainda em leitura; só a recorrência aparece', async ({ page }) => {
+    await entrar(page, 'rp');
+    const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+    await aplicar(page, 'concentracao');
+    await r.chegada;
+    await aplicar(page, 'recorrencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    r.soltar();
+    await page.waitForTimeout(500);
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
+  });
 });

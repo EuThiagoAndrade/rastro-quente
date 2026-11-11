@@ -147,3 +147,78 @@ delete from public.municipios where carga_id in (select id from public.cargas wh
 delete from public.cargas where identidade like '${PREFIXO}%';
 delete from privado.manifestos_aprovados where identidade like '${PREFIXO}%';
 commit;`;
+
+// Ciclo 004, issue #34 — carga fictícia de três meses (ago a out/2026) para a lente de recorrência. Mesmos
+// códigos inventados; limites retangulares com a divisa Alfa/Beta em −55,98 (dentro de uma célula de
+// 0,05°), para exercitar a união D13. Valores esperados derivados à mão (grade T1: índice = piso de
+// coordenada × 20):
+// - célula A [−11,50; −11,45) × [−56,00; −55,95): ago e set em Alfa, out em Beta → 3 meses, 3 detecções;
+// - célula B [−11,55; −11,50) × [−56,50; −56,45): Alfa, 1 em ago, 1 em set e 21 em out (01 a 21) → 3 meses, 23;
+// - célula C [−11,65; −11,60) × [−55,35; −55,30): Beta, 3 em ago e 3 em set → 2 meses, sem destaque;
+// - célula D [−11,65; −11,60) × [−54,55; −54,50): Gama, 01/08 00:00Z, 30/09 23:59:59Z e 31/10 23:00Z → 3 meses, 3.
+// Total 35 (Alfa 25, Beta 7, Gama 3). Disponibilidade em 92 dias: Alfa lacuna em 10/08, Beta indeterminada em
+// 20/09, Gama sem lacuna em todos. Cobertura: A 90 de 92 (união), B 91 de 92, D 92 de 92.
+export const IDENTIDADE_RECORRENCIA = `${PREFIXO}3`;
+export const JANELA_RECORRENCIA = { inicio: '2026-08-01', fim: '2026-10-31' };
+const LIMITES_RECORRENCIA = { alfa: [-57, -55.98], beta: [-55.98, -55], gama: [-55, -54] };
+
+function deteccoesRecorrencia() {
+  const linhas = [];
+  const add = (id, m, instante, lat, lon) => linhas.push({ id, m, instante, lat, lon, linha: linhas.length + 1 });
+  add('ra1', 'alfa', '2026-08-20T12:00:00Z', -11.48, -55.99);
+  add('ra2', 'alfa', '2026-09-10T12:00:00Z', -11.48, -55.99);
+  add('ra3', 'beta', '2026-10-05T12:00:00Z', -11.48, -55.96);
+  add('rb01', 'alfa', '2026-08-25T12:00:00Z', -11.52, -56.48);
+  add('rb02', 'alfa', '2026-09-15T12:00:00Z', -11.52, -56.48);
+  for (let d = 1; d <= 21; d += 1) add(`rb${String(d + 2).padStart(2, '0')}`, 'alfa', `2026-10-${String(d).padStart(2, '0')}T12:00:00Z`, -11.52, -56.47);
+  for (const dia of ['2026-08-03', '2026-08-04', '2026-08-05', '2026-09-03', '2026-09-04', '2026-09-05']) add(`rc${dia.slice(5)}`, 'beta', `${dia}T09:00:00Z`, -11.61, -55.33);
+  add('rd1', 'gama', '2026-08-01T00:00:00Z', -11.62, -54.52);
+  add('rd2', 'gama', '2026-09-30T23:59:59Z', -11.62, -54.52);
+  add('rd3', 'gama', '2026-10-31T23:00:00Z', -11.62, -54.52);
+  return linhas;
+}
+
+function disponibilidadeRecorrencia() {
+  const linhas = [];
+  for (let t = Date.parse('2026-08-01T00:00:00Z'); t <= Date.parse('2026-10-31T00:00:00Z'); t += 86_400_000) {
+    const d = new Date(t).toISOString().slice(0, 10);
+    for (const m of ['alfa', 'beta', 'gama']) {
+      const restrita = (m === 'alfa' && d === '2026-08-10') ? ['lacuna_conhecida', 'aviso_cobre_municipio']
+        : (m === 'beta' && d === '2026-09-20') ? ['incidencia_indeterminada', 'aviso_parcial_no_municipio'] : null;
+      linhas.push(restrita
+        ? { m, d, classe: restrita[0], motivos: [restrita[1]] }
+        : { m, d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'] });
+    }
+  }
+  return linhas;
+}
+
+/** Publica a carga de recorrência no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
+export function sqlFixtureRecorrencia() {
+  const d = deteccoesRecorrencia();
+  const disp = disponibilidadeRecorrencia();
+  const linhasD = d.map((x) => `('${x.id}', 'focos', ${x.linha}, 'INPE-R${x.linha}', 'principal', ${tsz(x.instante)}, ${x.lat}::float8, ${x.lon}::float8, ${MUNICIPIOS[x.m].codigo}, 'interior', ${MUNICIPIOS[x.m].codigo}, 99)`).join(',\n');
+  const linhasV = disp.map((x) => `('${x.d}'::date, 'AQUA_M-T', ${MUNICIPIOS[x.m].codigo}, '${x.classe}', array[${x.motivos.map(aspas).join(',')}]::text[], 'verificado', array[]::text[])`).join(',\n');
+  const id = IDENTIDADE_RECORRENCIA;
+  return `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, metodo)
+values ('${id}', 'AQUA_M-T', '2026-08-01T00:00Z', '2026-11-01T00:00Z', ${d.length}, 0, 3, ${disp.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004"}');
+${fontes(id)}
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, v.codigo, v.nome, v.geom::jsonb from public.cargas c, (values
+${Object.entries(MUNICIPIOS).map(([k, x]) => `  (${x.codigo}, '${x.nome}', '${poligono(LIMITES_RECORRENCIA[k])}')`).join(',\n')}
+) v(codigo, nome, geom) where c.identidade = '${id}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, id_fonte, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao, municipio_inpe, estado_inpe)
+select c.id, v.* from public.cargas c, (values
+${linhasD}
+) v where c.identidade = '${id}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico, avisos)
+select c.id, v.* from public.cargas c, (values
+${linhasV}
+) v where c.identidade = '${id}';
+${aprovar(id)}
+update public.cargas set estado = 'publicada' where identidade = '${id}';
+insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
+commit;`;
+}

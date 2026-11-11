@@ -12,6 +12,7 @@ import {
 import { lerConfiguracao } from './config.ts';
 import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
 import { concentracao } from './lentes/concentracao.ts';
+import { recorrencia } from './lentes/recorrencia.ts';
 import {
   CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerRegistros, validarDisponibilidade,
   type FontesLente, type OrigemChamada, type PedidoLente,
@@ -50,7 +51,14 @@ interface LenteAplicada {
   pedido: PedidoLente;
   resultado: ResultadoLente;
   selecionado: string | null;
+  /** Página da tabela de evidência do destaque de célula selecionado. */
+  paginaEvidencia: number;
+  /** Registros da aplicação por id_tecnico, para a tabela de evidência. */
+  porId: Map<string, RegistroLente>;
 }
+
+/** Lentes disponíveis no seletor; cada uma é função pura da mesma entrada. */
+const LENTES = { concentracao, recorrencia } as const;
 
 /** Memória reaproveitável entre lentes, enquanto sessão, carga, janela e recorte forem os mesmos. */
 interface MemoriaLente {
@@ -422,6 +430,12 @@ class Controlador {
       tentarDeNovo: () => void this.aplicarLente(),
       selecionar: (id) => this.selecionarDestaque(id),
       consultarMunicipio: (codigo) => this.escolherMunicipio(codigo),
+      paginaEvidencia: (pagina) => {
+        if (!this.lente) return;
+        this.lente.paginaEvidencia = pagina;
+        this.mostrarLente();
+        document.getElementById('lente-evidencia-info')?.focus();
+      },
     };
   }
 
@@ -465,13 +479,17 @@ class Controlador {
   }
 
   private mostrarLente(): void {
-    if (this.lente) renderResultadoLente(this.lente.resultado, this.lente.selecionado, this.manipuladoresLente());
+    const l = this.lente;
+    if (!l || !this.dados) return;
+    renderResultadoLente(l.resultado, l.selecionado,
+      { nomes: this.dados.nomes, registros: l.porId, paginaEvidencia: l.paginaEvidencia }, this.manipuladoresLente());
   }
 
   private selecionarDestaque(id: string): void {
     const l = this.lente;
     if (!l || !l.resultado.destaques.some((d) => d.id_destaque === id)) return;
     l.selecionado = id;
+    l.paginaEvidencia = 0;
     this.mostrarLente();
     this.mapa?.selecionarDestaque(id);
     document.getElementById('lente-painel-titulo')?.focus();
@@ -479,10 +497,12 @@ class Controlador {
 
   private async aplicarLente(): Promise<void> {
     const dados = this.dados;
-    if ($<HTMLSelectElement>('l-lente').value === 'nenhuma') {
+    const escolhida = $<HTMLSelectElement>('l-lente').value;
+    if (!Object.hasOwn(LENTES, escolhida)) {
       this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
       return;
     }
+    const calcular = LENTES[escolhida as keyof typeof LENTES];
     // Datas validadas como na consulta; o município do filtro não se aplica às lentes (M1-a).
     const filtro = this.lerFiltro();
     if (!dados || !filtro) return;
@@ -505,7 +525,7 @@ class Controlador {
       mem = lido.reaproveitado && anterior ? anterior
         : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
       this.memoriaLente = mem;
-      resultado = concentracao({
+      resultado = calcular({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
         registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
       });
@@ -519,7 +539,10 @@ class Controlador {
 
     // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
     const disponibilidade = new Map(mem.disponibilidade);
-    this.lente = { pedido, resultado: qualificar(resultado, disponibilidade), selecionado: null };
+    this.lente = {
+      pedido, resultado: qualificar(resultado, disponibilidade), selecionado: null, paginaEvidencia: 0,
+      porId: new Map(mem.registros.map((x) => [x.id_tecnico, x])),
+    };
     this.mostrarLente();
 
     let contornoFalhou = false;
@@ -553,7 +576,8 @@ class Controlador {
     this.lente.resultado = qualificar(resultado, disponibilidade);
     this.mostrarLente();
     const segundos = (performance.now() - inicio) / 1000;
-    if (resultado.estado === 'sem_destaques') this.estadoLente({ tipo: 'sem_destaques', segundos });
+    if (resultado.estado === 'janela_insuficiente') this.estadoLente({ tipo: 'janela_insuficiente', segundos, texto: resultado.observacoes[0] ?? '' });
+    else if (resultado.estado === 'sem_destaques') this.estadoLente({ tipo: 'sem_destaques', segundos });
     else if (estadoQualificacao(this.lente.resultado) !== 'completa') this.estadoLente({ tipo: 'cobertura_nao_verificada' });
     else if (contornoFalhou) this.estadoLente({ tipo: 'contorno_indisponivel' });
     else this.estadoLente({ tipo: 'completo', segundos });
