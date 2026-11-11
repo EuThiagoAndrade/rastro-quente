@@ -7,7 +7,7 @@
 > **Issue:** `#33`
 > **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-33`
-> **PR:** —
+> **PR:** [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #33" em 2026-11-11
 > **Modo contínuo:** `—`
@@ -54,7 +54,7 @@ Não se aplica.
 - [x] Cartão, lista, camada de mapa e painel; E2E de lentes (12 testes).
 - [x] Conferência independente e medição com a carga real; relatório `004_research_conferencia_lentes.md`.
 - [x] KB-005, guia da interface (runbook, seção 10), gates e inspeção de `governance-check`.
-- [ ] Publicar a branch, abrir a PR e gravar "Aguardando merge".
+- [x] Publicar `feature/issue-33` (base `origin/main` em `fa302b5` conferida), abrir a PR [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36) com `Closes #33` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -93,22 +93,22 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 004 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 004"
+Situação: Aguardando merge — ciclo 004 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #36 (https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
+Diga: "aprovo o merge da PR #36"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + implementar_issue + 33 + fa302b5`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano v3 `Aprovado` e integrado (PR #32); issues #33 a #35 abertas; nenhuma implementação.
-- `state_after`: item 1 implementado e validado localmente na branch `feature/issue-33` (código em `72039fd`); plano `Em Execução`; ciclo `Em execução`; publicação da PR pendente.
+- `state_after`: item 1 implementado e validado localmente na branch `feature/issue-33` (código em `72039fd`); plano `Em Execução`; ciclo `Em execução`; branch publicada e PR #36 aberta, aguardando checks e merge.
 - `result`: `executed`
 - `evidence`: tabela "Evidências" acima; relatório `004_research_conferencia_lentes.md`.
-- `blockers`: nenhum para publicar. O merge depende de checks verdes e de aprovação própria.
+- `blockers`: nenhum para a publicação. O merge depende de checks verdes e de "aprovo o merge da PR #36".
 
 ## Referência do bootstrap
 
