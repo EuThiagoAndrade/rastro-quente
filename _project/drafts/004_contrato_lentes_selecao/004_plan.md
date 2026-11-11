@@ -10,8 +10,8 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "Confirmo completo" em 2026-11-10 (resposta à triagem do ciclo 004; ver ideação)
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Em andamento`
-> **Veredito da revisão:** `REQUER NOVA RODADA`
+> **Revisão formal:** `Concluída`
+> **Veredito da revisão:** `APTO COM RESSALVAS`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
 
@@ -444,10 +444,10 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 3) — ciclo 004 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 004"
+Situação: Aguardando aprovação do plano — ciclo 004 (completo)
+Quem: Responsável
+Conferir: Veredito e ressalva da rodada 3 na seção Revisão crítica deste plano
+Diga: "aprovo o plano do ciclo 004"
 ```
 
 ## Handoff de saída
@@ -527,6 +527,17 @@ Diga: "revise o plano do ciclo 004"
 - `result`: `executed`
 - `evidence`: parecer da rodada 2 e bloco `## Próximo passo`. `gh` e `git ls-remote` confirmaram `main` remota em `85b444d`, ausência de PR para a branch do plano e ausência de issues de lentes na busca por título. A consulta via MCP GitHub Docker retornou HTTP 401.
 - `blockers`: R2-1 e R2-2.
+
+### Registro da revisão — rodada 3
+
+- `handoff_schema_version`: `2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + revisar_plano + 004_plan/rodada-3 + v3@d341d3588d211e020c46807d58b150c00152c5b7`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v3` em `Em Revisão`, revisão `Em andamento`, último veredito `REQUER NOVA RODADA` e situação `Aguardando revisão (rodada 3)`. Ciclo em `Planejamento`. Árvore limpa na branch `chore/cycle-004-plan` em `d341d35`.
+- `state_after`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` e situação `Aguardando aprovação do plano`. Aprovação humana `Pendente`.
+- `result`: `executed`
+- `evidence`: parecer da rodada 3, cabeçalho e bloco `## Próximo passo`. O MCP GitHub Docker retornou HTTP 401. `gh` e `git ls-remote` confirmaram `main` remota em `85b444d`, ausência de PR para a branch do plano e ausência de issues de lentes na busca por título.
+- `blockers`: nenhum. Ressalva de implementação R3-1.
 
 ## Revisão crítica
 
@@ -620,6 +631,26 @@ Nenhum achado foi contestado. Nenhuma decisão humana nova foi tomada: M1, T1 e 
 | R2-4 | **Corrigido.** Prazo de 120 s por execução e limite de 6 tentativas por lente e passagem, com toda tentativa inválida registrada com motivo. Sem 3 execuções válidas, "Parado" localmente e, em produção, a parada antes do encerramento, já que não há mediana. | Tabela do orçamento ("Prazo e tentativas inválidas"); "Parada em produção" |
 
 Nenhum achado foi contestado e nenhuma decisão humana nova foi tomada. As rodadas 1 e 2 estão preservadas acima, sem edição.
+
+### Rodada 3
+
+- **Data:** 2026-11-11
+- **Autor:** Claude Code (Opus 5.5)
+- **Revisor:** Codex (GPT-6)
+- **Base:** plano `v3`, commit `d341d3588d211e020c46807d58b150c00152c5b7`.
+
+#### Itens atendidos
+
+- **R2-1:** a tabela de erros manda usar o tratamento global de acesso e sessão em todas as chamadas da lente e determina a limpeza dos resultados e da memória ao receber `versao_substituida`. Falhas locais de fonte, disponibilidade e geometria têm efeitos próprios. O caso E-1 e o E2E do item 1 verificam os destinos e a limpeza.
+- **R2-2:** o item 1 testa e mede concentração, o item 2 acrescenta recorrência e o item 3 acrescenta persistência. Os testes entre lentes distintas entram quando as respectivas opções existem. Cada item mantém as verificações anteriores e a medição na janela inteira.
+- **R2-3 e R2-4:** T1 distingue a validação da string canônica da conferência do decimal da fonte por `id_tecnico`. O protocolo de medição fixa 120 s por execução, até seis tentativas para três válidas e a parada se a mediana não puder ser obtida.
+- O diff preserva as rodadas anteriores e as decisões de método. Os critérios de G1 a G4 continuam coerentes com o uso das consultas existentes sob RLS, a conferência independente local e a publicação de evidência agregada. A carga real e a medição de desempenho serão verificadas nas entregas.
+
+#### Ressalva
+
+- **R3-1 — Respostas em trânsito após `versao_substituida`.** No controlador atual, `aoFalharConsulta` limpa os resultados sem avançar a geração da consulta. Uma página iniciada antes do erro ainda pode passar pela checagem de geração e preencher novamente o mapa. Na implementação do item 1, a limpeza já prevista para uma carga indisponível deve invalidar também as respostas em trânsito da lente e da consulta comum, assim que o erro for reconhecido. Exercite no E2E uma resposta antiga liberada depois desse estado. A ressalva detalha como verificar o critério existente de limpeza e de versão fixada.
+
+**Veredito:** `APTO COM RESSALVAS`. Os dois bloqueadores da rodada 2 foram resolvidos. A aprovação humana do plano é o próximo passo e ratifica M1-a, os detalhes de método, o fatiamento e o orçamento indicados na tabela de pontos de aprovação.
 
 ## Pós-mortem
 
