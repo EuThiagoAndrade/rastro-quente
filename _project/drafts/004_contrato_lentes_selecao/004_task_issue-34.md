@@ -2,13 +2,13 @@
 
 > **Ciclo:** `004`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#34`
 > **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-34`
 > **PR:** [#37](https://github.com/EuThiagoAndrade/rastro-quente/pull/37)
-> **Integração:** `Pendente`
+> **Integração:** `PR #37 integrada em main em 2026-11-11 (4e4d56f); checks verdes na PR (Validate governance, Database RLS and query contract e Interface typecheck, build and E2E)`
 > **Autorização inicial:** "autorizo a implementação da issue #34" em 2026-11-11
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-11
@@ -68,7 +68,7 @@ Não se aplica.
 | `npm run test:e2e` | 51 de 51 passam (16 na spec de lentes, 4 novos da recorrência); neste ambiente, o teste de logout que falhava no item 1 também passou |
 | Governança | `node --test scripts/validate-governance.test.mjs`: 55 testes, 0 falhas; `node scripts/validate-governance.mjs`: 0 erros, 0 avisos, 9 conferências manuais |
 | `git diff --check` | Sem erros; staging revisado e limitado ao escopo; varredura G3 sem e-mail real, UUID ou segredo nos documentos |
-| Checks remotos | Pendente |
+| Checks remotos | PR #37: Validate governance, Database RLS and query contract e Interface typecheck, build and E2E verdes; run de `main` 43047586770 verde (reconciliado na task da issue #35) |
 
 ## Revisão da correção
 
@@ -92,10 +92,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #37 (https://github.com/EuThiagoAndrade/rastro-quente/pull/37)
-Diga: "aprovo o merge da PR #37"
+Situação: Pronto para continuar — ciclo 004 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 004"
 ```
 
 ## Handoff de saída
