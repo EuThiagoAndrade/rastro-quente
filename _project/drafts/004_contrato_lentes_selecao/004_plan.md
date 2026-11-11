@@ -457,18 +457,18 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
-| Branch(es) | Ideação: `chore/cycle-004-ideation` em `c51ad73` (local); plano: `chore/cycle-004-plan`, derivada dela (local) |
+| PR(s) | PR documental [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32), aguardando merge |
+| Branch(es) | Ideação: `chore/cycle-004-ideation` em `c51ad73` (local); plano: `chore/cycle-004-plan`, derivada dela, publicada, base `85b444dd0084cc0b32b28ad0a1c256fdc9abbc29` |
 | Destino após conclusão | `_project/executed/004_contrato_lentes_selecao/004_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 004 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 004"
+Situação: Aguardando merge — ciclo 004 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #32 (https://github.com/EuThiagoAndrade/rastro-quente/pull/32)
+Diga: "aprovo o merge da PR #32"
 ```
 
 ## Handoff de saída
@@ -477,10 +477,14 @@ Diga: "continue o ciclo 004"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + atualizar_docs + aprovacao_publicacao_plano + v3@d341d35+rodada-3`
 - `effect_class`: `remote_mutation`
 - `state_before`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` (rodada 3), aprovação `Pendente`, situação `Aguardando aprovação do plano`. Branch `chore/cycle-004-plan` local em `4325a37`, sobre `origin/main` `85b444d`; nenhuma branch remota, PR ou issue do ciclo.
-- `state_after`: plano `v3` `Aprovado` (`Aprovada em 2026-11-11`) por manifestação posterior ao parecer, com R3-1 incorporada ao item 1. A publicação da PR documental, coberta pela aprovação, é o passo seguinte. Ciclo em `Planejamento`; nenhuma issue ou implementação.
+- `state_after`: plano `v3` `Aprovado` (`Aprovada em 2026-11-11`) por manifestação posterior ao parecer, com R3-1 incorporada ao item 1. Lote documental publicado na PR #32, de `chore/cycle-004-plan` para `main`, aguardando checks e merge. Ciclo em `Planejamento`; nenhuma issue ou implementação.
 - `result`: `executed`
-- `evidence`: manifestação humana literal "aprovo o plano do ciclo 004" em 2026-11-11, posterior à rodada 3; `git fetch`, `git ls-remote` e `gh pr list` conferiram `origin/main` em `85b444d` e ausência de branch remota ou PR do ciclo.
-- `blockers`: nenhum.
+- `evidence`:
+  - manifestação humana literal "aprovo o plano do ciclo 004" em 2026-11-11, posterior à rodada 3;
+  - `git fetch`, `git ls-remote` e `gh pr list` conferiram `origin/main` em `85b444d` e ausência de branch remota ou PR do ciclo antes de publicar;
+  - commit de aprovação `d434796` publicado e PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/32 criada;
+  - lote limitado a ideação, plano e registro do ciclo; 55 testes aprovados, validador sem erros ou avisos, diff sem erros, varredura G3 sem e-mail ou UUID.
+- `blockers`: nenhum para a publicação. A integração depende de checks verdes e de "aprovo o merge da PR #32". As issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
 
 ### Registro anterior — correção v3
 
