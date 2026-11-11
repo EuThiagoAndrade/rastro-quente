@@ -1,7 +1,7 @@
 # Plano de Implementação — Contrato de lente de seleção e lentes com dados já carregados
 
 > **Ciclo:** `004`
-> **Status:** `Rascunho`
+> **Status:** `Em Revisão`
 > **Versão:** `v1`
 > **Data de criação:** 2026-11-10
 > **Última atualização:** 2026-11-10
@@ -10,8 +10,8 @@
 > **Nível:** `completo`
 > **Autorização inicial:** "Confirmo completo" em 2026-11-10 (resposta à triagem do ciclo 004; ver ideação)
 > **Modo contínuo:** `—`
-> **Revisão formal:** `Pendente`
-> **Veredito da revisão:** `Pendente`
+> **Revisão formal:** `Em andamento`
+> **Veredito da revisão:** `REQUER NOVA RODADA`
 > **Aprovação humana pós-revisão:** `Pendente`
 > **handoff_schema_version:** `2`
 
@@ -328,10 +328,10 @@ Rollback: as lentes não alteram dados nem schema. Reverter uma entrega é uma P
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 1) — ciclo 004 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 004"
+Situação: Aguardando correções (rodada 1) — ciclo 004 (completo)
+Quem: O responsável leva a vez ao autor
+Conferir: Achados da rodada 1 na seção Revisão crítica deste plano
+Diga: "corrija o plano do ciclo 004"
 ```
 
 ## Handoff de saída
@@ -352,11 +352,47 @@ Diga: "revise o plano do ciclo 004"
 - Conferência manual: G3 (sem dados pessoais; números citados vêm da ideação ou de agregados públicos), frases do responsável reproduzidas literalmente, nenhum número de issue ou PR inventado, estados e próximo passo coerentes.
 - Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
 
+### Registro da revisão — rodada 1
+
+- `handoff_schema_version`: `2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + revisar_plano + 004_plan/rodada-1 + v1@1135c70efba531e46365459dfe06a0343f4e02da`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v1` em `Rascunho`, revisão e aprovação pendentes, situação `Aguardando revisão (rodada 1)`. Ciclo em `Planejamento`. Árvore limpa na branch `chore/cycle-004-plan` em `1135c70`.
+- `state_after`: plano `v1` em `Em Revisão`, revisão formal `Em andamento`, veredito `REQUER NOVA RODADA` e situação `Aguardando correções (rodada 1)`. Aprovação humana `Pendente`.
+- `result`: `executed`
+- `evidence`: parecer em `## Revisão crítica` e transição no cabeçalho e no bloco `## Próximo passo`. Consultas de leitura confirmaram `main` remota em `85b444d`, ausência de PR para `chore/cycle-004-plan` e ausência de issues de lentes. O MCP GitHub Docker devolveu HTTP 401 e a consulta foi concluída via `gh` e `git ls-remote`.
+- `blockers`: R1-1 a R1-5.
+
 ## Revisão crítica
 
-Nenhuma rodada ainda. Uma subseção `### Rodada N` por rodada, com `Autor:`, `Revisor:` (ferramenta e modelo), achados `RN-k` (bloqueador ou ressalva), itens atendidos e veredito. O autor responde a cada achado numa subseção própria. Teto de 5 rodadas.
+### Rodada 1
 
-**Pontos para o revisor conferir com atenção:** o desvio de fatiamento em relação a Q1; se T1 a T6 são de fato consequências das decisões ou exigem pergunta própria; o orçamento proposto (20 s e 10 MB) e sua parada; a independência da conferência por SQL; a suficiência dos casos de referência; e a ausência de G2 e G4.
+- **Data:** 2026-11-11
+- **Autor:** Claude Code (Opus 5.5)
+- **Revisor:** Codex (GPT-6)
+- **Base:** plano `v1`, commit `1135c70efba531e46365459dfe06a0343f4e02da`.
+
+#### Achados bloqueadores
+
+- **R1-1 — O recorte estadual precisa chegar também à conferência do resumo (T2).** `consultar_resumo`, `consultar_deteccoes` e `consultar_disponibilidade` aplicam `p_municipio` quando ele é informado. Em `src/app.ts`, o resumo guardado usa o filtro da consulta comum. Com 4 detecções no município filtrado e 10 no estado, comparar 10 registros estaduais com o resumo de 4 dispara falsa divergência. Declare no carregador e em C1 o resumo estadual (`p_municipio: null`), na mesma carga e janela das páginas, e deixe explícito que a cobertura usa o município de cada chamada. Inclua um E2E com filtro municipal ativo e totais diferentes. T2 muda o conjunto de entrada das três lentes e deve aparecer como escolha de método a ratificar, com o efeito numérico de cada recorte.
+- **R1-2 — A precisão de T1 depende da representação disponível no cliente.** `scripts/banco/manifesto.mjs` converte o texto das coordenadas para `Number`. O banco guarda `double precision` e a RPC devolve números JSON. Contar casas na fonte ou testar literais no módulo não demonstra que a escala pode ser aplicada às respostas da RPC. Especifique o valor canônico usado na conversão, como detectar precisão que a escala não preserva e a condição de parada. A conferência independente deve comparar a classificação por `id_tecnico` entre a coordenada decimal da saída local do recorte e o caminho RPC → TypeScript, além dos agregados. Fixe casos para coordenadas negativas na borda e dos dois lados dela. Uma diferença de célula exige apresentar as alternativas e os resultados ao responsável antes de adotar uma regra.
+- **R1-3 — T3 precisa respeitar a integridade da grade D1 e D15 precisa preservar a classe.** A publicação exige a grade completa pelo total, pela chave e pela validação de satélite e janela (`20261107230000_correcoes_revisao_g2.sql`, RS-3). Se uma resposta perde um dos 10 dias esperados, aceitar `9 de 10` como resultado final pode ocultar uma leitura incompleta. Separe falha ou resposta divergente da evidência de disponibilidade e estabeleça quando o qualificador fica pendente ou falha. A regra escrita também usa “inclui dia indeterminado” para qualquer classe diferente de `sem_evidencia_de_lacuna`, o que rotula como indeterminado um dia explicitamente `lacuna_conhecida`. Especifique a precedência e os motivos que aparecem no painel, com teste de lacuna e indeterminação no mesmo dia, em municípios diferentes. Registre D15 como refinamento explícito de Q6 e exercite a distinção entre dia com detecção e dia vizinho sem detecção, preservando a classe observada.
+- **R1-4 — Gerações da consulta comum não resolvem concorrência entre lentes.** O ADR-007 descarta respostas de sessão e consulta antigas. O plano não cobre duas aplicações na mesma carga e janela nem o retorno a `Nenhuma` durante a leitura. Se a concentração começa primeiro e termina depois da recorrência, ambas podem passar nas mesmas verificações de geração. Defina a invalidação da aplicação de lente, a limpeza da lista, camada, painel e memória e os estados quando uma página ou uma chamada de disponibilidade falha. Confira carga, janela, filtro e deslocamento de cada resposta, além da unicidade de `id_tecnico`. Por exemplo, duas páginas com 1.000 registros iguais passam num total esperado de 2.000. Exercite páginas duplicadas, troca de lente, `Nenhuma` e logout com resposta atrasada em teste.
+- **R1-5 — O orçamento ainda não é um critério reproduzível.** O script de referência mede tempo real no perfil emulado e calcula tamanho gzip em separado. Falta um procedimento para obter o “tempo estimado com gzip” e definir quando a lente está completa, incluindo disponibilidade, mapa e renderização. Defina início e fim da medição, estado do cache, unidades e método de cálculo ou medição, tanto no gate local de cada item quanto no roteiro hospedado. Uma janela padrão menor também precisa indicar como o gate continua valendo para a janela inteira, que permanece acessível. Especifique a parada e a decisão do responsável se a produção exceder o orçamento ou divergir na mesma carga, antes do encerramento.
+
+#### Ressalvas
+
+- **R1-6 — Casos de referência para os parâmetros em produção.** C-1 testa um corte auxiliar `N=2`. Inclua o empate nas posições 10 e 11 pelo ponto de entrada que usa N=10. As duas janelas menores da conferência real são insuficientes para recorrência. Acrescente uma subjanela que toque três meses GMT e tenha pelo menos uma borda parcial, para exercitar D14 também na comparação SQL.
+- **R1-7 — Ordem dos gates e da conferência com carga real.** `test:rls` e `test:e2e` executam `supabase db reset`. Declare a ordem de validação e recarga ou use alvos locais distintos, para que a conferência e a medição usem a carga identificada no relatório.
+- **R1-8 — Reversão de entregas dependentes.** O item 1 fornece contrato, carregador e interface usados pelos itens 2 e 3. Documente a sequência de reversão quando o item a retirar já tiver consumidores integrados.
+
+#### Itens atendidos
+
+- O escopo preserva a seleção explicável e os avisos de domínio de KB-003 e KB-004. G1 e G3 se aplicam. G2 e G4 ficam justificadamente fora do escopo enquanto o cliente usar as RPCs existentes sob RLS e sem mudanças de acesso ou migração.
+- As três entregas têm dependências explícitas e cada lente chega com o qualificador de cobertura. A incorporação da cobertura ao item 1 é coerente com Q2 e Q9 e está identificada para ratificação do desvio de Q1. Os pontos de aprovação distinguem plano, implementação, cada merge e verificação em produção.
+- A ideia de conferir o módulo por SQL escrito à parte atende à independência do cálculo. A revisão verificou as interfaces e as precondições por inspeção do repositório. A carga real, a medição de desempenho e o ambiente hospedado ficam para as etapas previstas no plano.
+
+**Veredito:** `REQUER NOVA RODADA`. O autor deve responder aos achados, fechar os critérios verificáveis e submeter a versão seguinte à revisão formal.
 
 ## Pós-mortem
 
