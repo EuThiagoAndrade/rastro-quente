@@ -32,7 +32,7 @@ export const $ = <T extends HTMLElement>(id: string): T => {
 
 const limpar = (e: HTMLElement) => e.replaceChildren();
 
-function tabela(legenda: string, cabecalho: string[], linhas: Filho[][], rotulo: string): HTMLElement {
+export function tabela(legenda: string, cabecalho: string[], linhas: Filho[][], rotulo: string): HTMLElement {
   const t = h('table', {}, h('caption', { class: 'so-leitor' }, legenda),
     h('thead', {}, h('tr', {}, ...cabecalho.map((c) => h('th', { scope: 'col' }, c)))),
     h('tbody', {}, ...linhas.map((l) => h('tr', {}, ...l.map((c) => h('td', {}, c))))));

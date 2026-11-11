@@ -1,4 +1,4 @@
-// Ciclo 004, issue #33 — medição das lentes com a carga REAL local (`npm run medir:lentes`), pelo procedimento
+// Ciclo 004, issues #33 e #34 — medição das lentes com a carga REAL local (`npm run medir:lentes`), pelo procedimento
 // do plano 004 ("Orçamento e procedimento de medição"). Perfil do ADR-007: Chrome do sistema, 390×844 com
 // toque, latência de 150 ms, 1,6 Mbit/s de descida, 750 kbit/s de subida e CPU 4× mais lenta (CDP).
 // A interface fala com a API local por um proxy em node:http: na passagem "bruta" ele só repassa (a API
@@ -26,8 +26,8 @@ const PRAZO_MS = 120_000;
 const VALIDAS = 3;
 const MAX_TENTATIVAS = 6;
 const ORCAMENTO = { segundosComprimida: 20.0, bytesBrutos: 10_000_000 };
-const LENTES = ['concentracao'];
-const FINAIS = ['completo', 'sem_destaques', 'cobertura_nao_verificada', 'contorno_indisponivel', 'leitura_inconsistente', 'falha', 'cancelada'];
+const LENTES = ['concentracao', 'recorrencia'];
+const FINAIS = ['completo', 'sem_destaques', 'janela_insuficiente', 'cobertura_nao_verificada', 'contorno_indisponivel', 'leitura_inconsistente', 'falha', 'cancelada'];
 
 // --- Proxy de compressão ---------------------------------------------------------------------------
 let modo = 'bruta';
