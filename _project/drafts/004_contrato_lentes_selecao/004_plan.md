@@ -44,7 +44,9 @@ Não cobre merges, a implementação das issues nem a verificação em produçã
 
 **Execução do item 2:** autorização literal "autorizo a implementação da issue #34" recebida em 2026-11-11; PR #37 integrada em 2026-11-11.
 
-**Execução do item 3:** autorização literal "autorizo a implementação da issue #35" recebida em 2026-11-11. A task `004_task_issue-35.md` é o artefato ativo; somente o item 3 está em execução. A verificação em produção continua dependendo de autorização própria.
+**Execução do item 3:** autorização literal "autorizo a implementação da issue #35" recebida em 2026-11-11. A task `004_task_issue-35.md` é o artefato ativo; somente o item 3 está em execução. A verificação em produção continua dependendo de autorização própria. PR #38 integrada em 2026-11-11 (`8e023d8`).
+
+**Verificação em produção:** autorização literal "autorizo a verificação em produção do ciclo 004" recebida em 2026-11-11. A primeira devolutiva confere com a conferência local nos dados recebidos, mas está incompleta: falta a identidade da carga, há só uma execução por lente, e há indício de execuções sem recarga. A situação é "Parado"; o detalhe está na task `004_task_issue-35.md`.
 
 **Autorização da correção — v3, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
 
@@ -465,7 +467,7 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#33](https://github.com/EuThiagoAndrade/rastro-quente/issues/33) (item 1), [#34](https://github.com/EuThiagoAndrade/rastro-quente/issues/34) (item 2), [#35](https://github.com/EuThiagoAndrade/rastro-quente/issues/35) (item 3) |
-| PR(s) | PR documental [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32), integrada em 2026-11-11 (`fa302b5`); item 1: [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36), integrada em 2026-11-11; item 2: [#37](https://github.com/EuThiagoAndrade/rastro-quente/pull/37), integrada em 2026-11-11; item 3: a registrar na task `004_task_issue-35.md` |
+| PR(s) | PR documental [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32), integrada em 2026-11-11 (`fa302b5`); item 1: [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36), integrada em 2026-11-11; item 2: [#37](https://github.com/EuThiagoAndrade/rastro-quente/pull/37), integrada em 2026-11-11; item 3: [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38), integrada em 2026-11-11 (`8e023d8`) |
 | Branch(es) | Ideação: `chore/cycle-004-ideation` em `c51ad73` (local); plano: `chore/cycle-004-plan`, derivada dela, publicada, base `85b444dd0084cc0b32b28ad0a1c256fdc9abbc29` |
 | Branch do item 1 | `feature/issue-33`, base `fa302b5bf124ce56501d1303dd64181511c84ace` |
 | Entrega do item 1 | `src/lentes/`, `src/apresentacao-lentes.ts`, integração em `src/app.ts` e `src/mapa.ts`, testes `tests/unit/lentes.test.mjs` e `tests/e2e/05-lentes.spec.mjs`, `scripts/lentes/` e `scripts/interface/medir-lentes.mjs`, KB-005, guia no runbook e `004_research_conferencia_lentes.md`; registro em `004_task_issue-33.md` |
