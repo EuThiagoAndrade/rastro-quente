@@ -1,5 +1,5 @@
 // Partes comuns a todas as lentes: conferência da entrada e aplicação do qualificador de cobertura.
-import { qualificarCobertura } from './cobertura.ts';
+import { qualificarCobertura, ressalvasDeClasse } from './cobertura.ts';
 import { ErroLente, type DisponibilidadeMunicipio, type EntradaLente, type ResultadoLente } from './contrato.ts';
 
 /** Fim exclusivo (00:00Z do dia seguinte ao último dia GMT da janela). */
@@ -20,11 +20,20 @@ export function conferirEntrada(e: EntradaLente): ResultadoLente['conferencia'] 
   return { registros_lidos: e.registros.length, ids_distintos: ids, total_resumo: e.totalResumo };
 }
 
-/** Aplica a cobertura aos destaques (função pura; devolve um novo resultado). */
+/**
+ * Aplica a cobertura aos destaques (função pura; devolve um novo resultado). Na persistência, acrescenta as
+ * ressalvas por classe (D15, T7) às da seleção (T4); a seleção não muda.
+ */
 export function qualificar(r: ResultadoLente, disponibilidade: Map<number, DisponibilidadeMunicipio>): ResultadoLente {
   return {
     ...r,
-    destaques: r.destaques.map((d) => ({ ...d, cobertura: qualificarCobertura(d.cobertura.municipios, r.janela, disponibilidade) })),
+    destaques: r.destaques.map((d) => {
+      const cobertura = qualificarCobertura(d.cobertura.municipios, r.janela, disponibilidade);
+      const ressalvas = r.lente === 'persistencia'
+        ? [...d.ressalvas, ...ressalvasDeClasse(d.evidencia.datas, r.janela, cobertura).map((x) => x.texto)]
+        : d.ressalvas;
+      return { ...d, cobertura, ressalvas };
+    }),
   };
 }
 

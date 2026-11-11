@@ -1,4 +1,4 @@
-// Ciclo 004, issues #33 e #34 — lentes de concentração e recorrência, cobertura, recorte M1-a, concorrência (R1-4), destino dos
+// Ciclo 004, issues #33, #34 e #35 — lentes de concentração, recorrência e persistência, cobertura, recorte M1-a, concorrência (R1-4), destino dos
 // erros (R2-1) e respostas em trânsito após versão substituída (R3-1). Valores esperados derivados à mão
 // da fixture fictícia (tests/e2e/fixture.mjs), sem usar a interface: em outubro/2026, Alfa 60, Beta 30 e
 // Gama 10 detecções; disponibilidade em 31 dias: Alfa com lacuna nos dias 1 e 2 (29 de 31), Beta
@@ -7,7 +7,7 @@ import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
 import { consultar, entrar } from './ajuda.mjs';
-import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixtureRecorrencia } from './fixture.mjs';
+import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixturePersistencia, sqlFixtureRecorrencia } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
 // A spec 04 publica uma segunda versão e não a desfaz: restaura a fixture original pelo mesmo protocolo.
@@ -366,5 +366,116 @@ test.describe('recorrência', () => {
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
+  });
+});
+
+// --- Issue #35: persistência por célula de 0,05° ------------------------------------------------------
+// Carga fictícia de outubro/2026 (tests/e2e/fixture.mjs, sqlFixturePersistencia), com valores esperados
+// derivados à mão: Q 01–03 (borda), P 10–12 (divisa, lacuna conhecida no dia 11 e dia 13 indeterminado sem
+// detecção), Q 20–23 (segunda sequência da mesma célula) e R 29–31 (borda, dia 30 indeterminado); S com 05,
+// 06 e 08 não forma sequência. Cobertura: Q 30 de 31, P 28 de 31 (união), R 30 de 31.
+test.describe('persistência', () => {
+  test.beforeAll(() => {
+    sqlAdmin(SQL_LIMPEZA);
+    sqlAdmin(sqlFixturePersistencia());
+  });
+  test.afterAll(() => {
+    sqlAdmin(SQL_LIMPEZA);
+    sqlAdmin(sqlFixture());
+  });
+
+  const ROTULOS = [
+    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 dias GMT seguidos, 01/10/2026 a 03/10/2026 (3 detecções)',
+    'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 dias GMT seguidos, 10/10/2026 a 12/10/2026 (3 detecções)',
+    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 4 dias GMT seguidos, 20/10/2026 a 23/10/2026 (5 detecções)',
+    'Célula -11.65 a -11.60 · -54.55 a -54.50 — 3 dias GMT seguidos, 29/10/2026 a 31/10/2026 (3 detecções)',
+  ];
+  const textosRessalvas = (page) => page.locator('#lente-ressalvas > li').evaluateAll((l) => l.map((x) => x.firstChild.textContent));
+
+  test('sequências por célula, ordem por início sem ranking, ressalvas por classe (D15, T7) e de borda (T4)', async ({ page }) => {
+    await entrar(page, 'rp');
+    await expect(page.locator('#total-principal')).toHaveText('17');
+    await aplicar(page, 'persistencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
+    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+      '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+      '28 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+      '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+      '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+    ]);
+    await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
+    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 dias GMT consecutivos');
+    await expect(page.locator('#lente-parametros')).toContainText('só um dia sem detecção na célula interrompe');
+    await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
+    expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
+
+    // Primeira sequência: toca o início da janela (T4).
+    await itens(page).first().locator('.botao-nome').click();
+    await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-01');
+    expect(await textosRessalvas(page)).toEqual(['sequência no limite da janela; pode ser mais longa']);
+
+    // Célula na divisa: a classe da célula no dia 11 é lacuna conhecida, com a classe e os motivos de cada município.
+    await itens(page).nth(1).locator('.botao-nome').click();
+    await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-230_-1120:2026-10-10');
+    await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 dias GMT consecutivos na célula, de 10/10/2026 a 12/10/2026.');
+    await expect(page.locator('#lente-evidencia')).toContainText('dias GMT: 10/10/2026, 11/10/2026, 12/10/2026');
+    await expect(page.locator('#lente-municipios')).toContainText('Município Alfa (9900001); Município Beta (9900002)');
+    const ressalvas = page.locator('#lente-ressalvas > li');
+    expect(await ressalvas.evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'incidencia_indeterminada']);
+    expect(await textosRessalvas(page)).toEqual([
+      'inclui dia com lacuna conhecida (11/10)',
+      'adjacente a dia indeterminado (13/10); pode ser mais longa',
+    ]);
+    await expect(ressalvas.first()).toContainText('Município Alfa (9900001): Lacuna conhecida (aviso cobre municipio)');
+    await expect(ressalvas.first()).toContainText('Município Beta (9900002): Incidência indeterminada (historico ausente ou incompleto)');
+    await expect(ressalvas.nth(1)).toContainText('Município Beta (9900002): Incidência indeterminada (aviso parcial no municipio)');
+    await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
+
+    // Segunda sequência da mesma célula de 01–03 (T6): destaque próprio, sem ressalva.
+    await itens(page).nth(2).locator('.botao-nome').click();
+    await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-20');
+    await expect(page.locator('#lente-ressalvas')).toHaveCount(0);
+    await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–5 de 5 detecções da evidência.');
+
+    // Última sequência: toca o fim da janela e inclui um dia indeterminado.
+    await itens(page).nth(3).locator('.botao-nome').click();
+    expect(await textosRessalvas(page)).toEqual([
+      'sequência no limite da janela; pode ser mais longa',
+      'inclui dia indeterminado (30/10)',
+    ]);
+  });
+
+  test('falha da disponibilidade de um município: ressalvas de disponibilidade não verificadas, seleção mantida', async ({ page }) => {
+    await entrar(page, 'rp');
+    await page.route('**/rest/v1/rpc/consultar_disponibilidade', async (route) => {
+      if (corpoRpc(route).p_municipio !== MUNICIPIOS.gama.codigo) return route.continue();
+      await route.fulfill({ status: 503, json: { message: 'indisponivel' } });
+    });
+    await aplicar(page, 'persistencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
+    await expect(itens(page).nth(3).locator('.etiqueta')).toHaveText('cobertura não verificada: fonte indisponível');
+    await itens(page).nth(3).locator('.botao-nome').click();
+    expect(await textosRessalvas(page)).toEqual([
+      'sequência no limite da janela; pode ser mais longa',
+      'ressalvas de disponibilidade ainda não verificadas',
+    ]);
+    await expect(page.locator('#lente-cobertura')).not.toContainText(/\d+ de \d+/);
+  });
+
+  test('concorrência: persistência aplicada com a recorrência ainda em leitura; só a persistência aparece', async ({ page }) => {
+    await entrar(page, 'rp');
+    const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+    await aplicar(page, 'recorrencia');
+    await r.chegada;
+    await aplicar(page, 'persistencia');
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    r.soltar();
+    await page.waitForTimeout(500);
+    await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+    await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
   });
 });

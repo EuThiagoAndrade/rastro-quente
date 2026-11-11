@@ -195,15 +195,17 @@ function disponibilidadeRecorrencia() {
 
 /** Publica a carga de recorrência no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
 export function sqlFixtureRecorrencia() {
-  const d = deteccoesRecorrencia();
-  const disp = disponibilidadeRecorrencia();
+  return sqlCargaCelulas(IDENTIDADE_RECORRENCIA, '2026-08-01T00:00Z', '2026-11-01T00:00Z', deteccoesRecorrencia(), disponibilidadeRecorrencia());
+}
+
+/** Carga fictícia com os limites retangulares das cargas por célula (recorrência e persistência). */
+function sqlCargaCelulas(id, inicio, fimExclusivo, d, disp) {
   const linhasD = d.map((x) => `('${x.id}', 'focos', ${x.linha}, 'INPE-R${x.linha}', 'principal', ${tsz(x.instante)}, ${x.lat}::float8, ${x.lon}::float8, ${MUNICIPIOS[x.m].codigo}, 'interior', ${MUNICIPIOS[x.m].codigo}, 99)`).join(',\n');
   const linhasV = disp.map((x) => `('${x.d}'::date, 'AQUA_M-T', ${MUNICIPIOS[x.m].codigo}, '${x.classe}', array[${x.motivos.map(aspas).join(',')}]::text[], 'verificado', array[]::text[])`).join(',\n');
-  const id = IDENTIDADE_RECORRENCIA;
   return `
 begin;
 insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, metodo)
-values ('${id}', 'AQUA_M-T', '2026-08-01T00:00Z', '2026-11-01T00:00Z', ${d.length}, 0, 3, ${disp.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004"}');
+values ('${id}', 'AQUA_M-T', '${inicio}', '${fimExclusivo}', ${d.length}, 0, 3, ${disp.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004"}');
 ${fontes(id)}
 insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
 select c.id, v.codigo, v.nome, v.geom::jsonb from public.cargas c, (values
@@ -221,4 +223,63 @@ ${aprovar(id)}
 update public.cargas set estado = 'publicada' where identidade = '${id}';
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
 commit;`;
+}
+
+// Ciclo 004, issue #35 — carga fictícia de outubro/2026 para a lente de persistência, com os mesmos limites da
+// carga de recorrência (divisa Alfa/Beta em −55,98). Valores esperados derivados à mão (grade T1: índice =
+// piso de coordenada × 20; janela de 01/10 a 31/10, 31 dias):
+// - célula Q [−11,55; −11,50) × [−56,50; −56,45), Alfa: 01–03 (toca o início da janela, T4) e 20–23, com duas
+//   detecções no dia 21 → 2 destaques (T6), de 3 dias/3 detecções e de 4 dias/5 detecções;
+// - célula P [−11,50; −11,45) × [−56,00; −55,95), na divisa: 10 (Alfa), 11 (Beta) e 12 (Alfa) → 3 dias/3 detecções.
+//   No dia 11, Alfa lacuna conhecida e Beta indeterminada → "inclui dia com lacuna conhecida (11/10)" (T7);
+//   o dia 13, sem detecção, Beta indeterminada → "adjacente a dia indeterminado (13/10); pode ser mais longa";
+// - célula R [−11,65; −11,60) × [−54,55; −54,50), Gama: 29, 30 e 31 (às 23:59:59Z), com Gama indeterminada no
+//   dia 30 → "inclui dia indeterminado (30/10)" e a ressalva T4 (toca o fim da janela);
+// - célula S [−11,65; −11,60) × [−55,35; −55,30), Beta: 05, 06 e 08; dia 07 sem detecção e Beta indeterminada →
+//   nenhum destaque (sem inferência).
+// Total 17 (Alfa 10, Beta 4, Gama 3). Ordem T5: Q 01/10, P 10/10, Q 20/10 e R 29/10. Disponibilidade: Alfa lacuna
+// em 11/10; Beta indeterminada em 07, 11 e 13/10; Gama indeterminada em 30/10. Cobertura (31 dias): Q 30 de 31
+// (Alfa), P 28 de 31 (união Alfa e Beta: 07, 11 e 13), R 30 de 31 (Gama).
+export const IDENTIDADE_PERSISTENCIA = `${PREFIXO}4`;
+
+function deteccoesPersistencia() {
+  const linhas = [];
+  const add = (id, m, instante, lat, lon) => linhas.push({ id, m, instante, lat, lon, linha: linhas.length + 1 });
+  for (const d of ['01', '02', '03']) add(`pq${d}`, 'alfa', `2026-10-${d}T12:00:00Z`, -11.52, -56.48);
+  for (const d of ['20', '21', '22', '23']) add(`pq${d}`, 'alfa', `2026-10-${d}T12:00:00Z`, -11.52, -56.48);
+  add('pq21b', 'alfa', '2026-10-21T18:00:00Z', -11.52, -56.47);
+  add('pp10', 'alfa', '2026-10-10T12:00:00Z', -11.48, -55.99);
+  add('pp11', 'beta', '2026-10-11T12:00:00Z', -11.48, -55.96);
+  add('pp12', 'alfa', '2026-10-12T12:00:00Z', -11.48, -55.99);
+  add('pr29', 'gama', '2026-10-29T08:00:00Z', -11.62, -54.52);
+  add('pr30', 'gama', '2026-10-30T08:00:00Z', -11.62, -54.52);
+  add('pr31', 'gama', '2026-10-31T23:59:59Z', -11.62, -54.52);
+  for (const d of ['05', '06', '08']) add(`ps${d}`, 'beta', `2026-10-${d}T09:00:00Z`, -11.61, -55.33);
+  return linhas;
+}
+
+function disponibilidadePersistencia() {
+  const restritos = {
+    alfa: { '2026-10-11': ['lacuna_conhecida', 'aviso_cobre_municipio'] },
+    beta: {
+      '2026-10-07': ['incidencia_indeterminada', 'aviso_parcial_no_municipio'],
+      '2026-10-11': ['incidencia_indeterminada', 'historico_ausente_ou_incompleto'],
+      '2026-10-13': ['incidencia_indeterminada', 'aviso_parcial_no_municipio'],
+    },
+    gama: { '2026-10-30': ['incidencia_indeterminada', 'aviso_parcial_no_municipio'] },
+  };
+  const linhas = [];
+  for (let dia = 1; dia <= 31; dia += 1) {
+    const d = `2026-10-${String(dia).padStart(2, '0')}`;
+    for (const m of ['alfa', 'beta', 'gama']) {
+      const r = restritos[m][d];
+      linhas.push(r ? { m, d, classe: r[0], motivos: [r[1]] } : { m, d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'] });
+    }
+  }
+  return linhas;
+}
+
+/** Publica a carga de persistência no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
+export function sqlFixturePersistencia() {
+  return sqlCargaCelulas(IDENTIDADE_PERSISTENCIA, '2026-10-01T00:00Z', '2026-11-01T00:00Z', deteccoesPersistencia(), disponibilidadePersistencia());
 }

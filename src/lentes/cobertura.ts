@@ -70,6 +70,48 @@ export function qualificarCobertura(
   };
 }
 
+export const RESSALVA_NAO_VERIFICADA = 'ressalvas de disponibilidade ainda não verificadas';
+
+/** Ressalva por classe (D15, T7) e o dia restritivo da unidade a que ela se refere, com cada município. */
+export interface RessalvaDeClasse {
+  texto: string;
+  dia: DiaRestritivo | null;
+}
+
+/** Dia GMT seguinte (ou anterior, com `passo` −1). */
+export const somarDia = (dia: string, passo: number): string =>
+  new Date(Date.parse(`${dia}T00:00:00Z`) + passo * 86_400_000).toISOString().slice(0, 10);
+
+/**
+ * Ressalvas por classe de uma sequência (tabela "Ressalvas por classe" do plano 004): os dias da sequência
+ * (com detecção) e os vizinhos imediatos dentro da janela (sem detecção, porque a sequência é maximal) que
+ * não estão `sem_evidencia_de_lacuna` na unidade. O texto preserva a classe observada (T7). Enquanto a
+ * cobertura não está completa, uma única ressalva substitui as de D15; nunca se infere detecção.
+ */
+export function ressalvasDeClasse(diasSequencia: string[], janela: Janela, cobertura: Cobertura): RessalvaDeClasse[] {
+  if (cobertura.estado !== 'completa') return [{ texto: RESSALVA_NAO_VERIFICADA, dia: null }];
+  const primeiro = diasSequencia[0];
+  const ultimo = diasSequencia.at(-1);
+  if (primeiro === undefined || ultimo === undefined) return [];
+  const restritivos = new Map(cobertura.demais_dias.map((d) => [d.dia, d]));
+  const antes = somarDia(primeiro, -1);
+  const depois = somarDia(ultimo, 1);
+  const candidatos: { dia: string; vizinho: boolean }[] = [
+    ...(antes >= janela.inicio ? [{ dia: antes, vizinho: true }] : []),
+    ...diasSequencia.map((dia) => ({ dia, vizinho: false })),
+    ...(depois <= janela.fim ? [{ dia: depois, vizinho: true }] : []),
+  ];
+  const ressalvas: RessalvaDeClasse[] = [];
+  for (const { dia, vizinho } of candidatos) {
+    const r = restritivos.get(dia);
+    if (!r) continue;
+    const ddmm = `${dia.slice(8, 10)}/${dia.slice(5, 7)}`;
+    const classe = r.classe === 'lacuna_conhecida' ? 'dia com lacuna conhecida' : 'dia indeterminado';
+    ressalvas.push({ texto: vizinho ? `adjacente a ${classe} (${ddmm}); pode ser mais longa` : `inclui ${classe} (${ddmm})`, dia: r });
+  }
+  return ressalvas;
+}
+
 /** Texto do qualificador; nunca "coberto". */
 export function textoCobertura(c: Cobertura): string {
   if (c.estado === 'pendente') return 'cobertura: carregando';
