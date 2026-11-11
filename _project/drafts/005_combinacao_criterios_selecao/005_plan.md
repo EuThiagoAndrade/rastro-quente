@@ -406,21 +406,36 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
-| Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, local, base `2e316513edc2b421de1a81c188017fb5de138dd2`, nada commitado |
+| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), aberta em 2026-11-11 |
+| Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, publicada, base `2e316513edc2b421de1a81c188017fb5de138dd2`, com a ideação, o plano e o registro do ciclo |
 | Destino após conclusão | `_project/executed/005_combinacao_criterios_selecao/005_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando aprovação do plano — ciclo 005 (completo)
+Situação: Aguardando merge — ciclo 005 (completo)
 Quem: Responsável
-Conferir: Veredito e ressalvas em _project/drafts/005_combinacao_criterios_selecao/005_plan.md#rodada-2
-Diga: "aprovo o plano do ciclo 005"
+Conferir: Checks e diff da PR #41 (https://github.com/EuThiagoAndrade/rastro-quente/pull/41)
+Diga: "aprovo o merge da PR #41"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + atualizar_docs + aprovacao_publicacao_plano + v2@2e31651+rodada-2`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v2` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` (rodada 2), aprovação `Pendente`, situação `Aguardando aprovação do plano`. Branch `chore/cycle-005-plan` local em `2e31651`, sem commits próprios; ideação, plano e registro do ciclo não commitados. Nenhuma branch remota, PR ou issue do ciclo.
+- `state_after`: plano `v2` `Aprovado` (`Aprovada em 2026-11-11`) por manifestação posterior ao parecer, com R2-1 e R2-2 incorporadas ao item 2. Lote documental publicado na PR #41, de `chore/cycle-005-plan` para `main`, aguardando checks e merge. Ciclo em `Planejamento`; nenhuma issue ou implementação.
+- `result`: `executed`
+- `evidence`:
+  - manifestação humana literal "aprovo o plano do ciclo 005" em 2026-11-11, posterior à rodada 2;
+  - `git fetch`, `git ls-remote` e `gh pr list` conferiram `origin/main` em `2e31651` e a ausência de branch remota, PR ou issue aberta do ciclo antes de publicar;
+  - PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/41;
+  - lote limitado a ideação, plano e registro do ciclo; 55 testes de governança aprovados, validador sem erros ou avisos, `git diff --check` sem erros e varredura G3 sem e-mail ou UUID.
+- `blockers`: nenhum para a publicação. A integração depende de checks verdes e de "aprovo o merge da PR #41". As issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
+
+### Registro anterior — correção v2
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + rascunhar_plano + 005_plan + v2@2e31651`
