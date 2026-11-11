@@ -69,6 +69,7 @@ main {
 }
 
 .grade__filtros { grid-area: filtros; }
+.grade__lentes { grid-area: lentes; }
 .grade__resumo { grid-area: resumo; }
 .grade__mapa { grid-area: mapa; }
 .grade__serie { grid-area: serie; }
@@ -80,6 +81,7 @@ main {
 .grade {
   grid-template-areas:
     'filtros'
+    'lentes'
     'resumo'
     'mapa'
     'serie'
@@ -106,6 +108,7 @@ main {
     grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
     grid-template-areas:
       'filtros filtros'
+      'lentes lentes'
       'mapa resumo'
       'mapa serie'
       'mapa disp'

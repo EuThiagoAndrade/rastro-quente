@@ -28,7 +28,8 @@
         <p>
           Cada ponto é uma <strong>detecção de calor</strong> do satélite AQUA_M-T (INPE) dentro dos limites municipais do IBGE em
           Mato Grosso. Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>, e não há
-          ranking ambiental de municípios.
+          ranking ambiental de municípios: a lente de concentração só ordena por contagem de detecções, não por prioridade,
+          gravidade ou risco.
         </p>
         <p>
           Datas, totais e séries usam <strong>dia GMT</strong>. A sensibilidade em America/Cuiaba é um campo separado, nunca
@@ -68,6 +69,28 @@
           </form>
         </section>
 
+        <section class="cartao grade__lentes" id="cartao-lentes" aria-labelledby="t-lentes" data-estado-lente="nenhuma">
+          <h2 id="t-lentes" class="cartao__titulo">Lentes de seleção</h2>
+          <p class="ajuda">
+            Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração. A lente usa todo o estado de
+            Mato Grosso na janela da consulta: o filtro de município não se aplica às lentes. Parâmetros fixos, sem edição.
+          </p>
+          <div class="campos campos--lente">
+            <div class="campo">
+              <label for="l-lente">Lente</label>
+              <select id="l-lente">
+                <option value="nenhuma">Nenhuma</option>
+                <option value="concentracao">Concentração (municípios por contagem)</option>
+              </select>
+            </div>
+          </div>
+          <div class="acoes">
+            <button id="botao-lente" type="button" class="botao botao--primario">Aplicar lente</button>
+          </div>
+          <div id="lente-estado" role="status"></div>
+          <div id="lente-corpo"></div>
+        </section>
+
         <section class="cartao grade__resumo" aria-labelledby="t-resumo">
           <h2 id="t-resumo" class="cartao__titulo">Resumo do período</h2>
           <div id="estado-consulta" role="status"></div>
@@ -88,6 +111,7 @@
             <li><span class="legenda__amostra legenda__amostra--deteccao" aria-hidden="true"></span> Detecção AQUA_M-T</li>
             <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
             <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Seleção (contorno tracejado azul claro)</li>
+            <li><span class="legenda__amostra legenda__amostra--destaque" aria-hidden="true"></span> Destaque da lente (contorno amarelo claro; a lista da lente é a alternativa em texto)</li>
           </ul>
           <p id="mapa-aviso" class="ajuda" hidden></p>
           <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>

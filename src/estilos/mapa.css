@@ -81,3 +81,9 @@
   border: 3px dashed var(--acento);
   border-radius: 50%;
 }
+
+/* Destaque de lente: contorno contínuo amarelo claro sobre o fundo escuro do mapa (ciclo 004). */
+.legenda__amostra--destaque {
+  border: 2px solid var(--deteccao-escura);
+  background: #fde68a;
+}

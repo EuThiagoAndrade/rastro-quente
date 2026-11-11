@@ -1,0 +1,266 @@
+// Ciclo 004, issue #33 — lente de concentração, cobertura, recorte M1-a, concorrência (R1-4), destino dos
+// erros (R2-1) e respostas em trânsito após versão substituída (R3-1). Valores esperados derivados à mão
+// da fixture fictícia (tests/e2e/fixture.mjs), sem usar a interface: em outubro/2026, Alfa 60, Beta 30 e
+// Gama 10 detecções; disponibilidade em 31 dias: Alfa com lacuna nos dias 1 e 2 (29 de 31), Beta
+// indeterminada nos dias 1 a 3 (28 de 31) e Gama sem lacuna em todos (31 de 31).
+import { test, expect } from '@playwright/test';
+import { sqlAdmin } from '../../scripts/banco/local.mjs';
+import { cadastrarRp } from './contas.mjs';
+import { consultar, entrar } from './ajuda.mjs';
+import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture } from './fixture.mjs';
+
+test.describe.configure({ mode: 'serial' });
+// A spec 04 publica uma segunda versão e não a desfaz: restaura a fixture original pelo mesmo protocolo.
+test.beforeAll(() => {
+  sqlAdmin(SQL_LIMPEZA);
+  sqlAdmin(sqlFixture());
+  cadastrarRp();
+});
+
+const cartao = (page) => page.locator('#cartao-lentes');
+const itens = (page) => page.locator('#lente-destaques > li');
+
+async function aplicar(page, lente = 'concentracao') {
+  await page.locator('#l-lente').selectOption(lente);
+  await page.getByRole('button', { name: 'Aplicar lente' }).click();
+}
+
+const corpoRpc = (route) => JSON.parse(route.request().postData() ?? '{}');
+
+/**
+ * Segura a primeira chamada que casar com `filtro` até `soltar()`; as demais seguem normalmente.
+ * Com `resposta`, a chamada retida é liberada com ela em vez da resposta real.
+ */
+async function reter(page, rpc, filtro = () => true, resposta = null) {
+  let soltar;
+  const liberado = new Promise((r) => { soltar = r; });
+  let retida = false;
+  let chegou;
+  const chegada = new Promise((r) => { chegou = r; });
+  await page.route(`**/rest/v1/rpc/${rpc}`, async (route) => {
+    if (!retida && filtro(corpoRpc(route))) {
+      retida = true;
+      chegou();
+      const resp = resposta ? null : await route.fetch();
+      await liberado;
+      await route.fulfill(resposta ?? { response: resp }).catch(() => {});
+    } else {
+      await route.continue();
+    }
+  });
+  return { soltar: () => soltar(), chegada };
+}
+
+test('concentração: lista ordenada por contagem, parâmetros, cobertura e painel de motivo e evidência', async ({ page }) => {
+  await entrar(page, 'rp');
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await expect(page.locator('#lente-estado')).toContainText(/Lente concluída em \d+,\d s/);
+  await expect(itens(page)).toHaveCount(3);
+  expect(await itens(page).locator('.botao-nome').allInnerTexts())
+    .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
+  expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+    '29 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+    '28 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+    '31 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+  ]);
+  await expect(page.locator('#lente-ordenacao')).toHaveText('Lista ordenado por contagem de detecções, não por prioridade, gravidade ou risco.');
+  await expect(page.locator('#lente-parametros')).toContainText('com todos os empatados no 10º lugar');
+  await expect(page.locator('#lente-escopo')).toContainText('o filtro de município não se aplica às lentes');
+  await expect(page.locator('#lente-escopo')).toContainText('2026-10-01 a 2026-10-31');
+  await expect(page.locator('#lente-limitacoes')).toContainText('não comprovam incêndio, dano, autoria ou infração');
+  await expect(page.locator('#lente-limitacoes')).toContainText('Contagem absoluta favorece municípios grandes.');
+  expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
+
+  // Painel do primeiro destaque: motivo, evidência e os dias que contam contra, com a classe.
+  await itens(page).first().locator('.botao-nome').click();
+  await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `concentracao:municipio:${MUNICIPIOS.alfa.codigo}`);
+  await expect(page.locator('#lente-motivo')).toContainText('60 detecções na janela');
+  await expect(page.locator('#lente-evidencia')).toContainText('60 detecções');
+  await page.getByText('Dias que contam contra (2)').click();
+  expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'lacuna_conhecida']);
+  await expect(page.locator('#lente-dias')).toContainText('2026-10-01: Lacuna conhecida');
+
+  // "Consultar este município" aplica o filtro existente; a lente continua (mesma janela).
+  await page.getByRole('button', { name: 'Consultar este município' }).click();
+  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
+  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(itens(page)).toHaveCount(3);
+});
+
+test('R1-1: com filtro municipal ativo (Gama, 10), a lente lê o estado (100) e não altera o resumo comum', async ({ page }) => {
+  await entrar(page, 'rp');
+  await consultar(page, { municipio: MUNICIPIOS.gama.codigo });
+  await expect(page.locator('#total-principal')).toHaveText('10');
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  expect(await itens(page).locator('.botao-nome').allInnerTexts())
+    .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
+  await expect(page.locator('#total-principal')).toHaveText('10');
+});
+
+test('concorrência: aplicação antiga retida não aparece depois da nova (duas concentrações)', async ({ page }) => {
+  await entrar(page, 'rp');
+  // Primeira aplicação na janela 01–10/10, retida no resumo da lente.
+  await page.locator('#f-inicio').fill('2026-10-01');
+  await page.locator('#f-fim').fill('2026-10-10');
+  const r = await reter(page, 'consultar_resumo');
+  await aplicar(page);
+  await r.chegada;
+  // Segunda aplicação na janela inteira, que termina antes.
+  await page.locator('#f-fim').fill('2026-10-31');
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  r.soltar();
+  await page.waitForTimeout(500);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await expect(page.locator('#lente-escopo')).toContainText('2026-10-01 a 2026-10-31');
+  expect(await itens(page).locator('.botao-nome').allInnerTexts())
+    .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
+});
+
+test('concorrência: "Nenhuma" durante a leitura cancela; a resposta atrasada não aparece', async ({ page }) => {
+  await entrar(page, 'rp');
+  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  await aplicar(page);
+  await r.chegada;
+  await page.locator('#l-lente').selectOption('nenhuma');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  r.soltar();
+  await page.waitForTimeout(500);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  await expect(itens(page)).toHaveCount(0);
+});
+
+test('concorrência: logout durante a leitura limpa tudo; novo login não traz a lente antiga', async ({ page }) => {
+  await entrar(page, 'rp');
+  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  await aplicar(page);
+  await r.chegada;
+  await page.locator('#botao-sair').click();
+  await expect(page.locator('#acesso')).toHaveAttribute('data-estado', 'anonimo');
+  r.soltar();
+  await page.waitForTimeout(500);
+  await expect(itens(page)).toHaveCount(0);
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await entrar(page, 'rp');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  await expect(itens(page)).toHaveCount(0);
+});
+
+test('página com registro duplicado é leitura inconsistente, sem destaque parcial', async ({ page }) => {
+  await entrar(page, 'rp');
+  await page.route('**/rest/v1/rpc/consultar_deteccoes', async (route) => {
+    if (corpoRpc(route).p_limite !== 1000) return route.continue();
+    const resp = await route.fetch();
+    const json = await resp.json();
+    json.registros[json.registros.length - 1] = json.registros[0];
+    await route.fulfill({ response: resp, json });
+  });
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'leitura_inconsistente');
+  await expect(page.locator('#lente-estado')).toContainText('id_tecnico repetido');
+  await expect(itens(page)).toHaveCount(0);
+});
+
+test('falha da fonte na disponibilidade de um município: só os destaques dele ficam sem cobertura verificada', async ({ page }) => {
+  await entrar(page, 'rp');
+  await page.route('**/rest/v1/rpc/consultar_disponibilidade', async (route) => {
+    if (corpoRpc(route).p_municipio !== MUNICIPIOS.beta.codigo) return route.continue();
+    await route.fulfill({ status: 503, json: { message: 'indisponivel' } });
+  });
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
+  expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+    '29 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+    'cobertura não verificada: fonte indisponível',
+    '31 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+  ]);
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await page.getByRole('button', { name: 'Tentar de novo' }).click();
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+});
+
+test('R2-1: acesso negado na disponibilidade, depois de a lista aparecer, limpa tela, lente e memória', async ({ page }) => {
+  await entrar(page, 'rp');
+  const negado = { status: 403, json: { code: '42501', message: 'acesso_negado' } };
+  const r = await reter(page, 'consultar_disponibilidade', () => true, negado);
+  await aplicar(page);
+  await r.chegada;
+  await expect(itens(page)).toHaveCount(3);
+  r.soltar();
+  await expect(page.locator('#acesso')).toHaveAttribute('data-estado', 'negado');
+  await expect(page.locator('#conteudo')).toBeHidden();
+  await expect(itens(page)).toHaveCount(0);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+});
+
+test('R2-1: sessão expirada na disponibilidade limpa tudo; após novo login, nenhum destaque antigo', async ({ page }) => {
+  await entrar(page, 'rp');
+  await page.route('**/rest/v1/rpc/consultar_disponibilidade', (route) => route.fulfill({ status: 401, json: { code: 'PGRST301', message: 'JWT expired' } }));
+  await aplicar(page);
+  await expect(page.locator('#acesso')).toHaveAttribute('data-estado', 'anonimo');
+  await expect(page.locator('#acesso-corpo')).toContainText('Sua sessão expirou');
+  await expect(itens(page)).toHaveCount(0);
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await entrar(page, 'rp');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  await expect(itens(page)).toHaveCount(0);
+});
+
+test('R2-1: carga indisponível no resumo de uma segunda aplicação limpa lente e memória; depois relê tudo', async ({ page }) => {
+  await entrar(page, 'rp');
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await page.route('**/rest/v1/rpc/consultar_resumo', (route) => route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } }));
+  await aplicar(page);
+  await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'versao_substituida');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
+  await expect(itens(page)).toHaveCount(0);
+  await expect(page.locator('#registros-tabela')).toBeEmpty();
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
+  await expect(page.locator('#total-principal')).toHaveText('100');
+  const paginas = [];
+  page.on('request', (q) => { if (q.url().includes('/rpc/consultar_deteccoes') && JSON.parse(q.postData() ?? '{}').p_limite === 1000) paginas.push(q); });
+  await aplicar(page);
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  expect(paginas.length).toBeGreaterThan(0);
+});
+
+test('R3-1: página antiga liberada depois de "versão substituída" não repovoa tabela nem mapa', async ({ page }) => {
+  await entrar(page, 'rp');
+  await page.locator('#f-tamanho').selectOption('50');
+  await expect(page.locator('#registros-info')).toContainText('Mostrando 1–50 de 100 registros');
+  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_deslocamento === 50);
+  await page.getByRole('button', { name: 'Próxima página' }).click();
+  await r.chegada;
+  // Outra página da mesma consulta recebe "carga indisponível".
+  await page.route('**/rest/v1/rpc/consultar_deteccoes', async (route) => {
+    if (corpoRpc(route).p_limite !== 1000) return route.fallback();
+    await route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } });
+  });
+  await page.locator('#f-tamanho').selectOption('1000');
+  await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'versao_substituida');
+  r.soltar();
+  await page.waitForTimeout(500);
+  await expect(page.locator('#registros-tabela')).toBeEmpty();
+  await expect(page.locator('#mapa-contagem')).not.toContainText('Pontos no mapa: 50');
+});
+
+test('lente acessível: teclado e 360 px sem rolagem horizontal da página', async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 780 });
+  await entrar(page, 'rp');
+  await page.locator('#l-lente').focus();
+  await page.keyboard.press('ArrowDown');
+  await page.locator('#botao-lente').focus();
+  await page.keyboard.press('Enter');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await itens(page).first().locator('.botao-nome').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#lente-painel-titulo')).toBeFocused();
+  const largura = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
+  expect(largura[0]).toBeLessThanOrEqual(largura[1]);
+  const alvo = await page.locator('#botao-lente').boundingBox();
+  expect(alvo.height).toBeGreaterThanOrEqual(44);
+});

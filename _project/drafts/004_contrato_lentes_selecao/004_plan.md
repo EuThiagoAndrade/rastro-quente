@@ -1,7 +1,7 @@
 # Plano de Implementação — Contrato de lente de seleção e lentes com dados já carregados
 
 > **Ciclo:** `004`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-10
 > **Última atualização:** 2026-11-11
@@ -37,6 +37,10 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merges, a implementação das issues nem a verificação em produção. Cada um desses passos tem frase própria.
+
+**Publicação e issues.** A PR documental #32 foi integrada em 2026-11-11 (`fa302b5`). As issues #33 (item 1), #34 (item 2) e #35 (item 3) foram criadas em 2026-11-11.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #33" recebida em 2026-11-11. A task `004_task_issue-33.md` é o artefato ativo; somente o item 1 está em execução.
 
 **Autorização da correção — v3, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
 
@@ -456,9 +460,11 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
-| PR(s) | PR documental [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32), aguardando merge |
+| Issue(s) | [#33](https://github.com/EuThiagoAndrade/rastro-quente/issues/33) (item 1), [#34](https://github.com/EuThiagoAndrade/rastro-quente/issues/34) (item 2), [#35](https://github.com/EuThiagoAndrade/rastro-quente/issues/35) (item 3) |
+| PR(s) | PR documental [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32), integrada em 2026-11-11 (`fa302b5`); item 1: [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36), aguardando merge |
 | Branch(es) | Ideação: `chore/cycle-004-ideation` em `c51ad73` (local); plano: `chore/cycle-004-plan`, derivada dela, publicada, base `85b444dd0084cc0b32b28ad0a1c256fdc9abbc29` |
+| Branch do item 1 | `feature/issue-33`, base `fa302b5bf124ce56501d1303dd64181511c84ace` |
+| Entrega do item 1 | `src/lentes/`, `src/apresentacao-lentes.ts`, integração em `src/app.ts` e `src/mapa.ts`, testes `tests/unit/lentes.test.mjs` e `tests/e2e/05-lentes.spec.mjs`, `scripts/lentes/` e `scripts/interface/medir-lentes.mjs`, KB-005, guia no runbook e `004_research_conferencia_lentes.md`; registro em `004_task_issue-33.md` |
 | Destino após conclusão | `_project/executed/004_contrato_lentes_selecao/004_plan.md` |
 
 ## Próximo passo
@@ -467,8 +473,8 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 004 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #32 (https://github.com/EuThiagoAndrade/rastro-quente/pull/32)
-Diga: "aprovo o merge da PR #32"
+Conferir: Checks e diff da PR #36 (https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
+Diga: "aprovo o merge da PR #36"
 ```
 
 ## Handoff de saída

@@ -1,0 +1,56 @@
+{
+  "descricao": "Casos de referência fictícios da lente de concentração (plano 004, C-1, C-2 e C-5). Municípios inventados (códigos 99100xx); os valores esperados foram escritos à mão a partir do plano, não gerados pelo código.",
+  "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+  "casos": [
+    {
+      "id": "C-1",
+      "n": 2,
+      "municipios": [
+        { "codigo": 9910001, "nome": "Fictício A", "deteccoes": 12 },
+        { "codigo": 9910002, "nome": "Fictício B", "deteccoes": 7 },
+        { "codigo": 9910003, "nome": "Fictício C", "deteccoes": 7 },
+        { "codigo": 9910004, "nome": "Fictício D", "deteccoes": 0 }
+      ],
+      "esperado": {
+        "destaques": [[9910001, 12], [9910002, 7], [9910003, 7]],
+        "observacoes": ["3 municípios por empate no 2º lugar."]
+      }
+    },
+    {
+      "id": "C-2",
+      "municipios": [
+        { "codigo": 9910001, "nome": "Fictício A", "deteccoes": 4 },
+        { "codigo": 9910002, "nome": "Fictício B", "deteccoes": 1 },
+        { "codigo": 9910003, "nome": "Fictício C", "deteccoes": 0 }
+      ],
+      "esperado": {
+        "destaques": [[9910001, 4], [9910002, 1]],
+        "observacoes": ["Só 2 municípios têm detecções na janela."]
+      }
+    },
+    {
+      "id": "C-5",
+      "municipios": [
+        { "codigo": 9910001, "nome": "Fictício 01", "deteccoes": 30 },
+        { "codigo": 9910002, "nome": "Fictício 02", "deteccoes": 28 },
+        { "codigo": 9910003, "nome": "Fictício 03", "deteccoes": 26 },
+        { "codigo": 9910004, "nome": "Fictício 04", "deteccoes": 24 },
+        { "codigo": 9910005, "nome": "Fictício 05", "deteccoes": 22 },
+        { "codigo": 9910006, "nome": "Fictício 06", "deteccoes": 20 },
+        { "codigo": 9910007, "nome": "Fictício 07", "deteccoes": 18 },
+        { "codigo": 9910008, "nome": "Fictício 08", "deteccoes": 16 },
+        { "codigo": 9910009, "nome": "Fictício 09", "deteccoes": 14 },
+        { "codigo": 9910010, "nome": "Fictício 10", "deteccoes": 12 },
+        { "codigo": 9910011, "nome": "Fictício 11", "deteccoes": 12 },
+        { "codigo": 9910012, "nome": "Fictício 12", "deteccoes": 5 }
+      ],
+      "esperado": {
+        "destaques": [
+          [9910001, 30], [9910002, 28], [9910003, 26], [9910004, 24], [9910005, 22], [9910006, 20],
+          [9910007, 18], [9910008, 16], [9910009, 14], [9910010, 12], [9910011, 12]
+        ],
+        "observacoes": ["11 municípios por empate no 10º lugar."]
+      }
+    }
+  ]
+}

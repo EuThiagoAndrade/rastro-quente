@@ -6,14 +6,24 @@ import {
   renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderMunicipios, renderProveniencia, renderResumo,
   renderSelecao, renderSerie, limparResultados, type Acesso, type EstadoConsulta, type PainelRegistros,
 } from './apresentacao.ts';
+import {
+  limparCorpoLente, renderEstadoLente, renderResultadoLente, type EstadoLente, type ManipuladoresLente,
+} from './apresentacao-lentes.ts';
 import { lerConfiguracao } from './config.ts';
+import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
+import { concentracao } from './lentes/concentracao.ts';
+import {
+  CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerRegistros, validarDisponibilidade,
+  type FontesLente, type OrigemChamada, type PedidoLente,
+} from './lentes/carregar.ts';
+import { ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente } from './lentes/contrato.ts';
 import {
   consultarDeteccoes, consultarDisponibilidade, consultarResumo, lerCargaVigente, lerLimites, lerMunicipios,
   lerProveniencia, sondarAcesso, type Filtro,
 } from './consulta.ts';
 import { ErroConsulta, type TipoErro } from './erros.ts';
 import { primeiroDiaGmt, ultimoDiaGmt } from './formato.ts';
-import { criarMapa, type Mapa } from './mapa.ts';
+import { criarMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
 import type {
   CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, PaginaDeteccoes, Resumo,
@@ -34,6 +44,23 @@ interface Resultado {
   pagina: PaginaDeteccoes;
   disponibilidade: Disponibilidade;
 }
+
+/** Lente aplicada: pedido (carga e janela), resultado e disponibilidade lida para qualificá-lo. */
+interface LenteAplicada {
+  pedido: PedidoLente;
+  resultado: ResultadoLente;
+  selecionado: string | null;
+}
+
+/** Memória reaproveitável entre lentes, enquanto sessão, carga, janela e recorte forem os mesmos. */
+interface MemoriaLente {
+  chave: string;
+  registros: RegistroLente[];
+  totalResumo: number;
+  disponibilidade: Map<number, DisponibilidadeMunicipio>;
+}
+
+const chaveLente = (p: PedidoLente): string => `${p.carga}|${p.janela.inicio}|${p.janela.fim}|estado`;
 
 export function iniciar(): void {
   const config = lerConfiguracao(import.meta.env);
@@ -56,6 +83,12 @@ class Controlador {
   private todosOsLimites = false;
   private geracaoSessao = 0;
   private geracaoConsulta = 0;
+  // Terceira geração (plano 004, R1-4): cada aplicação de lente, `Nenhuma`, nova janela, troca de versão
+  // ou mudança de sessão a incrementa; respostas de uma aplicação antiga são descartadas.
+  private geracaoLente = 0;
+  private lente: LenteAplicada | null = null;
+  private pedidoLente: PedidoLente | null = null;
+  private memoriaLente: MemoriaLente | null = null;
   private usuarioAutorizado = false;
   private motivoPendente: 'saiu' | 'expirada' | undefined;
   private erroCallback: string | undefined;
@@ -80,6 +113,11 @@ class Controlador {
       $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
       $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
       void this.consultar();
+    });
+    $('botao-lente').addEventListener('click', () => void this.aplicarLente());
+    // Escolher "Nenhuma" cancela a lente na hora, inclusive durante a leitura.
+    $('l-lente').addEventListener('change', () => {
+      if ($<HTMLSelectElement>('l-lente').value === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
     });
     $('botao-limites').addEventListener('click', () => void this.alternarLimites());
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
@@ -220,6 +258,8 @@ class Controlador {
     mostrarErroMapa(null);
     mostrarErroFiltro(null);
     $('botao-limites').setAttribute('aria-pressed', 'false');
+    // Sessão, acesso ou publicação mudaram: a lente e toda a memória reaproveitável saem junto (R2-1).
+    this.limparLente({ memoria: true, estado: { tipo: 'nenhuma' } });
   }
 
   // --- Consulta --------------------------------------------------------------------------------------
@@ -228,6 +268,7 @@ class Controlador {
     if (this.mapa) return;
     this.mapa = criarMapa($('mapa'));
     this.mapa.aoSelecionar((id) => this.selecionar(id));
+    this.mapa.aoSelecionarDestaque((id) => this.selecionarDestaque(id));
     if (window.matchMedia('(pointer: coarse)').matches) {
       // Em tela de toque, um dedo rola a página; o mapa só arrasta quando o usuário ativa.
       this.mapa.permitirArrastar(false);
@@ -261,6 +302,10 @@ class Controlador {
     const dados = this.dados;
     const filtro = this.lerFiltro();
     if (!dados || !filtro) return;
+    const p = this.pedidoLente;
+    if (p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim)) {
+      this.limparLente({ memoria: false, estado: { tipo: 'cancelada', motivo: 'a janela da consulta mudou; aplique a lente de novo.' } });
+    }
     const g = this.geracaoSessao;
     const c = ++this.geracaoConsulta;
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
@@ -304,6 +349,11 @@ class Controlador {
     if (tipo === 'acesso_negado' || tipo === 'sessao_expirada' || tipo === 'sem_publicacao') {
       this.tratarErroGlobal(e);
       return;
+    }
+    if (tipo === 'versao_substituida') {
+      // R3-1: invalida já as respostas em trânsito da consulta comum e da lente, e toda a memória da carga.
+      this.geracaoConsulta++;
+      this.limparLente({ memoria: true, estado: { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' } });
     }
     this.resultado = null;
     this.mapa?.limparTudo();
@@ -363,6 +413,177 @@ class Controlador {
     this.mapa?.selecionarRegistro(id);
     this.painel.marcarSelecao(id);
     renderSelecao(registro, this.dados.nomes.get(registro.municipio_codigo) ?? null);
+  }
+
+  // --- Lentes de seleção (plano 004) -----------------------------------------------------------------
+
+  private manipuladoresLente(): ManipuladoresLente {
+    return {
+      tentarDeNovo: () => void this.aplicarLente(),
+      selecionar: (id) => this.selecionarDestaque(id),
+      consultarMunicipio: (codigo) => this.escolherMunicipio(codigo),
+    };
+  }
+
+  private estadoLente(e: EstadoLente): void {
+    renderEstadoLente(e, this.manipuladoresLente());
+  }
+
+  /** Invalida a aplicação em curso e limpa lista, camada, painel e (se pedido) a memória reaproveitável. */
+  private limparLente(o: { memoria: boolean; estado: EstadoLente }): void {
+    this.geracaoLente++;
+    this.lente = null;
+    this.pedidoLente = null;
+    if (o.memoria) this.memoriaLente = null;
+    this.mapa?.limparDestaques();
+    limparCorpoLente();
+    this.estadoLente(o.estado);
+  }
+
+  private fontesLente(): FontesLente {
+    const c = this.sessao.cliente;
+    return {
+      resumo: (f) => consultarResumo(c, f),
+      pagina: (f, limite, deslocamento) => consultarDeteccoes(c, f, limite, deslocamento),
+      disponibilidade: (f) => consultarDisponibilidade(c, f),
+    };
+  }
+
+  /** Erro numa chamada da lente (R2-1): sessão, acesso e versão nunca ficam locais. */
+  private erroDaLente(e: unknown, origem: OrigemChamada): 'global' | 'local' {
+    const tipo = e instanceof ErroLente ? 'leitura_inconsistente' : e instanceof ErroConsulta ? e.tipo : 'fonte_indisponivel';
+    const destino = destinoErro(tipo, origem);
+    if (destino === 'global') {
+      this.tratarErroGlobal(e);
+      return 'global';
+    }
+    if (destino === 'versao') {
+      this.aoFalharConsulta(new ErroConsulta('versao_substituida', 'carga_indisponivel'));
+      return 'global';
+    }
+    return 'local';
+  }
+
+  private mostrarLente(): void {
+    if (this.lente) renderResultadoLente(this.lente.resultado, this.lente.selecionado, this.manipuladoresLente());
+  }
+
+  private selecionarDestaque(id: string): void {
+    const l = this.lente;
+    if (!l || !l.resultado.destaques.some((d) => d.id_destaque === id)) return;
+    l.selecionado = id;
+    this.mostrarLente();
+    this.mapa?.selecionarDestaque(id);
+    document.getElementById('lente-painel-titulo')?.focus();
+  }
+
+  private async aplicarLente(): Promise<void> {
+    const dados = this.dados;
+    if ($<HTMLSelectElement>('l-lente').value === 'nenhuma') {
+      this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+      return;
+    }
+    // Datas validadas como na consulta; o município do filtro não se aplica às lentes (M1-a).
+    const filtro = this.lerFiltro();
+    if (!dados || !filtro) return;
+    this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    this.pedidoLente = pedido;
+    const g = this.geracaoSessao;
+    const gl = this.geracaoLente;
+    const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
+    const inicio = performance.now();
+    const chave = chaveLente(pedido);
+    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
+    let resultado: ResultadoLente;
+    let mem: MemoriaLente;
+    try {
+      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
+        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
+        anterior);
+      if (!lido || !atual()) return;
+      mem = lido.reaproveitado && anterior ? anterior
+        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
+      this.memoriaLente = mem;
+      resultado = concentracao({
+        carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+      });
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
+      this.mapa?.limparDestaques();
+      limparCorpoLente();
+      this.estadoLente(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' });
+      return;
+    }
+
+    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
+    const disponibilidade = new Map(mem.disponibilidade);
+    this.lente = { pedido, resultado: qualificar(resultado, disponibilidade), selecionado: null };
+    this.mostrarLente();
+
+    let contornoFalhou = false;
+    const contornos = this.desenharDestaques(resultado, atual).catch((e: unknown) => {
+      if (atual() && this.erroDaLente(e, 'geometria') === 'local') contornoFalhou = true;
+    });
+    const faltam = municipiosNecessarios(resultado).filter((c) => !disponibilidade.has(c));
+    let feitos = 0;
+    if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
+      let d: DisponibilidadeMunicipio;
+      try {
+        const resp = await consultarDisponibilidade(this.sessao.cliente,
+          { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: codigo });
+        if (!atual()) return;
+        d = { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, dados.carga.satelite, resp) };
+        mem.disponibilidade.set(codigo, d);
+      } catch (e) {
+        if (!atual() || this.erroDaLente(e, 'disponibilidade') === 'global') return;
+        d = { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' };
+      }
+      disponibilidade.set(codigo, d);
+      feitos += 1;
+      if (!this.lente) return;
+      this.lente.resultado = qualificar(resultado, disponibilidade);
+      this.mostrarLente();
+      this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    });
+    await contornos;
+    if (!atual() || !this.lente) return;
+    this.lente.resultado = qualificar(resultado, disponibilidade);
+    this.mostrarLente();
+    const segundos = (performance.now() - inicio) / 1000;
+    if (resultado.estado === 'sem_destaques') this.estadoLente({ tipo: 'sem_destaques', segundos });
+    else if (estadoQualificacao(this.lente.resultado) !== 'completa') this.estadoLente({ tipo: 'cobertura_nao_verificada' });
+    else if (contornoFalhou) this.estadoLente({ tipo: 'contorno_indisponivel' });
+    else this.estadoLente({ tipo: 'completo', segundos });
+  }
+
+  /** Desenha os destaques no mapa; na concentração, com a geometria de exibição de cada município. */
+  private async desenharDestaques(r: ResultadoLente, atual: () => boolean): Promise<void> {
+    if (!this.mapa || !this.dados) return;
+    const codigos = r.destaques.flatMap((d) => (d.unidade.tipo === 'municipio' ? [d.unidade.codigo] : []));
+    let erro: unknown = null;
+    await emParalelo(codigos.filter((c) => !this.limites.has(c)), CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
+      try {
+        const lidos = await lerLimites(this.sessao.cliente, this.dados?.carga.id ?? -1, codigo);
+        if (!atual()) return;
+        for (const l of lidos) this.limites.set(l.codigo, l);
+      } catch (e) {
+        erro ??= e;
+      }
+    });
+    if (!atual()) return;
+    this.mapa.definirDestaques(r.destaques.flatMap((d): DestaqueMapa[] => {
+      if (d.unidade.tipo === 'municipio') {
+        const l = this.limites.get(d.unidade.codigo);
+        return l ? [{ id: d.id_destaque, geometria: l.geometria_exibicao }] : [];
+      }
+      const u = d.unidade;
+      return [{ id: d.id_destaque, retangulo: [[Number(u.sul), Number(u.oeste)], [Number(u.norte), Number(u.leste)]] }];
+    }));
+    this.mapa.enquadrarDestaques();
+    if (erro !== null) throw erro;
   }
 
   // --- Limites municipais, sob demanda ---------------------------------------------------------------------

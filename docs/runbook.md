@@ -104,14 +104,16 @@ Aplicação estática (ADR-007). Diretrizes **efetivamente implementadas** neste
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` |
 | `npm run build` | `vite build` em `dist/` (ignorado pelo Git); exige as variáveis públicas abaixo |
 | `npm run test:interface` | Contraste dos pares de cor, lógica pura e inspeção do bundle de produção (sem `local/`, sem segredo, sem dados, sem login por senha) |
-| `npm run test:e2e` | `supabase db reset`, build de teste, Chrome do sistema: sessão, acesso, consulta, estados, acessibilidade (35 testes, dados fictícios) |
+| `npm run test:e2e` | `supabase db reset`, build de teste, Chrome do sistema: sessão, acesso, consulta, estados, acessibilidade e lentes (47 testes, dados fictícios) |
 | `npm run medir:interface` | Medição em celular emulado com a carga real local (grava em `local/dados-prototipo/`) |
+| `npm run conferir:lentes` | Ciclo 004: publica a carga real local num banco vazio e confere as lentes por SQL independente e a célula de cada detecção pelo texto da fonte (grava `conferencia-lentes.json` em `local/dados-prototipo/`; código 1 em divergência) |
+| `npm run medir:lentes` | Ciclo 004: mede cada lente na janela inteira, passagens bruta e comprimida (proxy gzip local), no perfil do ADR-007 (grava `medicao-lentes.json`; código 1 fora do orçamento) |
 
 Variáveis do build (nomes em `.env.example`): `VITE_SUPABASE_URL` (https fora do loopback) e `VITE_SUPABASE_CHAVE_PUBLICAVEL` (chave anon). `VITE_AUTH_SENHA_LOCAL=true` habilita o login por senha **só** em build local de teste. Sem as duas primeiras a página mostra "Configuração ausente" e nenhum dado. A chave de serviço, a senha do EX e o segredo do Google nunca entram no bundle. O destino de deploy, as variáveis da Vercel e os cabeçalhos (CSP, cache) são do item 5.
 
 ### Estrutura e papéis de cor
 
-- Mobile first: uma coluna; filtros, resumo, mapa, série, disponibilidade, registros, municípios e proveniência, nessa ordem. A partir de 70 rem o mapa fica à esquerda e resumo, série e disponibilidade à direita. Sem painel lateral fixo.
+- Mobile first: uma coluna; filtros, lentes de seleção, resumo, mapa, série, disponibilidade, registros, municípios e proveniência, nessa ordem. A partir de 70 rem as lentes ocupam a largura toda abaixo dos filtros, o mapa fica à esquerda e resumo, série e disponibilidade à direita. Sem painel lateral fixo.
 - Fundo `#f5f6f2`, superfícies brancas, texto `#243c31`, identidade verde `#254b39` (cabeçalho e contexto). **Ação primária:** azul `#1d4ed8`, preenchido, texto branco, verbo explícito ("Consultar", "Entrar com o Google"). **Secundária:** superfície clara, contorno de 2 px e rótulo. Laranja `#f97316` só para detecção. Mapa `#152e27`; seleção azul claro `#93c5fd` com anel tracejado e indicador textual.
 - Tipografia de sistema (`Segoe UI`, Arial), base `1rem`, entrelinha 1,5, piso de `0.875rem` em etiquetas, legendas e atribuição, nomes de municípios com `1rem` ou mais. Alvos de `2.75rem` (44 px no padrão). Foco visível de 3 px. Tudo em unidades relativas; o zoom do navegador não é limitado.
 - Classes de disponibilidade e seleção não dependem só de cor: símbolo, texto e padrão de borda (sólida, tracejada, pontilhada).
@@ -124,6 +126,7 @@ Variáveis do build (nomes em `.env.example`): `VITE_SUPABASE_URL` (https fora d
 - **Dados da fonte** entram como texto. **Nenhum dado de consulta** vai a armazenamento ou cache; sair limpa a tela na hora.
 - **Mapa:** sem tiles de terceiros; mostra a página corrente da tabela e declara quantos pontos exibe de quantos existem; tabela como alternativa de teclado; em tela de toque o arraste de um dedo é opt-in.
 - **Geometria:** um município por requisição, o conjunto só por pedido; legenda de simplificação quando a malha de exibição não é `maxima`.
+- **Lentes de seleção (ciclo 004, KB-005):** seletor, "Aplicar lente", lista, camada própria no mapa (contorno amarelo claro; selecionado tracejado azul claro) e painel de motivo, evidência, cobertura e ressalvas. Recorte: estado inteiro na janela da consulta (o filtro de município não se aplica). Só a concentração ordena, rotulada como contagem. Cobertura em "N de M dias sem evidência de lacuna (cobertura não comprovada)", nunca "coberto". Estados próprios (carregando com progresso, concluída em X s, sem destaques, cobertura não verificada, contorno indisponível, leitura inconsistente, falha, cancelada); "Nenhuma", nova janela, troca de versão e saída invalidam a aplicação em curso. Resultados e registros reaproveitáveis ficam só em memória.
 
 ### Verificação e limites
 
