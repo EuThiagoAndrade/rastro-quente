@@ -423,10 +423,10 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 2) — ciclo 004 (completo)
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise o plano do ciclo 004"
+Situação: Aguardando correções (rodada 2) — ciclo 004 (completo)
+Quem: O responsável leva a vez ao autor
+Conferir: Achados da rodada 2 na seção Revisão crítica deste plano
+Diga: "corrija o plano do ciclo 004"
 ```
 
 ## Handoff de saída
@@ -476,6 +476,17 @@ Diga: "revise o plano do ciclo 004"
 - `result`: `executed`
 - `evidence`: parecer em `## Revisão crítica` e transição no cabeçalho e no bloco `## Próximo passo`. Consultas de leitura confirmaram `main` remota em `85b444d`, ausência de PR para `chore/cycle-004-plan` e ausência de issues de lentes. O MCP GitHub Docker devolveu HTTP 401 e a consulta foi concluída via `gh` e `git ls-remote`.
 - `blockers`: R1-1 a R1-5.
+
+### Registro da revisão — rodada 2
+
+- `handoff_schema_version`: `2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + revisar_plano + 004_plan/rodada-2 + v2@1c468ec79b251492585d533b7056804d27dfeb87`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v2` em `Em Revisão`, revisão `Em andamento`, veredito anterior `REQUER NOVA RODADA` e situação `Aguardando revisão (rodada 2)`. Ciclo em `Planejamento`. Árvore limpa na branch `chore/cycle-004-plan` em `1c468ec`.
+- `state_after`: rodada 2 registrada com veredito `REQUER NOVA RODADA` e situação `Aguardando correções (rodada 2)`. Plano `v2` em `Em Revisão`, revisão `Em andamento` e aprovação `Pendente`.
+- `result`: `executed`
+- `evidence`: parecer da rodada 2 e bloco `## Próximo passo`. `gh` e `git ls-remote` confirmaram `main` remota em `85b444d`, ausência de PR para a branch do plano e ausência de issues de lentes na busca por título. A consulta via MCP GitHub Docker retornou HTTP 401.
+- `blockers`: R2-1 e R2-2.
 
 ## Revisão crítica
 
@@ -527,6 +538,32 @@ Diga: "revise o plano do ciclo 004"
 | R1-8 | **Corrigido.** Cadeia de dependência 1 ← 2 ← 3 e ordem de reversão do mais recente para o mais antigo, com os casos de retirada de cada item. | "Riscos, suposições e rollback" |
 
 Nenhum achado foi contestado. Nenhuma decisão humana nova foi tomada: M1, T1 e T3 a T7 e o orçamento são propostas a ratificar na aprovação do plano. O fatiamento em três issues não mudou. A rodada 1 está preservada acima, sem edição.
+
+### Rodada 2
+
+- **Data:** 2026-11-11
+- **Autor:** Claude Code (Opus 5.5)
+- **Revisor:** Codex (GPT-6)
+- **Base:** plano `v2`, commit `1c468ec79b251492585d533b7056804d27dfeb87`.
+
+#### Achados bloqueadores
+
+- **R2-1 — Perda de acesso e troca de carga nas chamadas da lente.** A v2 manda tratar erro de página como falha da lente e erro de disponibilidade como falha apenas dos qualificadores afetados. Essa regra também captura `acesso_negado`, `sessao_expirada` e `versao_substituida`, que `src/erros.ts` distingue de falhas da fonte. Por exemplo, se uma chamada de disponibilidade devolve `acesso_negado` após a lista renderizar, seguir a regra escrita deixa os destaques e os dados já lidos na tela. O ADR-007 exige limpar tela, mapa e memória após revogação ou expiração e pedir recarga quando a versão fixada fica indisponível. Explicite o tratamento desses estados em resumo, páginas, disponibilidade e geometria, incluindo a invalidação dos dados reaproveitáveis. Teste uma negação ou expiração durante a leitura de disponibilidade e `carga_indisponivel` durante uma aplicação com resultados em memória. O teste de logout cobre a invalidação iniciada pelo usuário.
+- **R2-2 — Os gates locais precisam acompanhar as entregas.** A estratégia E2E prevê aplicar concentração, reter a resposta e aplicar recorrência, mas o item 1 já exige o E2E de concorrência e o item 2 é que introduz a opção de recorrência. A tabela de medição também diz que o gate local de cada item vale para as três lentes. Explicite que o item 1 testa duas aplicações de concentração e o cancelamento com `Nenhuma` ou logout, e que o item 2 acrescenta o cenário entre lentes distintas. Vincule conferência e medição, em cada PR, às lentes disponíveis naquele ponto, mantendo as verificações das anteriores e a janela inteira. O item 3 consolida as três antes da verificação hospedada.
+
+#### Ressalvas
+
+- **R2-3 — Alcance da validação de precisão.** A regra de até 15 algarismos valida a string canônica do `Number`. Ela não detecta dígitos já perdidos na ingestão. Em Node, tanto `-15.05` quanto `-15.0500000000000001` produzem `-15.05`, embora os decimais originais estejam em células distintas. Ajuste a frase de T1 que promete erro explícito para precisão não preservada. A comparação independente por `id_tecnico` e a parada já cobrem esse caso para a carga conferida.
+- **R2-4 — Tentativa de medição sem conclusão.** Fixe um prazo por execução e um limite de repetições inválidas. Se o estado `completo` não for atingido, o roteiro hospedado precisa registrar a tentativa e aplicar a parada, pois não há mediana válida para aprovar o resultado.
+
+#### Itens atendidos
+
+- O recorte M1 agora é uma proposta explícita de método, com efeito numérico para cada opção e resumo conferido no mesmo recorte. A revisão formal avalia a proposta M1-a. Sua ratificação continua na aprovação humana do plano.
+- A v2 define o valor canônico da grade, a prova independente por `id_tecnico`, a integridade da disponibilidade conforme RS-3 e a distinção das classes em D15 e T7. A seleção continua separada da qualificação da cobertura.
+- A geração de lente, a validação das páginas e o teste de respostas atrasadas tratam os cenários da primeira rodada. O protocolo passou a medir gzip e a explicitar o fim da medição, as unidades, a mediana e a parada hospedada. A v2 também cobre o empate real em N=10, a janela parcial de três meses, a ordem de recarga e a reversão por dependência.
+- A revisão inspecionou os contratos e a sequência de entregas no repositório. A conferência da carga real e a execução do protocolo de desempenho pertencem à implementação. O diff da correção preservou a rodada 1 e ficou restrito à documentação do ciclo.
+
+**Veredito:** `REQUER NOVA RODADA`. Os bloqueadores caíram de cinco para dois. O autor deve fechar o tratamento dos estados de acesso e carga e alinhar os gates às três entregas antes de submeter a versão seguinte.
 
 ## Pós-mortem
 
