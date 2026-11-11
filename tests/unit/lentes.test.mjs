@@ -1,12 +1,13 @@
-// Casos de referência das lentes (plano 004, itens 1 e 2): C, G, L, V, E, X e R. Os valores esperados vêm das
+// Casos de referência das lentes (plano 004, itens 1 a 3): C, G, L, V, E, X, R e P. Os valores esperados vêm das
 // fixtures fictícias de tests/fixtures/lentes/ e do plano, escritos à mão; nenhum é gerado pelo código.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { concentracao } from '../../src/lentes/concentracao.ts';
 import { recorrencia } from '../../src/lentes/recorrencia.ts';
+import { persistencia } from '../../src/lentes/persistencia.ts';
 import { qualificar, municipiosNecessarios, estadoQualificacao } from '../../src/lentes/comum.ts';
-import { qualificarCobertura, textoCobertura } from '../../src/lentes/cobertura.ts';
+import { qualificarCobertura, ressalvasDeClasse, textoCobertura } from '../../src/lentes/cobertura.ts';
 import { ErroLente } from '../../src/lentes/contrato.ts';
 import { bordaGrade, celulaDe, ErroCoordenada, indiceGrade } from '../../src/lentes/grade.ts';
 import {
@@ -300,4 +301,69 @@ test('X-1 (recorrência): ordem embaralhada produz resultado idêntico; união D
     '90 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
   ]);
   assert.deepEqual(q.destaques.map((d) => d.id_destaque), r.destaques.map((d) => d.id_destaque));
+});
+
+// --- Persistência (item 3) -------------------------------------------------------------------------
+
+/** Disponibilidade da fixture de persistência: dias restritivos listados e municípios em falha. */
+function disponibilidadePersistencia(caso) {
+  const mapa = disponibilidadeDe({ janela: caso.janela, municipios: caso.disponibilidade.municipios, restritivos: caso.disponibilidade.restritivos });
+  for (const codigo of caso.disponibilidade.falha) mapa.set(codigo, { estado: 'falha', motivo: 'fonte indisponível' });
+  return mapa;
+}
+
+test('P-1 a P-8: sequências por célula (T6), D15, ressalvas por classe (T7), borda (T4), ordem (T5) e cobertura não verificada', () => {
+  for (const caso of fixture('persistencia.json').casos) {
+    const r = persistencia(entradaRecorrencia(caso));
+    const esp = caso.esperado;
+    assert.equal(r.estado, esp.estado, caso.id);
+    assert.equal(r.ordenacao, null, `${caso.id}: a persistência não ordena por medida`);
+    assert.deepEqual(r.destaques.map((d, i) => ({
+      id_destaque: d.id_destaque, ...(esp.destaques[i]?.unidade ? { unidade: d.unidade } : {}), valor: d.evidencia.valor, datas: d.evidencia.datas,
+      deteccoes: d.evidencia.deteccoes, municipios: d.cobertura.municipios, motivo: d.motivo, ressalvas: d.ressalvas,
+    })), esp.destaques, caso.id);
+    for (const d of r.destaques) assert.equal(d.cobertura.estado, 'pendente', caso.id);
+    assert.ok(r.limitacoes.includes('A cobertura da célula usa os municípios das detecções, não a área da célula.'), caso.id);
+
+    const q = qualificar(r, disponibilidadePersistencia(caso));
+    // A disponibilidade só qualifica: a seleção é a mesma.
+    assert.deepEqual(q.destaques.map((d) => d.id_destaque), r.destaques.map((d) => d.id_destaque), caso.id);
+    assert.deepEqual(q.destaques.map((d) => ({ cobertura: textoCobertura(d.cobertura), ressalvas: d.ressalvas })),
+      esp.qualificado.map(({ cobertura, ressalvas }) => ({ cobertura, ressalvas })), caso.id);
+    for (const d of q.destaques) {
+      assert.ok(!textoCobertura(d.cobertura).includes('coberto'), `${caso.id}: nunca "coberto"`);
+      if (d.cobertura.estado !== 'completa') assert.ok(!/\d+ de \d+/.test(textoCobertura(d.cobertura)), `${caso.id}: sem N de M parcial`);
+    }
+    esp.qualificado.forEach((x, i) => {
+      if (!x.dias_das_ressalvas) return;
+      const d = q.destaques[i];
+      const dias = ressalvasDeClasse(d.evidencia.datas, r.janela, d.cobertura)
+        .map((y) => [y.dia.dia, y.dia.classe, y.dia.municipios.map((m) => [m.codigo, m.classe])]);
+      assert.deepEqual(dias, x.dias_das_ressalvas, `${caso.id}: municípios de cada dia das ressalvas`);
+    });
+  }
+});
+
+test('persistência: enquanto a cobertura está pendente, uma ressalva substitui as de D15; a de T4 permanece', () => {
+  const caso = fixture('persistencia.json').casos.find((c) => c.id === 'P-6');
+  const q = qualificar(persistencia(entradaRecorrencia(caso)), new Map());
+  assert.deepEqual(q.destaques.map((d) => d.ressalvas), [
+    ['sequência no limite da janela; pode ser mais longa', 'ressalvas de disponibilidade ainda não verificadas'],
+    ['ressalvas de disponibilidade ainda não verificadas'],
+    ['ressalvas de disponibilidade ainda não verificadas'],
+    ['sequência no limite da janela; pode ser mais longa', 'ressalvas de disponibilidade ainda não verificadas'],
+  ]);
+  assert.equal(estadoQualificacao(q), 'pendente');
+});
+
+test('persistência: coordenada fora da forma canônica e conferência divergente não produzem resultado', () => {
+  const e = entradaRecorrencia(fixture('persistencia.json').casos[0]);
+  assert.throws(() => persistencia({ ...e, totalResumo: e.totalResumo + 1 }), ErroLente);
+  const ruim = { ...e, registros: e.registros.map((x, i) => (i === 0 ? { ...x, longitude: Number.NaN } : x)) };
+  assert.throws(() => persistencia(ruim), ErroLente);
+});
+
+test('X-1 (persistência): ordem embaralhada produz resultado idêntico', () => {
+  const e = entradaRecorrencia(fixture('persistencia.json').casos.find((c) => c.id === 'P-6'));
+  assert.deepEqual(persistencia({ ...e, registros: [...e.registros].reverse() }), persistencia(e));
 });

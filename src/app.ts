@@ -12,6 +12,7 @@ import {
 import { lerConfiguracao } from './config.ts';
 import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
 import { concentracao } from './lentes/concentracao.ts';
+import { persistencia } from './lentes/persistencia.ts';
 import { recorrencia } from './lentes/recorrencia.ts';
 import {
   CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerRegistros, validarDisponibilidade,
@@ -58,7 +59,7 @@ interface LenteAplicada {
 }
 
 /** Lentes disponíveis no seletor; cada uma é função pura da mesma entrada. */
-const LENTES = { concentracao, recorrencia } as const;
+const LENTES = { concentracao, recorrencia, persistencia } as const;
 
 /** Memória reaproveitável entre lentes, enquanto sessão, carga, janela e recorte forem os mesmos. */
 interface MemoriaLente {

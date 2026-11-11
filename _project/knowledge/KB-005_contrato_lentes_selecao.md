@@ -15,7 +15,7 @@ origin_cycle: "004"
 
 ## Finalidade
 
-Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade e as lentes de concentração e recorrência. É consultada por quem implementar a próxima lente (persistência, issue #35), a combinação futura (BL-005) e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/drafts/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (depois do encerramento, em `executed/`).
+Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade e as lentes de concentração, recorrência e persistência. É consultada por quem implementar a combinação futura (BL-005) ou uma lente nova e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/drafts/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (depois do encerramento, em `executed/`).
 
 ## Limite de autoridade
 
@@ -29,10 +29,11 @@ Conhecimento de referência. As regras de método são as do plano `004` v3, apr
 | :-- | :-- |
 | `contrato.ts` | Tipos do contrato C1, `VERSAO_METODO` (`lentes-004-v1`), limitações comuns e rótulo de ordenação |
 | `grade.ts` | Grade T1 de 0,05° com aritmética decimal exata |
-| `cobertura.ts` | Qualificador de cobertura (D13, T3 e T7) e seu texto |
-| `comum.ts` | Conferência da entrada, aplicação do qualificador e estado agregado |
+| `cobertura.ts` | Qualificador de cobertura (D13, T3 e T7), seu texto e as ressalvas por classe da persistência (D15, T7) |
+| `comum.ts` | Conferência da entrada, aplicação do qualificador (e, na persistência, das ressalvas por classe) e estado agregado |
 | `concentracao.ts` | Lente de concentração |
 | `recorrencia.ts` | Lente de recorrência, meses GMT tocados pela janela e seus rótulos |
+| `persistencia.ts` | Lente de persistência: sequências de dias GMT consecutivos por célula e ressalva de borda (T4) |
 | `carregar.ts` | Leitura no recorte M1-a, verificações por resposta, integridade T3, destino dos erros e concorrência limitada |
 
 Tudo é função pura, sem rede, DOM ou relógio, e roda tanto no navegador quanto em `node --test` (o Node 24 remove os tipos; por isso o módulo não usa propriedades de parâmetro nem `enum`).
@@ -43,7 +44,7 @@ Um `ResultadoLente` traz `lente`, `versao_metodo`, `carga` (id e identidade), `j
 
 Cada `Destaque` traz:
 
-- `id_destaque`: lente + unidade (por exemplo `concentracao:municipio:5103254` ou `recorrencia:celula_005:c-251_-1130`). Com carga, janela e `versao_metodo`, é a chave da combinação futura;
+- `id_destaque`: lente + unidade, e o dia inicial na persistência (por exemplo `concentracao:municipio:5103254`, `recorrencia:celula_005:c-251_-1130` ou `persistencia:celula_005:c-251_-1130:2026-10-05`). Com carga, janela e `versao_metodo`, é a chave da combinação futura;
 - `unidade`: município (código e nome) ou célula `celula_005` (id `c<kLat>_<kLon>` e bordas em texto decimal);
 - `motivo`, `evidencia` (`id_tecnico`, valor e datas), `ordem` (só na concentração), `cobertura` e `ressalvas`.
 
@@ -77,6 +78,19 @@ Conta, por célula de 0,05° (grade T1), os meses GMT distintos com detecção p
 - **Coordenada inválida:** fora da forma canônica de T1, não é classificada; a lente inteira fica "leitura inconsistente", sem destaques parciais.
 - **Limitações próprias das células:** "Focos vizinhos em células diferentes não são lidos como o mesmo local; a célula não segue divisas" e "A cobertura da célula usa os municípios das detecções, não a área da célula".
 
+### Persistência
+
+Por célula de 0,05° (grade T1), os dias GMT com detecção principal na janela; o dia de cada detecção vem de `data_hora_gmt` (uma detecção às 02:00Z de 07/10 conta para o dia GMT 07). Cada sequência maximal de 3 ou mais dias GMT consecutivos é um destaque próprio (Q6, T6), identificado pela célula e pelo dia inicial.
+
+- **Interrupção (D15, refinando Q6):** só um dia **sem** detecção na célula interrompe, qualquer que seja sua classe. Um dia com detecção nunca interrompe. Por isso a disponibilidade não muda quais sequências são destacadas, só as ressalvas. Não se infere detecção em dia sem informação: dias 10 e 11, dia 12 indeterminado sem detecção e dia 13 não formam sequência.
+- **Ressalvas por classe (D15, T7):** aplicadas na qualificação (`ressalvasDeClasse`), sobre a classe do dia da célula, que é a mais restritiva entre os municípios considerados. Valem para os dias da sequência ("inclui dia indeterminado (DD/MM)" ou "inclui dia com lacuna conhecida (DD/MM)") e para os vizinhos imediatos dentro da janela, que não têm detecção porque a sequência é maximal ("adjacente a dia indeterminado (DD/MM); pode ser mais longa" ou "adjacente a dia com lacuna conhecida (DD/MM); pode ser mais longa"). A classe observada nunca é trocada. No painel, cada uma lista os municípios do dia, com classe e motivos de cada um.
+- **Cobertura não verificada:** enquanto a cobertura do destaque não está `completa` (pendente ou falha), a ressalva única "ressalvas de disponibilidade ainda não verificadas" substitui as de D15. A seleção não muda.
+- **Borda (T4):** sequência que começa no primeiro ou termina no último dia da janela recebe "sequência no limite da janela; pode ser mais longa". Vem da seleção e permanece com qualquer estado da cobertura.
+- **Evidência:** os `id_tecnico` dos dias da sequência, o número de dias (`valor`) e os dias (`datas`, `AAAA-MM-DD`). O painel mostra a mesma tabela paginada da recorrência.
+- **Cobertura (D13):** os municípios considerados são os de todas as detecções da célula na janela, não só os da sequência.
+- **Ordem (T5):** pela data de início da sequência e depois pela célula (norte→sul, oeste→leste); nunca pelo número de dias. `ordenacao` é `null`, e a lista declara que não é ranking.
+- **Coordenada inválida e limitações das células:** como na recorrência.
+
 ### Leitura e erros
 
 O carregador chama `consultar_resumo` e pagina `consultar_deteccoes` (1.000 por página) com `p_municipio` `null`, carga fixada e a janela da aplicação.
@@ -93,8 +107,8 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 
 ### Testes
 
-- `tests/unit/lentes.test.mjs`, com as fixtures fictícias de `tests/fixtures/lentes/`: casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1, X-1 e R-1 a R-4 (com coordenada inválida, conferência divergente, determinismo e união D13 na recorrência).
-- `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura.
+- `tests/unit/lentes.test.mjs`, com as fixtures fictícias de `tests/fixtures/lentes/`: casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1, X-1, R-1 a R-4 (com coordenada inválida, conferência divergente, determinismo e união D13 na recorrência) e P-1 a P-8 (com a ressalva de cobertura pendente, coordenada inválida, conferência divergente e determinismo na persistência).
+- `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
 - Local, fora da CI: `npm run conferir:lentes` e `npm run medir:lentes`.
 
 ### Limitações conhecidas
@@ -118,3 +132,4 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 | :-- | :-- | :-- |
 | 2026-11-11 | `004` | Criação na implementação do item 1 (issue #33): contrato C1, cobertura, grade T1 e concentração |
 | 2026-11-11 | `004` | Item 2 (issue #34): lente de recorrência, meses tocados pela janela, evidência paginada de célula e limitações das células |
+| 2026-11-11 | `004` | Item 3 (issue #35): lente de persistência, ressalvas por classe (D15, T7) e de borda (T4) |

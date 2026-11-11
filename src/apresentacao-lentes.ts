@@ -1,8 +1,8 @@
 // Apresentação das lentes de seleção (plano 004): estado, metadados, parâmetros, lista de destaques,
 // painel de motivo e evidência, e limitações. Todo valor entra por textContent. Nunca "coberto".
 import { $, h, tabela } from './apresentacao.ts';
-import { textoCobertura } from './lentes/cobertura.ts';
-import type { Destaque, RegistroLente, ResultadoLente, TipoLente } from './lentes/contrato.ts';
+import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
+import type { Destaque, DiaRestritivo, Janela, RegistroLente, ResultadoLente, TipoLente } from './lentes/contrato.ts';
 import { rotuloMes } from './lentes/recorrencia.ts';
 import { fmtDataHoraGmt, fmtNumero, humanizar, ROTULO_CLASSE } from './formato.ts';
 
@@ -76,9 +76,15 @@ function rotuloUnidade(d: Destaque): string {
   return d.unidade.tipo === 'municipio' ? d.unidade.nome : `Célula ${d.unidade.sul} a ${d.unidade.norte} · ${d.unidade.oeste} a ${d.unidade.leste}`;
 }
 
+/** "2026-10-12" → "12/10/2026". */
+const dataBr = (dia: string): string => `${dia.slice(8, 10)}/${dia.slice(5, 7)}/${dia.slice(0, 4)}`;
+
 function rotuloDestaque(lente: TipoLente, d: Destaque): string {
   const deteccoes = `${fmtNumero(d.evidencia.deteccoes.length)} detecções`;
-  const valor = lente === 'recorrencia' ? `${fmtNumero(d.evidencia.valor)} meses GMT (${deteccoes})` : deteccoes;
+  const datas = d.evidencia.datas;
+  const valor = lente === 'recorrencia' ? `${fmtNumero(d.evidencia.valor)} meses GMT (${deteccoes})`
+    : lente === 'persistencia' ? `${fmtNumero(d.evidencia.valor)} dias GMT seguidos, ${dataBr(datas[0] ?? '')} a ${dataBr(datas.at(-1) ?? '')} (${deteccoes})`
+      : deteccoes;
   return d.ordem ? `${d.ordem}. ${rotuloUnidade(d)} — ${valor}` : `${rotuloUnidade(d)} — ${valor}`;
 }
 
@@ -105,13 +111,19 @@ function tabelaEvidencia(d: Destaque, ctx: ContextoLente, m: ManipuladoresLente)
     h('div', { class: 'acoes' }, anterior, proxima));
 }
 
-function painel(lente: TipoLente, d: Destaque, ctx: ContextoLente, m: ManipuladoresLente): HTMLElement {
+/** Município do dia, com a classe e os motivos daquele município, sem fundir motivos (T7). */
+const linhaMunicipio = (x: DiaRestritivo['municipios'][number], nomes: Map<number, string>): string =>
+  `${nomeMunicipio(x.codigo, nomes)}: ${ROTULO_CLASSE[x.classe].rotulo}${x.motivos.length ? ` (${x.motivos.map(humanizar).join('; ')})` : ''}`;
+
+function painel(lente: TipoLente, janela: Janela, d: Destaque, ctx: ContextoLente, m: ManipuladoresLente): HTMLElement {
   const c = d.cobertura;
-  const datas = lente === 'recorrencia' ? d.evidencia.datas.map(rotuloMes) : d.evidencia.datas;
+  const datas = lente === 'recorrencia' ? d.evidencia.datas.map(rotuloMes)
+    : lente === 'persistencia' ? d.evidencia.datas.map(dataBr) : d.evidencia.datas;
+  const rotuloDatas = lente === 'recorrencia' ? 'meses' : lente === 'persistencia' ? 'dias GMT' : 'datas';
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': d.id_destaque },
     h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, rotuloUnidade(d)),
     h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
-    h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(d.evidencia.deteccoes.length)} detecções (registros principais da janela)${datas.length ? `; ${lente === 'recorrencia' ? 'meses' : 'datas'}: ${datas.join(', ')}` : ''}.`),
+    h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(d.evidencia.deteccoes.length)} detecções (registros principais da janela)${datas.length ? `; ${rotuloDatas}: ${datas.join(', ')}` : ''}.`),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
   );
   if (d.unidade.tipo === 'celula_005') {
@@ -122,9 +134,20 @@ function painel(lente: TipoLente, d: Destaque, ctx: ContextoLente, m: Manipulado
     corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, `Dias que contam contra (${c.demais_dias.length})`),
       h('ul', { class: 'lista-simples', id: 'lente-dias' }, ...c.demais_dias.map((dia) => h('li', { 'data-classe': dia.classe },
         `${dia.dia}: ${ROTULO_CLASSE[dia.classe].rotulo}`,
-        h('ul', {}, ...dia.municipios.map((x) => h('li', {}, `${nomeMunicipio(x.codigo, ctx.nomes)}: ${ROTULO_CLASSE[x.classe].rotulo}${x.motivos.length ? ` (${x.motivos.map(humanizar).join('; ')})` : ''}`))))))));
+        h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
-  if (d.ressalvas.length) corpo.append(h('ul', { class: 'lista-simples', id: 'lente-ressalvas' }, ...d.ressalvas.map((r) => h('li', {}, r))));
+  if (d.ressalvas.length) {
+    // Na persistência, cada ressalva por classe (D15, T7) leva aos municípios do dia, com classe e motivos.
+    const dias = new Map(lente === 'persistencia'
+      ? ressalvasDeClasse(d.evidencia.datas, janela, c).flatMap((x) => (x.dia ? [[x.texto, x.dia] as const] : []))
+      : []);
+    corpo.append(h('ul', { class: 'lista-simples', id: 'lente-ressalvas' }, ...d.ressalvas.map((r) => {
+      const dia = dias.get(r);
+      return dia
+        ? h('li', { 'data-classe': dia.classe }, r, h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))
+        : h('li', {}, r);
+    })));
+  }
   if (d.unidade.tipo === 'municipio') {
     const codigo = d.unidade.codigo;
     const b = h('button', { type: 'button', id: 'botao-lente-consultar', class: 'botao botao--secundario' }, 'Consultar este município');
@@ -145,7 +168,11 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
   );
   if (r.ordenacao) corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, `Lista ${r.ordenacao.rotulo}.`));
-  else if (r.destaques.length) corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, 'Lista na ordem das células, de norte a sul e de oeste a leste; não é ranking.'));
+  else if (r.destaques.length) {
+    corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, r.lente === 'persistencia'
+      ? 'Lista pela data de início da sequência e depois pela ordem das células, de norte a sul e de oeste a leste; não é ranking.'
+      : 'Lista na ordem das células, de norte a sul e de oeste a leste; não é ranking.'));
+  }
   for (const o of r.observacoes) corpo.append(h('p', { class: 'ajuda lente-observacao' }, o));
   if (r.destaques.length) {
     const lista = h('ol', { class: 'destaques', id: 'lente-destaques' });
@@ -156,7 +183,7 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     }
     corpo.append(lista);
     const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
-    if (escolhido) corpo.append(painel(r.lente, escolhido, ctx, m));
+    if (escolhido) corpo.append(painel(r.lente, r.janela, escolhido, ctx, m));
   }
   corpo.append(h('h3', {}, 'Limitações da lente'), h('ul', { class: 'lista-simples', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
 }

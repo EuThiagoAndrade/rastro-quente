@@ -1,4 +1,4 @@
-// Ciclo 004, issues #33 e #34 — conferência independente das lentes (concentração e recorrência) com a carga
+// Ciclo 004, issues #33, #34 e #35 — conferência independente das lentes (concentração, recorrência e persistência) com a carga
 // REAL local (`npm run conferir:lentes`).
 // Dois caminhos que não compartilham código de cálculo:
 //   A. RPC → TypeScript: as RPCs existentes sob RLS (RP fictício) alimentam o carregador e o módulo src/lentes/;
@@ -17,6 +17,7 @@ import { L, criarRp, limpar, publicarCargaReal } from './carga-real.mjs';
 import { lerRegistros, validarDisponibilidade } from '../../src/lentes/carregar.ts';
 import { concentracao } from '../../src/lentes/concentracao.ts';
 import { recorrencia } from '../../src/lentes/recorrencia.ts';
+import { persistencia } from '../../src/lentes/persistencia.ts';
 import { municipiosNecessarios, qualificar } from '../../src/lentes/comum.ts';
 import { canonico, celulaDe } from '../../src/lentes/grade.ts';
 
@@ -50,12 +51,13 @@ async function caminhoRpc(chamar, carga, janela, nomes) {
   const entrada = { carga: { id: carga.id, identidade: carga.identidade }, janela, registros: lido.registros, totalResumo: lido.totalResumo, nomes };
   const c = concentracao(entrada);
   const r = recorrencia(entrada);
+  const p = persistencia(entrada);
   const disp = new Map();
-  for (const codigo of [...new Set([...municipiosNecessarios(c), ...municipiosNecessarios(r)])]) {
+  for (const codigo of [...new Set([...municipiosNecessarios(c), ...municipiosNecessarios(r), ...municipiosNecessarios(p)])]) {
     const d = await fontes.disponibilidade({ carga: carga.id, inicio: janela.inicio, fim: janela.fim, municipio: codigo });
     disp.set(codigo, { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, carga.satelite, d) });
   }
-  return { registros: lido.registros, resultado: qualificar(c, disp), recorrencia: qualificar(r, disp), municipiosDisponibilidade: disp.size };
+  return { registros: lido.registros, resultado: qualificar(c, disp), recorrencia: qualificar(r, disp), persistencia: qualificar(p, disp), municipiosDisponibilidade: disp.size };
 }
 
 // --- Caminho B: SQL independente ------------------------------------------------------------------
@@ -129,7 +131,47 @@ with d as (
   from pior group by klat, klon
 )
 select 'R|${i}|' || r.klat || '|' || r.klon || '|' || r.meses || '|' || r.n || '|' || array_to_string(r.ms, ',') || '|' || r.lista || '|' || cob.texto
-from r join cob using (klat, klon);`).join('\n');
+from r join cob using (klat, klon);
+-- Persistência: ilhas de dias GMT consecutivos por célula (dia − número da linha é constante numa ilha),
+-- corte em 3 dias; cobertura pela união dos municípios de TODAS as detecções da célula na janela (D13);
+-- ressalvas pela tabela "Ressalvas por classe" (D15, T7) e pela borda da janela (T4), montadas aqui.
+with d as (
+  select c.klat, c.klon, x.municipio_codigo as m, (x.data_hora_gmt at time zone 'UTC')::date as dia
+  from public.deteccoes x join cel c on c.id = x.id_tecnico
+  where x.carga_id = ${carga.id} and x.escopo = 'principal'
+    and x.data_hora_gmt >= timestamptz '${j.inicio}T00:00:00Z' and x.data_hora_gmt < timestamptz '${fimExclusivo(j.fim)}T00:00:00Z'
+), ms as (
+  select klat, klon, array_agg(distinct m order by m) as ms from d group by klat, klon
+), dd as (
+  select klat, klon, dia, count(*) as n from d group by klat, klon, dia
+), ilhas as (
+  select klat, klon, dia, n, dia - (row_number() over (partition by klat, klon order by dia))::int as g from dd
+), s as (
+  select klat, klon, min(dia) as ini, max(dia) as fim, count(*) as dias, sum(n) as n
+  from ilhas group by klat, klon, g having count(*) >= 3
+), pior as (
+  select s.klat, s.klon, s.ini, v.dia,
+    max(case v.classe when 'lacuna_conhecida' then 2 when 'incidencia_indeterminada' then 1 else 0 end) as p
+  from s join ms using (klat, klon) join public.disponibilidade v on v.municipio_codigo = any (ms.ms)
+  where v.carga_id = ${carga.id} and v.satelite = '${carga.satelite}' and v.dia between date '${j.inicio}' and date '${j.fim}'
+  group by s.klat, s.klon, s.ini, v.dia
+), cob as (
+  select klat, klon, ini, count(*) filter (where p = 0) || '/' || count(*) || '|' ||
+    md5(coalesce(string_agg(case when p > 0 then dia || '=' || case p when 2 then 'lacuna_conhecida' else 'incidencia_indeterminada' end end, ',' order by dia), '')) as texto
+  from pior group by klat, klon, ini
+), res as (
+  select s.klat, s.klon, s.ini, string_agg(
+    case when p.dia between s.ini and s.fim then 'inclui ' else 'adjacente a ' end
+    || case p.p when 2 then 'dia com lacuna conhecida' else 'dia indeterminado' end
+    || ' (' || to_char(p.dia, 'DD/MM') || ')'
+    || case when p.dia between s.ini and s.fim then '' else '; pode ser mais longa' end, '#' order by p.dia) as txt
+  from s join pior p using (klat, klon, ini)
+  where p.p > 0 and p.dia between s.ini - 1 and s.fim + 1
+  group by s.klat, s.klon, s.ini
+)
+select 'P|${i}|' || s.klat || '|' || s.klon || '|' || s.ini || '|' || s.fim || '|' || s.dias || '|' || s.n || '|' || array_to_string(ms.ms, ',') || '|' || cob.texto || '|' ||
+  concat_ws('#', case when s.ini = date '${j.inicio}' or s.fim = date '${j.fim}' then 'sequência no limite da janela; pode ser mais longa' end, res.txt)
+from s join ms using (klat, klon) join cob using (klat, klon, ini) left join res using (klat, klon, ini);`).join('\n');
   // Grade T1 em numeric, a partir do texto da fonte: floor(x · 20) é exato para decimais.
   const saida = sqlAdmin(`
 create temp table fonte (id text, lat text, lon text);
@@ -140,6 +182,7 @@ select 'C|' || id || '|' || klat || '|' || klon from cel;
 ${porJanela}`);
   const celulas = new Map();
   const recorrencia = janelas.map(() => ({ mesesTocados: 0, ocupadas: 0, celulas: [] }));
+  const persistencia = janelas.map(() => []);
   for (const l of saida.split('\n')) {
     const p = l.split('|');
     if (p[0] === 'C') celulas.set(p[1], `c${p[2]}_${p[3]}`);
@@ -149,6 +192,11 @@ ${porJanela}`);
       recorrencia[Number(p[1])].celulas.push({
         kLat: Number(p[2]), kLon: Number(p[3]), meses: Number(p[4]), n: Number(p[5]), municipios: p[6], lista: p[7], cobertura: `${p[8]}|${p[9] ?? ''}`,
       });
+    } else if (p[0] === 'P') {
+      persistencia[Number(p[1])].push({
+        kLat: Number(p[2]), kLon: Number(p[3]), inicio: p[4], fim: p[5], dias: Number(p[6]), n: Number(p[7]),
+        municipios: p[8], cobertura: `${p[9]}|${p[10]}`, ressalvas: p[11] ?? '',
+      });
     }
   }
   const textos = linhas.map((c) => [c[iLat], c[iLon]]).flat();
@@ -157,6 +205,7 @@ ${porJanela}`);
   return {
     celulas,
     recorrencia,
+    persistencia,
     textoMaxSignificativos: Math.max(...textos.map(sig)),
     textoMaxDecimais: Math.max(...textos.map(decimais)),
   };
@@ -193,6 +242,72 @@ function compararRecorrencia(a, sql) {
     if (!(a1 > a2 || (a1 === a2 && b1 < b2))) { divergencias.push(`recorrência: ordem T5 quebrada em ${i}`); break; }
   }
   return divergencias.slice(0, 20);
+}
+
+const md5Dias = (c) => createHash('md5').update(c.demais_dias.map((x) => `${x.dia}=${x.classe}`).join(',')).digest('hex');
+
+function compararPersistencia(a, sql) {
+  const divergencias = [];
+  const r = a.persistencia;
+  const ts = r.destaques.map((d) => {
+    const c = d.cobertura;
+    const cob = c.estado === 'completa' ? `${c.dias_sem_evidencia_de_lacuna}/${c.dias_janela}|${md5Dias(c)}` : c.estado;
+    return `${d.unidade.id}|${d.evidencia.datas[0]}|${d.evidencia.datas.at(-1)}|${d.evidencia.valor}|${d.evidencia.deteccoes.length}|${c.municipios.join(',')}|${cob}|${d.ressalvas.join('#')}`;
+  }).sort();
+  const esperado = sql.map((x) => `c${x.kLat}_${x.kLon}|${x.inicio}|${x.fim}|${x.dias}|${x.n}|${x.municipios}|${x.cobertura}|${x.ressalvas}`).sort();
+  if (ts.length !== esperado.length) divergencias.push(`persistência: TS ${ts.length} sequências × SQL ${esperado.length}`);
+  const sqlSet = new Set(esperado);
+  for (const x of ts) if (!sqlSet.has(x)) divergencias.push(`persistência TS sem par no SQL: ${x}`);
+  const tsSet = new Set(ts);
+  for (const x of esperado) if (!tsSet.has(x)) divergencias.push(`persistência SQL sem par no TS: ${x}`);
+  // Cada sequência tem id próprio (T6), e todo destaque tem pelo menos 3 dias consecutivos.
+  if (new Set(r.destaques.map((d) => d.id_destaque)).size !== r.destaques.length) divergencias.push('persistência: id_destaque repetido');
+  // T5: data de início; depois norte→sul e oeste→leste.
+  const chave = (d) => [d.evidencia.datas[0], ...d.unidade.id.slice(1).split('_').map(Number)];
+  for (let i = 1; i < r.destaques.length; i += 1) {
+    const [i1, a1, b1] = chave(r.destaques[i - 1]);
+    const [i2, a2, b2] = chave(r.destaques[i]);
+    if (!(i1 < i2 || (i1 === i2 && (a1 > a2 || (a1 === a2 && b1 < b2))))) { divergencias.push(`persistência: ordem T5 quebrada em ${i}`); break; }
+  }
+  return divergencias.slice(0, 20);
+}
+
+function resumoPersistencia(r) {
+  const ds = r.destaques;
+  const porDias = {};
+  for (const d of ds) {
+    const k = d.evidencia.valor >= 5 ? '5 ou mais' : String(d.evidencia.valor);
+    porDias[k] = (porDias[k] ?? 0) + 1;
+  }
+  const porCelula = new Map();
+  for (const d of ds) porCelula.set(d.unidade.id, (porCelula.get(d.unidade.id) ?? 0) + 1);
+  const ressalvas = { inclui_indeterminado: 0, inclui_lacuna: 0, adjacente_indeterminado: 0, adjacente_lacuna: 0, borda: 0 };
+  let semRessalva = 0;
+  for (const d of ds) {
+    if (!d.ressalvas.length) semRessalva += 1;
+    for (const x of d.ressalvas) {
+      if (x.startsWith('sequência no limite')) ressalvas.borda += 1;
+      else if (x.startsWith('inclui dia indeterminado')) ressalvas.inclui_indeterminado += 1;
+      else if (x.startsWith('inclui dia com lacuna')) ressalvas.inclui_lacuna += 1;
+      else if (x.startsWith('adjacente a dia indeterminado')) ressalvas.adjacente_indeterminado += 1;
+      else if (x.startsWith('adjacente a dia com lacuna')) ressalvas.adjacente_lacuna += 1;
+    }
+  }
+  const cob = {};
+  for (const d of ds) {
+    const c = d.cobertura;
+    const k = c.estado === 'completa' ? `${c.dias_sem_evidencia_de_lacuna} de ${c.dias_janela}` : c.estado;
+    cob[k] = (cob[k] ?? 0) + 1;
+  }
+  return {
+    estado: r.estado, sequencias: ds.length, celulasComSequencia: porCelula.size,
+    celulasComMaisDeUmaSequencia: [...porCelula.values()].filter((n) => n > 1).length,
+    porNumeroDeDias: porDias, maiorSequencia: Math.max(0, ...ds.map((d) => d.evidencia.valor)),
+    deteccoesNasSequencias: ds.reduce((s, d) => s + d.evidencia.deteccoes.length, 0),
+    municipiosNaCobertura: new Set(ds.flatMap((d) => d.cobertura.municipios)).size,
+    celulasComMaisDeUmMunicipio: new Set(ds.filter((d) => d.cobertura.municipios.length > 1).map((d) => d.unidade.id)).size,
+    ressalvas, sequenciasSemRessalva: semRessalva, cobertura: cob,
+  };
 }
 
 function resumoRecorrencia(r, sql) {
@@ -274,6 +389,9 @@ try {
     const c = comparar(nome, carga, janela, a);
     c.divergencias.push(...compararRecorrencia(a, fonte.recorrencia[i]));
     c.recorrencia = resumoRecorrencia(a.recorrencia, fonte.recorrencia[i]);
+    c.divergencias.push(...compararPersistencia(a, fonte.persistencia[i]));
+    c.persistencia = resumoPersistencia(a.persistencia);
+    c.persistenciaSequencias = a.persistencia.destaques.map((d) => ({ celula: d.unidade.id, dias: d.evidencia.datas, deteccoes: d.evidencia.deteccoes.length, municipios: d.cobertura.municipios, ressalvas: d.ressalvas }));
     c.recorrenciaCelulas = a.recorrencia.destaques.map((d) => ({ celula: d.unidade.id, meses: d.evidencia.datas, deteccoes: d.evidencia.deteccoes.length, municipios: d.cobertura.municipios }));
     c.municipiosComDisponibilidadeLida = a.municipiosDisponibilidade;
     if (c.divergencias.length) falhou = true;
@@ -305,5 +423,5 @@ try {
 relatorio.resultado = falhou ? 'divergente' : 'conferido';
 await mkdir(LOCAL, { recursive: true });
 await writeFile(path.join(LOCAL, 'conferencia-lentes.json'), `${JSON.stringify(relatorio, null, 2)}\n`);
-process.stdout.write(`${JSON.stringify({ ...relatorio, janelas: relatorio.janelas.map((j) => ({ ...j, recorrenciaCelulas: undefined })) }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ ...relatorio, janelas: relatorio.janelas.map((j) => ({ ...j, recorrenciaCelulas: undefined, persistenciaSequencias: undefined })) }, null, 2)}\n`);
 if (falhou) process.exitCode = 1;

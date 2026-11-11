@@ -1,0 +1,226 @@
+{
+  "descricao": "Casos de referência fictícios da lente de persistência (plano 004, P-1 a P-8). Municípios inventados (códigos 99100xx) e coordenadas fictícias. Célula 1 = (-12.52, -56.48) → c-251_-1130 [-12,55; -12,50) × [-56,50; -56,45); célula 2 = (-12.48, -56.71) → c-250_-1135 [-12,50; -12,45) × [-56,75; -56,70), calculadas à mão pela grade T1 (índice = piso de coordenada × 20). Janela de 01/10 a 31/10/2026 (31 dias GMT). Na disponibilidade, os dias não listados em `restritivos` estão sem evidência de lacuna; `falha` lista os municípios cuja leitura falhou. `esperado.destaques` é a seleção (antes da disponibilidade; só a ressalva T4); `esperado.qualificado` é cada destaque depois da qualificação, na mesma ordem. Os valores esperados foram escritos à mão a partir do plano, não gerados pelo código.",
+  "casos": [
+    {
+      "id": "P-1",
+      "nota": "Dias 05, 06 e 07, todos sem lacuna; a detecção de 07/10 às 02:00Z é 06/10 em Cuiabá, mas conta para o dia GMT 07.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p1a", "2026-10-05T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p1b", "2026-10-06T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p1c", "2026-10-07T02:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": {}, "falha": [] },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-05",
+            "unidade": { "tipo": "celula_005", "id": "c-251_-1130", "sul": "-12.55", "oeste": "-56.50", "norte": "-12.50", "leste": "-56.45" },
+            "valor": 3, "datas": ["2026-10-05", "2026-10-06", "2026-10-07"], "deteccoes": ["p1a", "p1b", "p1c"], "municipios": [9910001],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 05/10/2026 a 07/10/2026.",
+            "ressalvas": []
+          }
+        ],
+        "qualificado": [
+          { "cobertura": "31 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": [] }
+        ]
+      }
+    },
+    {
+      "id": "P-2",
+      "nota": "Dias 05, 12 e 20: nenhuma sequência.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p2a", "2026-10-05T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p2b", "2026-10-12T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p2c", "2026-10-20T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": {}, "falha": [] },
+      "esperado": { "estado": "sem_destaques", "destaques": [], "qualificado": [] }
+    },
+    {
+      "id": "P-3",
+      "nota": "Dias 10, 11 e 12 com detecção (duas no dia 11); dia 11 indeterminado → 1 destaque de 3 dias e 4 detecções, com a ressalva D15.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p3a", "2026-10-10T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p3b", "2026-10-11T04:00:00Z", -12.52, -56.48, 9910001],
+        ["p3c", "2026-10-11T16:00:00Z", -12.52, -56.47, 9910001],
+        ["p3d", "2026-10-12T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": { "9910001": [["2026-10-11", "incidencia_indeterminada"]] }, "falha": [] },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-10",
+            "valor": 3, "datas": ["2026-10-10", "2026-10-11", "2026-10-12"], "deteccoes": ["p3a", "p3b", "p3c", "p3d"], "municipios": [9910001],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 10/10/2026 a 12/10/2026.",
+            "ressalvas": []
+          }
+        ],
+        "qualificado": [
+          { "cobertura": "30 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": ["inclui dia indeterminado (11/10)"] }
+        ]
+      }
+    },
+    {
+      "id": "P-4",
+      "nota": "Dias 10, 12, 13 e 14; dia 11 indeterminado e sem detecção → só 12 a 14, adjacente ao dia 11; o dia 10 isolado não.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p4a", "2026-10-10T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p4b", "2026-10-12T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p4c", "2026-10-13T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p4d", "2026-10-14T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": { "9910001": [["2026-10-11", "incidencia_indeterminada"]] }, "falha": [] },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-12",
+            "valor": 3, "datas": ["2026-10-12", "2026-10-13", "2026-10-14"], "deteccoes": ["p4b", "p4c", "p4d"], "municipios": [9910001],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 12/10/2026 a 14/10/2026.",
+            "ressalvas": []
+          }
+        ],
+        "qualificado": [
+          { "cobertura": "30 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": ["adjacente a dia indeterminado (11/10); pode ser mais longa"] }
+        ]
+      }
+    },
+    {
+      "id": "P-5",
+      "nota": "Dias 10 e 11; dia 12 indeterminado sem detecção; dia 13 → nenhum destaque (2 + 1 dias), sem inferir detecção no dia 12.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p5a", "2026-10-10T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p5b", "2026-10-11T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p5c", "2026-10-13T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": { "9910001": [["2026-10-12", "incidencia_indeterminada"]] }, "falha": [] },
+      "esperado": { "estado": "sem_destaques", "destaques": [], "qualificado": [] }
+    },
+    {
+      "id": "P-6",
+      "nota": "Borda (T4), duas sequências na mesma célula (T6) e ordem T5. Célula 1: 01–03 e 20–22; célula 2: 20–22 e 29–31 (a de 31/10 às 23:59:59Z). Ordem: início, depois norte→sul (célula 2, índice -250, antes da célula 1, -251). A primeira e a última tocam a borda da janela.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p6a1", "2026-10-01T00:00:00Z", -12.52, -56.48, 9910001],
+        ["p6a2", "2026-10-02T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p6a3", "2026-10-03T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p6b1", "2026-10-20T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p6b2", "2026-10-21T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p6b3", "2026-10-22T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p6c1", "2026-10-20T08:00:00Z", -12.48, -56.71, 9910003],
+        ["p6c2", "2026-10-21T08:00:00Z", -12.48, -56.71, 9910003],
+        ["p6c3", "2026-10-22T08:00:00Z", -12.48, -56.71, 9910003],
+        ["p6d1", "2026-10-29T08:00:00Z", -12.48, -56.71, 9910003],
+        ["p6d2", "2026-10-30T08:00:00Z", -12.48, -56.71, 9910003],
+        ["p6d3", "2026-10-31T23:59:59Z", -12.48, -56.71, 9910003]
+      ],
+      "disponibilidade": { "municipios": [9910001, 9910003], "restritivos": {}, "falha": [] },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-01",
+            "valor": 3, "datas": ["2026-10-01", "2026-10-02", "2026-10-03"], "deteccoes": ["p6a1", "p6a2", "p6a3"], "municipios": [9910001],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 01/10/2026 a 03/10/2026.",
+            "ressalvas": ["sequência no limite da janela; pode ser mais longa"]
+          },
+          {
+            "id_destaque": "persistencia:celula_005:c-250_-1135:2026-10-20",
+            "valor": 3, "datas": ["2026-10-20", "2026-10-21", "2026-10-22"], "deteccoes": ["p6c1", "p6c2", "p6c3"], "municipios": [9910003],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 20/10/2026 a 22/10/2026.",
+            "ressalvas": []
+          },
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-20",
+            "valor": 3, "datas": ["2026-10-20", "2026-10-21", "2026-10-22"], "deteccoes": ["p6b1", "p6b2", "p6b3"], "municipios": [9910001],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 20/10/2026 a 22/10/2026.",
+            "ressalvas": []
+          },
+          {
+            "id_destaque": "persistencia:celula_005:c-250_-1135:2026-10-29",
+            "valor": 3, "datas": ["2026-10-29", "2026-10-30", "2026-10-31"], "deteccoes": ["p6d1", "p6d2", "p6d3"], "municipios": [9910003],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 29/10/2026 a 31/10/2026.",
+            "ressalvas": ["sequência no limite da janela; pode ser mais longa"]
+          }
+        ],
+        "qualificado": [
+          { "cobertura": "31 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": ["sequência no limite da janela; pode ser mais longa"] },
+          { "cobertura": "31 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": [] },
+          { "cobertura": "31 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": [] },
+          { "cobertura": "31 de 31 dias sem evidência de lacuna (cobertura não comprovada)", "ressalvas": ["sequência no limite da janela; pode ser mais longa"] }
+        ]
+      }
+    },
+    {
+      "id": "P-7",
+      "nota": "Classes preservadas (R1-3) e união D13. Dias 10 (A), 11 (B) e 12 (A) com detecção; dia 11: A lacuna_conhecida e B incidencia_indeterminada → classe da célula lacuna conhecida (T7); dia 13 sem detecção, A incidencia_indeterminada → adjacente a dia indeterminado. Dias restritivos da célula: 11 e 13 → 29 de 31.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p7a", "2026-10-10T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p7b", "2026-10-11T12:00:00Z", -12.51, -56.46, 9910002],
+        ["p7c", "2026-10-12T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": {
+        "municipios": [9910001, 9910002],
+        "restritivos": {
+          "9910001": [["2026-10-11", "lacuna_conhecida"], ["2026-10-13", "incidencia_indeterminada"]],
+          "9910002": [["2026-10-11", "incidencia_indeterminada"]]
+        },
+        "falha": []
+      },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-10",
+            "valor": 3, "datas": ["2026-10-10", "2026-10-11", "2026-10-12"], "deteccoes": ["p7a", "p7b", "p7c"], "municipios": [9910001, 9910002],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 10/10/2026 a 12/10/2026.",
+            "ressalvas": []
+          }
+        ],
+        "qualificado": [
+          {
+            "cobertura": "29 de 31 dias sem evidência de lacuna (cobertura não comprovada)",
+            "ressalvas": ["inclui dia com lacuna conhecida (11/10)", "adjacente a dia indeterminado (13/10); pode ser mais longa"],
+            "dias_das_ressalvas": [
+              ["2026-10-11", "lacuna_conhecida", [[9910001, "lacuna_conhecida"], [9910002, "incidencia_indeterminada"]]],
+              ["2026-10-13", "incidencia_indeterminada", [[9910001, "incidencia_indeterminada"], [9910002, "sem_evidencia_de_lacuna"]]]
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "id": "P-8",
+      "nota": "Como P-1, com detecções em A e B e a leitura da disponibilidade de B em falha → destaque mantido, ressalvas de disponibilidade não verificadas, sem N de M.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "registros": [
+        ["p8a", "2026-10-05T12:00:00Z", -12.52, -56.48, 9910001],
+        ["p8b", "2026-10-06T12:00:00Z", -12.51, -56.46, 9910002],
+        ["p8c", "2026-10-07T12:00:00Z", -12.52, -56.48, 9910001]
+      ],
+      "disponibilidade": { "municipios": [9910001], "restritivos": {}, "falha": [9910002] },
+      "esperado": {
+        "estado": "com_destaques",
+        "destaques": [
+          {
+            "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-05",
+            "valor": 3, "datas": ["2026-10-05", "2026-10-06", "2026-10-07"], "deteccoes": ["p8a", "p8b", "p8c"], "municipios": [9910001, 9910002],
+            "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 05/10/2026 a 07/10/2026.",
+            "ressalvas": []
+          }
+        ],
+        "qualificado": [
+          { "cobertura": "cobertura não verificada: fonte indisponível", "ressalvas": ["ressalvas de disponibilidade ainda não verificadas"] }
+        ]
+      }
+    }
+  ]
+}
