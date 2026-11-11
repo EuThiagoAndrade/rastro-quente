@@ -5,8 +5,8 @@ Política: `_project/README.md` › `Backlog de possibilidades`.
 ## BL-001 — Contrato de lente de seleção e lentes com dados já carregados
 
 > **Criado em:** `2026-11-10`
-> **Atualizado em:** `2026-11-10`
-> **Estado:** `Disponível`
+> **Atualizado em:** `2026-11-11`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -18,7 +18,7 @@ Todas as lentes devolvem a mesma estrutura, para que a combinação futura seja 
 
 ### Encaminhamentos
 
-—
+- ciclo 004 — 2026-11-11 — item inteiro
 
 ### Restante
 
@@ -27,6 +27,7 @@ Todas as lentes devolvem a mesma estrutura, para que a combinação futura seja 
 ### Registro
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
+- 2026-11-11 — Retorno da seleção no ciclo 004, com encerramento integrado em main (PR #39); estado alterado para Encaminhado.
 
 ## BL-002 — Áreas protegidas reais: fontes, camada e lentes de sobreposição e proximidade
 
