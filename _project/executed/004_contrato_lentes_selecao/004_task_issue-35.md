@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#35`
-> **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
+> **Plano:** `_project/executed/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-35`
 > **PR:** [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38)
 > **Integração:** PR #38 integrada em 2026-11-11 pelo responsável (squash `8e023d81b1acb5572873d11caab7084b4e083b3c`)
@@ -58,7 +58,7 @@ Não se aplica.
 - [x] Gates finais; publicar `feature/issue-35` (base `origin/main` em `4e4d56f` conferida, sem branch remota ou PR anterior), abrir a PR [#38](https://github.com/EuThiagoAndrade/rastro-quente/pull/38) com `Closes #35` e gravar o bloco "Aguardando merge".
 - [x] Reconciliar a integração: PR #38 integrada pelo responsável, issue #35 fechada, checks verdes no último commit da PR e no `main`.
 - [x] Conferir a primeira devolutiva da verificação em produção com os valores locais esperados.
-- [ ] Completar a verificação em produção (identidade da carga e 3 execuções válidas por lente, com recarga entre execuções).
+- [x] Registrar a decisão do responsável: manter a evidência informada e seguir para o encerramento, com o desvio registrado.
 
 ## Evidências
 
@@ -140,6 +140,13 @@ Dados informados pelo responsável depois de "autorizo a verificação em produ�
 
 Com isso a verificação fica incompleta, e a situação passa a "Parado". Não se trata da parada em produção do plano, porque nenhum critério dela foi atingido nos dados recebidos. O motivo é que as precondições do registro não puderam ser verificadas. O encerramento do ciclo só é preparado depois que a verificação estiver completa ou que o responsável decidir de outro modo.
 
+**Decisão do responsável (2026-11-11):** depois do "Parado", o responsável respondeu literalmente "Vamos manter os dados que passei apenas. E vamos para a próxima etapa." É a alternativa do plano "aceitar e registrar o desvio no encerramento". A verificação em produção fica registrada com a evidência acima, sem as execuções adicionais. O desvio está no pós-mortem do plano e na task de encerramento. Os pontos sem evidência hospedada são:
+
+- a identidade da carga;
+- a mediana de 3 execuções por lente;
+- os tempos da recorrência e da persistência com a memória vazia;
+- os valores completos dos destaques.
+
 ## Revisão da correção
 
 Não se aplica.
@@ -162,10 +169,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Pode completar o roteiro de verificação em produção? Falta a identidade da carga no cartão "Proveniência". Faltam também 3 execuções válidas por lente, com a página recarregada antes de cada uma e todas as tentativas informadas. Por fim, faltam a lista da concentração e os textos completos do primeiro e do último item da recorrência e da persistência. Outra opção é decidir registrar a verificação com a evidência atual, como desvio no encerramento.
-Diga: sua resposta à pergunta registrada
+Situação: Concluído — ciclo 004 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -177,7 +184,7 @@ Diga: sua resposta à pergunta registrada
 - `state_after`: task reconciliada (`Concluída`); primeira devolutiva da verificação em produção conferida, sem divergência nos dados recebidos, mas incompleta. Registro feito em commit local na branch `chore/cycle-004-closure`, sem push.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a verificação em produção do ciclo 004"; dados informados pelo responsável; `gh pr view 38` (MERGED, `8e023d8`, três checks verdes); execução 43064246424 do `main`; seção "Resultado da verificação em produção — primeira devolutiva".
-- `blockers`: identidade da carga não informada; uma execução por lente em vez de três válidas; recorrência e persistência medidas com a memória da lente preenchida; valores dos destaques incompletos.
+- `blockers`: na primeira devolutiva, faltavam a identidade da carga, as três execuções válidas por lente e os valores completos dos destaques; a recorrência e a persistência tinham sido medidas com a memória da lente preenchida. O responsável decidiu manter a evidência informada ("Vamos manter os dados que passei apenas."), e o desvio foi registrado no encerramento. Nenhum bloqueio restante neste artefato.
 
 ## Referência do bootstrap
 

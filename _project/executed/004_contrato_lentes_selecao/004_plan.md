@@ -1,7 +1,7 @@
 # Plano de Implementação — Contrato de lente de seleção e lentes com dados já carregados
 
 > **Ciclo:** `004`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-10
 > **Última atualização:** 2026-11-11
@@ -46,7 +46,9 @@ Não cobre merges, a implementação das issues nem a verificação em produçã
 
 **Execução do item 3:** autorização literal "autorizo a implementação da issue #35" recebida em 2026-11-11. A task `004_task_issue-35.md` é o artefato ativo; somente o item 3 está em execução. A verificação em produção continua dependendo de autorização própria. PR #38 integrada em 2026-11-11 (`8e023d8`).
 
-**Verificação em produção:** autorização literal "autorizo a verificação em produção do ciclo 004" recebida em 2026-11-11. A primeira devolutiva confere com a conferência local nos dados recebidos, mas está incompleta: falta a identidade da carga, há só uma execução por lente, e há indício de execuções sem recarga. A situação é "Parado"; o detalhe está na task `004_task_issue-35.md`.
+**Verificação em produção:** autorização literal "autorizo a verificação em produção do ciclo 004" recebida em 2026-11-11. A devolutiva confere com a conferência local nos dados recebidos: deploy `8e023d8`; 10, 150 e 66 destaques; mesmas células nas pontas da recorrência e da persistência; respostas em `gzip`. Ela está incompleta: falta a identidade da carga, há uma execução por lente, e a recorrência e a persistência foram medidas com a memória da lente preenchida. Depois do "Parado", o responsável decidiu literalmente: "Vamos manter os dados que passei apenas. E vamos para a próxima etapa." A evidência fica aceita, e o desvio está registrado no pós-mortem. O detalhe está na task `004_task_issue-35.md`.
+
+**Encerramento:** previsto na aprovação do plano; preparado em `chore/cycle-004-closure` com a task `004_task_closure.md`.
 
 **Autorização da correção — v3, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
 
@@ -471,98 +473,31 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 | Branch(es) | Ideação: `chore/cycle-004-ideation` em `c51ad73` (local); plano: `chore/cycle-004-plan`, derivada dela, publicada, base `85b444dd0084cc0b32b28ad0a1c256fdc9abbc29` |
 | Branch do item 1 | `feature/issue-33`, base `fa302b5bf124ce56501d1303dd64181511c84ace` |
 | Entrega do item 1 | `src/lentes/`, `src/apresentacao-lentes.ts`, integração em `src/app.ts` e `src/mapa.ts`, testes `tests/unit/lentes.test.mjs` e `tests/e2e/05-lentes.spec.mjs`, `scripts/lentes/` e `scripts/interface/medir-lentes.mjs`, KB-005, guia no runbook e `004_research_conferencia_lentes.md`; registro em `004_task_issue-33.md` |
+| Encerramento | Branch `chore/cycle-004-closure`; PR própria de encerramento, registrada em `004_task_closure.md` |
 | Destino após conclusão | `_project/executed/004_contrato_lentes_selecao/004_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 004 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #36 (https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
-Diga: "aprovo o merge da PR #36"
+Situação: Concluído — ciclo 004 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + atualizar_docs + aprovacao_publicacao_plano + v3@d341d35+rodada-3`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + atualizar_docs + encerramento + 8e023d81b1acb5572873d11caab7084b4e083b3c`
 - `effect_class`: `remote_mutation`
-- `state_before`: plano `v3` em `Em Revisão`, revisão formal `Concluída`, veredito `APTO COM RESSALVAS` (rodada 3), aprovação `Pendente`, situação `Aguardando aprovação do plano`. Branch `chore/cycle-004-plan` local em `4325a37`, sobre `origin/main` `85b444d`; nenhuma branch remota, PR ou issue do ciclo.
-- `state_after`: plano `v3` `Aprovado` (`Aprovada em 2026-11-11`) por manifestação posterior ao parecer, com R3-1 incorporada ao item 1. Lote documental publicado na PR #32, de `chore/cycle-004-plan` para `main`, aguardando checks e merge. Ciclo em `Planejamento`; nenhuma issue ou implementação.
+- `state_before`: plano `v3` `Em Execução`; PRs #32, #36, #37 e #38 integradas; issues #33, #34 e #35 fechadas; verificação em produção com a evidência parcial aceita pelo responsável.
+- `state_after`: encerramento prospectivo preparado: plano `Concluído`, tasks `Concluída`, ciclo em `executed/`, `cycles.md` atualizado, documentação viva consolidada (README, KB-003 e KB-005). PR de encerramento publicada e aguardando checks e merge.
 - `result`: `executed`
-- `evidence`:
-  - manifestação humana literal "aprovo o plano do ciclo 004" em 2026-11-11, posterior à rodada 3;
-  - `git fetch`, `git ls-remote` e `gh pr list` conferiram `origin/main` em `85b444d` e ausência de branch remota ou PR do ciclo antes de publicar;
-  - commit de aprovação `d434796` publicado e PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/32 criada;
-  - lote limitado a ideação, plano e registro do ciclo; 55 testes aprovados, validador sem erros ou avisos, diff sem erros, varredura G3 sem e-mail ou UUID.
-- `blockers`: nenhum para a publicação. A integração depende de checks verdes e de "aprovo o merge da PR #32". As issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
+- `evidence`: `gh pr view` das PRs #36, #37 e #38 (MERGED); `gh issue view` das issues #33 a #35 (CLOSED); execução 43064246424 do `main` verde em `8e023d8`; decisão literal do responsável registrada na task `004_task_issue-35.md`; task `004_task_closure.md`.
+- `blockers`: a integração depende de checks verdes e de "aprovo o merge da PR" de encerramento. O retorno ao backlog (BL-001) só depois da integração do encerramento em `main`.
 
-### Registro anterior — correção v3
-
-- `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v3@3b1b2ed`
-- `effect_class`: `local_mutation`
-- `state_before`: plano `v2` em `Em Revisão`, com a rodada 2 (`REQUER NOVA RODADA`, R2-1 a R2-4) registrada e commitada localmente em `3b1b2ed`; ciclo em `Planejamento`; situação `Aguardando correções (rodada 2)`.
-- `state_after`: plano `v3` em `Em Revisão`, com resposta a R2-1 a R2-4 e as rodadas 1 e 2 preservadas; último veredito ainda `REQUER NOVA RODADA`; situação `Aguardando revisão (rodada 3)`; `cycles.md` cita a v3. Nenhuma aprovação, issue, implementação, push ou PR.
-- `result`: `executed`
-- `evidence`: frase "corrija o plano do ciclo 004" (2026-11-11), posterior ao veredito; seção "Resposta do autor à rodada 2 — v3"; inspeção de `src/erros.ts` (tipos de erro) e de `src/app.ts` (`tratarErroGlobal`, `limparTudo` e `aoFalharConsulta`). Validação local registrada abaixo.
-- `blockers`: nenhum para a correção; revisão da rodada 3 pendente.
-
-### Validação local da correção v3
-
-- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas.
-- `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros.
-- Diff restrito a este plano e à versão citada em `cycles.md`. As linhas removidas são todas do texto do autor e do bloco de próximo passo; as rodadas 1 e 2 do revisor não foram editadas.
-- Conferência manual: G3 (nenhum dado da carga copiado), nenhuma decisão humana inventada, propostas marcadas como a ratificar, estados e próximo passo coerentes.
-- Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
-
-### Registro anterior — correção v2
-
-- `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v2@6b6bd89`
-- `effect_class`: `local_mutation`
-- `state_before`: plano `v1` em `Em Revisão`, com a rodada 1 (`REQUER NOVA RODADA`, R1-1 a R1-8) registrada e commitada localmente em `6b6bd89`; ciclo em `Planejamento`; situação `Aguardando correções (rodada 1)`.
-- `state_after`: plano `v2` em `Em Revisão`, com resposta a R1-1 a R1-8 e a rodada 1 preservada; último veredito ainda `REQUER NOVA RODADA`; situação `Aguardando revisão (rodada 2)`; `cycles.md` cita a v2. Nenhuma aprovação, issue, implementação, push ou PR.
-- `result`: `executed`
-- `evidence`: frase "corrija o plano do ciclo 004" (2026-11-11), posterior ao veredito; seção "Resposta do autor à rodada 1 — v2"; inspeção de `scripts/banco/manifesto.mjs` (conversão das coordenadas por `Number`), de `local/dados-prototipo/saidas/deteccoes.csv` (cabeçalho e formato do texto decimal, sem copiar dados), de `20261107230000_correcoes_revisao_g2.sql` (RS-3), de `src/app.ts` (resumo do filtro comum) e de `scripts/interface/medir-geometria.mjs` (perfil, banco vazio e carga própria). Validação local registrada abaixo.
-- `blockers`: nenhum para a correção; revisão da rodada 2 pendente.
-
-### Validação local da correção v2
-
-- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas.
-- `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros.
-- Diff restrito a este plano e à versão citada em `cycles.md`. As linhas removidas são todas do texto do autor (v1) e do bloco de próximo passo; a rodada 1 do revisor não foi editada.
-- Conferência manual: G3 (nenhum dado da carga copiado; só o formato do cabeçalho; os exemplos de coordenada são fictícios), nenhuma decisão humana inventada, propostas marcadas como a ratificar, estados e próximo passo coerentes.
-- Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
-
-### Registro anterior — rascunho v1
-
-- `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v1@c51ad73`
-- `effect_class`: `local_mutation`
-- `state_before`: ciclo `004` em `Ideação`, sem plano; ideação com Q1 a Q12 decididas, commitada localmente em `c51ad73` (`chore/cycle-004-ideation`); `main` e `origin/main` em `85b444d`, sem PR ou issue aberta.
-- `state_after`: decisões D13 a D16 registradas; este plano `v1` em `Rascunho`; ciclo `004` em `Planejamento` em `cycles.md`; ideação reconciliada, apontando para o plano como artefato ativo; branch local `chore/cycle-004-plan`. Nenhuma revisão, aprovação, issue, implementação, push ou PR.
-- `result`: `executed`
-- `evidence`: frase "Autorizo o rascunho do plano do ciclo 004" (2026-11-10); respostas do responsável às quatro perguntas (recomendação escolhida em todas); leitura das autoridades, do workflow, do template, da ideação, de KB-003, KB-004, ADR-005, ADR-007, das migrações de schema e de consulta e dos módulos da interface; consulta somente leitura por `gh` (nenhuma PR ou issue aberta) e `git fetch` (`main` = `origin/main` = `85b444d`). Validação local registrada abaixo.
-- `blockers`: nenhum para o rascunho; revisão formal pendente.
-
-### Validação local do rascunho
-
-- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas.
-- `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros. Diff restrito a este plano, à reconciliação da ideação e à linha do ciclo `004` em `cycles.md`.
-- Conferência manual: G3 (sem dados pessoais; números citados vêm da ideação ou de agregados públicos), frases do responsável reproduzidas literalmente, nenhum número de issue ou PR inventado, estados e próximo passo coerentes.
-- Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
-
-### Registro da revisão — rodada 1
-
-- `handoff_schema_version`: `2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + revisar_plano + 004_plan/rodada-1 + v1@1135c70efba531e46365459dfe06a0343f4e02da`
-- `effect_class`: `local_mutation`
-- `state_before`: plano `v1` em `Rascunho`, revisão e aprovação pendentes, situação `Aguardando revisão (rodada 1)`. Ciclo em `Planejamento`. Árvore limpa na branch `chore/cycle-004-plan` em `1135c70`.
-- `state_after`: plano `v1` em `Em Revisão`, revisão formal `Em andamento`, veredito `REQUER NOVA RODADA` e situação `Aguardando correções (rodada 1)`. Aprovação humana `Pendente`.
-- `result`: `executed`
-- `evidence`: parecer em `## Revisão crítica` e transição no cabeçalho e no bloco `## Próximo passo`. Consultas de leitura confirmaram `main` remota em `85b444d`, ausência de PR para `chore/cycle-004-plan` e ausência de issues de lentes. O MCP GitHub Docker devolveu HTTP 401 e a consulta foi concluída via `gh` e `git ls-remote`.
+## Revisão crítica` e transição no cabeçalho e no bloco `## Próximo passo`. Consultas de leitura confirmaram `main` remota em `85b444d`, ausência de PR para `chore/cycle-004-plan` e ausência de issues de lentes. O MCP GitHub Docker devolveu HTTP 401 e a consulta foi concluída via `gh` e `git ls-remote`.
 - `blockers`: R1-1 a R1-5.
 
 ### Registro da revisão — rodada 2
@@ -702,9 +637,17 @@ Nenhum achado foi contestado e nenhuma decisão humana nova foi tomada. As rodad
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
-- **Lições comprovadas:** —
+- **Data de conclusão:** 2026-11-11, prospectiva: efetiva com o merge da PR de encerramento.
+- **Resultado:** três lentes entregues sobre o contrato C1, nas PRs #36, #37 e #38. Na carga real e na janela inteira:
+  - concentração: 10 municípios;
+  - recorrência: 150 células;
+  - persistência: 66 sequências em 60 células.
+
+  A conferência por SQL independente não teve divergência, e a medição local ficou dentro do orçamento, com medianas comprimidas de 5,9 s, 14,3 s e 8,7 s.
+- **Desvios:**
+  - A verificação em produção foi aceita pelo responsável com evidência parcial, sem identidade da carga, sem mediana de 3 execuções por lente e sem os valores completos dos destaques. O deploy, as contagens e as células das pontas conferem. A concentração levou 13,0 s numa execução com a memória vazia; os 11,2 s da recorrência e os 3,4 s da persistência foram medidos com a memória preenchida.
+  - O E2E local de logout (`01-acesso`) falhou neste Windows nos itens 1 e 3, sem mudança no teste; a CI passou em todas as PRs. Segue relatado, sem correção.
+- **Lições comprovadas:** nenhuma nova em `.agent/lessons_learned.md`. A observação sobre a memória da lente na medição hospedada é específica deste roteiro e fica registrada na task da issue #35.
 
 ## Referência do bootstrap
 

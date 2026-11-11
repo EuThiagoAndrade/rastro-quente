@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#33`
-> **Plano:** `_project/drafts/004_contrato_lentes_selecao/004_plan.md`
+> **Plano:** `_project/executed/004_contrato_lentes_selecao/004_plan.md`
 > **Branch:** `feature/issue-33`
 > **PR:** [#36](https://github.com/EuThiagoAndrade/rastro-quente/pull/36)
 > **Integração:** `PR #36 integrada em main em 2026-11-11 (69575ad); checks verdes na PR (Validate governance, Database RLS and query contract e Interface typecheck, build and E2E)`
@@ -93,10 +93,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 004 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 004 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 004"
+Diga: —
 ```
 
 ## Handoff de saída
