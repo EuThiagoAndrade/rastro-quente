@@ -2,7 +2,7 @@
 
 > **Ciclo:** `004`
 > **Status:** `Em Revisão`
-> **Versão:** `v2`
+> **Versão:** `v3`
 > **Data de criação:** 2026-11-10
 > **Última atualização:** 2026-11-11
 > **Tipo:** `feature`
@@ -17,7 +17,9 @@
 
 **Autorização do rascunho:** "Autorizo o rascunho do plano do ciclo 004", em 2026-11-10. Autor: Claude Code (Opus 5.5). Antes de redigir, o autor apresentou quatro detalhes de método que a ideação deixou abertos, cada um com recomendação, alternativas e exemplo numérico. O responsável escolheu a opção recomendada nos quatro (decisões D13 a D16 abaixo). Essas escolhas não são aprovação do plano após revisão, nem autorização de issue ou de implementação.
 
-**Autorização da correção — v2, 2026-11-11:** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 integralmente e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova foi tomada nesta correção. A escolha do recorte espacial (M1, antes T2) e os detalhes T1 e T3 a T7 seguem como propostas a ratificar na aprovação, com alternativas e exemplos numéricos.
+**Autorização da correção — v3, 2026-11-11:** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 2 (revisor: Codex, GPT-6). A v3 responde a R2-1 a R2-4 (ver "Resposta do autor à rodada 2 — v3"), preserva as rodadas 1 e 2 e mantém o plano `Em Revisão`, aguardando a rodada 3. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova; M1, T1, T3 a T7 e o orçamento continuam propostas a ratificar na aprovação.
+
+**Autorização da correção — v2, 2026-11-11 (histórico):** "corrija o plano do ciclo 004", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 integralmente e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova foi tomada nesta correção. A escolha do recorte espacial (M1, antes T2) e os detalhes T1 e T3 a T7 seguem como propostas a ratificar na aprovação, com alternativas e exemplos numéricos.
 
 ## Problema e contexto
 
@@ -124,7 +126,7 @@ Não são novas regras analíticas de escolha livre: decorrem de Q3, Q6, Q8, Q12
 **Valor canônico das coordenadas (T1, R1-2).** A fonte traz texto com 6 casas decimais (por exemplo, o valor fictício `-12.345670`). A carga converte esse texto para `Number` (`scripts/banco/manifesto.mjs`), o banco guarda `double precision` e a RPC devolve número JSON. O valor canônico no cliente é a **representação decimal mais curta que reconstrói o mesmo `double`**: a de `Number.prototype.toString` em JavaScript, que é também a usada pelo PostgreSQL desde a versão 12 na saída de `double precision` com `extra_float_digits` padrão. Para textos de até 15 algarismos significativos, essa representação é igual ao texto da fonte, sem os zeros à direita (`-12.345670` → `-12.34567`). O módulo:
 
 - converte a string canônica para inteiro decimal (sinal, parte inteira e parte fracionária, sem passar por multiplicação em ponto flutuante) e calcula o índice com divisão inteira com piso;
-- rejeita como entrada inválida, sem classificar, a coordenada cuja string canônica use notação exponencial, não seja finita ou tenha mais de 15 algarismos significativos. A precisão não preservada aparece assim como erro explícito, e não como célula silenciosamente diferente;
+- rejeita como entrada inválida, sem classificar, a coordenada cuja string canônica use notação exponencial, não seja finita ou tenha mais de 15 algarismos significativos. Essa verificação protege só a conversão da string canônica. **Ela não detecta dígitos já perdidos na ingestão** (R2-3): `-15.05` e `-15.0500000000000001` viram o mesmo `double` e a mesma string `-15.05`, embora os decimais originais caiam em células diferentes. Essa perda só é detectável contra o texto da fonte, e é isso que faz a comparação por `id_tecnico` abaixo, para a carga conferida. Uma carga nova exige nova conferência;
 - é testado nos dois lados de cada borda com coordenadas negativas (caso G-1).
 
 A conferência independente compara, **por `id_tecnico`**, a célula calculada em SQL a partir do texto decimal da saída local do recorte (`local/dados-prototipo/saidas/deteccoes.csv`, coluna `lat`/`lon` como texto, convertida para `numeric` sem passar por `double`) com a célula do caminho RPC → TypeScript. **Qualquer diferença de célula leva a "Parado"**, com os casos, as alternativas e o efeito nos destaques apresentados ao responsável antes de adotar outra regra.
@@ -190,13 +192,24 @@ Cada destaque traz:
   Exemplo do revisor: duas páginas com os mesmos 1.000 registros somam 2.000 linhas, mas só 1.000 `id_tecnico` distintos, e a lente falha. Qualquer verificação falha ou erro de chamada leva a lente inteira ao estado `falha` ("leitura inconsistente" ou "fonte indisponível"), sem destaques parciais, com a ação "Tentar de novo" e sem nova tentativa automática.
 - **Leitura da disponibilidade:** `consultar_disponibilidade` com `p_municipio` de cada município envolvido, sem repetição, com até 4 chamadas simultâneas. Cada resposta confere carga, período, município e a integridade T3. Erro ou falha de integridade afeta só o qualificador dos destaques que dependem daquele município (`falha`); a seleção não muda, porque nenhuma lente seleciona pela disponibilidade.
 - **Geometria:** só para os municípios destacados pela concentração, pelo cache de memória do ADR-007.
+- **Erros por tipo em toda chamada da lente (R2-1).** A classificação de `src/erros.ts` vale para o resumo, as páginas, a disponibilidade e a geometria da lente. Os tipos que afetam a sessão ou a versão nunca são tratados como falha local da lente:
+
+| Tipo (`src/erros.ts`) | Em qualquer chamada da lente | Efeito |
+| :-- | :-- | :-- |
+| `acesso_negado`, `sessao_expirada`, `sem_publicacao` | Encaminhado ao tratamento global já existente (`tratarErroGlobal`) | `limparTudo` limpa a consulta comum e também a lente: lista, camada, painel, registros e disponibilidade reaproveitáveis, e o cache de geometria. As gerações de sessão e de lente sobem. O estado de acesso segue o ADR-007 (negado, expirada com novo login, sem publicação). Nada da lente reaparece depois de novo login sem nova aplicação. |
+| `versao_substituida` (`carga_indisponivel`) | Mesmo efeito da consulta comum (`aoFalharConsulta`) | Limpa resultados da consulta comum **e** toda a memória da lente ligada à carga (registros e disponibilidade reaproveitáveis, resultado, lista, camada e painel), com o estado "versão substituída" e a ação de recarregar a vigente. Nunca há mistura de cargas. |
+| `fonte_indisponivel`, `entrada_invalida` ou verificação de resposta falha | No resumo ou numa página | Lente inteira em `falha`, sem destaques parciais, com "Tentar de novo" |
+| Idem | Na disponibilidade de um município | Qualificador `falha` só nos destaques que dependem daquele município |
+| Idem | Na geometria de um município | Aviso de mapa do ADR-007 ("contorno indisponível"); a lista e o painel continuam válidos, e o estado `completo` não é gravado |
 - **Concorrência entre aplicações de lente (R1-4):** uma terceira geração, `geracaoLente`, soma-se às de sessão e de consulta do ADR-007. Ela é incrementada ao aplicar qualquer lente, ao escolher `Nenhuma`, ao mudar a janela ou a carga e a cada mudança da geração de sessão. Toda continuação assíncrona da lente confere a geração de sessão e a de lente antes de tocar estado ou tela. Ao invalidar, a lista, a camada do mapa, o painel e os dados em memória daquela aplicação são limpos antes de a rede responder. Assim, se a concentração começa antes e termina depois da recorrência, a resposta atrasada é descartada.
-- **Memória:** registros já validados podem ser reaproveitados entre lentes enquanto a sessão, a carga, a janela e o recorte forem os mesmos; o reaproveitamento é limpo ao sair, expirar ou perder acesso. Nada vai para `localStorage`, `sessionStorage`, Cache ou IndexedDB.
+- **Memória:** registros já validados podem ser reaproveitados entre lentes enquanto a sessão, a carga, a janela e o recorte forem os mesmos. O reaproveitamento é limpo ao sair, expirar, perder acesso ou receber `versao_substituida`, em qualquer chamada, da lente ou da consulta comum. Nada vai para `localStorage`, `sessionStorage`, Cache ou IndexedDB.
 - **Ciclo de vida:** a lente é calculada sob pedido ("Aplicar lente"), e não a cada consulta.
 
 ### Orçamento e procedimento de medição (R1-5)
 
-O orçamento proposto é uma decisão técnica a ratificar na aprovação. **Ele vale sempre para a janela inteira da carga**, para cada uma das três lentes, mesmo que se adote depois uma janela padrão menor, porque a janela inteira continua acessível.
+O orçamento proposto é uma decisão técnica a ratificar na aprovação. **Ele vale sempre para a janela inteira da carga**, para cada lente, mesmo que se adote depois uma janela padrão menor, porque a janela inteira continua acessível.
+
+**Alcance por item (R2-2).** Em cada PR, a conferência e a medição cobrem **todas as lentes disponíveis naquele ponto**, sempre com a janela inteira e repetindo as anteriores: item 1, concentração; item 2, concentração e recorrência; item 3, as três, consolidadas antes da verificação hospedada.
 
 | Aspecto | Gate local de cada item (`npm run medir:lentes`) | Roteiro hospedado (verificação em produção) |
 | :-- | :-- | :-- |
@@ -207,12 +220,13 @@ O orçamento proposto é uma decisão técnica a ratificar na aprovação. **Ele
 | Início | Clique em "Aplicar lente" | Clique em "Aplicar lente" |
 | Fim | Atributo `data-estado-lente="completo"` no cartão. O controlador só o grava quando: a conferência passou, a lista está renderizada, a camada do mapa está desenhada (com as geometrias da concentração) e todo destaque tem cobertura `completa`. Uma execução com qualquer `falha` é inválida e repetida; falha persistente leva a "Parado" | O mesmo evento. O cartão exibe "Lente concluída em X,X s", medido pelo próprio controlador com `performance.now()` entre os dois pontos |
 | Unidades | Tempo em segundos, com uma casa; bytes por `encodedDataLength` do CDP; requisições com e sem preflight CORS | Tempo exibido pelo cartão; "transferred" do painel Network, filtrado por `rest/v1`, com o log limpo antes do clique |
-| Repetições | 3 por lente e por passagem; vale a mediana, e o máximo é registrado | 3 por lente; vale a mediana |
+| Repetições | 3 válidas por lente e por passagem; vale a mediana, e o máximo é registrado | 3 válidas por lente; vale a mediana |
+| Prazo e tentativas inválidas (R2-4) | Prazo de 120 s por execução (6× o orçamento). Execução que não chega a `completo` no prazo, ou termina em `falha`, é inválida, registrada com o motivo e não entra na mediana. No máximo 6 tentativas por lente e por passagem: sem 3 válidas até a 6ª, "Parado" | Mesmo prazo, contado pelo responsável a partir do clique. Toda tentativa é informada, válida ou não, com o motivo. Mesmo limite de 6 tentativas; sem 3 válidas, não há mediana e vale a parada em produção |
 | **Orçamento** | Mediana comprimida ≤ 20,0 s **e** bytes brutos ≤ 10.000.000 por lente | Mediana ≤ 20,0 s por lente |
 
 **Parada local:** fora do orçamento, a situação passa a "Parado" antes da PR do item, com os números por lente e por parte (registros, disponibilidade e geometria) e as alternativas: aceitar com progresso visível; janela padrão menor, mantendo o gate da janela inteira medido e informado ao usuário; ou função agregadora nova no banco (G2 = Sim, G4 = Sim e retriagem do nível, Q10). Nenhuma é escolhida pelo agente.
 
-**Parada em produção, antes do encerramento:** se a mediana hospedada passar do orçamento, ou se o número de destaques de alguma lente, ou o valor de algum destaque, divergir da conferência local com a mesma identidade de carga, a situação passa a "Parado". As alternativas para decisão do responsável: aceitar e registrar o desvio no encerramento; corrigir por trilha curta (se for defeito de algo especificado) ou por novo ciclo; ou reverter as entregas na ordem da seção de rollback. O encerramento só é preparado depois da decisão registrada.
+**Parada em produção, antes do encerramento:** se a mediana hospedada passar do orçamento, se não houver 3 execuções válidas em 6 tentativas, ou se o número de destaques de alguma lente, ou o valor de algum destaque, divergir da conferência local com a mesma identidade de carga, a situação passa a "Parado". As alternativas para decisão do responsável: aceitar e registrar o desvio no encerramento; corrigir por trilha curta (se for defeito de algo especificado) ou por novo ciclo; ou reverter as entregas na ordem da seção de rollback. O encerramento só é preparado depois da decisão registrada.
 
 ### Interface mínima
 
@@ -289,9 +303,14 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 - **Interface (E2E, `tests/e2e/05-lentes.spec.mjs`):** fixture fictícia com destaques conhecidos em `tests/e2e/fixture.mjs`. Cobre:
   - seletor, aplicar, lista, mapa e painel; parâmetros e rótulo de ordenação visíveis; janela insuficiente; ressalvas por classe (D15, T7) e T4; cobertura com "cobertura não comprovada" e sem a palavra "coberto"; aviso de M1;
   - **filtro municipal ativo com totais diferentes** (R1-1): consulta comum em um município com 4 detecções, estado com 10; a lente lê 10, passa na conferência estadual e não altera o resumo comum, que continua 4;
-  - **concorrência** (R1-4), com respostas retidas por `page.route`: concentração aplicada e recorrência aplicada antes de a concentração terminar → só a recorrência aparece; `Nenhuma` durante a leitura → nada aparece depois; logout durante a leitura → nada aparece depois e a memória é limpa; página duplicada injetada → "leitura inconsistente"; falha de uma chamada de disponibilidade → "cobertura não verificada" só nos destaques afetados;
+  - **concorrência** (R1-4), com respostas retidas por `page.route`, por item (R2-2):
+    - **item 1:** duas aplicações seguidas da concentração (a primeira retida termina depois da segunda) → só a segunda aparece; `Nenhuma` durante a leitura → nada aparece depois; logout durante a leitura → nada aparece depois e a memória é limpa; página duplicada injetada → "leitura inconsistente"; falha `fonte_indisponivel` numa chamada de disponibilidade → "cobertura não verificada" só nos destaques afetados;
+    - **item 2:** acrescenta concentração retida e recorrência aplicada antes de ela terminar → só a recorrência aparece;
+    - **item 3:** acrescenta o mesmo cenário entre recorrência e persistência;
+  - **perda de acesso e troca de versão durante a leitura** (R2-1), a partir do item 1: `acesso_negado` (`42501`) numa chamada de disponibilidade depois de a lista renderizar → tela, mapa, lente e memória limpos e estado "negado"; `sessao_expirada` (`401`, `PGRST301`) na mesma situação → estado de sessão expirada e, após novo login, nenhum destaque antigo; `carga_indisponivel` no resumo de uma segunda aplicação que reaproveitaria registros em memória → "versão substituída", lente e memória limpas, e, depois de recarregar, a nova aplicação relê tudo;
   - troca de janela e de versão sem mistura; teclado, foco, 360/390 px com toque, 200% e reflow.
-- **Medição:** `npm run medir:lentes` (`supabase db reset && node scripts/interface/medir-lentes.mjs`), com o procedimento da seção "Orçamento e procedimento de medição". Também parte do banco vazio, publica a carga real e registra a identidade.
+- **Medição:** `npm run medir:lentes` (`supabase db reset && node scripts/interface/medir-lentes.mjs`), com o procedimento da seção "Orçamento e procedimento de medição". Também parte do banco vazio, publica a carga real e registra a identidade. Conferência e medição cobrem as lentes disponíveis em cada item (R2-2).
+- **Destino dos erros (unitário):** caso E-1, uma tabela que confere o destino de cada tipo de `src/erros.ts` por origem da chamada (resumo, página, disponibilidade e geometria), conforme a seção "Erros por tipo em toda chamada da lente".
 - **Ordem dos gates com carga real (R1-7):** `test:rls`, `test:e2e`, `conferir:lentes` e `medir:lentes` começam todos por `supabase db reset`. Por isso, em cada item: (1) unitários, `typecheck` e `build`; (2) `conferir:lentes`; (3) `medir:lentes`; (4) `test:rls` e `test:e2e`. Os scripts de carga real não dependem de estado deixado por outro comando: cada um recarrega a carga e falha se a identidade registrada no fim for diferente da do início, ou da identidade citada no relatório.
 - **Gates por PR:** `npm run test:governance`, `npm run check:governance`, `npm run typecheck`, `npm run build`, `npm run test:interface`, `npm run test:e2e`, `npm run test:rls` (sem mudança esperada), `git diff --check` e inspeção do bundle (`tests/unit/bundle.test.mjs`): nenhum dado territorial ou de `local/` embutido. Na CI rodam os determinísticos; `conferir:lentes` e `medir:lentes` usam dados de `local/` e rodam só localmente, com resultado no relatório.
 
@@ -306,11 +325,11 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 **Critérios de aceite:**
 
 - [ ] O contrato C1 está tipado e documentado na KB, com identidade de destaque, estados, limitações e versão do método.
-- [ ] Os casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4 e X-1 passam, com valores esperados escritos à mão.
+- [ ] Os casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1 e X-1 passam, com valores esperados escritos à mão.
 - [ ] A conferência independente reproduz a concentração e a cobertura na carga real, nas quatro janelas, destaque a destaque. A soma das contagens é igual a `consultar_resumo` do mesmo recorte. Todas as detecções caem na mesma célula pelos dois caminhos (por `id_tecnico`). O relatório registra a identidade da carga, o commit e o número máximo de algarismos significativos das coordenadas.
-- [ ] A medição segue o procedimento da seção de orçamento e está registrada por lente e por passagem. Se exceder o orçamento, a situação é "Parado", com as alternativas, antes da PR.
+- [ ] A medição da concentração na janela inteira segue o procedimento da seção de orçamento, com prazo e tentativas inválidas registrados, por passagem. Se exceder o orçamento ou não houver 3 execuções válidas, a situação é "Parado", com as alternativas, antes da PR.
 - [ ] A interface mostra seletor, lista, mapa e painel, com parâmetros visíveis e não editáveis, o rótulo "ordenado por contagem de detecções, não por prioridade, gravidade ou risco", o aviso de M1, a cobertura "N de M dias sem evidência de lacuna (cobertura não comprovada)", a duração da lente e as limitações. A palavra "coberto" não aparece como qualificação.
-- [ ] Os estados (carregando com progresso, completo, sem destaques, cobertura pendente, cobertura não verificada, leitura inconsistente, versão substituída, falha e cancelada) são distintos e testados. O E2E cobre filtro municipal ativo com totais diferentes e a concorrência entre aplicações de lente, `Nenhuma` e logout com respostas retidas. Troca de janela ou de carga não mistura resultados; nada é persistido no navegador.
+- [ ] Os estados (carregando com progresso, completo, sem destaques, cobertura pendente, cobertura não verificada, leitura inconsistente, versão substituída, falha e cancelada) são distintos e testados. O E2E cobre filtro municipal ativo com totais diferentes; duas aplicações da concentração, `Nenhuma` e logout com respostas retidas; e `acesso_negado`, `sessao_expirada` e `carga_indisponivel` durante a leitura, com tela, lente e memória limpas conforme a seção "Erros por tipo". Troca de janela ou de carga não mistura resultados; nada é persistido no navegador.
 - [ ] A acessibilidade do ADR-007 é mantida (teclado, foco, 44 × 44, contraste, 360/390 px, 200% e reflow) e a lista é a alternativa em texto ao mapa.
 - [ ] Os gates passam, e nenhuma migração, função ou política é criada.
 
@@ -318,7 +337,7 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 
 **Contexto:** a primeira lente por célula exercita a grade T1, a união D13 e o estado `janela_insuficiente`.
 
-**Ação técnica:** criar `src/lentes/recorrencia.ts` sobre o contrato e a grade do item 1; incluir a opção no seletor, os retângulos de célula no mapa e o painel com meses (parciais marcados) e a tabela de evidência paginada; escrever os casos R e estender a conferência, a medição, o E2E e a KB.
+**Ação técnica:** criar `src/lentes/recorrencia.ts` sobre o contrato e a grade do item 1; incluir a opção no seletor, os retângulos de célula no mapa e o painel com meses (parciais marcados) e a tabela de evidência paginada; escrever os casos R e estender a conferência, a medição, o E2E (incluindo a concorrência entre concentração e recorrência) e a KB.
 
 **Critérios de aceite:**
 
@@ -326,7 +345,8 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 - [ ] A conferência independente reproduz as células com 3 ou mais meses na carga real, nas quatro janelas, inclusive a de 3 meses com bordas parciais, e explica a diferença para as 142 células da grade de 5 km da ideação.
 - [ ] A janela de 2 meses mostra "janela insuficiente", sem destaques; a janela com bordas parciais roda e marca os meses parciais.
 - [ ] A cobertura da célula lista os municípios usados (D13); ordem T5 sem ranking; limitações da célula visíveis.
-- [ ] A medição continua dentro do orçamento ou leva a "Parado"; os gates passam; nenhum objeto novo no banco.
+- [ ] O E2E mostra só a recorrência quando ela é aplicada com uma concentração ainda em leitura.
+- [ ] A conferência e a medição cobrem concentração e recorrência na janela inteira, repetindo a concentração; ambas dentro do orçamento, ou "Parado"; os gates passam; nenhum objeto novo no banco.
 
 ### Item 3 — Lente de persistência e verificação do ciclo em produção
 
@@ -339,7 +359,8 @@ Não há ação humana externa prevista: nenhuma migração ou configuração ho
 - [ ] Os casos P-1 a P-8 passam, e os casos dos itens 1 e 2 continuam passando.
 - [ ] A conferência independente reproduz as sequências de 3 ou mais dias e as ressalvas por classe na carga real, e explica a diferença para as 62 células com 3 ou mais dias seguidos na grade de 5 km da ideação.
 - [ ] As ressalvas da tabela "Ressalvas por classe" e a de T4 aparecem só onde as regras mandam, com a classe observada; nenhuma detecção é inferida.
-- [ ] A medição das três lentes está consolidada no relatório e no guia; os gates passam; nenhum objeto novo no banco.
+- [ ] O E2E mostra só a persistência quando ela é aplicada com uma recorrência ainda em leitura.
+- [ ] A conferência e a medição das três lentes, na janela inteira, estão consolidadas no relatório e no guia, todas dentro do orçamento ou com "Parado"; os gates passam; nenhum objeto novo no banco.
 - [ ] O roteiro de verificação em produção está pronto na task, com o procedimento hospedado, os valores locais esperados por lente (destaques e valores da conferência, com a identidade da carga) e a parada em produção. Ele só é executado depois de "autorizo a verificação em produção do ciclo 004".
 
 ## Arquivos afetados
@@ -423,13 +444,32 @@ Uma reversão não reabre nem arquiva o BL-001 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando correções (rodada 2) — ciclo 004 (completo)
-Quem: O responsável leva a vez ao autor
-Conferir: Achados da rodada 2 na seção Revisão crítica deste plano
-Diga: "corrija o plano do ciclo 004"
+Situação: Aguardando revisão (rodada 3) — ciclo 004 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 004"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v3@3b1b2ed`
+- `effect_class`: `local_mutation`
+- `state_before`: plano `v2` em `Em Revisão`, com a rodada 2 (`REQUER NOVA RODADA`, R2-1 a R2-4) registrada e commitada localmente em `3b1b2ed`; ciclo em `Planejamento`; situação `Aguardando correções (rodada 2)`.
+- `state_after`: plano `v3` em `Em Revisão`, com resposta a R2-1 a R2-4 e as rodadas 1 e 2 preservadas; último veredito ainda `REQUER NOVA RODADA`; situação `Aguardando revisão (rodada 3)`; `cycles.md` cita a v3. Nenhuma aprovação, issue, implementação, push ou PR.
+- `result`: `executed`
+- `evidence`: frase "corrija o plano do ciclo 004" (2026-11-11), posterior ao veredito; seção "Resposta do autor à rodada 2 — v3"; inspeção de `src/erros.ts` (tipos de erro) e de `src/app.ts` (`tratarErroGlobal`, `limparTudo` e `aoFalharConsulta`). Validação local registrada abaixo.
+- `blockers`: nenhum para a correção; revisão da rodada 3 pendente.
+
+### Validação local da correção v3
+
+- Node.js `v24.15.0`; `node --test scripts/validate-governance.test.mjs`: 55 testes passaram, zero falhas.
+- `node scripts/validate-governance.mjs`: zero erros, zero avisos e nove conferências manuais. `git diff --check`: sem erros.
+- Diff restrito a este plano e à versão citada em `cycles.md`. As linhas removidas são todas do texto do autor e do bloco de próximo passo; as rodadas 1 e 2 do revisor não foram editadas.
+- Conferência manual: G3 (nenhum dado da carga copiado), nenhuma decisão humana inventada, propostas marcadas como a ratificar, estados e próximo passo coerentes.
+- Alteração documental local. Nenhum código, banco, carga, push, PR ou issue.
+
+### Registro anterior — correção v2
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 004 + rascunhar_plano + 004_plan + v2@6b6bd89`
@@ -564,6 +604,22 @@ Nenhum achado foi contestado. Nenhuma decisão humana nova foi tomada: M1, T1 e 
 - A revisão inspecionou os contratos e a sequência de entregas no repositório. A conferência da carga real e a execução do protocolo de desempenho pertencem à implementação. O diff da correção preservou a rodada 1 e ficou restrito à documentação do ciclo.
 
 **Veredito:** `REQUER NOVA RODADA`. Os bloqueadores caíram de cinco para dois. O autor deve fechar o tratamento dos estados de acesso e carga e alinhar os gates às três entregas antes de submeter a versão seguinte.
+
+### Resposta do autor à rodada 2 — v3
+
+- **Data:** 2026-11-11
+- **Autor:** Claude Code (Opus 5.5)
+- **Base:** plano `v2` com a rodada 2, commit `3b1b2ed`.
+- **Autorização:** "corrija o plano do ciclo 004".
+
+| Achado | Resposta | Onde |
+| :-- | :-- | :-- |
+| R2-1 | **Corrigido.** Tabela de destino por tipo de erro de `src/erros.ts`, válida para resumo, páginas, disponibilidade e geometria da lente. `acesso_negado`, `sessao_expirada` e `sem_publicacao` vão ao tratamento global existente (`tratarErroGlobal` → `limparTudo`), que passa a limpar também a lente e os dados reaproveitáveis. `versao_substituida` segue o caminho da consulta comum e limpa toda a memória da lente ligada à carga. Só `fonte_indisponivel`, `entrada_invalida` e falhas de verificação ficam locais (lente, qualificador ou contorno). Caso unitário E-1 e E2E de negação, expiração e `carga_indisponivel` durante a leitura. | "Erros por tipo em toda chamada da lente"; "Memória"; E2E; caso E-1; item 1 |
+| R2-2 | **Corrigido.** O E2E de concorrência foi dividido por item: o item 1 testa duas aplicações da concentração, `Nenhuma` e logout; o item 2 acrescenta concentração × recorrência; o item 3, recorrência × persistência. Conferência e medição cobrem, em cada PR, as lentes disponíveis naquele ponto, na janela inteira e repetindo as anteriores; o item 3 consolida as três antes da verificação hospedada. | "Alcance por item"; E2E; critérios dos itens 1, 2 e 3 |
+| R2-3 | **Corrigido.** A frase de T1 não promete mais detectar precisão perdida: a verificação de até 15 algarismos protege só a conversão da string canônica. A perda na ingestão (exemplo do revisor: `-15.05` e `-15.0500000000000001`) só é detectada pela comparação por `id_tecnico` com o texto da fonte, para a carga conferida. | "Valor canônico das coordenadas" |
+| R2-4 | **Corrigido.** Prazo de 120 s por execução e limite de 6 tentativas por lente e passagem, com toda tentativa inválida registrada com motivo. Sem 3 execuções válidas, "Parado" localmente e, em produção, a parada antes do encerramento, já que não há mediana. | Tabela do orçamento ("Prazo e tentativas inválidas"); "Parada em produção" |
+
+Nenhum achado foi contestado e nenhuma decisão humana nova foi tomada. As rodadas 1 e 2 estão preservadas acima, sem edição.
 
 ## Pós-mortem
 
