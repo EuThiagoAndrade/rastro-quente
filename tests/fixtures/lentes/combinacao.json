@@ -1,0 +1,417 @@
+{
+  "descricao": "Casos de referência fictícios da combinação de lentes (plano 005, CB-1 a CB-16). Municípios inventados (códigos 99200xx) e coordenadas fictícias. Células calculadas à mão pela grade T1 (índice = piso de coordenada × 20): latitude -12.52 → -251 [-12,55; -12,50); -12.62 → -253 [-12,65; -12,60); -12.72 → -255 [-12,75; -12,70); longitude -56.48 → -1130 [-56,50; -56,45); -56.43 → -1129 [-56,45; -56,40); -56.38 → -1128 [-56,40; -56,35). A e B ficam na faixa mais ao norte (A a oeste); C, D e E na faixa do meio, de oeste para leste; F na faixa mais ao sul. Registros: [id_tecnico, data_hora_gmt, célula, município]; o id diz a célula, o município (1, 2 ou 3) e o dia (MMDD). Concentração com n = 1 nos casos (M1 = 17, M2 = 15 e M3 = 2 na janela base). Na disponibilidade, os dias não listados em `restritivos` estão sem evidência de lacuna; `ausentes` lista os municípios ainda sem leitura e `falha`, os de leitura com falha. Os valores esperados foram escritos à mão a partir do plano, não gerados pelo código.",
+  "municipios": { "9920001": "Fictício Um", "9920002": "Fictício Dois", "9920003": "Fictício Três" },
+  "celulas": {
+    "A": { "lat": -12.52, "lon": -56.48, "unidade": { "tipo": "celula_005", "id": "c-251_-1130", "sul": "-12.55", "oeste": "-56.50", "norte": "-12.50", "leste": "-56.45" } },
+    "B": { "lat": -12.52, "lon": -56.43, "unidade": { "tipo": "celula_005", "id": "c-251_-1129", "sul": "-12.55", "oeste": "-56.45", "norte": "-12.50", "leste": "-56.40" } },
+    "C": { "lat": -12.62, "lon": -56.48, "unidade": { "tipo": "celula_005", "id": "c-253_-1130", "sul": "-12.65", "oeste": "-56.50", "norte": "-12.60", "leste": "-56.45" } },
+    "D": { "lat": -12.62, "lon": -56.43, "unidade": { "tipo": "celula_005", "id": "c-253_-1129", "sul": "-12.65", "oeste": "-56.45", "norte": "-12.60", "leste": "-56.40" } },
+    "E": { "lat": -12.62, "lon": -56.38, "unidade": { "tipo": "celula_005", "id": "c-253_-1128", "sul": "-12.65", "oeste": "-56.40", "norte": "-12.60", "leste": "-56.35" } },
+    "F": { "lat": -12.72, "lon": -56.48, "unidade": { "tipo": "celula_005", "id": "c-255_-1130", "sul": "-12.75", "oeste": "-56.50", "norte": "-12.70", "leste": "-56.45" } }
+  },
+  "janela_base": { "inicio": "2026-08-01", "fim": "2026-10-31" },
+  "registros": [
+    ["a1-0820", "2026-08-20T12:00:00Z", "A", 9920001],
+    ["a1-0920", "2026-09-20T12:00:00Z", "A", 9920001],
+    ["a1-1005", "2026-10-05T12:00:00Z", "A", 9920001],
+    ["a1-1006", "2026-10-06T12:00:00Z", "A", 9920001],
+    ["a1-1007", "2026-10-07T12:00:00Z", "A", 9920001],
+    ["a1-1025", "2026-10-25T12:00:00Z", "A", 9920001],
+    ["a2-0821", "2026-08-21T12:00:00Z", "A", 9920002],
+    ["a2-0921", "2026-09-21T12:00:00Z", "A", 9920002],
+    ["a2-1015", "2026-10-15T12:00:00Z", "A", 9920002],
+    ["a2-1028", "2026-10-28T12:00:00Z", "A", 9920002],
+    ["b2-0810", "2026-08-10T12:00:00Z", "B", 9920002],
+    ["b2-0920", "2026-09-20T12:00:00Z", "B", 9920002],
+    ["b2-0921", "2026-09-21T12:00:00Z", "B", 9920002],
+    ["b2-0922", "2026-09-22T12:00:00Z", "B", 9920002],
+    ["b2-1010", "2026-10-10T12:00:00Z", "B", 9920002],
+    ["c1-0915", "2026-09-15T12:00:00Z", "C", 9920001],
+    ["d1-0803", "2026-08-03T12:00:00Z", "D", 9920001],
+    ["d1-0810", "2026-08-10T12:00:00Z", "D", 9920001],
+    ["d1-0903", "2026-09-03T12:00:00Z", "D", 9920001],
+    ["d1-0910", "2026-09-10T12:00:00Z", "D", 9920001],
+    ["d1-0917", "2026-09-17T12:00:00Z", "D", 9920001],
+    ["d1-1003", "2026-10-03T12:00:00Z", "D", 9920001],
+    ["d1-1010", "2026-10-10T12:00:00Z", "D", 9920001],
+    ["d1-1017", "2026-10-17T12:00:00Z", "D", 9920001],
+    ["d1-1024", "2026-10-24T12:00:00Z", "D", 9920001],
+    ["e2-0905", "2026-09-05T12:00:00Z", "E", 9920002],
+    ["e2-0906", "2026-09-06T12:00:00Z", "E", 9920002],
+    ["e2-0907", "2026-09-07T12:00:00Z", "E", 9920002],
+    ["e2-0920", "2026-09-20T12:00:00Z", "E", 9920002],
+    ["e2-0921", "2026-09-21T12:00:00Z", "E", 9920002],
+    ["e2-0922", "2026-09-22T12:00:00Z", "E", 9920002],
+    ["f1-0815", "2026-08-15T12:00:00Z", "F", 9920001],
+    ["f3-0825", "2026-08-25T12:00:00Z", "F", 9920003],
+    ["f3-0905", "2026-09-05T12:00:00Z", "F", 9920003]
+  ],
+  "casos": {
+    "CB-1": {
+      "nota": "Interseção das três na janela base.",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "e",
+      "esperado": { "estado": "com_celulas", "celulas": [["A", ["concentracao", "recorrencia", "persistencia"]]] }
+    },
+    "CB-2": {
+      "nota": "União das três na janela base, na ordem T13 (norte→sul, oeste→leste).",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "ou",
+      "esperado": {
+        "estado": "com_celulas",
+        "celulas": [
+          ["A", ["concentracao", "recorrencia", "persistencia"]],
+          ["B", ["recorrencia", "persistencia"]],
+          ["C", ["concentracao"]],
+          ["D", ["concentracao", "recorrencia"]],
+          ["E", ["persistencia"]],
+          ["F", ["concentracao"]]
+        ]
+      }
+    },
+    "CB-3": {
+      "nota": "Pares com \"e\" na janela base.",
+      "pares": [
+        { "lentes": ["concentracao", "recorrencia"], "celulas": ["A", "D"] },
+        { "lentes": ["concentracao", "persistencia"], "celulas": ["A"] },
+        { "lentes": ["recorrencia", "persistencia"], "celulas": ["A", "B"] }
+      ]
+    },
+    "CB-4": {
+      "nota": "Projeção P1 e evidência na célula A (\"e\" das três).",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "e", "celula": "A",
+      "esperado": {
+        "id_combinado": "combinacao:e:concentracao+recorrencia+persistencia:celula_005:c-251_-1130",
+        "criterios": [
+          {
+            "lente": "concentracao",
+            "ressalvas": ["a célula também tem 4 de 10 detecções de município não destacado pela concentração"],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920001",
+                "motivo": "6 detecções nesta célula de Fictício Um, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "evidencia": { "deteccoes": ["a1-0820", "a1-0920", "a1-1005", "a1-1006", "a1-1007", "a1-1025"], "datas": [] },
+                "ressalvas": []
+              }
+            ]
+          },
+          {
+            "lente": "recorrencia",
+            "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "recorrencia:celula_005:c-251_-1130",
+                "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.",
+                "evidencia": { "deteccoes": ["a1-0820", "a1-0920", "a1-1005", "a1-1006", "a1-1007", "a1-1025", "a2-0821", "a2-0921", "a2-1015", "a2-1028"], "datas": ["2026-08", "2026-09", "2026-10"] },
+                "ressalvas": []
+              }
+            ]
+          },
+          {
+            "lente": "persistencia",
+            "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-05",
+                "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 05/10/2026 a 07/10/2026.",
+                "evidencia": { "deteccoes": ["a1-1005", "a1-1006", "a1-1007"], "datas": ["2026-10-05", "2026-10-06", "2026-10-07"] },
+                "ressalvas": []
+              }
+            ]
+          }
+        ],
+        "evidencia": ["a1-0820", "a1-0920", "a1-1005", "a1-1006", "a1-1007", "a1-1025", "a2-0821", "a2-0921", "a2-1015", "a2-1028"],
+        "municipios": [9920001, 9920002]
+      }
+    },
+    "CB-5": {
+      "nota": "Projeção com 1 detecção: C entra pela concentração, sem ressalva de projeção.",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "ou", "celula": "C",
+      "esperado": {
+        "criterios": [
+          {
+            "lente": "concentracao", "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920001",
+                "motivo": "1 detecção nesta célula de Fictício Um, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "evidencia": { "deteccoes": ["c1-0915"], "datas": [] },
+                "ressalvas": []
+              }
+            ]
+          }
+        ],
+        "municipios": [9920001]
+      }
+    },
+    "CB-6": {
+      "nota": "Empate D16: mais duas detecções de M2 em B, M1 = 17 e M2 = 17 com n = 1.",
+      "extras": [
+        ["b2-0812", "2026-08-12T12:00:00Z", "B", 9920002],
+        ["b2-0814", "2026-08-14T12:00:00Z", "B", 9920002]
+      ],
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "ou",
+      "esperado": {
+        "destacados": [9920001, 9920002],
+        "celulas": [
+          ["A", ["concentracao", "recorrencia", "persistencia"]],
+          ["B", ["concentracao", "recorrencia", "persistencia"]],
+          ["C", ["concentracao"]],
+          ["D", ["concentracao", "recorrencia"]],
+          ["E", ["concentracao", "persistencia"]],
+          ["F", ["concentracao"]]
+        ],
+        "concentracao": {
+          "A": {
+            "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920001",
+                "motivo": "6 detecções nesta célula de Fictício Um, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "deteccoes": ["a1-0820", "a1-0920", "a1-1005", "a1-1006", "a1-1007", "a1-1025"]
+              },
+              {
+                "id_destaque": "concentracao:municipio:9920002",
+                "motivo": "4 detecções nesta célula de Fictício Dois, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "deteccoes": ["a2-0821", "a2-0921", "a2-1015", "a2-1028"]
+              }
+            ]
+          },
+          "B": {
+            "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920002",
+                "motivo": "7 detecções nesta célula de Fictício Dois, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "deteccoes": ["b2-0810", "b2-0812", "b2-0814", "b2-0920", "b2-0921", "b2-0922", "b2-1010"]
+              }
+            ]
+          },
+          "E": {
+            "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920002",
+                "motivo": "6 detecções nesta célula de Fictício Dois, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "deteccoes": ["e2-0905", "e2-0906", "e2-0907", "e2-0920", "e2-0921", "e2-0922"]
+              }
+            ]
+          },
+          "F": {
+            "ressalvas": ["a célula também tem 2 de 3 detecções de município não destacado pela concentração"],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920001",
+                "motivo": "1 detecção nesta célula de Fictício Um, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "deteccoes": ["f1-0815"]
+              }
+            ]
+          }
+        }
+      }
+    },
+    "CB-7": {
+      "nota": "Persistência por célula e ressalvas calculadas sequência a sequência (célula E, \"ou\" das três).",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "ou", "celula": "E",
+      "disponibilidade": {
+        "restritivos": {
+          "9920002": {
+            "2026-09-08": ["incidencia_indeterminada", "dia indeterminado fictício"],
+            "2026-09-19": ["lacuna_conhecida", "lacuna fictícia"]
+          }
+        },
+        "ausentes": [], "falha": []
+      },
+      "esperado": {
+        "criterios": [
+          {
+            "lente": "persistencia", "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "persistencia:celula_005:c-253_-1128:2026-09-05",
+                "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 05/09/2026 a 07/09/2026.",
+                "evidencia": { "deteccoes": ["e2-0905", "e2-0906", "e2-0907"], "datas": ["2026-09-05", "2026-09-06", "2026-09-07"] },
+                "ressalvas": ["adjacente a dia indeterminado (08/09); pode ser mais longa"]
+              },
+              {
+                "id_destaque": "persistencia:celula_005:c-253_-1128:2026-09-20",
+                "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 20/09/2026 a 22/09/2026.",
+                "evidencia": { "deteccoes": ["e2-0920", "e2-0921", "e2-0922"], "datas": ["2026-09-20", "2026-09-21", "2026-09-22"] },
+                "ressalvas": ["adjacente a dia com lacuna conhecida (19/09); pode ser mais longa"]
+              }
+            ]
+          }
+        ],
+        "evidencia": ["e2-0905", "e2-0906", "e2-0907", "e2-0920", "e2-0921", "e2-0922"],
+        "cobertura": "90 de 92 dias sem evidência de lacuna (cobertura não comprovada)"
+      }
+    },
+    "CB-8": {
+      "nota": "Janela de 01/10 a 31/10: a recorrência toca 1 mês GMT.",
+      "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+      "indisponiveis": [
+        { "lentes": ["recorrencia", "persistencia"], "operador": "e" },
+        { "lentes": ["concentracao", "recorrencia"], "operador": "ou" }
+      ],
+      "indisponibilidade": [{ "lente": "recorrencia", "texto": "recorrência não se aplica a esta janela: a janela toca 1 mês GMT; a recorrência exige pelo menos 3" }],
+      "calculada": {
+        "lentes": ["concentracao", "persistencia"], "operador": "e",
+        "celulas": [["A", ["concentracao", "persistencia"]]],
+        "concentracao_A": {
+          "ressalvas": ["a célula também tem 2 de 6 detecções de município não destacado pela concentração"],
+          "motivo": "4 detecções nesta célula de Fictício Um, município destacado pela concentração (8 detecções na janela; corte em 1, com empatados)",
+          "deteccoes": ["a1-1005", "a1-1006", "a1-1007", "a1-1025"]
+        }
+      }
+    },
+    "CB-9": {
+      "nota": "Janela de 01/08 a 31/08: nenhuma sequência; M1 = 4, M2 = 2 e M3 = 1.",
+      "janela": { "inicio": "2026-08-01", "fim": "2026-08-31" },
+      "lentes": ["concentracao", "persistencia"],
+      "esperado": {
+        "e": { "estado": "sem_celulas", "texto": "Nenhuma célula destacada por todas as lentes escolhidas nesta janela. Isso não indica ausência de focos nem de risco." },
+        "ou": { "estado": "com_celulas", "celulas": [["A", ["concentracao"]], ["D", ["concentracao"]], ["F", ["concentracao"]]] }
+      }
+    },
+    "CB-10": {
+      "nota": "Cobertura da célula A pela união dos municípios de todas as detecções (V1).",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "e", "celula": "A",
+      "disponibilidade": {
+        "restritivos": {
+          "9920001": { "2026-08-03": ["incidencia_indeterminada", "dia indeterminado fictício"] },
+          "9920002": { "2026-08-07": ["lacuna_conhecida", "lacuna fictícia"] }
+        },
+        "ausentes": [], "falha": []
+      },
+      "esperado": {
+        "texto": "90 de 92 dias sem evidência de lacuna (cobertura não comprovada)",
+        "cobertura": {
+          "estado": "completa",
+          "municipios": [9920001, 9920002],
+          "dias_janela": 92,
+          "dias_sem_evidencia_de_lacuna": 90,
+          "demais_dias": [
+            {
+              "dia": "2026-08-03", "classe": "incidencia_indeterminada",
+              "municipios": [
+                { "codigo": 9920001, "classe": "incidencia_indeterminada", "motivos": ["dia indeterminado fictício"] },
+                { "codigo": 9920002, "classe": "sem_evidencia_de_lacuna", "motivos": [] }
+              ]
+            },
+            {
+              "dia": "2026-08-07", "classe": "lacuna_conhecida",
+              "municipios": [
+                { "codigo": 9920001, "classe": "sem_evidencia_de_lacuna", "motivos": [] },
+                { "codigo": 9920002, "classe": "lacuna_conhecida", "motivos": ["lacuna fictícia"] }
+              ]
+            }
+          ]
+        },
+        "ressalvas_persistencia": []
+      }
+    },
+    "CB-11": {
+      "nota": "Como CB-10, primeiro sem a disponibilidade de M2 e depois com M2 em falha.",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "e", "celula": "A",
+      "etapas": [
+        {
+          "disponibilidade": { "restritivos": { "9920001": { "2026-08-03": ["incidencia_indeterminada", "dia indeterminado fictício"] } }, "ausentes": [9920002], "falha": [] },
+          "estado": "pendente", "texto": "cobertura: carregando"
+        },
+        {
+          "disponibilidade": { "restritivos": { "9920001": { "2026-08-03": ["incidencia_indeterminada", "dia indeterminado fictício"] } }, "ausentes": [], "falha": [9920002] },
+          "estado": "falha", "texto": "cobertura não verificada: falha fictícia de leitura"
+        }
+      ],
+      "esperado": {
+        "celulas": [["A", ["concentracao", "recorrencia", "persistencia"]]],
+        "ressalvas_persistencia": ["ressalvas de disponibilidade ainda não verificadas"]
+      }
+    },
+    "CB-12": {
+      "nota": "Janela de 15/08 a 07/10: agosto e outubro parciais; a sequência de A termina no último dia da janela.",
+      "janela": { "inicio": "2026-08-15", "fim": "2026-10-07" },
+      "lentes": ["recorrencia", "persistencia"], "operador": "e",
+      "disponibilidade": { "restritivos": {}, "ausentes": [], "falha": [] },
+      "esperado": {
+        "celulas": [["A", ["recorrencia", "persistencia"]]],
+        "criterios": [
+          {
+            "lente": "recorrencia", "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "recorrencia:celula_005:c-251_-1130",
+                "motivo": "Detecções em 3 meses GMT distintos na janela: ago/2026 (parcial), set/2026 e out/2026 (parcial).",
+                "evidencia": { "deteccoes": ["a1-0820", "a1-0920", "a1-1005", "a1-1006", "a1-1007", "a2-0821", "a2-0921"], "datas": ["2026-08", "2026-09", "2026-10"] },
+                "ressalvas": ["inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)", "inclui mês parcial: out/2026 (janela de 01/10 a 07/10)"]
+              }
+            ]
+          },
+          {
+            "lente": "persistencia", "ressalvas": [],
+            "destaques": [
+              {
+                "id_destaque": "persistencia:celula_005:c-251_-1130:2026-10-05",
+                "motivo": "Detecções em 3 dias GMT consecutivos na célula, de 05/10/2026 a 07/10/2026.",
+                "evidencia": { "deteccoes": ["a1-1005", "a1-1006", "a1-1007"], "datas": ["2026-10-05", "2026-10-06", "2026-10-07"] },
+                "ressalvas": ["sequência no limite da janela; pode ser mais longa"]
+              }
+            ]
+          }
+        ]
+      }
+    },
+    "CB-13": {
+      "nota": "Entradas inconsistentes (ErroLente) e inválidas (ErroCombinacao); nenhuma produz células.",
+      "inconsistentes": ["total do resumo 9 para 10 registros", "coordenada em notação exponencial"],
+      "invalidas": [
+        { "lentes": ["recorrencia"], "operador": "e" },
+        { "lentes": ["recorrencia", "recorrencia"], "operador": "e" },
+        { "lentes": ["recorrencia", "vizinhanca"], "operador": "ou" },
+        { "lentes": ["concentracao", "recorrencia"], "operador": "xor" }
+      ]
+    },
+    "CB-14": {
+      "nota": "Registros embaralhados e lentes em outra ordem: resultado idêntico.",
+      "ordens": [["recorrencia", "persistencia"], ["persistencia", "recorrencia"]],
+      "operador": "ou",
+      "esperado": {
+        "lentes": ["recorrencia", "persistencia"],
+        "ids": [
+          "combinacao:ou:recorrencia+persistencia:celula_005:c-251_-1130",
+          "combinacao:ou:recorrencia+persistencia:celula_005:c-251_-1129",
+          "combinacao:ou:recorrencia+persistencia:celula_005:c-253_-1129",
+          "combinacao:ou:recorrencia+persistencia:celula_005:c-253_-1128"
+        ]
+      }
+    },
+    "CB-15": {
+      "nota": "P1, e não maioria: F entra pela concentração com 1 de 3 detecções de município destacado.",
+      "lentes": ["concentracao", "recorrencia", "persistencia"], "operador": "ou", "celula": "F",
+      "esperado": {
+        "criterios": [
+          {
+            "lente": "concentracao",
+            "ressalvas": ["a célula também tem 2 de 3 detecções de município não destacado pela concentração"],
+            "destaques": [
+              {
+                "id_destaque": "concentracao:municipio:9920001",
+                "motivo": "1 detecção nesta célula de Fictício Um, município destacado pela concentração (17 detecções na janela; corte em 1, com empatados)",
+                "evidencia": { "deteccoes": ["f1-0815"], "datas": [] },
+                "ressalvas": []
+              }
+            ]
+          }
+        ],
+        "municipios": [9920001, 9920003]
+      }
+    },
+    "CB-16": {
+      "nota": "Janela de 01/05 a 31/07 sem registros: as três lentes rodam e não destacam nada.",
+      "janela": { "inicio": "2026-05-01", "fim": "2026-07-31" },
+      "lentes": ["concentracao", "recorrencia", "persistencia"],
+      "esperado": {
+        "ou": "Nenhuma célula destacada por qualquer das lentes escolhidas nesta janela. Isso não indica ausência de focos nem de risco.",
+        "e": "Nenhuma célula destacada por todas as lentes escolhidas nesta janela. Isso não indica ausência de focos nem de risco."
+      }
+    }
+  }
+}

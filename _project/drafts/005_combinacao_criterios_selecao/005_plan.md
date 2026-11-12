@@ -1,7 +1,7 @@
 # Plano de Implementação — Combinação de critérios de seleção
 
 > **Ciclo:** `005`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-11
 > **Última atualização:** 2026-11-11
@@ -39,6 +39,10 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merges, a implementação das issues nem a verificação em produção. Cada um desses passos tem frase própria.
+
+**Publicação e issues.** A PR documental #41 foi integrada em 2026-11-11 (`26fc09c`). As issues #42 (item 1) e #43 (item 2) foram criadas em 2026-11-11.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #42" recebida em 2026-11-12. A task `005_task_issue-42.md` é o artefato ativo; somente o item 1 está em execução.
 
 **Autorização da correção — v2, 2026-11-11 (histórico):** "corrija o plano do ciclo 005", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova: T8 a T14 continuam propostas a ratificar na aprovação.
 
@@ -344,14 +348,14 @@ A concessão não dispensa a conferência da precondição.
 
 ## Decomposição em issues e PRs
 
-| Unidade planejada | Issue a criar após aprovação e integração documental | Dependência | PR / fechamento |
+| Unidade planejada | Issue | Dependência | PR / fechamento |
 | :-- | :-- | :-- | :-- |
 | Plano completo | Sem issue documental | Revisão e aprovação do plano | `chore/cycle-005-plan`; inclui ideação, plano e registro do ciclo; merge próprio |
-| Item 1 | `[FEATURE] Regra de combinação de lentes por célula de 0,05°` | Plano integrado e payload confirmado | `feature/issue-N`; uma PR; fecha a issue ao integrar |
-| Item 2 | `[FEATURE] Interface mínima da combinação de lentes` | Item 1 integrado | `feature/issue-N`; uma PR; fecha a issue ao integrar; a verificação em produção vem depois e é registrada no encerramento |
+| Item 1 | [#42 — Regra de combinação de lentes por célula de 0,05°](https://github.com/EuThiagoAndrade/rastro-quente/issues/42) | Plano integrado e payload confirmado | `feature/issue-42`; uma PR; fecha a issue ao integrar |
+| Item 2 | [#43 — Interface mínima da combinação de lentes](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) | Item 1 integrado antes da implementação | `feature/issue-43`; uma PR; fecha a issue ao integrar; a verificação em produção vem depois e é registrada no encerramento |
 | Encerramento | Sem issue | Itens integrados e verificação em produção registrada | `chore/cycle-005-closure`; encerramento prospectivo; merge próprio |
 
-Os números de issue não existem nesta etapa. Cada payload é apresentado e confirmado antes da criação. A task `005_task_issue-N.md` é criada ao iniciar cada implementação.
+As duas issues foram criadas em 2026-11-11 após autorização humana; os corpos seguem o escopo e os critérios do plano aprovado e os campos do Issue Form. A task `005_task_issue-N.md` é criada ao iniciar cada implementação.
 
 ## Dependências e blockers
 
@@ -396,7 +400,7 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 
 ## Referências
 
-- `.agent/ai_behavior.md`, `_project/README.md`, `_project/cycles.md`, `.agent/workflows/rascunhar_plano.md` e `.agent/templates/plano_implementacao.md`, lidos no ponto de uso em 2026-11-11.
+- `.agent/ai_behavior.md`, `_project/README.md`, `_project/cycles.md`, `.agent/workflows/rascunhar_plano.md`, `.agent/workflows/criar_issues.md`, `.agent/templates/plano_implementacao.md`, `.github/ISSUE_TEMPLATE/feature_request.yml`, lidos no ponto de uso em 2026-11-11.
 - Ideação `005` (Q1 a Q9, exploração e verificações pedidas); `_project/backlog.md` (BL-005) em `2e31651`.
 - Plano `004` v3 (contrato C1, T1 a T7, orçamento e procedimento de medição); `004_research_conferencia_lentes.md` (identidade da carga, números e bytes por parte); KB-005; KB-003; KB-004; ADR-005; ADR-007.
 - `src/lentes/contrato.ts`, `comum.ts`, `cobertura.ts`, `grade.ts`, `carregar.ts`, `concentracao.ts`, `recorrencia.ts` e `persistencia.ts`; `src/app.ts` (`aplicarLente`, `MemoriaLente` e `geracaoLente`); `src/apresentacao-lentes.ts`; `index.html`; `package.json`.
@@ -405,9 +409,11 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
-| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), aberta em 2026-11-11 |
+| Issue(s) | [#42 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/issues/42); [#43 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) |
+| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), aguardando merge |
 | Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, publicada, base `2e316513edc2b421de1a81c188017fb5de138dd2`, com a ideação, o plano e o registro do ciclo |
+| Branch do item 1 | `feature/issue-42`, base `26fc09c8191fb0b3fb4aa21ae625e630a67a49f2` |
+| Entrega do item 1 | `src/lentes/combinacao.ts`, `tests/unit/combinacao.test.mjs`, `tests/fixtures/lentes/combinacao.json`, `scripts/lentes/conferir-combinacao.mjs`, script `conferir:combinacao`, KB-005 e `005_research_conferencia_combinacao.md`; registro em `005_task_issue-42.md` |
 | Destino após conclusão | `_project/executed/005_combinacao_criterios_selecao/005_plan.md` |
 
 ## Próximo passo
@@ -416,8 +422,8 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 005 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #41 (https://github.com/EuThiagoAndrade/rastro-quente/pull/41)
-Diga: "aprovo o merge da PR #41"
+Conferir: Checks e diff da PR #44 (https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
+Diga: "aprovo o merge da PR #44"
 ```
 
 ## Handoff de saída
@@ -434,6 +440,22 @@ Diga: "aprovo o merge da PR #41"
   - PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/41;
   - lote limitado a ideação, plano e registro do ciclo; 55 testes de governança aprovados, validador sem erros ou avisos, `git diff --check` sem erros e varredura G3 sem e-mail ou UUID.
 - `blockers`: nenhum para a publicação. A integração depende de checks verdes e de "aprovo o merge da PR #41". As issues dependem da integração documental e da confirmação dos payloads; nenhuma implementação está autorizada.
+
+### Registro posterior — criação das issues
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + criar_issues + items-1-2 + plan-v2@merge-PR41-26fc09c`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v2` aprovado e integrado pela PR #41 (squash `26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); ciclo `005` em `Planejamento`; nenhuma issue correspondente ao ciclo encontrada no GitHub.
+- `state_after`: issues #42 (item 1) e #43 (item 2) criadas e abertas com os payloads confirmados; ciclo `005` segue em `Planejamento`; implementação não autorizada; próximo passo aguardando autorização para a issue #42.
+- `result`: `executed`
+- `evidence`:
+  - autorização humana: "Confirmo aqui a aprovação para criar as issues no Github"; confirmação dos payloads: "Confirmo os dois payloads";
+  - PR #41 integrada; busca anterior à criação não encontrou issue `005` nem duplicatas pelos títulos;
+  - [Issue #42](https://github.com/EuThiagoAndrade/rastro-quente/issues/42), título `[FEATURE] Regra de combinação de lentes por célula de 0,05°`, aberta em 2026-11-11;
+  - [Issue #43](https://github.com/EuThiagoAndrade/rastro-quente/issues/43), título `[FEATURE] Interface mínima da combinação de lentes`, aberta em 2026-11-11;
+  - os corpos efetivos seguem os escopos e critérios aprovados e os campos de `.github/ISSUE_TEMPLATE/feature_request.yml`. A confirmação textual chegou antes da apresentação dos corpos completos; essa ordem fica registrada para não alegar revisão textual que não ocorreu. Nenhum escopo foi acrescentado ao plano.
+- `blockers`: nenhum para a criação; a implementação do item 1 depende de autorização própria, e o item 2 depende da integração do item 1.
 
 ### Registro anterior — correção v2
 
