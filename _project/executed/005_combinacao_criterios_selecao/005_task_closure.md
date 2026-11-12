@@ -55,7 +55,7 @@ Não se aplica.
 - [x] Mover plano, relatório e tasks para `_project/executed/005_combinacao_criterios_selecao/` e definir o encerramento prospectivo.
 - [x] Atualizar `cycles.md`, README, KB-003 e KB-005; manter o retorno do BL-005 para uma ação separada.
 - [x] Executar o validador de governança e `git diff --check`; revisar diff e privacidade.
-- [x] Publicar a PR própria do encerramento ([#46](https://github.com/EuThiagoAndrade/rastro-quente/pull/46)); conferir os checks e aguardar aprovação específica do merge.
+- [x] Publicar a PR própria do encerramento ([#46](https://github.com/EuThiagoAndrade/rastro-quente/pull/46)); os três checks passaram no run 43253796114. Merge pendente de aprovação específica.
 
 ## Evidências
 
@@ -67,7 +67,7 @@ Não se aplica.
 | Verificação em produção | Dispensada pelo responsável. Deploy informado com prefixo `f48d876`; identidade integral, contagens, tempos, bytes e `Content-Encoding` hospedados não foram observados. Não comprova comportamento em produção. |
 | Validador de governança | 0 erros, 0 avisos e 9 itens de conferência manual. |
 | `git diff --check` e revisão do diff | Sem erros. Revisão limitada aos documentos do ciclo e às KBs; nenhum código, dado local ou segredo incluído; referências do ciclo atualizado resolvidas. A ideação preserva a referência histórica ao rascunho original. |
-| Checks da PR de encerramento | Pendente na PR [#46](https://github.com/EuThiagoAndrade/rastro-quente/pull/46). |
+| Checks da PR de encerramento | Run 43253796114: Validate governance, Database RLS and query contract e Interface typecheck, build and E2E, todos verdes no commit `f4ef8f8de3f22d2557a1c3da14b69a34e2b4f865`. |
 
 ## Revisão da correção
 
@@ -99,9 +99,9 @@ Diga: —
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + atualizar_docs + encerramento + f48d876db22d216487313ae0bb8e854bcd9eaa6a`
 - `effect_class`: `remote_mutation`
 - `state_before`: ciclo 005 `Em execução`; PRs #41, #44 e #45 integradas; issues #42 e #43 fechadas; decisão do responsável de dispensar a verificação hospedada registrada na task #43; branch `chore/cycle-005-closure` na base `f48d876`.
-- `state_after`: documentação consolidada e encerramento prospectivo preparado nesta branch; PR #46 publicada, aguardando checks e aprovação específica do merge.
+- `state_after`: documentação consolidada e encerramento prospectivo preparado nesta branch; PR #46 publicada; os três checks verdes no run 43253796114; merge aguardando aprovação específica.
 - `result`: `executed`
-- `evidence`: PRs #41, #44, #45 e #46; commit documental `53c5d0c`; run de `main` 43241355583; relatório local do ciclo; decisão do responsável na task #43; diff revisado e validações locais listadas acima.
+- `evidence`: PRs #41, #44, #45 e #46; commits documentais `53c5d0c` e `f4ef8f8`; run de `main` 43241355583 e run da PR de encerramento 43253796114; relatório local do ciclo; decisão do responsável na task #43; diff revisado e validações locais listadas acima.
 - `blockers`: o merge da PR #46 depende de checks verdes e de "aprovo o merge da PR #46"; o retorno de BL-005 requer workflow e autorização próprios.
 
 ## Referência do bootstrap
