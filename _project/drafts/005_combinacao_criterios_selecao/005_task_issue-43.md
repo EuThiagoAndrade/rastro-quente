@@ -2,12 +2,12 @@
 
 > **Ciclo:** `005`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#43`
 > **Plano:** `_project/drafts/005_combinacao_criterios_selecao/005_plan.md`
 > **Branch:** `feature/issue-43`
-> **PR:** —
+> **PR:** [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #43" em 2026-11-12
 > **Modo contínuo:** `—`
@@ -54,7 +54,7 @@ Não se aplica.
 - [x] Commit do código (`6b61568`); `conferir:combinacao` e medição nesse commit.
 - [x] Medição das 8 configurações e das três lentes na janela inteira: 3 configurações "ou" fora do orçamento de tempo; parada registrada e decidida pelo responsável (alternativa 1, desvio aceito).
 - [x] Runbook (seção 10), KB-005, relatório e roteiro de verificação em produção.
-- [ ] Gates locais, PR e bloco "Aguardando merge".
+- [x] Gates locais; publicar `feature/issue-43` (base `origin/main` em `caaa7d8` conferida, sem branch remota ou PR anterior), abrir a PR [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45) com `Closes #43` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -132,19 +132,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 005 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 005"
+Situação: Aguardando merge — ciclo 005 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #45 (https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
+Diga: "aprovo o merge da PR #45"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + implementar_issue + 43 + caaa7d8`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: item 1 integrado (PR #44); issue #43 aberta; nenhuma branch, task ou PR do item 2.
-- `state_after`: branch local `feature/issue-43` com o código (`6b61568`) e a documentação; conferência `conferido`; medição com 3 configurações fora do orçamento de tempo e desvio aceito pelo responsável. Nada publicado; nenhuma PR.
+- `state_after`: branch local `feature/issue-43` com o código (`6b61568`) e a documentação; conferência `conferido`; medição com 3 configurações fora do orçamento de tempo e desvio aceito pelo responsável. Branch publicada e PR #45 aberta para `main` com `Closes #43`, aguardando checks e merge; task `Aguardando integração`.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a implementação da issue #43" (2026-11-12); decisão do responsável pela alternativa 1 (2026-11-12); tabela "Evidências" e seção "Parada do orçamento"; `local/dados-prototipo/medicao-lentes.json` e `conferencia-combinacao.json` (fora do Git).
-- `blockers`: nenhum para a publicação.
+- `blockers`: nenhum para a publicação. O merge depende de checks verdes e de "aprovo o merge da PR #45"; a verificação em produção, de autorização própria depois do merge.
