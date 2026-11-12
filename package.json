@@ -19,6 +19,7 @@
     "test:e2e": "supabase db reset && playwright test",
     "medir:interface": "supabase db reset && node scripts/interface/medir-geometria.mjs",
     "conferir:lentes": "supabase db reset && node scripts/lentes/conferir.mjs",
+    "conferir:combinacao": "supabase db reset && node scripts/lentes/conferir-combinacao.mjs",
     "medir:lentes": "supabase db reset && node scripts/interface/medir-lentes.mjs"
   },
   "devDependencies": {
