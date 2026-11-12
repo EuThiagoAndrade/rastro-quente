@@ -1,10 +1,10 @@
 # Plano de Implementação — Combinação de critérios de seleção
 
 > **Ciclo:** `005`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-11
-> **Última atualização:** 2026-11-11
+> **Última atualização:** 2026-11-12
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -44,7 +44,9 @@ Não cobre merges, a implementação das issues nem a verificação em produçã
 
 **Execução do item 1:** autorização literal "autorizo a implementação da issue #42" recebida em 2026-11-12. Integrado pela PR #44 em 2026-11-12 (`caaa7d8`); task `005_task_issue-42.md` `Concluída`.
 
-**Execução do item 2:** autorização literal "autorizo a implementação da issue #43" recebida em 2026-11-12, depois da integração do item 1. A task `005_task_issue-43.md` é o artefato ativo; somente o item 2 está em execução. A medição parou com 3 uniões fora do orçamento de tempo (bytes dentro); em 2026-11-12 o responsável escolheu a alternativa 1 (aceitar com progresso visível e registrar o desvio), com a otimização adiada. Registro na task, seção "Parada do orçamento".
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #43" recebida em 2026-11-12, depois da integração do item 1. A PR #45 foi integrada por squash em 2026-11-12 (`f48d876`); a task `005_task_issue-43.md` está `Concluída`. A medição local teve 3 uniões fora do orçamento de tempo (bytes dentro); o responsável escolheu a alternativa 1, com progresso visível e otimização adiada. Evidências na task e no relatório.
+
+**Decisão do responsável sobre a verificação em produção — 2026-11-12:** depois de autorizar a etapa, o responsável decidiu dispensar o roteiro hospedado e confiar nas evidências locais para ganhar velocidade. A decisão está registrada na task da issue #43. O responsável informou que o deploy servido pela Vercel começa por `f48d876`, mas não executou o roteiro: identidade da carga, contagens, tempos, bytes e `Content-Encoding` de produção não foram observados. Este é um desvio explícito do plano aprovado; o encerramento não afirma nem certifica o comportamento hospedado.
 
 **Autorização da correção — v2, 2026-11-11 (histórico):** "corrija o plano do ciclo 005", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova: T8 a T14 continuam propostas a ratificar na aprovação.
 
@@ -345,7 +347,7 @@ A concessão não dispensa a conferência da precondição.
 ## Arquivos afetados
 
 - **Nesta redação:** este plano; a ideação (registro da autorização do rascunho, do novo artefato ativo e do handoff); a linha do ciclo `005` em `_project/cycles.md` (`Planejamento` e link do plano). Na correção v2, só este plano e a descrição do plano em `cycles.md` (R1-8).
-- **Na execução proposta:** `src/lentes/combinacao.ts`; exportações mínimas em `src/lentes/*.ts`, se necessárias; `src/app.ts`; `src/apresentacao-lentes.ts` ou `src/apresentacao-combinacao.ts`; `src/mapa.ts` (só se a camada precisar de ajuste); `index.html`; `src/estilos/*.css` (só componentes novos, sem redesenho); `tests/unit/combinacao.test.mjs`; `tests/fixtures/lentes/combinacao.json`; `tests/e2e/06-combinacao.spec.mjs`; `tests/e2e/fixture.mjs`; `scripts/lentes/conferir-combinacao.mjs`; `scripts/interface/medir-lentes.mjs`; `package.json` (script `conferir:combinacao`, sem dependência nova); `docs/runbook.md` (seção 10); KB-005; `_project/drafts/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md`; e as tasks do ciclo. No encerramento: KB-003 (seleção explicável), README se cabível e o registro do ciclo.
+- **Na execução proposta:** `src/lentes/combinacao.ts`; exportações mínimas em `src/lentes/*.ts`, se necessárias; `src/app.ts`; `src/apresentacao-lentes.ts` ou `src/apresentacao-combinacao.ts`; `src/mapa.ts` (só se a camada precisar de ajuste); `index.html`; `src/estilos/*.css` (só componentes novos, sem redesenho); `tests/unit/combinacao.test.mjs`; `tests/fixtures/lentes/combinacao.json`; `tests/e2e/06-combinacao.spec.mjs`; `tests/e2e/fixture.mjs`; `scripts/lentes/conferir-combinacao.mjs`; `scripts/interface/medir-lentes.mjs`; `package.json` (script `conferir:combinacao`, sem dependência nova); `docs/runbook.md` (seção 10); KB-005; `_project/executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md`; e as tasks do ciclo. No encerramento: KB-003 (seleção explicável), README se cabível e o registro do ciclo.
 - **Nunca:** `supabase/migrations/`, `supabase/tests/`, políticas, dados reais ou arquivos de `local/`.
 
 ## Decomposição em issues e PRs
@@ -354,8 +356,8 @@ A concessão não dispensa a conferência da precondição.
 | :-- | :-- | :-- | :-- |
 | Plano completo | Sem issue documental | Revisão e aprovação do plano | `chore/cycle-005-plan`; inclui ideação, plano e registro do ciclo; merge próprio |
 | Item 1 | [#42 — Regra de combinação de lentes por célula de 0,05°](https://github.com/EuThiagoAndrade/rastro-quente/issues/42) | Plano integrado e payload confirmado | `feature/issue-42`; uma PR; fecha a issue ao integrar |
-| Item 2 | [#43 — Interface mínima da combinação de lentes](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) | Item 1 integrado antes da implementação | `feature/issue-43`; uma PR; fecha a issue ao integrar; a verificação em produção vem depois e é registrada no encerramento |
-| Encerramento | Sem issue | Itens integrados e verificação em produção registrada | `chore/cycle-005-closure`; encerramento prospectivo; merge próprio |
+| Item 2 | [#43 — Interface mínima da combinação de lentes](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) | Item 1 integrado antes da implementação | `feature/issue-43`; uma PR; fecha a issue ao integrar; decisão sobre verificação em produção registrada no encerramento |
+| Encerramento | Sem issue | Itens integrados e decisão do responsável sobre a verificação em produção registrada | `chore/cycle-005-closure`; encerramento prospectivo; merge próprio |
 
 As duas issues foram criadas em 2026-11-11 após autorização humana; os corpos seguem o escopo e os critérios do plano aprovado e os campos do Issue Form. A task `005_task_issue-N.md` é criada ao iniciar cada implementação.
 
@@ -412,7 +414,7 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#42 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/issues/42); [#43 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) |
-| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), integrada por squash em 2026-11-12 (`caaa7d862ce2fee65385146c9075169abf58edc7`); item 2: [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45), aguardando merge |
+| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), integrada por squash em 2026-11-12 (`caaa7d862ce2fee65385146c9075169abf58edc7`); item 2: [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45), integrada por squash em 2026-11-12 (`f48d876db22d216487313ae0bb8e854bcd9eaa6a`) |
 | Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, publicada, base `2e316513edc2b421de1a81c188017fb5de138dd2`, com a ideação, o plano e o registro do ciclo |
 | Branch do item 1 | `feature/issue-42`, base `26fc09c8191fb0b3fb4aa21ae625e630a67a49f2` |
 | Entrega do item 1 | `src/lentes/combinacao.ts`, `tests/unit/combinacao.test.mjs`, `tests/fixtures/lentes/combinacao.json`, `scripts/lentes/conferir-combinacao.mjs`, script `conferir:combinacao`, KB-005 e `005_research_conferencia_combinacao.md`; registro em `005_task_issue-42.md` |
@@ -424,10 +426,10 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 005 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #45 (https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
-Diga: "aprovo o merge da PR #45"
+Situação: Concluído — ciclo 005 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -578,8 +580,8 @@ Nenhum achado foi contestado. Nenhuma decisão humana nova: T8 a T14 continuam p
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
+- **Data de conclusão:** 2026-11-12 (prospectiva; efetiva após a integração da PR de encerramento).
+- **Desvios:** três configurações de união excederam o orçamento de 20,0 s na medição local, com bytes dentro; desvio aceito pelo responsável e otimização adiada. A verificação em produção, exigida no plano, foi dispensada pelo responsável para ganhar velocidade. O deploy foi informado com o prefixo `f48d876`; não foram observados a identidade integral da carga nem resultados hospedados. A decisão não comprova o comportamento em produção.
 - **Lições comprovadas:** —
 
 ## Referência do bootstrap

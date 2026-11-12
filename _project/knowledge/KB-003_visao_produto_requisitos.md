@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-11"
+last_updated: "2026-11-12"
 origin_cycle: "000"
 ---
 
@@ -66,6 +66,12 @@ Cada destaque traz motivo, evidência, cobertura de disponibilidade e ressalvas.
 
 Na carga vigente e na janela inteira, a concentração destaca 10 municípios, a recorrência 150 células e a persistência 66 sequências. Esses números foram conferidos localmente por SQL independente, e as contagens se repetiram em produção. A verificação hospedada não mediu o tempo pelo procedimento completo; o registro está no encerramento do ciclo.
 
+### Combinação de lentes do ciclo 005
+
+A interface permite combinar de duas a três lentes por célula de 0,05° usando interseção (`e`) ou união (`ou`). A lista paginada e o painel explicam quais critérios destacaram cada célula, com suas evidências, ressalvas e cobertura. A combinação descreve uma seleção para avaliação técnica: não é ranking nem prova de incêndio, dano, autoria ou infração.
+
+A conferência e a medição locais estão no relatório do ciclo. Três configurações de união excederam o orçamento de 20 s no perfil medido; o responsável aceitou esse desvio local e adiou a otimização. A verificação hospedada foi dispensada por decisão do responsável no encerramento, sem resultados de produção observados; este registro não atesta o comportamento hospedado.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -75,6 +81,7 @@ Na carga vigente e na janela inteira, a concentração destaca 10 municípios, a
 
 - Ciclo `003`: issue #24, runbook e ADRs 005 a 007 para banco, carga e interface. A implantação usa as entregas integradas nas PRs #25 a #29.
 - Ciclo `004`: [plano](../executed/004_contrato_lentes_selecao/004_plan.md), [conferência e medição](../executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md) e [encerramento](../executed/004_contrato_lentes_selecao/004_task_closure.md). As entregas foram integradas nas PRs #36 a #38.
+- Ciclo `005`: [plano](../executed/005_combinacao_criterios_selecao/005_plan.md), [conferência e medição](../executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md) e [encerramento](../executed/005_combinacao_criterios_selecao/005_task_closure.md). As entregas foram integradas nas PRs #44 e #45; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 
 ## Histórico
 
@@ -85,3 +92,4 @@ Na carga vigente e na janela inteira, a concentração destaca 10 municípios, a
 | 2026-11-05 | `002` | Comparação documental de três alternativas para S1/S2/S3, insuficiência nos 27 cenários por alternativa, incompatibilidades de rotas específicas, proposta de acesso e provas futuras não executadas; sem arquitetura aceita; ciclo concluído pela PR própria de encerramento |
 | 2026-11-10 | `003` | Recorte, funcionamento e limites verificados do protótipo hospedado |
 | 2026-11-11 | `004` | Lentes de seleção (concentração, recorrência e persistência), limites e verificação hospedada parcial |
+| 2026-11-12 | `005` | Combinação explicável por interseção ou união; desvio de desempenho local aceito; verificação hospedada dispensada, sem resultados de produção |
