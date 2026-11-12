@@ -410,7 +410,7 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#42 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/issues/42); [#43 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) |
-| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`) |
+| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), aguardando merge |
 | Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, publicada, base `2e316513edc2b421de1a81c188017fb5de138dd2`, com a ideação, o plano e o registro do ciclo |
 | Branch do item 1 | `feature/issue-42`, base `26fc09c8191fb0b3fb4aa21ae625e630a67a49f2` |
 | Entrega do item 1 | `src/lentes/combinacao.ts`, `tests/unit/combinacao.test.mjs`, `tests/fixtures/lentes/combinacao.json`, `scripts/lentes/conferir-combinacao.mjs`, script `conferir:combinacao`, KB-005 e `005_research_conferencia_combinacao.md`; registro em `005_task_issue-42.md` |
@@ -420,10 +420,10 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 005 (completo)
+Situação: Aguardando merge — ciclo 005 (completo)
 Quem: Responsável
-Conferir: Issue #42 e escopo do item 1 (https://github.com/EuThiagoAndrade/rastro-quente/issues/42); Issue #43 e sua dependência do item 1 (https://github.com/EuThiagoAndrade/rastro-quente/issues/43)
-Diga: "autorizo a implementação da issue #42"
+Conferir: Checks e diff da PR #44 (https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
+Diga: "aprovo o merge da PR #44"
 ```
 
 ## Handoff de saída

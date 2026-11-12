@@ -2,12 +2,12 @@
 
 > **Ciclo:** `005`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#42`
 > **Plano:** `_project/drafts/005_combinacao_criterios_selecao/005_plan.md`
 > **Branch:** `feature/issue-42`
-> **PR:** —
+> **PR:** [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #42" em 2026-11-12
 > **Modo contínuo:** `—`
@@ -53,7 +53,7 @@ Não se aplica.
 - [x] Commit do código (`6b793c4`) e conferência independente com a carga real nesse commit; relatório `005_research_conferencia_combinacao.md`.
 - [x] KB-005: seção "Combinação", limite de autoridade, módulos, testes, fontes e histórico.
 - [x] Gates locais.
-- [ ] Publicar `feature/issue-42`, abrir a PR com `Closes #42` e gravar o bloco "Aguardando merge".
+- [x] Publicar `feature/issue-42` (base `origin/main` em `26fc09c` conferida, sem branch remota ou PR anterior), abrir a PR [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44) com `Closes #42` e gravar o bloco "Aguardando merge".
 
 ## Evidências
 
@@ -90,19 +90,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 005 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 005"
+Situação: Aguardando merge — ciclo 005 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #44 (https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
+Diga: "aprovo o merge da PR #44"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + implementar_issue + 42 + 26fc09c`
-- `effect_class`: `local_mutation`
-- `state_before`: plano `v2` `Aprovado` e integrado (PR #41); issues #42 e #43 abertas; ciclo `005` em `Planejamento`; nenhuma branch de implementação.
-- `state_after`: branch local `feature/issue-42`; plano `Em Execução`; ciclo `Em execução`; módulo e casos CB implementados; conferência em andamento.
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v2` `Aprovado` e integrado (PR #41); issues #42 e #43 abertas; ciclo `005` em `Planejamento`; nenhuma branch de implementação, branch remota ou PR do item 1.
+- `state_after`: branch `feature/issue-42` publicada, com o código (`6b793c4`) e a documentação; PR #44 aberta para `main` com `Closes #42`, aguardando checks e merge; plano `Em Execução`; ciclo `Em execução`; task `Aguardando integração`.
 - `result`: `executed`
-- `evidence`: casos CB-1 a CB-16 verdes.
-- `blockers`: nenhum até aqui.
+- `evidence`: autorização literal "autorizo a implementação da issue #42" (2026-11-12); casos CB-1 a CB-16 e unitários do ciclo `004` verdes; `conferir:combinacao` e `conferir:lentes` `conferido` no commit `6b793c4`; `test:rls` verde; E2E 48 de 54 localmente, com a falha conhecida de `01-acesso` fora do escopo; validador sem erros; PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/44.
+- `blockers`: o merge depende de checks verdes e de "aprovo o merge da PR #44". O item 2 (#43) depende da integração desta PR e de autorização própria.
