@@ -1,7 +1,9 @@
 // Apresentação das lentes de seleção (plano 004): estado, metadados, parâmetros, lista de destaques,
 // painel de motivo e evidência, e limitações. Todo valor entra por textContent. Nunca "coberto".
+// Os estados da combinação (plano 005, T11) dividem o mesmo cartão e o mesmo `data-estado-lente`.
 import { $, h, tabela } from './apresentacao.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
+import { textoSemCelulas } from './lentes/combinacao.ts';
 import type { Destaque, DiaRestritivo, Janela, RegistroLente, ResultadoLente, TipoLente } from './lentes/contrato.ts';
 import { rotuloMes } from './lentes/recorrencia.ts';
 import { fmtDataHoraGmt, fmtNumero, humanizar, ROTULO_CLASSE } from './formato.ts';
@@ -19,10 +21,16 @@ export interface ContextoLente {
 export type EstadoLente =
   | { tipo: 'nenhuma' }
   | { tipo: 'carregando'; etapa: 'registros' | 'disponibilidade'; feitos: number; total: number }
-  | { tipo: 'completo'; segundos: number }
+  | { tipo: 'completo'; segundos: number; combinacao?: boolean }
   | { tipo: 'sem_destaques'; segundos: number }
   | { tipo: 'janela_insuficiente'; segundos: number; texto: string }
-  | { tipo: 'cobertura_nao_verificada' }
+  | { tipo: 'cobertura_nao_verificada'; combinacao?: boolean }
+  // Combinação (plano 005, T11): sem células no "e" e no "ou", lente escolhida sem aplicação na janela e
+  // versão de dados substituída durante ou depois da aplicação.
+  | { tipo: 'sem_celulas_em_comum'; segundos: number }
+  | { tipo: 'sem_celulas_destacadas'; segundos: number }
+  | { tipo: 'indisponivel'; segundos: number; textos: string[] }
+  | { tipo: 'versao_substituida' }
   | { tipo: 'contorno_indisponivel' }
   | { tipo: 'leitura_inconsistente'; motivo: string }
   | { tipo: 'falha' }
@@ -43,10 +51,16 @@ function textoEstado(e: EstadoLente): string {
     case 'carregando': return e.etapa === 'registros'
       ? `Carregando: registros ${fmtNumero(e.feitos)} de ${fmtNumero(e.total)}…`
       : `Carregando: disponibilidade ${fmtNumero(e.feitos)} de ${fmtNumero(e.total)} municípios…`;
-    case 'completo': return `Lente concluída em ${segundos(e.segundos)} s.`;
+    case 'completo': return `${e.combinacao ? 'Combinação concluída' : 'Lente concluída'} em ${segundos(e.segundos)} s.`;
     case 'sem_destaques': return `Lente concluída em ${segundos(e.segundos)} s, sem destaques nesta janela.`;
     case 'janela_insuficiente': return `Janela insuficiente: ${e.texto} Nenhum destaque; escolha uma janela maior.`;
-    case 'cobertura_nao_verificada': return 'Lente aplicada, mas a cobertura de alguns destaques não foi verificada (falha na leitura da disponibilidade). Os destaques não dependem da disponibilidade; tente de novo para qualificá-los.';
+    case 'cobertura_nao_verificada': return e.combinacao
+      ? 'Combinação aplicada, mas a cobertura de algumas células não foi verificada (falha na leitura da disponibilidade). As células não dependem da disponibilidade; tente de novo para qualificá-las.'
+      : 'Lente aplicada, mas a cobertura de alguns destaques não foi verificada (falha na leitura da disponibilidade). Os destaques não dependem da disponibilidade; tente de novo para qualificá-los.';
+    case 'sem_celulas_em_comum': return `Combinação concluída em ${segundos(e.segundos)} s. ${textoSemCelulas('e')}`;
+    case 'sem_celulas_destacadas': return `Combinação concluída em ${segundos(e.segundos)} s. ${textoSemCelulas('ou')}`;
+    case 'indisponivel': return `Combinação indisponível nesta janela: ${e.textos.join('; ')}. Nenhuma célula foi calculada; escolha uma janela maior ou outras lentes.`;
+    case 'versao_substituida': return 'Combinação cancelada: a versão de dados foi substituída; recarregue a versão vigente e aplique de novo.';
     case 'contorno_indisponivel': return 'Lente aplicada, mas o contorno de algum município destacado está indisponível no mapa; a lista e o painel continuam válidos.';
     case 'leitura_inconsistente': return `Leitura inconsistente (${e.motivo}). Nenhum destaque foi exibido; tente de novo.`;
     case 'falha': return 'Fonte de dados indisponível. Nenhum destaque foi exibido; isso não indica ausência de detecções. Tente de novo.';
@@ -70,14 +84,14 @@ export function limparCorpoLente(): void {
   $('lente-corpo').replaceChildren();
 }
 
-const nomeMunicipio = (codigo: number, nomes: Map<number, string>): string => `${nomes.get(codigo) ?? 'município'} (${codigo})`;
+export const nomeMunicipio = (codigo: number, nomes: Map<number, string>): string => `${nomes.get(codigo) ?? 'município'} (${codigo})`;
 
 function rotuloUnidade(d: Destaque): string {
   return d.unidade.tipo === 'municipio' ? d.unidade.nome : `Célula ${d.unidade.sul} a ${d.unidade.norte} · ${d.unidade.oeste} a ${d.unidade.leste}`;
 }
 
 /** "2026-10-12" → "12/10/2026". */
-const dataBr = (dia: string): string => `${dia.slice(8, 10)}/${dia.slice(5, 7)}/${dia.slice(0, 4)}`;
+export const dataBr = (dia: string): string => `${dia.slice(8, 10)}/${dia.slice(5, 7)}/${dia.slice(0, 4)}`;
 
 function rotuloDestaque(lente: TipoLente, d: Destaque): string {
   const deteccoes = `${fmtNumero(d.evidencia.deteccoes.length)} detecções`;
@@ -112,7 +126,7 @@ function tabelaEvidencia(d: Destaque, ctx: ContextoLente, m: ManipuladoresLente)
 }
 
 /** Município do dia, com a classe e os motivos daquele município, sem fundir motivos (T7). */
-const linhaMunicipio = (x: DiaRestritivo['municipios'][number], nomes: Map<number, string>): string =>
+export const linhaMunicipio = (x: DiaRestritivo['municipios'][number], nomes: Map<number, string>): string =>
   `${nomeMunicipio(x.codigo, nomes)}: ${ROTULO_CLASSE[x.classe].rotulo}${x.motivos.length ? ` (${x.motivos.map(humanizar).join('; ')})` : ''}`;
 
 function painel(lente: TipoLente, janela: Janela, d: Destaque, ctx: ContextoLente, m: ManipuladoresLente): HTMLElement {

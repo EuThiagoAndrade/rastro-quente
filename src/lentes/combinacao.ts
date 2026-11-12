@@ -3,8 +3,9 @@
 // se for destaque dela e pela persistência se tiver pelo menos uma sequência (S1). "e" é a interseção e "ou" a
 // união das células das 2 ou 3 lentes escolhidas. `combinar` calcula ela mesma as lentes, sobre a mesma entrada
 // já lida e conferida (T8), e nunca recebe resultados prontos. Ordem fixa pela posição da célula (T13): não há
-// pontuação, contagem de lentes nem ordem por critério. Combinar torna a seleção mais específica, não mais
-// verdadeira; destaques orientam avaliação técnica e não comprovam incêndio, dano, autoria ou infração.
+// pontuação, contagem de lentes nem ordem por critério. Combinar não torna a seleção mais verdadeira: "e" a
+// torna mais específica e "ou" a amplia; destaques orientam avaliação técnica e não comprovam incêndio, dano,
+// autoria ou infração.
 import { qualificarCobertura, ressalvasDeClasse } from './cobertura.ts';
 import { concentracao, LIMITACOES_CONCENTRACAO, N_PADRAO } from './concentracao.ts';
 import {
@@ -32,8 +33,11 @@ export const NOME_LENTE: Record<TipoLente, string> = {
 
 export const PARAMETRO_PROJECAO = 'a célula entra pela concentração se tiver pelo menos 1 detecção de município destacado';
 
-export const LIMITACAO_ESPECIFICA =
-  'Combinar critérios torna a seleção mais específica, não mais verdadeira. A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias.';
+/** Limitação geral da combinação, com o efeito de cada operador (R2-1 do plano 005). */
+export const LIMITACAO_OPERADOR: Record<Operador, string> = {
+  e: 'Combinar critérios com "e" torna a seleção mais específica, não mais verdadeira: só entram as células destacadas por todas as lentes escolhidas. A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias.',
+  ou: 'Combinar critérios com "ou" amplia a seleção, sem torná-la mais verdadeira: entram as células destacadas por qualquer das lentes escolhidas. A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias.',
+};
 export const LIMITACAO_PROJECAO =
   'A concentração entra na célula por projeção: a célula conta se tiver pelo menos 1 detecção de município destacado. A célula não segue divisas.';
 export const LIMITACAO_INTERSECAO = 'Nenhuma célula em comum não indica ausência de focos nem de risco.';
@@ -236,7 +240,7 @@ export function calcularCombinacao(
     ...LIMITACOES_COMUNS,
     ...LIMITACOES_CELULA,
     ...(lentes.includes('concentracao') ? LIMITACOES_CONCENTRACAO : []),
-    LIMITACAO_ESPECIFICA,
+    LIMITACAO_OPERADOR[operador],
     ...(lentes.includes('concentracao') ? [LIMITACAO_PROJECAO] : []),
     ...(operador === 'e' ? [LIMITACAO_INTERSECAO] : []),
   ];

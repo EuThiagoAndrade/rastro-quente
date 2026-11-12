@@ -283,3 +283,115 @@ function disponibilidadePersistencia() {
 export function sqlFixturePersistencia() {
   return sqlCargaCelulas(IDENTIDADE_PERSISTENCIA, '2026-10-01T00:00Z', '2026-11-01T00:00Z', deteccoesPersistencia(), disponibilidadePersistencia());
 }
+
+// Ciclo 005, issue #43 — carga fictícia de junho a outubro/2026 (153 dias GMT) para a combinação de lentes, com
+// 12 municípios inventados (99000xx). Valores esperados derivados à mão (grade T1: índice = piso de coordenada × 20;
+// concentração com N = 10):
+// - contagens: Alfa 70, Beta 20, Gama 12, Delta 11, Epsilon 10, Zeta 9, Eta 8, Teta 7, Iota 6, Capa 5 → os 10
+//   destacados, sem empate no 10º; Lambda 2 e Mi 1 não são destacados. Total 161;
+// - célula X c-221_-1140 [−11,05; −11,00) × [−57,00; −56,95): Alfa em 20/08, 20/09, 05/10, 06/10 e 07/10 e Mi em
+//   25/10 → concentração por projeção (5 de Alfa; ressalva "1 de 6"), recorrência (3 meses, 6 detecções) e
+//   persistência (05–07/10, 3 detecções). Cobertura por Alfa e Mi: 151 de 153;
+// - célula Y c-221_-1138 [−11,05; −11,00) × [−56,90; −56,85): Beta em 05–07/09 e 20–22/09 → concentração e duas
+//   sequências; Beta indeterminada em 08/09 e com lacuna conhecida em 19/09 → cada sequência com a sua ressalva
+//   (R1-1). Cobertura 151 de 153;
+// - célula Z c-223_-1140: Gama em 10/08, 10/09 e 10/10 → concentração e recorrência. Cobertura 153 de 153;
+// - célula W c-225_-1140: Lambda (não destacado) em 15 e 16/08 → nenhuma lente;
+// - 144 células de preenchimento, uma detecção cada (Alfa 65, Beta 14, Gama 9, Delta 11, Epsilon 10, Zeta 9, Eta 8,
+//   Teta 7, Iota 6, Capa 5), em 9 faixas de 16 células ao sul de −11,50, de 01/08 a 30/09 → só concentração.
+// Janela inteira: "as três, e" = X; "as três, ou" = 147 células (X, Y, Z e as 144), em 3 páginas de 50;
+// "concentração e recorrência" = X e Z; "concentração e persistência" = X e Y; "recorrência e persistência" = X.
+// Agosto, "concentração e persistência": sem célula em comum. 01/06 a 31/08, "recorrência ou persistência": sem
+// células destacadas (a janela toca 3 meses). Outubro, "recorrência e persistência": indisponível.
+export const IDENTIDADE_COMBINACAO = `${PREFIXO}5`;
+export const MUNICIPIOS_COMBINACAO = {
+  alfa: { codigo: 9900001, nome: 'Município Alfa', preenchimento: 65 },
+  beta: { codigo: 9900002, nome: 'Município Beta', preenchimento: 14 },
+  gama: { codigo: 9900003, nome: 'Município Gama', preenchimento: 9 },
+  delta: { codigo: 9900004, nome: 'Município Delta', preenchimento: 11 },
+  epsilon: { codigo: 9900005, nome: 'Município Epsilon', preenchimento: 10 },
+  zeta: { codigo: 9900006, nome: 'Município Zeta', preenchimento: 9 },
+  eta: { codigo: 9900007, nome: 'Município Eta', preenchimento: 8 },
+  teta: { codigo: 9900008, nome: 'Município Teta', preenchimento: 7 },
+  iota: { codigo: 9900009, nome: 'Município Iota', preenchimento: 6 },
+  capa: { codigo: 9900010, nome: 'Município Capa', preenchimento: 5 },
+  lambda: { codigo: 9900011, nome: 'Município Lambda', preenchimento: 0 },
+  mi: { codigo: 9900012, nome: 'Município Mi', preenchimento: 0 },
+};
+
+function deteccoesCombinacao() {
+  const linhas = [];
+  const add = (id, m, instante, lat, lon) => linhas.push({ id, m, instante, lat, lon, linha: linhas.length + 1 });
+  add('cx1', 'alfa', '2026-08-20T12:00:00Z', -11.02, -56.98);
+  add('cx2', 'alfa', '2026-09-20T12:00:00Z', -11.02, -56.98);
+  for (const d of ['05', '06', '07']) add(`cx10${d}`, 'alfa', `2026-10-${d}T12:00:00Z`, -11.02, -56.98);
+  add('cx6', 'mi', '2026-10-25T12:00:00Z', -11.03, -56.97);
+  for (const d of ['05', '06', '07', '20', '21', '22']) add(`cy09${d}`, 'beta', `2026-09-${d}T09:00:00Z`, -11.02, -56.88);
+  for (const m of ['08', '09', '10']) add(`cz${m}`, 'gama', `2026-${m}-10T15:00:00Z`, -11.12, -56.98);
+  add('cw15', 'lambda', '2026-08-15T12:00:00Z', -11.22, -56.98);
+  add('cw16', 'lambda', '2026-08-16T12:00:00Z', -11.22, -56.98);
+  // Preenchimento: coordenadas em centésimos inteiros, para a forma decimal canônica (T1).
+  let i = 0;
+  for (const [m, x] of Object.entries(MUNICIPIOS_COMBINACAO)) {
+    for (let k = 0; k < x.preenchimento; k += 1, i += 1) {
+      const lat = (-1152 - 5 * Math.floor(i / 16)) / 100;
+      const lon = (-5698 + 5 * (i % 16)) / 100;
+      const dia = new Date(Date.parse('2026-08-01T12:00:00Z') + (i % 61) * 86_400_000).toISOString().replace('.000Z', 'Z');
+      add(`cf${String(i).padStart(3, '0')}`, m, dia, lat, lon);
+    }
+  }
+  return linhas;
+}
+
+function disponibilidadeCombinacao() {
+  const restritos = {
+    alfa: { '2026-08-03': ['lacuna_conhecida', 'aviso_cobre_municipio'] },
+    mi: { '2026-08-07': ['incidencia_indeterminada', 'aviso_parcial_no_municipio'] },
+    beta: {
+      '2026-09-08': ['incidencia_indeterminada', 'aviso_parcial_no_municipio'],
+      '2026-09-19': ['lacuna_conhecida', 'aviso_cobre_municipio'],
+    },
+  };
+  const linhas = [];
+  for (let t = Date.parse('2026-06-01T00:00:00Z'); t <= Date.parse('2026-10-31T00:00:00Z'); t += 86_400_000) {
+    const d = new Date(t).toISOString().slice(0, 10);
+    for (const m of Object.keys(MUNICIPIOS_COMBINACAO)) {
+      const r = restritos[m]?.[d];
+      linhas.push(r ? { m, d, classe: r[0], motivos: [r[1]] } : { m, d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'] });
+    }
+  }
+  return linhas;
+}
+
+/** Publica a carga da combinação no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
+export function sqlFixtureCombinacao() {
+  const id = IDENTIDADE_COMBINACAO;
+  const d = deteccoesCombinacao();
+  const disp = disponibilidadeCombinacao();
+  const mun = Object.values(MUNICIPIOS_COMBINACAO);
+  const codigo = (m) => MUNICIPIOS_COMBINACAO[m].codigo;
+  const linhasD = d.map((x) => `('${x.id}', 'focos', ${x.linha}, 'INPE-C${x.linha}', 'principal', ${tsz(x.instante)}, ${x.lat}::float8, ${x.lon}::float8, ${codigo(x.m)}, 'interior', ${codigo(x.m)}, 99)`).join(',\n');
+  const linhasV = disp.map((x) => `('${x.d}'::date, 'AQUA_M-T', ${codigo(x.m)}, '${x.classe}', array[${x.motivos.map(aspas).join(',')}]::text[], 'verificado', array[]::text[])`).join(',\n');
+  const faixa = (i) => [-58 + i * 0.25, -58 + (i + 1) * 0.25];
+  return `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, metodo)
+values ('${id}', 'AQUA_M-T', '2026-06-01T00:00Z', '2026-11-01T00:00Z', ${d.length}, 0, ${mun.length}, ${disp.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004"}');
+${fontes(id)}
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, v.codigo, v.nome, v.geom::jsonb from public.cargas c, (values
+${mun.map((x, i) => `  (${x.codigo}, '${x.nome}', '${poligono(faixa(i))}')`).join(',\n')}
+) v(codigo, nome, geom) where c.identidade = '${id}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, id_fonte, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao, municipio_inpe, estado_inpe)
+select c.id, v.* from public.cargas c, (values
+${linhasD}
+) v where c.identidade = '${id}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico, avisos)
+select c.id, v.* from public.cargas c, (values
+${linhasV}
+) v where c.identidade = '${id}';
+${aprovar(id)}
+update public.cargas set estado = 'publicada' where identidade = '${id}';
+insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
+commit;`;
+}

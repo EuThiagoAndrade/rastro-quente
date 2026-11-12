@@ -83,12 +83,32 @@
                 <option value="concentracao">Concentração (municípios por contagem)</option>
                 <option value="recorrencia">Recorrência (células de 0,05° com detecções em 3 ou mais meses)</option>
                 <option value="persistencia">Persistência (células de 0,05° com detecções em 3 ou mais dias seguidos)</option>
+                <option value="combinacao">Combinação de lentes</option>
               </select>
             </div>
+          </div>
+          <div id="lente-combinacao" class="escolha-combinacao" hidden>
+            <fieldset class="grupo-opcoes">
+              <legend>Lentes a combinar</legend>
+              <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" /> Concentração</label>
+              <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" /> Recorrência</label>
+              <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
+            </fieldset>
+            <fieldset class="grupo-opcoes">
+              <legend>Operador</legend>
+              <label class="opcao"><input type="radio" name="l-operador" value="e" checked /> e: células destacadas por todas as lentes escolhidas</label>
+              <label class="opcao"><input type="radio" name="l-operador" value="ou" /> ou: células destacadas por pelo menos uma das lentes escolhidas</label>
+            </fieldset>
+            <p class="ajuda">
+              O resultado é por célula de 0,05°, na ordem da posição da célula; não é ranking. Células destacadas por mais lentes
+              não são mais graves nem prioritárias.
+            </p>
           </div>
           <div class="acoes">
             <button id="botao-lente" type="button" class="botao botao--primario">Aplicar lente</button>
           </div>
+          <p id="lente-validacao" class="erro" role="alert" hidden></p>
+          <p id="lente-aviso-config" class="aviso-estado" role="status" hidden>A configuração escolhida mudou; aplique de novo para atualizar.</p>
           <div id="lente-estado" role="status"></div>
           <div id="lente-corpo"></div>
         </section>
