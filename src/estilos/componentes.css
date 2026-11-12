@@ -368,3 +368,54 @@ tr.selecionada td {
 .painel-lente h3 {
   font-size: var(--t-medio);
 }
+
+/* Combinação de lentes (ciclo 005): grupos de escolha com fieldset e legend, alvos de 44 px e painel por
+   critério. Só componentes novos, com os tokens existentes; sem redesenho. */
+.grupo-opcoes {
+  min-width: 0;
+  margin: 0.75rem 0 0;
+  padding: 0.5rem 0.75rem;
+  border: 2px solid var(--contorno-suave);
+  border-radius: var(--raio-pequeno);
+}
+
+.grupo-opcoes legend {
+  padding: 0 0.25rem;
+  font-weight: 700;
+}
+
+.opcao {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--alvo);
+  cursor: pointer;
+}
+
+.opcao input {
+  flex: none;
+  width: 1.25rem;
+  height: 1.25rem;
+  margin: 0;
+  accent-color: var(--acento);
+}
+
+.criterio {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.25rem solid var(--contorno);
+  background: var(--superficie);
+}
+
+.criterio h4 {
+  margin: 0 0 0.25rem;
+  font-size: var(--t-base);
+}
+
+.destaque-original {
+  margin-bottom: 0.5rem;
+}
+
+.destaque-original p {
+  margin: 0.25rem 0;
+}

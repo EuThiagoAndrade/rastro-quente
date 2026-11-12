@@ -110,7 +110,10 @@ Combina 2 ou 3 lentes por interseção ("e") ou união ("ou"), sempre por célul
 - **Ressalva de projeção:** quando a célula tem detecções de município não destacado, o critério da concentração traz "a célula também tem 4 de 10 detecções de município não destacado pela concentração".
 - **Cobertura e ressalvas (V1, T12):** `qualificarCombinacao(resultado, disponibilidade)` aplica o qualificador comum aos municípios de todas as detecções da célula, sempre sobre o resultado de `combinar` (como `qualificar` nas lentes). A seleção nunca depende da cobertura. As ressalvas ficam por lente: a de mês parcial na recorrência (D14); a de borda (T4) e as por classe (D15, T7) na persistência, calculadas **sequência a sequência** com `ressalvasDeClasse(dias da sequência, janela, cobertura da célula)`. Enquanto a cobertura não está `completa`, cada sequência traz "ressalvas de disponibilidade ainda não verificadas".
 - **Ordem (T13):** células de norte a sul e depois de oeste a leste. Não há campo de contagem de lentes, `ordem` nem `ordenacao`: a lista não é ranking.
-- **Parâmetros e limitações:** `parametros` traz os de cada lente, sem edição, e, com a concentração, o da projeção. `limitacoes` traz as comuns, as das células, a da concentração quando ela está entre as lentes e as da combinação: "Combinar critérios torna a seleção mais específica, não mais verdadeira. A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias."; a de projeção, com a concentração; e "Nenhuma célula em comum não indica ausência de focos nem de risco.", só no "e".
+- **Parâmetros e limitações:** `parametros` traz os de cada lente, sem edição, e, com a concentração, o da projeção. `limitacoes` traz as comuns, as das células, a da concentração quando ela está entre as lentes e as da combinação:
+  - a limitação geral, com o efeito do operador (`LIMITACAO_OPERADOR`, R2-1 do plano `005`): no "e", "Combinar critérios com "e" torna a seleção mais específica, não mais verdadeira: só entram as células destacadas por todas as lentes escolhidas."; no "ou", "Combinar critérios com "ou" amplia a seleção, sem torná-la mais verdadeira: entram as células destacadas por qualquer das lentes escolhidas.". As duas terminam com "A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias.";
+  - a de projeção, com a concentração;
+  - "Nenhuma célula em comum não indica ausência de focos nem de risco.", só no "e".
 - **Disponibilidade:** `municipiosDaCombinacao` lista os municípios a ler para qualificar as células.
 
 ### Leitura e erros
@@ -127,12 +130,21 @@ Destino dos erros (`destinoErro`): `acesso_negado`, `sessao_expirada` e `sem_pub
 
 No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida a aplicação em curso. Ela sobe ao aplicar, ao escolher "Nenhuma", ao mudar a janela ou a carga e a cada mudança de sessão. A apresentação está em `src/apresentacao-lentes.ts`, e a camada do mapa (`definirDestaques`) é separada dos pontos da página. Guia em `docs/runbook.md`, seção 10.
 
+A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do mesmo seletor, com a apresentação em `src/apresentacao-combinacao.ts`:
+
+- **Aplicação:** uma leitura (`lerRegistros`, com a memória da lente), `combinar` sobre a entrada conferida e, depois, a disponibilidade dos municípios das células (`municipiosDaCombinacao`), com `qualificarCombinacao` a cada resposta. A mesma `geracaoLente` invalida a aplicação.
+- **Configuração (R1-7):** as lentes e o operador são lidos do formulário uma vez, no clique em "Aplicar lente". Editar o formulário depois não cancela nem muda o resultado; o cabeçalho mostra sempre a configuração do resultado, e o aviso "A configuração escolhida mudou; aplique de novo para atualizar." aparece enquanto o formulário diferir dela. Com menos de 2 lentes marcadas, só aparece "Escolha pelo menos 2 lentes para combinar.", sem tocar a aplicação em curso. "Tentar de novo" repete a configuração aplicada.
+- **Lista e mapa:** 50 células por página ("Células X a Y de M."), na ordem T13, com as lentes que destacaram cada célula por nome e a cobertura; os retângulos ficam na camada de destaques, e a lista declara quantos foram desenhados. Selecionar pelo mapa leva a lista à página da célula.
+- **Painel:** um bloco por critério e, dentro dele, um item por destaque original (cada sequência da persistência com as suas ressalvas e os municípios do dia), a cobertura da célula com os municípios usados e a tabela da evidência em união, paginada em 20, com a coluna "Lentes".
+- **Estados (`data-estado-lente`):** `carregando`, `completo` ("Combinação concluída em X,X s."), `sem_celulas_em_comum` e `sem_celulas_destacadas` (textos de T11), `indisponivel` (nomeando a lente), `cobertura_nao_verificada`, `leitura_inconsistente`, `versao_substituida`, `falha` e `cancelada`.
+
 ### Testes
 
 - `tests/unit/lentes.test.mjs`, com as fixtures fictícias de `tests/fixtures/lentes/`: casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1, X-1, R-1 a R-4 (com coordenada inválida, conferência divergente, determinismo e união D13 na recorrência) e P-1 a P-8 (com a ressalva de cobertura pendente, coordenada inválida, conferência divergente e determinismo na persistência).
 - `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
 - `tests/unit/combinacao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/combinacao.json`: casos CB-1 a CB-16 (operadores, pares, projeção P1 e empate, sequências com ressalvas próprias, indisponibilidade, interseção e união vazias, cobertura por união, pendente e falha, ressalvas por lente, entrada inconsistente ou inválida e determinismo) e o ponto de entrada de produção com N=10.
-- Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao` e `npm run medir:lentes`.
+- `tests/e2e/06-combinacao.spec.mjs`, sobre uma carga fictícia de junho a outubro com 12 municípios inventados: "as três" com "e" e "ou", cabeçalho, parâmetros, limitações e ausência de ranking, lista paginada, painel por critério com a evidência em união, sequências com ressalvas próprias, os estados de T11, cobertura não verificada, leitura inconsistente, falha, cancelada, configuração alterada durante a aplicação (R1-7), concorrência com lente individual e com "Nenhuma", acesso negado, sessão expirada, versão substituída e acessibilidade a 360 e 390 px com toque, 200% e reflow a 320 px.
+- Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao` e `npm run medir:lentes` (no ciclo `005`, as três lentes e as 8 configurações da combinação).
 
 ### Limitações conhecidas
 
@@ -140,6 +152,7 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 - A cobertura de uma célula usa os municípios das detecções, não a área da célula.
 - A cobertura da carga atual é uniforme entre municípios (79 dias indeterminados em toda MT), e o qualificador a exibe mesmo assim.
 - O carregamento da janela inteira trafega os registros completos (medição no relatório do ciclo).
+- Na combinação, as uniões com mais de mil células na janela inteira ("concentração ou recorrência", "concentração ou persistência" e "as três, ou") levam de 41 a 55 s no perfil do ADR-007, acima do orçamento de 20 s; os bytes ficam dentro. Desvio aceito pelo responsável no ciclo `005`, com a otimização adiada (relatório da combinação e task da issue #43).
 
 ## Fontes
 
@@ -159,3 +172,4 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 | 2026-11-11 | `004` | Item 3 (issue #35): lente de persistência, ressalvas por classe (D15, T7) e de borda (T4) |
 | 2026-11-11 | `004` | Encerramento: caminhos para `executed/`; verificação hospedada parcial registrada na task da issue #35 |
 | 2026-11-12 | `005` | Item 1 (issue #42): combinação de lentes por célula, `ResultadoCombinacao` e `combinacao-005-v1`; limite de autoridade ajustado |
+| 2026-11-12 | `005` | Item 2 (issue #43): interface da combinação, estados, E2E e limitação geral por operador (R2-1) |

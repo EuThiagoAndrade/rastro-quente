@@ -1,10 +1,13 @@
 // Ciclo 004, issues #33, #34 e #35 — medição das lentes com a carga REAL local (`npm run medir:lentes`), pelo procedimento
-// do plano 004 ("Orçamento e procedimento de medição"). Perfil do ADR-007: Chrome do sistema, 390×844 com
+// do plano 004 ("Orçamento e procedimento de medição"). Ciclo 005, issue #43: mede também as 8 configurações da
+// combinação (os 3 pares e as três lentes, com "e" e com "ou"), repetindo as três lentes, com a mesma regra de aceite
+// e de parada, e registra por configuração o número de células e de municípios da cobertura.
+// Perfil do ADR-007: Chrome do sistema, 390×844 com
 // toque, latência de 150 ms, 1,6 Mbit/s de descida, 750 kbit/s de subida e CPU 4× mais lenta (CDP).
 // A interface fala com a API local por um proxy em node:http: na passagem "bruta" ele só repassa (a API
 // local não comprime); na "comprimida" aplica gzip nível 6 quando o navegador aceita. O tempo comprimido é
 // medido, não estimado. Início: clique em "Aplicar lente"; fim: `data-estado-lente="completo"` (ou
-// "sem_destaques"). Cache desligado e contexto novo por execução; login antes do início. 3 execuções
+// "sem_destaques" e, na combinação, "sem_celulas_em_comum" ou "sem_celulas_destacadas"). Cache desligado e contexto novo por execução; login antes do início. 3 execuções
 // válidas por lente e passagem (mediana), prazo de 120 s, no máximo 6 tentativas. Imprime só agregados.
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
@@ -27,7 +30,15 @@ const VALIDAS = 3;
 const MAX_TENTATIVAS = 6;
 const ORCAMENTO = { segundosComprimida: 20.0, bytesBrutos: 10_000_000 };
 const LENTES = ['concentracao', 'recorrencia', 'persistencia'];
-const FINAIS = ['completo', 'sem_destaques', 'janela_insuficiente', 'cobertura_nao_verificada', 'contorno_indisponivel', 'leitura_inconsistente', 'falha', 'cancelada'];
+const PARES_E_TRES = [['concentracao', 'recorrencia'], ['concentracao', 'persistencia'], ['recorrencia', 'persistencia'], LENTES];
+/** As três lentes, repetidas, e as 8 configurações da combinação (plano 005, R1-6). */
+const CONFIGURACOES = [
+  ...LENTES.map((l) => ({ nome: l, lente: l })),
+  ...PARES_E_TRES.flatMap((lentes) => ['e', 'ou'].map((operador) => ({ nome: `${lentes.join('+')} (${operador})`, lente: 'combinacao', lentes, operador }))),
+];
+const FINAIS = ['completo', 'sem_destaques', 'janela_insuficiente', 'cobertura_nao_verificada', 'contorno_indisponivel', 'leitura_inconsistente', 'falha', 'cancelada',
+  'sem_celulas_em_comum', 'sem_celulas_destacadas', 'indisponivel', 'versao_substituida'];
+const VALIDOS = ['completo', 'sem_destaques', 'sem_celulas_em_comum', 'sem_celulas_destacadas'];
 
 // --- Proxy de compressão ---------------------------------------------------------------------------
 let modo = 'bruta';
@@ -97,7 +108,7 @@ async function esperarServidor() {
   throw new Error('servidor da interface não subiu');
 }
 
-async function executar(browser, rp, lente) {
+async function executar(browser, rp, config) {
   const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
   const page = await contexto.newPage();
   const cdp = await contexto.newCDPSession(page);
@@ -110,7 +121,11 @@ async function executar(browser, rp, lente) {
     await page.locator('#l-senha').fill(rp.senha);
     await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
     await page.locator('#total-principal').waitFor({ timeout: PRAZO_MS });
-    await page.locator('#l-lente').selectOption(lente);
+    await page.locator('#l-lente').selectOption(config.lente);
+    if (config.lente === 'combinacao') {
+      for (const l of LENTES) await page.locator(`input[name="l-comb"][value="${l}"]`).setChecked(config.lentes.includes(l));
+      await page.locator(`input[name="l-operador"][value="${config.operador}"]`).check();
+    }
     await cdp.send('Network.emulateNetworkConditions', REDE);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     c.zerar();
@@ -123,8 +138,11 @@ async function executar(browser, rp, lente) {
     } catch { /* prazo */ }
     const segundos = Math.round((performance.now() - t0) / 100) / 10;
     const textoApp = (await page.locator('#lente-estado').innerText().catch(() => '')).trim();
-    const valida = estado === 'completo' || estado === 'sem_destaques';
-    return { valida, estado, segundos, textoApp, ...c.resumo() };
+    const valida = VALIDOS.includes(estado ?? '');
+    // Combinação: número de células declarado pela lista ("Células 1 a 50 de M.").
+    const info = config.lente === 'combinacao' ? await page.locator('#lente-celulas-info').innerText().catch(() => '') : '';
+    const celulas = /de ([\d.]+)\.$/.exec(info.trim())?.[1]?.replaceAll('.', '') ?? null;
+    return { valida, estado, segundos, textoApp, celulas: celulas === null ? null : Number(celulas), ...c.resumo() };
   } finally {
     await contexto.close();
   }
@@ -139,7 +157,7 @@ const relatorio = {
   geradoEm: new Date().toISOString(),
   commit: execSync('git rev-parse HEAD', { encoding: 'utf8' }).trim(),
   perfil: { navegador: 'Chrome do sistema (Playwright, channel chrome)', viewport: '390x844 com toque', rede: 'latência 150 ms, 1,6 Mbit/s descida, 750 kbit/s subida', cpu: `${CPU}x mais lenta (CDP)`, cache: 'desligado, contexto novo por execução', proxy: 'node:http local; bruta = repasse sem compressão; comprimida = gzip nível 6' },
-  orcamento: ORCAMENTO, prazoMs: PRAZO_MS, lentes: [],
+  orcamento: ORCAMENTO, prazoMs: PRAZO_MS, configuracoes: [],
 };
 let excedeu = false;
 try {
@@ -155,30 +173,35 @@ try {
   await esperarServidor();
   const browser = await chromium.launch({ channel: 'chrome' });
   relatorio.perfil.versaoChrome = browser.version();
-  for (const lente of LENTES) {
+  for (const config of CONFIGURACOES) {
     const porPassagem = {};
     for (const passagem of ['bruta', 'comprimida']) {
       modo = passagem;
       const validas = [];
       const invalidas = [];
       for (let tentativa = 1; tentativa <= MAX_TENTATIVAS && validas.length < VALIDAS; tentativa += 1) {
-        const r = await executar(browser, rp, lente);
+        const r = await executar(browser, rp, config);
         if (r.valida) validas.push(r);
-        else invalidas.push({ tentativa, estado: r.estado, segundos: r.segundos });
+        else invalidas.push({ tentativa, estado: r.estado, segundos: r.segundos, textoApp: r.textoApp });
       }
       porPassagem[passagem] = {
         validas: validas.length, invalidas,
         medianaSegundos: validas.length >= VALIDAS ? mediana(validas.map((v) => v.segundos)) : null,
         maxSegundos: validas.length ? Math.max(...validas.map((v) => v.segundos)) : null,
         maxBytes: validas.length ? Math.max(...validas.map((v) => v.total.bytes)) : null,
-        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria })),
+        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, celulas: v.celulas, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria })),
       };
     }
     const b = porPassagem.bruta;
     const c = porPassagem.comprimida;
     const dentro = c.medianaSegundos !== null && c.medianaSegundos <= ORCAMENTO.segundosComprimida && b.maxBytes !== null && b.maxBytes <= ORCAMENTO.bytesBrutos && b.validas >= VALIDAS;
     if (!dentro) excedeu = true;
-    relatorio.lentes.push({ lente, dentroDoOrcamento: dentro, ...porPassagem });
+    // Municípios da cobertura: chamadas de disponibilidade (uma por município, com a memória vazia em cada contexto).
+    const todas = [...b.execucoes, ...c.execucoes];
+    const municipios = [...new Set(todas.map((v) => v.disponibilidade.requisicoes))];
+    const celulas = [...new Set(todas.map((v) => v.celulas))];
+    relatorio.configuracoes.push({ configuracao: config.nome, dentroDoOrcamento: dentro, celulas, municipios, ...porPassagem });
+    process.stderr.write(`${config.nome}: ${dentro ? 'dentro' : 'FORA'} (comprimida ${c.medianaSegundos} s; bruta, maior total ${b.maxBytes} bytes)\n`);
   }
   await browser.close();
   relatorio.identidadeNoFim = sqlAdmin(`select identidade from public.cargas where id = ${carga.id};`);
@@ -191,5 +214,5 @@ try {
 relatorio.resultado = excedeu ? 'parado' : 'dentro_do_orcamento';
 await mkdir(LOCAL, { recursive: true });
 await writeFile(path.join(LOCAL, 'medicao-lentes.json'), `${JSON.stringify(relatorio, null, 2)}\n`);
-process.stdout.write(`${JSON.stringify({ ...relatorio, lentes: relatorio.lentes.map((l) => ({ lente: l.lente, dentroDoOrcamento: l.dentroDoOrcamento, bruta: { ...l.bruta, execucoes: undefined }, comprimida: { ...l.comprimida, execucoes: undefined } })) }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ ...relatorio, configuracoes: relatorio.configuracoes.map((l) => ({ configuracao: l.configuracao, dentroDoOrcamento: l.dentroDoOrcamento, celulas: l.celulas, municipios: l.municipios, bruta: { ...l.bruta, execucoes: undefined }, comprimida: { ...l.comprimida, execucoes: undefined } })) }, null, 2)}\n`);
 if (excedeu) process.exitCode = 1;

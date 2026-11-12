@@ -5,7 +5,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import {
-  calcularCombinacao, combinar, ErroCombinacao, LIMITACAO_ESPECIFICA, LIMITACAO_INTERSECAO, LIMITACAO_PROJECAO,
+  calcularCombinacao, combinar, ErroCombinacao, LIMITACAO_INTERSECAO, LIMITACAO_OPERADOR, LIMITACAO_PROJECAO,
   municipiosDaCombinacao, PARAMETRO_PROJECAO, qualificarCombinacao, textoSemCelulas, VERSAO_COMBINACAO,
 } from '../../src/lentes/combinacao.ts';
 import { persistencia } from '../../src/lentes/persistencia.ts';
@@ -64,7 +64,7 @@ test('CB-1: interseção das três — só A, com os três critérios na ordem c
   assert.deepEqual(r.conferencia, { registros_lidos: 34, ids_distintos: 34, total_resumo: 34 });
   assert.deepEqual(r.indisponibilidade, []);
   // Limitações da combinação: a de interseção só no "e"; a de projeção só com a concentração.
-  for (const l of [LIMITACAO_ESPECIFICA, LIMITACAO_PROJECAO, LIMITACAO_INTERSECAO, 'Contagem absoluta favorece municípios grandes.']) {
+  for (const l of [LIMITACAO_OPERADOR.e, LIMITACAO_PROJECAO, LIMITACAO_INTERSECAO, 'Contagem absoluta favorece municípios grandes.']) {
     assert.ok(r.limitacoes.includes(l), l);
   }
   assert.ok(r.parametros.some((p) => p.origem === 'combinacao' && p.valor === PARAMETRO_PROJECAO));
@@ -82,7 +82,13 @@ test('CB-2: união das três — seis células na ordem T13, cada uma com as len
   assert.equal(r.estado, c.esperado.estado);
   assert.deepEqual(resumo(r), esperadoResumo(c.esperado.celulas));
   assert.ok(!r.limitacoes.includes(LIMITACAO_INTERSECAO));
-  assert.ok(r.limitacoes.includes(LIMITACAO_ESPECIFICA));
+  // R2-1: a limitação geral descreve o efeito do operador e mantém o aviso de que a lista não é ranking.
+  assert.ok(r.limitacoes.includes(LIMITACAO_OPERADOR.ou));
+  assert.ok(!r.limitacoes.includes(LIMITACAO_OPERADOR.e));
+  for (const t of Object.values(LIMITACAO_OPERADOR)) {
+    assert.match(t, /não mais verdadeira|sem torná-la mais verdadeira/);
+    assert.match(t, /A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias\.$/);
+  }
   assert.deepEqual(municipiosDaCombinacao(r), [9920001, 9920002, 9920003]);
 });
 

@@ -42,7 +42,9 @@ Não cobre merges, a implementação das issues nem a verificação em produçã
 
 **Publicação e issues.** A PR documental #41 foi integrada em 2026-11-11 (`26fc09c`). As issues #42 (item 1) e #43 (item 2) foram criadas em 2026-11-11.
 
-**Execução do item 1:** autorização literal "autorizo a implementação da issue #42" recebida em 2026-11-12. A task `005_task_issue-42.md` é o artefato ativo; somente o item 1 está em execução.
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #42" recebida em 2026-11-12. Integrado pela PR #44 em 2026-11-12 (`caaa7d8`); task `005_task_issue-42.md` `Concluída`.
+
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #43" recebida em 2026-11-12, depois da integração do item 1. A task `005_task_issue-43.md` é o artefato ativo; somente o item 2 está em execução. A medição parou com 3 uniões fora do orçamento de tempo (bytes dentro); em 2026-11-12 o responsável escolheu a alternativa 1 (aceitar com progresso visível e registrar o desvio), com a otimização adiada. Registro na task, seção "Parada do orçamento".
 
 **Autorização da correção — v2, 2026-11-11 (histórico):** "corrija o plano do ciclo 005", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-8 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova: T8 a T14 continuam propostas a ratificar na aprovação.
 
@@ -410,10 +412,12 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#42 — item 1](https://github.com/EuThiagoAndrade/rastro-quente/issues/42); [#43 — item 2](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) |
-| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), aguardando merge |
+| PR(s) | PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41), integrada por squash em 2026-11-11 (`26fc09c8191fb0b3fb4aa21ae625e630a67a49f2`); item 1: [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44), integrada por squash em 2026-11-12 (`caaa7d862ce2fee65385146c9075169abf58edc7`); item 2: [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45), aguardando merge |
 | Branch(es) | Ideação: `chore/cycle-005-ideation`, sem commits próprios; plano: `chore/cycle-005-plan`, publicada, base `2e316513edc2b421de1a81c188017fb5de138dd2`, com a ideação, o plano e o registro do ciclo |
 | Branch do item 1 | `feature/issue-42`, base `26fc09c8191fb0b3fb4aa21ae625e630a67a49f2` |
 | Entrega do item 1 | `src/lentes/combinacao.ts`, `tests/unit/combinacao.test.mjs`, `tests/fixtures/lentes/combinacao.json`, `scripts/lentes/conferir-combinacao.mjs`, script `conferir:combinacao`, KB-005 e `005_research_conferencia_combinacao.md`; registro em `005_task_issue-42.md` |
+| Branch do item 2 | `feature/issue-43`, base `caaa7d862ce2fee65385146c9075169abf58edc7` |
+| Entrega do item 2 | `src/app.ts`, `src/apresentacao-combinacao.ts`, `src/apresentacao-lentes.ts`, limitação geral por operador em `src/lentes/combinacao.ts` (R2-1), `index.html`, `src/estilos/componentes.css`, `tests/e2e/06-combinacao.spec.mjs`, `tests/e2e/fixture.mjs`, `scripts/interface/medir-lentes.mjs`, runbook (seção 10), KB-005 e a medição no relatório; registro em `005_task_issue-43.md` |
 | Destino após conclusão | `_project/executed/005_combinacao_criterios_selecao/005_plan.md` |
 
 ## Próximo passo
@@ -422,8 +426,8 @@ Uma reversão não reabre nem arquiva o BL-005 automaticamente; o efeito sobre o
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 005 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #44 (https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
-Diga: "aprovo o merge da PR #44"
+Conferir: Checks e diff da PR #45 (https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
+Diga: "aprovo o merge da PR #45"
 ```
 
 ## Handoff de saída

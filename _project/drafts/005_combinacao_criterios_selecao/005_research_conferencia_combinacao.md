@@ -1,12 +1,12 @@
 # Ciclo 005 — conferência da combinação de lentes com a carga real
 
 > **Ciclo:** `005`
-> **Item:** 1 (issue #42): regra de combinação de lentes por célula de 0,05°
+> **Item:** 1 (issue #42): regra de combinação de lentes por célula de 0,05°; item 2 (issue #43): repetição da conferência e medição da interface (seção própria)
 > **Gerado em:** 2026-11-12
 > **Commit do código conferido:** `6b793c454492f9ef363c3670c5e33f0d3e72c3d2` (branch `feature/issue-42`)
 > **Carga:** identidade `2134ff148b386593a2d89af9894a34ec4a7ef035a660c5652092dc42313e0db2`, AQUA_M-T, janela de 2025-11-01 a 2026-10-31 (dias GMT), publicada num Supabase local vazio pela CLI do ciclo `003` (exibição `intermediaria`, revisão 40), a mesma carga do ciclo `004`
 
-Relatório sanitizado: só agregados de fontes públicas (INPE e IBGE). Brutos e os JSON das execuções ficam em `local/dados-prototipo/` (`conferencia-combinacao.json` e `conferencia-lentes.json`), fora do Git. As duas execuções registraram a mesma identidade de carga no início e no fim. Focos, destaques e células combinadas não comprovam incêndio, dano, autoria ou infração; combinar critérios torna a seleção mais específica, não mais verdadeira.
+Relatório sanitizado: só agregados de fontes públicas (INPE e IBGE). Brutos e os JSON das execuções ficam em `local/dados-prototipo/` (`conferencia-combinacao.json` e `conferencia-lentes.json`), fora do Git. As duas execuções registraram a mesma identidade de carga no início e no fim. Focos, destaques e células combinadas não comprovam incêndio, dano, autoria ou infração; combinar critérios não torna a seleção mais verdadeira ("e" a torna mais específica e "ou" a amplia).
 
 ## Ordem de execução
 
@@ -95,6 +95,32 @@ Os demais números "por detecção" e "por município" da ideação medem outra 
 ## Lentes do ciclo `004` sem mudança
 
 `npm run conferir:lentes` no mesmo commit terminou `conferido` nas quatro janelas do ciclo `004`, sem divergência. Na janela inteira: 10 municípios na concentração, 150 células na recorrência e 66 sequências na persistência, os números do relatório do ciclo `004`. Os casos de referência do ciclo `004` passam sem alteração.
+
+## Item 2 — conferência repetida e medição da interface
+
+No commit `6b61568` (branch `feature/issue-43`), com a interface da combinação, em 2026-11-12:
+
+- `npm run conferir:combinacao` terminou `conferido`, sem divergência nas quatro janelas e nas 8 combinações, com a mesma identidade de carga no início e no fim. A única mudança do item 2 no módulo é o texto da limitação geral por operador (R2-1), que a conferência não compara.
+- `npm run medir:lentes`, estendido com as 8 configurações da combinação, repetiu as três lentes no procedimento do plano `004`: Chrome 157, 390×844 com toque, 150 ms de latência, 1,6 Mbit/s de descida, 750 kbit/s de subida, CPU 4× mais lenta, cache desligado e contexto novo por execução, passagens bruta e comprimida (gzip nível 6 no proxy local). Todas as configurações tiveram 3 execuções válidas em cada passagem, sem tentativa inválida.
+
+| Configuração (janela inteira) | Células | Municípios da cobertura | Mediana comprimida | Maior total bruto (bytes) | Orçamento |
+| :-- | --: | --: | --: | --: | :-- |
+| Concentração | — | 10 | 5,9 s | 4.859.185 | Dentro |
+| Recorrência | — | 51 | 14,5 s | 8.322.074 | Dentro |
+| Persistência | — | 33 | 8,2 s | 6.747.920 | Dentro |
+| Concentração e recorrência | 77 | 12 | 6,3 s | 4.911.407 | Dentro |
+| Concentração ou recorrência | 1.090 | 55 | 53,3 s | 8.671.886 | Fora (tempo) |
+| Concentração e persistência | 31 | 8 | 5,9 s | 4.561.595 | Dentro |
+| Concentração ou persistência | 1.046 | 42 | 40,9 s | 7.534.997 | Fora (tempo) |
+| Recorrência e persistência | 9 | 7 | 5,7 s | 4.474.142 | Dentro |
+| Recorrência ou persistência | 201 | 61 | 15,7 s | 9.196.604 | Dentro |
+| As três, e | 6 | 4 | 5,5 s | 4.211.783 | Dentro |
+| As três, ou | 1.116 | 65 | 54,5 s | 9.546.411 | Fora (tempo) |
+
+- **Bytes:** os registros custam 3.861.971 bytes brutos em todas as configurações, e a disponibilidade 87.453 por município, como no ciclo `004`. A estimativa do plano para "as três, ou" (9.546.416) ficou a 5 bytes do medido. Nenhuma configuração passou de 10.000.000.
+- **Tempo:** as três lentes repetiram os números do ciclo `004` (5,9, 14,3 e 8,7 s). As três uniões com mais de mil células passaram de 20,0 s. O tempo cresce com o número de células, e não com os bytes (cerca de 600 kB comprimidos nas três, como na recorrência): a causa provável é o processamento no navegador a cada resposta de disponibilidade, não confirmada.
+- **Decisão:** o responsável aceitou o desvio de tempo em 2026-11-12 (alternativa 1 da parada do plano), com o progresso visível, e adiou a otimização. O registro está em `005_task_issue-43.md`, seção "Parada do orçamento".
+- Células e municípios da cobertura iguais aos da conferência independente.
 
 ## Limitações
 

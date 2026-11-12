@@ -9,8 +9,15 @@ import {
 import {
   limparCorpoLente, renderEstadoLente, renderResultadoLente, type EstadoLente, type ManipuladoresLente,
 } from './apresentacao-lentes.ts';
+import {
+  CELULAS_POR_PAGINA, paginaValida, renderResultadoCombinacao, type ManipuladoresCombinacao,
+} from './apresentacao-combinacao.ts';
 import { lerConfiguracao } from './config.ts';
 import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
+import {
+  combinar, LENTES_CANONICAS, municipiosDaCombinacao, qualificarCombinacao, validarEscolha,
+  type Operador, type ResultadoCombinacao,
+} from './lentes/combinacao.ts';
 import { concentracao } from './lentes/concentracao.ts';
 import { persistencia } from './lentes/persistencia.ts';
 import { recorrencia } from './lentes/recorrencia.ts';
@@ -18,7 +25,9 @@ import {
   CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerRegistros, validarDisponibilidade,
   type FontesLente, type OrigemChamada, type PedidoLente,
 } from './lentes/carregar.ts';
-import { ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente } from './lentes/contrato.ts';
+import {
+  ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
+} from './lentes/contrato.ts';
 import {
   consultarDeteccoes, consultarDisponibilidade, consultarResumo, lerCargaVigente, lerLimites, lerMunicipios,
   lerProveniencia, sondarAcesso, type Filtro,
@@ -55,6 +64,24 @@ interface LenteAplicada {
   /** Página da tabela de evidência do destaque de célula selecionado. */
   paginaEvidencia: number;
   /** Registros da aplicação por id_tecnico, para a tabela de evidência. */
+  porId: Map<string, RegistroLente>;
+}
+
+/** Configuração da combinação, lida do formulário uma única vez, no clique em "Aplicar lente" (R1-7). */
+interface ConfigCombinacao {
+  lentes: TipoLente[];
+  operador: Operador;
+}
+
+/** Combinação aplicada (plano 005): pedido, resultado qualificado e navegação na lista e no painel. */
+interface CombinacaoAplicada {
+  pedido: PedidoLente;
+  resultado: ResultadoCombinacao;
+  selecionado: string | null;
+  /** Página da lista de células (50 por página). */
+  pagina: number;
+  /** Página da tabela de evidência em união da célula selecionada. */
+  paginaEvidencia: number;
   porId: Map<string, RegistroLente>;
 }
 
@@ -96,6 +123,9 @@ class Controlador {
   // ou mudança de sessão a incrementa; respostas de uma aplicação antiga são descartadas.
   private geracaoLente = 0;
   private lente: LenteAplicada | null = null;
+  private combinacao: CombinacaoAplicada | null = null;
+  // Configuração da combinação em aplicação ou exibida; base do aviso de formulário alterado (R1-7).
+  private configCombinacao: ConfigCombinacao | null = null;
   private pedidoLente: PedidoLente | null = null;
   private memoriaLente: MemoriaLente | null = null;
   private usuarioAutorizado = false;
@@ -126,7 +156,16 @@ class Controlador {
     $('botao-lente').addEventListener('click', () => void this.aplicarLente());
     // Escolher "Nenhuma" cancela a lente na hora, inclusive durante a leitura.
     $('l-lente').addEventListener('change', () => {
-      if ($<HTMLSelectElement>('l-lente').value === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+      const valor = $<HTMLSelectElement>('l-lente').value;
+      $('lente-combinacao').hidden = valor !== 'combinacao';
+      this.mostrarValidacaoLente(null);
+      if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+      else this.atualizarAvisoConfig();
+    });
+    // Editar as lentes ou o operador não cancela nem muda a combinação aplicada; só avisa (R1-7).
+    $('lente-combinacao').addEventListener('change', () => {
+      this.mostrarValidacaoLente(null);
+      this.atualizarAvisoConfig();
     });
     $('botao-limites').addEventListener('click', () => void this.alternarLimites());
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
@@ -362,7 +401,12 @@ class Controlador {
     if (tipo === 'versao_substituida') {
       // R3-1: invalida já as respostas em trânsito da consulta comum e da lente, e toda a memória da carga.
       this.geracaoConsulta++;
-      this.limparLente({ memoria: true, estado: { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' } });
+      this.limparLente({
+        memoria: true,
+        estado: this.configCombinacao
+          ? { tipo: 'versao_substituida' }
+          : { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' },
+      });
     }
     this.resultado = null;
     this.mapa?.limparTudo();
@@ -428,7 +472,11 @@ class Controlador {
 
   private manipuladoresLente(): ManipuladoresLente {
     return {
-      tentarDeNovo: () => void this.aplicarLente(),
+      tentarDeNovo: () => {
+        // A combinação repete a configuração aplicada, não a do formulário (R1-7).
+        if (this.configCombinacao) void this.aplicarCombinacao(this.configCombinacao);
+        else void this.aplicarLente();
+      },
       selecionar: (id) => this.selecionarDestaque(id),
       consultarMunicipio: (codigo) => this.escolherMunicipio(codigo),
       paginaEvidencia: (pagina) => {
@@ -448,11 +496,14 @@ class Controlador {
   private limparLente(o: { memoria: boolean; estado: EstadoLente }): void {
     this.geracaoLente++;
     this.lente = null;
+    this.combinacao = null;
+    this.configCombinacao = null;
     this.pedidoLente = null;
     if (o.memoria) this.memoriaLente = null;
     this.mapa?.limparDestaques();
     limparCorpoLente();
     this.estadoLente(o.estado);
+    this.atualizarAvisoConfig();
   }
 
   private fontesLente(): FontesLente {
@@ -487,6 +538,10 @@ class Controlador {
   }
 
   private selecionarDestaque(id: string): void {
+    if (this.combinacao) {
+      this.selecionarCelula(id);
+      return;
+    }
     const l = this.lente;
     if (!l || !l.resultado.destaques.some((d) => d.id_destaque === id)) return;
     l.selecionado = id;
@@ -499,6 +554,17 @@ class Controlador {
   private async aplicarLente(): Promise<void> {
     const dados = this.dados;
     const escolhida = $<HTMLSelectElement>('l-lente').value;
+    this.mostrarValidacaoLente(null);
+    if (escolhida === 'combinacao') {
+      const config = this.lerConfigCombinacao();
+      // Menos de 2 lentes: só o aviso; não incrementa `geracaoLente` nem toca a aplicação em curso (R1-7).
+      if (!config) {
+        this.mostrarValidacaoLente('Escolha pelo menos 2 lentes para combinar.');
+        return;
+      }
+      await this.aplicarCombinacao(config);
+      return;
+    }
     if (!Object.hasOwn(LENTES, escolhida)) {
       this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
       return;
@@ -609,6 +675,170 @@ class Controlador {
     }));
     this.mapa.enquadrarDestaques();
     if (erro !== null) throw erro;
+  }
+
+  // --- Combinação de lentes (plano 005, item 2) -----------------------------------------------------
+
+  private mostrarValidacaoLente(texto: string | null): void {
+    const p = $('lente-validacao');
+    p.textContent = texto ?? '';
+    p.hidden = texto === null;
+  }
+
+  /** Lentes marcadas (na ordem canônica) e operador escolhido no formulário. */
+  private lerFormularioCombinacao(): { lentes: TipoLente[]; operador: string } {
+    const marcadas = new Set([...document.querySelectorAll<HTMLInputElement>('input[name="l-comb"]:checked')].map((x) => x.value));
+    const operador = document.querySelector<HTMLInputElement>('input[name="l-operador"]:checked')?.value ?? 'e';
+    return { lentes: LENTES_CANONICAS.filter((l) => marcadas.has(l)), operador };
+  }
+
+  private lerConfigCombinacao(): ConfigCombinacao | null {
+    const f = this.lerFormularioCombinacao();
+    if (f.lentes.length < 2) return null;
+    return validarEscolha(f.lentes, f.operador);
+  }
+
+  /** Aviso enquanto o formulário diferir da combinação em aplicação ou exibida (R1-7). */
+  private atualizarAvisoConfig(): void {
+    const c = this.configCombinacao;
+    let difere = false;
+    if (c) {
+      const f = this.lerFormularioCombinacao();
+      difere = $<HTMLSelectElement>('l-lente').value !== 'combinacao' || f.operador !== c.operador || f.lentes.join('+') !== c.lentes.join('+');
+    }
+    $('lente-aviso-config').hidden = !difere;
+  }
+
+  private manipuladoresCombinacao(): ManipuladoresCombinacao {
+    return {
+      selecionar: (id) => this.selecionarCelula(id),
+      pagina: (pagina) => {
+        if (!this.combinacao) return;
+        this.combinacao.pagina = paginaValida(pagina, this.combinacao.resultado.celulas.length);
+        this.mostrarCombinacao();
+        document.getElementById('lente-celulas-info')?.focus();
+      },
+      paginaEvidencia: (pagina) => {
+        if (!this.combinacao) return;
+        this.combinacao.paginaEvidencia = pagina;
+        this.mostrarCombinacao();
+        document.getElementById('lente-evidencia-info')?.focus();
+      },
+    };
+  }
+
+  private mostrarCombinacao(): void {
+    const c = this.combinacao;
+    if (!c || !this.dados) return;
+    renderResultadoCombinacao(c.resultado, c.selecionado,
+      {
+        nomes: this.dados.nomes, registros: c.porId, pagina: c.pagina, paginaEvidencia: c.paginaEvidencia,
+        noMapa: this.mapa?.contagem().destaques ?? 0,
+      },
+      this.manipuladoresCombinacao());
+  }
+
+  /** Seleciona a célula (pela lista ou pelo mapa) e leva a lista à página dela. */
+  private selecionarCelula(id: string): void {
+    const c = this.combinacao;
+    if (!c) return;
+    const i = c.resultado.celulas.findIndex((x) => x.id_combinado === id);
+    if (i < 0) return;
+    c.selecionado = id;
+    c.pagina = Math.floor(i / CELULAS_POR_PAGINA);
+    c.paginaEvidencia = 0;
+    this.mostrarCombinacao();
+    this.mapa?.selecionarDestaque(id);
+    document.getElementById('lente-painel-titulo')?.focus();
+  }
+
+  /**
+   * Uma leitura (com o reaproveitamento da memória), `combinar` sobre a entrada conferida (T8), que calcula as
+   * lentes escolhidas, e a disponibilidade dos municípios das células. A configuração fica gravada no resultado.
+   */
+  private async aplicarCombinacao(config: ConfigCombinacao): Promise<void> {
+    const dados = this.dados;
+    const filtro = this.lerFiltro();
+    if (!dados || !filtro) return;
+    this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
+    this.configCombinacao = config;
+    this.atualizarAvisoConfig();
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    this.pedidoLente = pedido;
+    const g = this.geracaoSessao;
+    const gl = this.geracaoLente;
+    const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
+    const inicio = performance.now();
+    const chave = chaveLente(pedido);
+    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
+    let resultado: ResultadoCombinacao;
+    let mem: MemoriaLente;
+    try {
+      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
+        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
+        anterior);
+      if (!lido || !atual()) return;
+      mem = lido.reaproveitado && anterior ? anterior
+        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
+      this.memoriaLente = mem;
+      resultado = combinar({
+        carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+      }, config.lentes, config.operador);
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
+      this.mapa?.limparDestaques();
+      limparCorpoLente();
+      this.estadoLente(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' });
+      return;
+    }
+
+    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
+    const disponibilidade = new Map(mem.disponibilidade);
+    this.combinacao = {
+      pedido, resultado: qualificarCombinacao(resultado, disponibilidade), selecionado: null, pagina: 0, paginaEvidencia: 0,
+      porId: new Map(mem.registros.map((x) => [x.id_tecnico, x])),
+    };
+    if (this.mapa) {
+      this.mapa.definirDestaques(resultado.celulas.map((c): DestaqueMapa => ({
+        id: c.id_combinado,
+        retangulo: [[Number(c.unidade.sul), Number(c.unidade.oeste)], [Number(c.unidade.norte), Number(c.unidade.leste)]],
+      })));
+      this.mapa.enquadrarDestaques();
+    }
+    this.mostrarCombinacao();
+
+    const faltam = municipiosDaCombinacao(resultado).filter((c) => !disponibilidade.has(c));
+    let feitos = 0;
+    if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
+      let d: DisponibilidadeMunicipio;
+      try {
+        const resp = await consultarDisponibilidade(this.sessao.cliente,
+          { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: codigo });
+        if (!atual()) return;
+        d = { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, dados.carga.satelite, resp) };
+        mem.disponibilidade.set(codigo, d);
+      } catch (e) {
+        if (!atual() || this.erroDaLente(e, 'disponibilidade') === 'global') return;
+        d = { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' };
+      }
+      disponibilidade.set(codigo, d);
+      feitos += 1;
+      if (!this.combinacao) return;
+      this.combinacao.resultado = qualificarCombinacao(resultado, disponibilidade);
+      this.mostrarCombinacao();
+      this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    });
+    if (!atual() || !this.combinacao) return;
+    this.combinacao.resultado = qualificarCombinacao(resultado, disponibilidade);
+    this.mostrarCombinacao();
+    const segundos = (performance.now() - inicio) / 1000;
+    const final = this.combinacao.resultado;
+    if (final.estado === 'indisponivel') this.estadoLente({ tipo: 'indisponivel', segundos, textos: final.indisponibilidade.map((x) => x.texto) });
+    else if (final.estado === 'sem_celulas') this.estadoLente({ tipo: final.operador === 'e' ? 'sem_celulas_em_comum' : 'sem_celulas_destacadas', segundos });
+    else if (final.celulas.some((c) => c.cobertura.estado !== 'completa')) this.estadoLente({ tipo: 'cobertura_nao_verificada', combinacao: true });
+    else this.estadoLente({ tipo: 'completo', segundos, combinacao: true });
   }
 
   // --- Limites municipais, sob demanda ---------------------------------------------------------------------
