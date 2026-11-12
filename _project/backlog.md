@@ -110,8 +110,8 @@ Exige série histórica além dos 12 meses carregados, com efeito no volume e no
 ## BL-005 — Combinação de critérios de seleção
 
 > **Criado em:** `2026-11-10`
-> **Atualizado em:** `2026-11-10`
-> **Estado:** `Disponível`
+> **Atualizado em:** `2026-11-12`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -123,7 +123,7 @@ Depende do contrato de lente e de mais de uma lente implementada. A combinação
 
 ### Encaminhamentos
 
-—
+- ciclo 005 — 2026-11-12 — item inteiro
 
 ### Restante
 
@@ -132,6 +132,7 @@ Depende do contrato de lente e de mais de uma lente implementada. A combinação
 ### Registro
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
+- 2026-11-12 — Pedido explícito do responsável para registrar o retorno à fila após a integração do ciclo 005; ciclo integrado pela PR #46 em `main` (`dfa9ca8`), com o item encaminhado integralmente.
 
 ## BL-006 — CAR: fonte e lente de sobreposição
 
