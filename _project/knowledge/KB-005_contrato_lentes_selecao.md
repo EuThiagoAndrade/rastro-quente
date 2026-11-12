@@ -15,7 +15,7 @@ origin_cycle: "004"
 
 ## Finalidade
 
-Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade, as lentes de concentração, recorrência e persistência e a combinação delas por célula (ciclo `005`). É consultada por quem implementar uma lente nova ou mexer na combinação e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (lentes) e em `_project/drafts/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` (combinação).
+Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade, as lentes de concentração, recorrência e persistência e a combinação delas por célula (ciclo `005`). É consultada por quem implementar uma lente nova ou mexer na combinação e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (lentes) e em `_project/executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` (combinação).
 
 ## Limite de autoridade
 
@@ -153,13 +153,15 @@ A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do me
 - A cobertura da carga atual é uniforme entre municípios (79 dias indeterminados em toda MT), e o qualificador a exibe mesmo assim.
 - O carregamento da janela inteira trafega os registros completos (medição no relatório do ciclo).
 - Na combinação, as uniões com mais de mil células na janela inteira ("concentração ou recorrência", "concentração ou persistência" e "as três, ou") levam de 41 a 55 s no perfil do ADR-007, acima do orçamento de 20 s; os bytes ficam dentro. Desvio aceito pelo responsável no ciclo `005`, com a otimização adiada (relatório da combinação e task da issue #43).
+- A verificação hospedada da combinação foi dispensada pelo responsável no encerramento do ciclo `005`; não há identidade integral nem medições de produção conferidas. O comportamento hospedado não está atestado (task de encerramento do ciclo `005`).
 
 ## Fontes
 
 | Fonte | Função | URL | Versão fixada | Limite de autoridade |
 | :-- | :-- | :-- | :-- | :-- |
 | Plano `004` | Regras de método e contrato | `_project/executed/004_contrato_lentes_selecao/004_plan.md` | v3 aprovado em 2026-11-11 | Autoridade das regras; esta KB não a substitui |
-| Plano `005` | Regras e contrato da combinação | `_project/drafts/005_combinacao_criterios_selecao/005_plan.md` | v2 aprovado em 2026-11-11 | Autoridade das regras da combinação; esta KB não a substitui |
+| Plano `005` | Regras e contrato da combinação | `_project/executed/005_combinacao_criterios_selecao/005_plan.md` | v2 aprovado em 2026-11-11 | Autoridade das regras da combinação; esta KB não a substitui |
+| Relatório `005` | Conferência independente e medição local | `_project/executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` | Gerado em 2026-11-12 | Evidência local; não comprova comportamento hospedado |
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
 
@@ -173,3 +175,4 @@ A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do me
 | 2026-11-11 | `004` | Encerramento: caminhos para `executed/`; verificação hospedada parcial registrada na task da issue #35 |
 | 2026-11-12 | `005` | Item 1 (issue #42): combinação de lentes por célula, `ResultadoCombinacao` e `combinacao-005-v1`; limite de autoridade ajustado |
 | 2026-11-12 | `005` | Item 2 (issue #43): interface da combinação, estados, E2E e limitação geral por operador (R2-1) |
+| 2026-11-12 | `005` | Encerramento: combinação e interface consolidadas; medição local com desvio de tempo aceito; verificação hospedada dispensada, sem resultados de produção |

@@ -2,13 +2,13 @@
 
 > **Ciclo:** `005`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#43`
-> **Plano:** `_project/drafts/005_combinacao_criterios_selecao/005_plan.md`
+> **Plano:** `_project/executed/005_combinacao_criterios_selecao/005_plan.md`
 > **Branch:** `feature/issue-43`
 > **PR:** [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
-> **Integração:** `Pendente`
+> **Integração:** `PR #45 integrada por squash em main em 2026-11-12 (f48d876db22d216487313ae0bb8e854bcd9eaa6a); checks verdes na PR e no run de main 43241355583`
 > **Autorização inicial:** "autorizo a implementação da issue #43" em 2026-11-12
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-12
@@ -54,7 +54,7 @@ Não se aplica.
 - [x] Commit do código (`6b61568`); `conferir:combinacao` e medição nesse commit.
 - [x] Medição das 8 configurações e das três lentes na janela inteira: 3 configurações "ou" fora do orçamento de tempo; parada registrada e decidida pelo responsável (alternativa 1, desvio aceito).
 - [x] Runbook (seção 10), KB-005, relatório e roteiro de verificação em produção.
-- [x] Gates locais; publicar `feature/issue-43` (base `origin/main` em `caaa7d8` conferida, sem branch remota ou PR anterior), abrir a PR [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45) com `Closes #43` e gravar o bloco "Aguardando merge".
+- [x] Gates locais; publicar `feature/issue-43` (base `origin/main` em `caaa7d8` conferida), abrir a PR [#45](https://github.com/EuThiagoAndrade/rastro-quente/pull/45) com `Closes #43`; PR integrada em `main` por squash em 2026-11-12 (`f48d876`), issue #43 fechada e checks verdes.
 
 ## Evidências
 
@@ -69,7 +69,7 @@ Não se aplica.
 | `npm run test:rls` | pgTAP 173 testes e API 35, todos verdes (sem mudança esperada) |
 | Governança | `node --test scripts/validate-governance.test.mjs`: 55 testes, 0 falhas; `node scripts/validate-governance.mjs`: 0 erros, 0 avisos, 9 conferências manuais |
 | `git diff --check` | Sem erros |
-| Checks remotos | Pendente |
+| Checks remotos | PR #45: Validate governance, Database RLS and query contract e Interface typecheck, build and E2E verdes; run de `main` 43241355583 verde em `f48d876db22d216487313ae0bb8e854bcd9eaa6a` |
 
 ## Parada do orçamento
 
@@ -110,6 +110,8 @@ Executado pelo responsável, na própria sessão, só depois de "autorizo a veri
 
 **Conferência do agente:** commit do deploy, identidade igual à local, número de células igual ao local e mediana dentro do orçamento. **Atenção:** com o desvio aceito localmente, "as três, ou" deve passar de 20,0 s também em produção. Pela regra do plano, isso leva a "Parado" antes do encerramento, e o responsável decide então se estende o desvio aceito à produção.
 
+**Decisão do responsável (2026-11-12, depois do merge):** o roteiro hospedado não será executado. Palavras do responsável: "o deploy servido pela Vercel: começado por f48d876 / o roteiro na sua própria sessão: Não farei. Vou confiar nos seus testes. Pois precisamos ganhar velocidade. / Eu aceita os testes feito por você". A PR #45 foi integrada pelo próprio responsável em 2026-11-12 (squash `f48d876`), com os três checks verdes. A verificação em produção fica dispensada por decisão humana e substituída pelas evidências locais desta task (conferência `conferido` e medição com o desvio aceito); nenhum número de produção foi observado, e nada aqui afirma o comportamento hospedado.
+
 ## Revisão da correção
 
 Não se aplica.
@@ -132,10 +134,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 005 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #45 (https://github.com/EuThiagoAndrade/rastro-quente/pull/45)
-Diga: "aprovo o merge da PR #45"
+Situação: Concluído — ciclo 005 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -144,7 +146,7 @@ Diga: "aprovo o merge da PR #45"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + implementar_issue + 43 + caaa7d8`
 - `effect_class`: `remote_mutation`
 - `state_before`: item 1 integrado (PR #44); issue #43 aberta; nenhuma branch, task ou PR do item 2.
-- `state_after`: branch local `feature/issue-43` com o código (`6b61568`) e a documentação; conferência `conferido`; medição com 3 configurações fora do orçamento de tempo e desvio aceito pelo responsável. Branch publicada e PR #45 aberta para `main` com `Closes #43`, aguardando checks e merge; task `Aguardando integração`.
+- `state_after`: PR #45 integrada por squash em `main` (`f48d876db22d216487313ae0bb8e854bcd9eaa6a`), issue #43 fechada, checks da PR e do `main` verdes; task `Concluída`. O roteiro hospedado foi dispensado pelo responsável; nenhum resultado de produção foi observado.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a implementação da issue #43" (2026-11-12); decisão do responsável pela alternativa 1 (2026-11-12); tabela "Evidências" e seção "Parada do orçamento"; `local/dados-prototipo/medicao-lentes.json` e `conferencia-combinacao.json` (fora do Git).
-- `blockers`: nenhum para a publicação. O merge depende de checks verdes e de "aprovo o merge da PR #45"; a verificação em produção, de autorização própria depois do merge.
+- `blockers`: nenhum para esta entrega integrada. O responsável dispensou a verificação em produção; o encerramento registra o desvio e não afirma comportamento hospedado. O retorno do BL-005 permanece separado e depende da integração do encerramento e de workflow/autorização próprios.

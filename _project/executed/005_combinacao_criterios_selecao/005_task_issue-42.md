@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#42`
-> **Plano:** `_project/drafts/005_combinacao_criterios_selecao/005_plan.md`
+> **Plano:** `_project/executed/005_combinacao_criterios_selecao/005_plan.md`
 > **Branch:** `feature/issue-42`
 > **PR:** [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
 > **Integração:** `PR #44 integrada em main em 2026-11-12 (caaa7d8); checks verdes na PR (Validate governance, Database RLS and query contract e Interface typecheck, build and E2E)`
@@ -90,10 +90,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 005 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 005 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 005"
+Diga: —
 ```
 
 ## Handoff de saída
@@ -102,7 +102,7 @@ Diga: "continue o ciclo 005"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 005 + implementar_issue + 42 + 26fc09c`
 - `effect_class`: `remote_mutation`
 - `state_before`: plano `v2` `Aprovado` e integrado (PR #41); issues #42 e #43 abertas; ciclo `005` em `Planejamento`; nenhuma branch de implementação, branch remota ou PR do item 1.
-- `state_after`: branch `feature/issue-42` publicada, com o código (`6b793c4`) e a documentação; PR #44 aberta para `main` com `Closes #42`, aguardando checks e merge; plano `Em Execução`; ciclo `Em execução`; task `Aguardando integração`.
+- `state_after`: PR #44 integrada por squash em `main` (`caaa7d862ce2fee65385146c9075169abf58edc7`), issue #42 fechada e checks verdes; task `Concluída`.
 - `result`: `executed`
 - `evidence`: autorização literal "autorizo a implementação da issue #42" (2026-11-12); casos CB-1 a CB-16 e unitários do ciclo `004` verdes; `conferir:combinacao` e `conferir:lentes` `conferido` no commit `6b793c4`; `test:rls` verde; E2E 48 de 54 localmente, com a falha conhecida de `01-acesso` fora do escopo; validador sem erros; PR real https://github.com/EuThiagoAndrade/rastro-quente/pull/44.
-- `blockers`: o merge depende de checks verdes e de "aprovo o merge da PR #44". O item 2 (#43) depende da integração desta PR e de autorização própria.
+- `blockers`: nenhum para a issue integrada; a issue #43 e o ciclo foram concluídos em seguida.
