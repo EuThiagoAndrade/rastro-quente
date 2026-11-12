@@ -2,13 +2,13 @@
 
 > **Ciclo:** `005`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#42`
 > **Plano:** `_project/drafts/005_combinacao_criterios_selecao/005_plan.md`
 > **Branch:** `feature/issue-42`
 > **PR:** [#44](https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
-> **Integração:** `Pendente`
+> **Integração:** `PR #44 integrada em main em 2026-11-12 (caaa7d8); checks verdes na PR (Validate governance, Database RLS and query contract e Interface typecheck, build and E2E)`
 > **Autorização inicial:** "autorizo a implementação da issue #42" em 2026-11-12
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-12
@@ -68,7 +68,7 @@ Não se aplica.
 | `npm run test:e2e` | 54 testes: 48 passam. "Logout limpa a tela, o estado e a sessão guardada" (`01-acesso`, fora do escopo) falhou neste Windows, como nos itens do ciclo `004`, e os 5 testes seguintes da spec serial não rodaram; executados à parte (`--grep-invert`), os 11 demais testes de `01-acesso` passam. A CI da PR é a evidência da suíte completa |
 | Governança | `node --test scripts/validate-governance.test.mjs`: 55 testes, 0 falhas; `node scripts/validate-governance.mjs`: 0 erros, 0 avisos, 9 conferências manuais |
 | `git diff --check` | Sem erros; staging revisado e limitado ao escopo; varredura G3 sem e-mail real, UUID ou segredo (só o RP fictício `.test` do script) |
-| Checks remotos | Pendente |
+| Checks remotos | PR #44: Validate governance, Database RLS and query contract e Interface typecheck, build and E2E verdes; run de `main` 43223606456 verde (reconciliado na task da issue #43) |
 
 ## Revisão da correção
 
@@ -90,10 +90,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 005 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #44 (https://github.com/EuThiagoAndrade/rastro-quente/pull/44)
-Diga: "aprovo o merge da PR #44"
+Situação: Pronto para continuar — ciclo 005 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 005"
 ```
 
 ## Handoff de saída
