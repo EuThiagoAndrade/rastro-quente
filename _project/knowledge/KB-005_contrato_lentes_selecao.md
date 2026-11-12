@@ -7,7 +7,7 @@ tags:
   - seleção
 author: "Claude Code (Opus 5.5)"
 module: "src/lentes"
-last_updated: "2026-11-11"
+last_updated: "2026-11-12"
 origin_cycle: "004"
 ---
 
@@ -15,11 +15,11 @@ origin_cycle: "004"
 
 ## Finalidade
 
-Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade e as lentes de concentração, recorrência e persistência. É consultada por quem implementar a combinação futura (BL-005) ou uma lente nova e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md`.
+Registra o contrato único das lentes de seleção (C1) e como o módulo `src/lentes/` o implementa: entrada, saída, identidade dos destaques, qualificador de cobertura, grade, as lentes de concentração, recorrência e persistência e a combinação delas por célula (ciclo `005`). É consultada por quem implementar uma lente nova ou mexer na combinação e por quem revisar G1. Conferência e medição com a carga real ficam em `_project/executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md` (lentes) e em `_project/drafts/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` (combinação).
 
 ## Limite de autoridade
 
-Conhecimento de referência. As regras de método são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra é nova decisão de G1, novo plano e nova `versao_metodo`. Não decide limiares das lentes seguintes, combinação de lentes nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
+Conhecimento de referência. As regras das lentes são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. As regras da combinação são as do plano `005` v2, aprovado em 2026-11-11: decisões Q1 a Q9 da ideação `005` e detalhes T8 a T14, ratificados na aprovação. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra de uma lente é nova decisão de G1, novo plano e nova `versao_metodo`, e mudar regra da combinação é nova decisão de G1, novo plano e nova `versao_combinacao`. Não decide limiares de lentes futuras, pontuação ou pesos nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
 
 ## Conteúdo
 
@@ -35,6 +35,7 @@ Conhecimento de referência. As regras de método são as do plano `004` v3, apr
 | `recorrencia.ts` | Lente de recorrência, meses GMT tocados pela janela e seus rótulos |
 | `persistencia.ts` | Lente de persistência: sequências de dias GMT consecutivos por célula e ressalva de borda (T4) |
 | `carregar.ts` | Leitura no recorte M1-a, verificações por resposta, integridade T3, destino dos erros e concorrência limitada |
+| `combinacao.ts` | Combinação das lentes por célula de 0,05° (ciclo `005`): `ResultadoCombinacao`, `VERSAO_COMBINACAO` (`combinacao-005-v1`), `combinar` e `qualificarCombinacao` |
 
 Tudo é função pura, sem rede, DOM ou relógio, e roda tanto no navegador quanto em `node --test` (o Node 24 remove os tipos; por isso o módulo não usa propriedades de parâmetro nem `enum`).
 
@@ -44,7 +45,7 @@ Um `ResultadoLente` traz `lente`, `versao_metodo`, `carga` (id e identidade), `j
 
 Cada `Destaque` traz:
 
-- `id_destaque`: lente + unidade, e o dia inicial na persistência (por exemplo `concentracao:municipio:5103254`, `recorrencia:celula_005:c-251_-1130` ou `persistencia:celula_005:c-251_-1130:2026-10-05`). Com carga, janela e `versao_metodo`, é a chave da combinação futura;
+- `id_destaque`: lente + unidade, e o dia inicial na persistência (por exemplo `concentracao:municipio:5103254`, `recorrencia:celula_005:c-251_-1130` ou `persistencia:celula_005:c-251_-1130:2026-10-05`). Com carga, janela e `versao_metodo`, identifica o destaque; a combinação o preserva em cada célula;
 - `unidade`: município (código e nome) ou célula `celula_005` (id `c<kLat>_<kLon>` e bordas em texto decimal);
 - `motivo`, `evidencia` (`id_tecnico`, valor e datas), `ordem` (só na concentração), `cobertura` e `ressalvas`.
 
@@ -91,6 +92,27 @@ Por célula de 0,05° (grade T1), os dias GMT com detecção principal na janela
 - **Ordem (T5):** pela data de início da sequência e depois pela célula (norte→sul, oeste→leste); nunca pelo número de dias. `ordenacao` é `null`, e a lista declara que não é ranking.
 - **Coordenada inválida e limitações das células:** como na recorrência.
 
+### Combinação
+
+Combina 2 ou 3 lentes por interseção ("e") ou união ("ou"), sempre por célula de 0,05° (grade T1). O tipo `ResultadoCombinacao` é novo e fica em `combinacao.ts`: ele reutiliza `TipoLente`, `CargaLente`, `Janela`, `Cobertura` e a célula de `grade.ts`, sem alterar C1, as três lentes nem `lentes-004-v1`. A versão própria é `combinacao-005-v1`.
+
+- **Entrada (T8):** `combinar(entrada, lentes, operador)` recebe a `EntradaLente` já lida e conferida e **calcula ela mesma** as lentes escolhidas, com os parâmetros de produção (N=10 na concentração). Não recebe resultados de lente prontos nem faz nova leitura, de modo que toda evidência vem dos mesmos registros. A conferência C-3/C-4 de cada lente e a coordenada fora da forma canônica lançam `ErroLente` ("leitura inconsistente"); nada é exibido. Só os casos de referência usam `calcularCombinacao`, que recebe o `n` da concentração.
+- **Escolha (T10):** 2 ou 3 lentes distintas e um operador `e` ou `ou`. As lentes do resultado seguem a ordem canônica concentração, recorrência e persistência, qualquer que seja a ordem da escolha. Menos de 2 lentes, lente repetida ou desconhecida e outro operador lançam `ErroCombinacao` (`entrada_invalida`).
+- **Pertinência por lente (T9):**
+  - concentração, por projeção P1: a célula entra se tiver pelo menos 1 detecção de município destacado (inclusive os empatados de D16), mesmo que seja minoria. A evidência são só os `id_tecnico` desses municípios na célula;
+  - recorrência: a célula do destaque, com a evidência do destaque;
+  - persistência (S1): a célula entra se tiver pelo menos uma sequência.
+- **Estados (T11):**
+  - `indisponivel`: alguma lente escolhida está `janela_insuficiente` (hoje, só a recorrência), com qualquer operador. A lista `indisponibilidade` nomeia a lente ("recorrência não se aplica a esta janela: a janela toca 1 mês GMT; a recorrência exige pelo menos 3"), e não há células;
+  - `sem_celulas`: as lentes rodaram e o conjunto combinado ficou vazio. O texto (`textoSemCelulas`) depende do operador: "Nenhuma célula destacada por todas as lentes escolhidas nesta janela." no "e" e "Nenhuma célula destacada por qualquer das lentes escolhidas nesta janela." no "ou", os dois seguidos de "Isso não indica ausência de focos nem de risco.";
+  - `com_celulas`: uma ou mais células.
+- **Célula combinada (T14):** `id_combinado` (`combinacao:<operador>:<lentes unidas por +>:celula_005:<id>`), `unidade`, `criterios` (um por lente que destacou a célula, na ordem canônica; no "e", um por lente escolhida), `evidencia.deteccoes` (união ordenada, sem repetição), `municipios` (os de todas as detecções da célula na janela) e `cobertura`. Cada critério tem `lente`, `ressalvas` (só a de projeção, na concentração) e `destaques`: um item por destaque original que levou a célula a entrar, com `id_destaque`, `motivo`, `evidencia` (`deteccoes` na célula e `datas`) e `ressalvas`. Na concentração, um item por município destacado com detecção na célula, em ordem de código IBGE, com o motivo "6 detecções nesta célula de Colniza, município destacado pela concentração (901 detecções na janela; corte em 10, com empatados)", sem a posição do município. Na recorrência, um item. Na persistência, um item por sequência, pela data de início.
+- **Ressalva de projeção:** quando a célula tem detecções de município não destacado, o critério da concentração traz "a célula também tem 4 de 10 detecções de município não destacado pela concentração".
+- **Cobertura e ressalvas (V1, T12):** `qualificarCombinacao(resultado, disponibilidade)` aplica o qualificador comum aos municípios de todas as detecções da célula, sempre sobre o resultado de `combinar` (como `qualificar` nas lentes). A seleção nunca depende da cobertura. As ressalvas ficam por lente: a de mês parcial na recorrência (D14); a de borda (T4) e as por classe (D15, T7) na persistência, calculadas **sequência a sequência** com `ressalvasDeClasse(dias da sequência, janela, cobertura da célula)`. Enquanto a cobertura não está `completa`, cada sequência traz "ressalvas de disponibilidade ainda não verificadas".
+- **Ordem (T13):** células de norte a sul e depois de oeste a leste. Não há campo de contagem de lentes, `ordem` nem `ordenacao`: a lista não é ranking.
+- **Parâmetros e limitações:** `parametros` traz os de cada lente, sem edição, e, com a concentração, o da projeção. `limitacoes` traz as comuns, as das células, a da concentração quando ela está entre as lentes e as da combinação: "Combinar critérios torna a seleção mais específica, não mais verdadeira. A lista não é ranking: células destacadas por mais lentes não são mais graves nem prioritárias."; a de projeção, com a concentração; e "Nenhuma célula em comum não indica ausência de focos nem de risco.", só no "e".
+- **Disponibilidade:** `municipiosDaCombinacao` lista os municípios a ler para qualificar as células.
+
 ### Leitura e erros
 
 O carregador chama `consultar_resumo` e pagina `consultar_deteccoes` (1.000 por página) com `p_municipio` `null`, carga fixada e a janela da aplicação.
@@ -109,7 +131,8 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 
 - `tests/unit/lentes.test.mjs`, com as fixtures fictícias de `tests/fixtures/lentes/`: casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1, X-1, R-1 a R-4 (com coordenada inválida, conferência divergente, determinismo e união D13 na recorrência) e P-1 a P-8 (com a ressalva de cobertura pendente, coordenada inválida, conferência divergente e determinismo na persistência).
 - `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
-- Local, fora da CI: `npm run conferir:lentes` e `npm run medir:lentes`.
+- `tests/unit/combinacao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/combinacao.json`: casos CB-1 a CB-16 (operadores, pares, projeção P1 e empate, sequências com ressalvas próprias, indisponibilidade, interseção e união vazias, cobertura por união, pendente e falha, ressalvas por lente, entrada inconsistente ou inválida e determinismo) e o ponto de entrada de produção com N=10.
+- Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao` e `npm run medir:lentes`.
 
 ### Limitações conhecidas
 
@@ -123,6 +146,7 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 | Fonte | Função | URL | Versão fixada | Limite de autoridade |
 | :-- | :-- | :-- | :-- | :-- |
 | Plano `004` | Regras de método e contrato | `_project/executed/004_contrato_lentes_selecao/004_plan.md` | v3 aprovado em 2026-11-11 | Autoridade das regras; esta KB não a substitui |
+| Plano `005` | Regras e contrato da combinação | `_project/drafts/005_combinacao_criterios_selecao/005_plan.md` | v2 aprovado em 2026-11-11 | Autoridade das regras da combinação; esta KB não a substitui |
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
 
@@ -134,3 +158,4 @@ No controlador (`src/app.ts`), uma terceira geração, `geracaoLente`, invalida 
 | 2026-11-11 | `004` | Item 2 (issue #34): lente de recorrência, meses tocados pela janela, evidência paginada de célula e limitações das células |
 | 2026-11-11 | `004` | Item 3 (issue #35): lente de persistência, ressalvas por classe (D15, T7) e de borda (T4) |
 | 2026-11-11 | `004` | Encerramento: caminhos para `executed/`; verificação hospedada parcial registrada na task da issue #35 |
+| 2026-11-12 | `005` | Item 1 (issue #42): combinação de lentes por célula, `ResultadoCombinacao` e `combinacao-005-v1`; limite de autoridade ajustado |
