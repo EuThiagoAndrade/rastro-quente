@@ -2,12 +2,12 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#49`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-49`
-> **PR:** —
+> **PR:** [#53](https://github.com/EuThiagoAndrade/rastro-quente/pull/53)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #49" em 2026-11-12
 > **Modo contínuo:** `—`
@@ -45,7 +45,7 @@ Não se aplica.
 - [x] Implementar fontes, leitura, classificação e saídas.
 - [x] Executar AP-1 a AP-25 e conferência independente em duas etapas.
 - [x] Medir volume e registrar relatório e KB-006.
-- [ ] Concluir gates e publicar PR quando estiverem aprovados.
+- [x] Concluir gates locais e publicar PR.
 
 ## Evidências
 
@@ -82,6 +82,8 @@ Em 2026-11-12, o processamento final e `npm run conferir:areas` passaram com os 
 
 Em 2026-11-13, o E2E completo passou (68 testes) com o ajuste autorizado. Após reinicialização do banco local, o processamento foi refeito com os descritores declarados; `relatorio.json` ficou `Pronto`, sem paradas, com 154 áreas e 2.831 vínculos. A visão geral estimada ficou em 333.856 bytes; a soma JSON estimada de áreas, vínculos e fontes em 8.478.783 bytes. A conferência independente foi repetida em ambas as etapas, com igualdade de vínculos e hashes antes/depois; os descritores fixados coincidem com as codificações efetivas e a divergência histórica da ideação foi documentada. A recuperação automatizada real da FUNAI permanece não demonstrada após o 403; o retrato manual foi validado e fixado pelo hash.
 
+Em 2026-11-13, a PR #53 foi publicada com o commit `108f505292239f9d1562bf2f9ebc7388f48adb0e`. O MCP GitHub via Docker retornou 401; a publicação foi realizada pelo `gh` autenticado. Os checks remotos e a aprovação específica de merge permanecem pendentes.
+
 ## Encerramento
 
 Não se aplica.
@@ -90,19 +92,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 006 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 006"
+Situação: Aguardando merge — ciclo 006 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #53
+Diga: "aprovo o merge da PR #53"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 49 + v3@9d84efbf9c95f9e503259d46baee40fd78da939f`
-- `effect_class`: `local_mutation`
-- `state_before`: plano aprovado e integrado, issue aberta, autorização recebida.
-- `state_after`: implementação e conferência local concluídas, estimativas dentro dos tetos e E2E aprovado após correção autorizada; preparando publicação da PR.
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 49 + v5@9d84efbf9c95f9e503259d46baee40fd78da939f`
+- `effect_class`: `remote_mutation`
+- `state_before`: implementação e conferência local concluídas, issue aberta e branch pronta para publicação.
+- `state_after`: branch publicada e PR #53 aberta; integração pendente.
 - `result`: `executed`
-- `evidence`: issue #49 aberta via gh; PR #48 integrada em `9d84efbf9c95f9e503259d46baee40fd78da939f`; branch local `feature/issue-49`.
-- `blockers`: checks remotos ainda não existem; aquisição automatizada real da FUNAI não foi comprovada após HTTP 403.
+- `evidence`: PR #53 aberta via gh; commit `108f505292239f9d1562bf2f9ebc7388f48adb0e`; gates locais e conferência independente passaram.
+- `blockers`: checks remotos e aprovação específica do merge pendentes; aquisição automatizada real da FUNAI não foi comprovada após HTTP 403.
