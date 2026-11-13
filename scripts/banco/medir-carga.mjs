@@ -5,7 +5,7 @@
 // Roda sobre `local/dados-prototipo/` (fora do Git), no banco local recém-reiniciado (`npm run medir:carga`).
 // Grava `local/dados-prototipo/medicao-carga.json` e imprime só agregados: nenhum dado de detecção.
 import { execFileSync } from 'node:child_process';
-import { randomBytes } from 'node:crypto';
+import { createHash, randomBytes } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { mkdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -53,8 +53,8 @@ const diferenca = (a, b) => ({
 });
 
 // Uma carga completa pela CLI: plan (orçamento), aprovação administrativa, apply, medição antes/depois.
-function carregar(rotulo, { exibicao, revisao }) {
-  const opcoes = ['--alvo', URL_EX, '--exibicao', exibicao, '--revisao', String(revisao)];
+function carregar(rotulo, { exibicao, revisao, semAreas = false }) {
+  const opcoes = ['--alvo', URL_EX, '--exibicao', exibicao, '--revisao', String(revisao), ...(semAreas ? ['--sem-areas'] : [])];
   const arquivoSql = path.join(LOCAL, `aprovacao-${rotulo}.sql`);
   const antes = instantaneo();
   const planoInicio = performance.now();
@@ -71,7 +71,7 @@ function carregar(rotulo, { exibicao, revisao }) {
     payloadBytes: plano.bytesPayload, payloadPorTabela: plano.bytesPorTabela,
     estimativaPlano: plano.orcamento, persistidoPublicBytes: d.publicTotalBytes,
     razaoPersistidoPorPayload: Number((d.publicTotalBytes / plano.bytesPayload).toFixed(3)),
-    delta: d, antes: { bancoLogicoBytes: antes.bancoLogicoBytes }, depois,
+    delta: d, incrementoPorTabela: Object.fromEntries(Object.entries(depois.tabelas).map(([nome, dados]) => [nome, dados.totalBytes - (antes.tabelas[nome]?.totalBytes ?? 0)])), antes: { bancoLogicoBytes: antes.bancoLogicoBytes }, depois,
   };
 }
 
@@ -134,12 +134,14 @@ const geometriaPersistida = (cargaId) => JSON.parse(sqlAdmin(`select jsonb_build
 
 function expirarEVacuo() {
   const antes = instantaneo();
+  const simulado = cli(['expirar', '--alvo', URL_EX, '--simular']);
   const exp = cli(['expirar', '--alvo', URL_EX]);
+  if (JSON.stringify(simulado.cargas) !== JSON.stringify(exp.cargas)) throw new Error('Expiração divergiu da simulação.');
   const aposExpirar = instantaneo();
-  sqlAdmin('vacuum (analyze) public.fontes, public.malhas, public.municipios, public.deteccoes, public.disponibilidade, public.cargas;');
+  sqlAdmin('vacuum (analyze) public.areas, public.deteccoes_areas, public.fontes, public.malhas, public.municipios, public.deteccoes, public.disponibilidade, public.cargas;');
   const aposVacuo = instantaneo();
   return {
-    cargasExpiradas: exp.cargas.length, linhasRemovidas: exp.cargas.reduce((s, c) => s + Object.values(c.linhas).reduce((a, n) => a + n, 0), 0),
+    simulacaoConferida: true, cargasExpiradas: exp.cargas.length, linhasRemovidas: exp.cargas.reduce((s, c) => s + Object.values(c.linhas).reduce((a, n) => a + n, 0), 0),
     antes: { publicTotalBytes: antes.publicTotalBytes, bancoLogicoBytes: antes.bancoLogicoBytes, discoDadosBytes: antes.discoDadosBytes },
     aposExpirarSemVacuo: { publicTotalBytes: aposExpirar.publicTotalBytes, bancoLogicoBytes: aposExpirar.bancoLogicoBytes, linhasMortas: Object.values(aposExpirar.tabelas).reduce((s, t) => s + t.linhasMortas, 0) },
     aposVacuo: { publicTotalBytes: aposVacuo.publicTotalBytes, bancoLogicoBytes: aposVacuo.bancoLogicoBytes, discoDadosBytes: aposVacuo.discoDadosBytes, linhasMortas: Object.values(aposVacuo.tabelas).reduce((s, t) => s + t.linhasMortas, 0) },
@@ -153,6 +155,7 @@ const relatorio = { geradoEm: new Date().toISOString(), ferramentas: { node: pro
 try {
   const idDe = (identidade) => sqlAdmin(`select id from public.cargas where identidade = '${identidade}';`);
   relatorio.cargaA = carregar('intermediaria-r1', { exibicao: 'intermediaria', revisao: 1 });
+  relatorio.cargaA.resumo = cli(['resumo', '--alvo', URL_EX]);
   relatorio.cargaA.geometriaPersistida = geometriaPersistida(idDe(relatorio.cargaA.identidade));
   relatorio.cargaA.api = await medirApi(rp, idDe(relatorio.cargaA.identidade));
 
@@ -161,7 +164,17 @@ try {
   const re = cli(['apply', '--alvo', URL_EX, '--exibicao', 'intermediaria', '--revisao', '1', '--identidade', relatorio.cargaA.identidade]);
   relatorio.reexecucao = { resultado: re.result, ms: re.ms, publicTotalBytesDelta: instantaneo().publicTotalBytes - antesRe.publicTotalBytes, consultas: re.metricas.consultas };
 
-  // Pico: versão anterior retirada (linhas ainda presentes) + versão nova publicada.
+  // Rollback: mesma entrada, revisão nova e camada ausente; hashes comprovam preservação.
+  const hashInsumos = () => Object.fromEntries(['areas.json', 'deteccoes_areas.csv'].map((nome) =>
+    [nome, createHash('sha256').update(readFileSync(path.join(LOCAL, 'saidas', nome))).digest('hex')]));
+  const hashesAntes = hashInsumos();
+  const rollback = carregar('sem-areas-r2', { exibicao: 'intermediaria', revisao: 2, semAreas: true });
+  const resumoRollback = cli(['resumo', '--alvo', URL_EX]);
+  const hashesDepois = hashInsumos();
+  if (JSON.stringify(hashesAntes) !== JSON.stringify(hashesDepois) || resumoRollback.tabelas.areas.linhas !== 0 || resumoRollback.tabelas.deteccoes_areas.linhas !== 0 || resumoRollback.totais.areas !== null || resumoRollback.totais.vinculos_area !== null) throw new Error('Rollback ou preservação dos insumos falhou.');
+  relatorio.rollback = { persistidoPublicBytes: rollback.persistidoPublicBytes, incrementoPorTabela: rollback.incrementoPorTabela, resultado: rollback.resultado, identidade: rollback.identidade, areas: resumoRollback.tabelas.areas.linhas, vinculos: resumoRollback.tabelas.deteccoes_areas.linhas, hashesAntes, hashesDepois };
+
+  // Pico observado: carga original e rollback retirados (linhas ainda presentes) + versão nova publicada.
   relatorio.cargaB = carregar('intermediaria-r2', { exibicao: 'intermediaria', revisao: 2 });
   relatorio.pico = { publicTotalBytes: relatorio.cargaB.depois.publicTotalBytes, bancoLogicoBytes: relatorio.cargaB.depois.bancoLogicoBytes, discoDadosBytes: relatorio.cargaB.depois.discoDadosBytes, discoWalBytes: relatorio.cargaB.depois.discoWalBytes };
   relatorio.expiracao = expirarEVacuo();
@@ -180,7 +193,7 @@ try {
 begin;
 delete from public.publicacao_vigente;
 update public.cargas set estado = 'retirada' where estado = 'publicada';
-delete from public.disponibilidade; delete from public.deteccoes; delete from public.municipios; delete from public.malhas; delete from public.fontes;
+delete from public.deteccoes_areas; delete from public.areas; delete from public.disponibilidade; delete from public.deteccoes; delete from public.municipios; delete from public.malhas; delete from public.fontes;
 delete from public.cargas; delete from privado.manifestos_aprovados;
 delete from privado.responsaveis_autorizados where user_id = '${rp.id}';
 commit;`);
@@ -193,13 +206,13 @@ process.stdout.write(`${JSON.stringify(resumir(relatorio), null, 2)}\n`);
 function resumir(r) {
   const mb = (n) => Number((n / 1e6).toFixed(2));
   const carga = (c) => ({
-    resultado: c.resultado, applyMs: c.applyMs, tentativas: c.tentativas, payloadMB: mb(c.payloadBytes), persistidoPublicMB: mb(c.persistidoPublicBytes), razaoPersistidoPorPayload: c.razaoPersistidoPorPayload,
+    resultado: c.resultado, applyMs: c.applyMs, tentativas: c.tentativas, payloadMB: mb(c.payloadBytes), incrementoPorTabela: c.incrementoPorTabela, porClasse: c.resumo?.porClasse, persistidoPublicMB: mb(c.persistidoPublicBytes), razaoPersistidoPorPayload: c.razaoPersistidoPorPayload,
     estimativaPlanoMB: mb(c.estimativaPlano.estimativaNova), walGeradoMB: mb(c.delta.walGeradoBytes), tempBytes: c.delta.tempBytes, deltaBancoLogicoMB: mb(c.delta.bancoLogicoBytes),
     deltaDiscoDadosMB: mb(c.delta.discoDadosBytes), trafegoCliente: { consultas: c.trafegoCliente.consultas, conexoes: c.trafegoCliente.conexoes, enviadoMB: mb(c.trafegoCliente.bytesEnviados), recebidoKB: Math.round(c.trafegoCliente.bytesRecebidos / 1e3) },
     rssPicoClienteMB: mb(c.rssPicoCliente),
   });
   return {
-    base: { bancoLogicoMB: mb(r.base.bancoLogicoBytes), discoDadosMB: mb(r.base.discoDadosBytes) }, cargaA: carga(r.cargaA), reexecucao: r.reexecucao, cargaB: carga(r.cargaB),
+    base: { bancoLogicoMB: mb(r.base.bancoLogicoBytes), discoDadosMB: mb(r.base.discoDadosBytes) }, cargaA: carga(r.cargaA), reexecucao: r.reexecucao, rollback: r.rollback, cargaB: carga(r.cargaB),
     pico: { publicMB: mb(r.pico.publicTotalBytes), bancoLogicoMB: mb(r.pico.bancoLogicoBytes), discoDadosMB: mb(r.pico.discoDadosBytes), discoWalMB: mb(r.pico.discoWalBytes) },
     expiracao: r.expiracao, final: { bancoLogicoMB: mb(r.final.bancoLogicoBytes), discoDadosMB: mb(r.final.discoDadosBytes) },
     geometrias: Object.fromEntries(Object.entries(r.geometrias).map(([q, g]) => [q, {

@@ -77,8 +77,8 @@ test('reconstrução: dois bancos novos, só migrações + manifesto + apply, t�
   assert.equal((await carregar('rq_reconstrucao_a', c)).result, 'executed');
   const a = await resumoDe('rq_reconstrucao_a');
   assert.equal(a.identidade, c.identidade);
-  assert.deepEqual(a.totais, { principal: 400, envelope: 2, municipios: 25, disponibilidade: 100 });
-  assert.deepEqual(Object.fromEntries(Object.entries(a.tabelas).map(([k, v]) => [k, v.linhas])), { fontes: 3, malhas: 2, municipios: 25, deteccoes: 402, disponibilidade: 100 });
+  assert.deepEqual(a.totais, { principal: 400, envelope: 2, municipios: 25, disponibilidade: 100, areas: null, vinculos_area: null });
+  assert.deepEqual(Object.fromEntries(Object.entries(a.tabelas).map(([k, v]) => [k, v.linhas])), { areas: 0, deteccoes_areas: 0, fontes: 3, malhas: 2, municipios: 25, deteccoes: 402, disponibilidade: 100 });
 
   montar('rq_reconstrucao_b', c);
   assert.equal((await carregar('rq_reconstrucao_b', c)).result, 'executed');
