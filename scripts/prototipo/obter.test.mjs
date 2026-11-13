@@ -1,10 +1,11 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
-import { mkdtemp, readFile, rm } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, mkdir, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 import { garantirItem, itensDaJanela } from './obter.mjs';
+import { zipFicticio } from './shapefile.fixture.mjs';
 import { instanteValido } from './leitura.mjs';
 import { compararContagens } from './conferir.mjs';
 import { atribuir, criarMalhaMunicipal } from './territorio.mjs';
@@ -54,4 +55,29 @@ test('malha com código repetido é recusada; ponto fora do retângulo não é t
 
 test('comparação de contagens aponta diferenças por chave', () => {
   assert.deepEqual(compararContagens({ a: 1, b: 2 }, { a: 1, b: 3, c: 1 }), [{ chave: 'b', esperado: 2, obtido: 3 }, { chave: 'c', esperado: 0, obtido: 1 }]);
+});
+
+test('AP-14: 403 e ZIP inválido de áreas não promovem fonte', async () => {
+ const dir=await mkdtemp(path.join(tmpdir(),'areas-obter-'));
+ try {
+  const item={id:'fixture',fonte:'cnuc',papel:'areas',url:'https://exemplo.invalid/fonte',destino:'a/item.zip',sha256:null,encoding:'utf-8',codigo:'cd_cnuc',campos:['cd_cnuc'],membros:{shp:'x.shp',dbf:'x.dbf',prj:'x.prj'}};
+  await assert.rejects(garantirItem(item,dir,{fetchFn:async()=>new Response(null,{status:403})}),/403/);
+  await assert.rejects(readFile(path.join(dir,'a/item.zip')));assert.equal(item.sha256,null);
+  await assert.rejects(garantirItem(item,dir,{fetchFn:async()=>resposta('zip inválido')}),/rejeitado/i);
+  assert.equal(await readFile(path.join(dir,'a/item.zip.rejeitado'),'utf8'),'zip inválido');assert.equal(item.sha256,null);
+ } finally {await rm(dir,{recursive:true,force:true});}
+});
+
+test('AP-21: retrato fixado é reutilizado sem rede; divergência e rejeição não promovem',async()=>{
+ const dir=await mkdtemp(path.join(tmpdir(),'areas-retrato-'));
+ try {
+  const bom=Buffer.from('retrato fixo');const hash=createHash('sha256').update(bom).digest('hex');await mkdir(path.join(dir,'areas'));await writeFile(path.join(dir,'areas/fixo.zip'),bom);
+  const base={id:'fixture',fonte:'cnuc',papel:'areas',url:'https://exemplo.invalid/',destino:'areas/fixo.zip',sha256:hash,encoding:'utf-8',codigo:'cd_cnuc',campos:['cd_cnuc'],membros:{shp:'x.shp',dbf:'x.dbf',prj:'x.prj'}};
+  const x=await garantirItem(base,dir,{fetchFn:async()=>{throw Error('rede inesperada')}});assert.equal(x.estado,'inalterado');
+  const novo={...base,destino:'areas/divergente.zip'};await assert.rejects(garantirItem(novo,dir,{fetchFn:async()=>resposta('diferente')}),/SHA-256 divergente/);
+  assert.equal(await readFile(path.join(dir,'areas/divergente.zip.divergente'),'utf8'),'diferente');assert.equal(novo.sha256,hash);
+  const semPrj=zipFicticio([['x.shp',Buffer.from('shp')],['x.dbf',Buffer.from('dbf')]]), semHash={...base,destino:'areas/rejeitado.zip',sha256:null};
+  await assert.rejects(garantirItem(semHash,dir,{fetchFn:async()=>new Response(semPrj)}),/rejeitado/i);
+  assert.deepEqual(await readFile(path.join(dir,'areas/rejeitado.zip.rejeitado')),semPrj);assert.equal(semHash.sha256,null);
+ } finally {await rm(dir,{recursive:true,force:true})}
 });

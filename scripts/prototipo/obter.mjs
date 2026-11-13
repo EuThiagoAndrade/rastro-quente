@@ -2,7 +2,9 @@
 // Brutos em local/dados-prototipo/brutos/ (fora do Git); fontes.json versiona URL, bytes, SHA-256 e cabeçalhos.
 import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
-import { mkdir, rename, rm, stat } from 'node:fs/promises';
+import { mkdir, rename, rm, stat, readFile } from 'node:fs/promises';
+import { lerShapefile } from './shapefile.mjs';
+import { classificarArea, rotuloCitaMT } from './areas.mjs';
 import path from 'node:path';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
@@ -15,9 +17,21 @@ const IBGE = 'https://servicodados.ibge.gov.br/api';
 const MALHA = (qualidade, intra) => `${IBGE}/v4/malhas/estados/51?formato=application/vnd.geo+json&qualidade=${qualidade}${intra ? '&intrarregiao=municipio' : ''}`;
 export const URL_AVISOS = 'https://terrabrasilis.dpi.inpe.br/queimadas/portal/pages/secao_informacoes/avisos/';
 
+export const URL_CNUC = 'https://dados.mma.gov.br/dataset/44b6dc8a-dc82-4a84-8d95-1b0da7c85dac/resource/6ba9a557-87e8-4882-acb7-b3e0f0ea192d/download/shp_cnuc_2025_08.zip';
+export const URL_FUNAI = 'https://geoserver.funai.gov.br/geoserver/Funai/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Funai%3Atis_poligonais&outputFormat=SHAPE-ZIP';
 export const URL_INTERRUPCOES_AQUA = 'https://modaps.modaps.eosdis.nasa.gov/services/production/outages_aqua.html';
 
 const vazio = { obtidoEm: null, tamanho: null, sha256: null, lastModified: null, etag: null };
+
+// Retratos de áreas são datados e só recebem hash após validação T16/T17.
+export function itensAreas(agoraIso) {
+  const dia=agoraIso.slice(0,10).replaceAll('-','');
+  const membros=(base,ext)=>({shp:`${base}.shp`,dbf:`${base}.dbf`,prj:`${base}.prj`,codificacao:`${base}.${ext}`});
+  return [
+    {id:'cnuc-2025-08',tipo:'areas-protegidas',papel:'areas',fonte:'cnuc',url:URL_CNUC,destino:`areas/cnuc-202508-${dia}.zip`,encoding:'utf-8',codigo:'cd_cnuc',campos:['cd_cnuc','nome_uc','quali_pol','esfera','uf','grupo','categoria','situacao','limite'],membros:membros('cnuc_2025_08','cpg'),condicoesUso:'CC BY (portal de dados abertos do MMA)',...vazio},
+    {id:`funai-tis-${dia}`,tipo:'areas-protegidas',papel:'areas',fonte:'funai',url:URL_FUNAI,destino:`areas/funai-tis-poligonais-${dia}.zip`,encoding:'iso-8859-1',codigo:'terrai_cod',campos:['terrai_cod','terrai_nom','uf_sigla','fase_ti','modalidade'],membros:membros('tis_poligonais','cst'),condicoesUso:'Reprodução com citação da fonte (página de geoprocessamento); rodapé declara CC BY-ND 3.0; divergência aceita pelo responsável em 2026-11-12.',...vazio},
+  ];
+}
 
 // Tabela de interrupções de dados MODIS/Aqua da NASA: fonte independente para conferir o alcance do histórico de avisos.
 export const itemInterrupcoesAqua = (agoraIso) => ({
@@ -56,6 +70,7 @@ export function itensDaJanela(janela, envelope, agoraIso) {
     { id: 'inpe-avisos', tipo: 'inpe-avisos', papel: 'avisos', fonte: 'INPE', url: URL_AVISOS, destino: `inpe/avisos_${agoraIso.slice(0, 10).replaceAll('-', '')}.html`, observacao: 'Página mutável; o SHA-256 fixa o conteúdo lido.', ...vazio },
     itemInterrupcoesAqua(agoraIso),
   );
+  itens.push(...itensAreas(agoraIso));
   return itens;
 }
 
@@ -90,7 +105,7 @@ async function existe(arquivo) {
 }
 
 async function baixar(url, destino, fetchFn) {
-  const resposta = await fetchFn(url);
+  const resposta = await fetchFn(url, { headers: { 'User-Agent': 'rastro-quente-carga' } });
   if (!resposta.ok) throw new Error(`HTTP ${resposta.status} ao obter ${url}`);
   const hash = createHash('sha256');
   let tamanho = 0;
@@ -109,6 +124,7 @@ async function baixar(url, destino, fetchFn) {
     await rm(parcial, { force: true });
     throw new Error(`Falha ao gravar ${url}: ${e.message}`);
   }
+  if (!tamanho) { await rm(parcial, { force: true }); throw new Error(`Corpo vazio ao obter ${url}. Parado.`); }
   // Com Content-Encoding, o Content-Length mede o corpo comprimido; o fetch entrega o descomprimido.
   const esperado = resposta.headers.get('content-encoding') ? 0 : Number(resposta.headers.get('content-length'));
   if (esperado && esperado !== tamanho) {
@@ -133,6 +149,16 @@ export async function garantirItem(item, dirBrutos, { fetchFn = fetch, agora = (
   if (item.sha256 && item.sha256 !== r.sha256) {
     await rename(r.parcial, `${destino}.divergente`);
     throw new Error(`SHA-256 divergente ao baixar ${item.destino}: registrado ${item.sha256}, obtido ${r.sha256}. Parado.`);
+  }
+  if (item.papel === 'areas') {
+    try {
+      const {registros}=lerShapefile(await readFile(r.parcial), item);
+      for(const registro of registros) if(classificarArea(item.fonte,registro.atributos).incluida) rotuloCitaMT(item.fonte,registro.atributos[item.fonte==='cnuc'?'uf':'uf_sigla']);
+    }
+    catch (e) {
+      await rename(r.parcial, `${destino}.rejeitado`);
+      throw new Error(`Arquivo de áreas rejeitado: ${e.message}`);
+    }
   }
   await rename(r.parcial, destino);
   if (!item.sha256) Object.assign(item, { obtidoEm: agora().toISOString(), tamanho: r.tamanho, sha256: r.sha256, lastModified: r.lastModified, etag: r.etag });

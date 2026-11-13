@@ -40,6 +40,22 @@
           "https://www.earthdata.nasa.gov/engage/open-data-services-software-policies/data-information-policy",
           "https://modaps.modaps.eosdis.nasa.gov/services/production/outages_aqua.html"
         ]
+      },
+      {
+        "fonte": "cnuc",
+        "uso": "permitido com atribuição",
+        "resumo": "CC BY (portal de dados abertos do MMA)",
+        "links": [
+          "https://dados.mma.gov.br/dataset/unidadesdeconservacao"
+        ]
+      },
+      {
+        "fonte": "funai",
+        "uso": "reprodução com citação da fonte",
+        "resumo": "Página de geoprocessamento permite reprodução com citação; rodapé declara CC BY-ND 3.0; divergência aceita pelo responsável em 2026-11-12.",
+        "links": [
+          "https://www.gov.br/funai/pt-br/atuacao/terras-indigenas/geoprocessamento-e-mapas"
+        ]
       }
     ]
   },
@@ -440,6 +456,70 @@
       "sha256": "ed297da7f9bdedd703f337b256d551fd4042063ad5bc7f1a5bba9f9fec42a0a7",
       "lastModified": null,
       "etag": null
+    },
+    {
+      "id": "cnuc-2025-08",
+      "tipo": "areas-protegidas",
+      "papel": "areas",
+      "fonte": "cnuc",
+      "url": "https://dados.mma.gov.br/dataset/44b6dc8a-dc82-4a84-8d95-1b0da7c85dac/resource/6ba9a557-87e8-4882-acb7-b3e0f0ea192d/download/shp_cnuc_2025_08.zip",
+      "destino": "areas/cnuc-202508-20261112.zip",
+      "encoding": "utf-8",
+      "codigo": "cd_cnuc",
+      "campos": [
+        "cd_cnuc",
+        "nome_uc",
+        "quali_pol",
+        "esfera",
+        "uf",
+        "grupo",
+        "categoria",
+        "situacao",
+        "limite"
+      ],
+      "membros": {
+        "shp": "cnuc_2025_08.shp",
+        "dbf": "cnuc_2025_08.dbf",
+        "prj": "cnuc_2025_08.prj",
+        "codificacao": "cnuc_2025_08.cpg"
+      },
+      "condicoesUso": "CC BY (portal de dados abertos do MMA)",
+      "obtidoEm": "2026-11-12T17:58:32.000Z",
+      "tamanho": 45856979,
+      "sha256": "97d754c1e01881d5f94e2f9e465fa95fe37b58c24a3df46989c7b30a9bb93fc6",
+      "lastModified": null,
+      "etag": null,
+      "observacao": "Retrato da ideação; data do download registrada localmente; atualização da fonte informada como 2025-09-03, sem horário HTTP preservado."
+    },
+    {
+      "id": "funai-tis-20261112",
+      "tipo": "areas-protegidas",
+      "papel": "areas",
+      "fonte": "funai",
+      "url": "https://geoserver.funai.gov.br/geoserver/Funai/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=Funai%3Atis_poligonais&outputFormat=SHAPE-ZIP",
+      "destino": "areas/funai-tis-poligonais-20261112.zip",
+      "encoding": "iso-8859-1",
+      "codigo": "terrai_cod",
+      "campos": [
+        "terrai_cod",
+        "terrai_nom",
+        "uf_sigla",
+        "fase_ti",
+        "modalidade"
+      ],
+      "membros": {
+        "shp": "tis_poligonais.shp",
+        "dbf": "tis_poligonais.dbf",
+        "prj": "tis_poligonais.prj",
+        "codificacao": "tis_poligonais.cst"
+      },
+      "condicoesUso": "Reprodução com citação da fonte (página de geoprocessamento); rodapé declara CC BY-ND 3.0; divergência aceita pelo responsável em 2026-11-12.",
+      "obtidoEm": "2026-11-12T20:55:49.755Z",
+      "tamanho": 22114198,
+      "sha256": "79d55baf99309a70fa70dd62e174d2832c0292118633cf159857d0afcb74a350",
+      "lastModified": null,
+      "etag": null,
+      "observacao": "Download manual pelo responsável no visualizador oficial; data aproximada pelo horário do arquivo local; cabeçalhos HTTP indisponíveis."
     }
   ]
 }
