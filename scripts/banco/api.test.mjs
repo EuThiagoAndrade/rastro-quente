@@ -11,13 +11,13 @@ const PREPARACAO = 'f'.repeat(63) + '2'; // carga parcial, nunca publicada
 const RETIRADA = 'f'.repeat(63) + '3'; // carga completa, publicada e retirada
 const DA_API = `select id from public.cargas where identidade like '${'f'.repeat(63)}%'`;
 const TOTAL_PRINCIPAL = 1005; // acima do max_rows (1000) para conferir o limite técnico da API
-const TABELAS_FILHAS = ['fontes', 'malhas', 'municipios', 'deteccoes', 'disponibilidade'];
+const TABELAS_FILHAS = ['fontes', 'malhas', 'municipios', 'deteccoes', 'disponibilidade', 'areas', 'deteccoes_areas'];
 const RPCS = ['consultar_resumo', 'consultar_deteccoes', 'consultar_disponibilidade'];
 
 // Carga pequena (1 município × 1 dia de setembro) com linhas em todas as tabelas filhas.
 const cargaPequena = (ident, totalPrincipal) => `
-insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade)
-values ('${ident}', 'AQUA_M-T', '2026-09-01T00:00Z', '2026-09-02T00:00Z', ${totalPrincipal}, 0, 1, 1);
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
+values ('${ident}', 'AQUA_M-T', '2026-09-01T00:00Z', '2026-09-02T00:00Z', ${totalPrincipal}, 0, 1, 1, 1, 1);
 insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
 select c.id, k.chave, 'ficticia', 'https://exemplo.test/' || k.chave, repeat('9', 64), 1, '2026-11-02T00:00Z', 'fictícia'
 from public.cargas c, (values ('focos'), ('malha_max'), ('malha_min')) k(chave) where c.identidade = '${ident}';
@@ -32,22 +32,25 @@ select c.id, 'api-' || c.id, 'focos', 1, 'principal', '2026-09-01T18:00Z', -10, 
 from public.cargas c where c.identidade = '${ident}';
 insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
 select c.id, '2026-09-01', 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado'], 'parcial'
-from public.cargas c where c.identidade = '${ident}';`;
+from public.cargas c where c.identidade = '${ident}';
+insert into public.areas (carga_id, fonte, codigo, fonte_chave, nome, classe, origem_rotulo, geometria_geral, geometria_real)
+select id, 'cnuc', 'A', 'focos', 'Área fictícia', 'protecao_integral', 'rotulo', '{}', '{}' from public.cargas where identidade = '${ident}';
+insert into public.deteccoes_areas select id, 'api-' || id, 'cnuc', 'A', 'interior' from public.cargas where identidade = '${ident}';`;
 
 // Fixture: o administrador aprova o manifesto declarado (a conferência é tema dos testes SQL).
 const aprovar = (ident) => `
 insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
-  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
 select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
-  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area
 from public.cargas where identidade = '${ident}';`;
 
 const FIXTURE = `
 begin;
 insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
-  total_principal, total_envelope, total_municipios, total_disponibilidade)
+  total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
 values ('${IDENTIDADE}', 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', '2026-11-01T00:00Z', '2026-11-01T04:00Z',
-  ${TOTAL_PRINCIPAL}, 2, 1, 31);
+  ${TOTAL_PRINCIPAL}, 2, 1, 31, 1, 1);
 insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
 select c.id, k.chave, 'ficticia', 'https://exemplo.test/' || k.chave, repeat('9', 64), 1, '2026-11-02T00:00Z', 'fictícia'
 from public.cargas c, (values ('focos'), ('malha_max'), ('malha_min')) k(chave) where c.identidade = '${IDENTIDADE}';
@@ -65,6 +68,9 @@ from public.cargas c, generate_series(1, ${TOTAL_PRINCIPAL + 2}) n where c.ident
 insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
 select c.id, d::date, 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado', 'sem_aviso_incidente'], 'parcial'
 from public.cargas c, generate_series('2026-10-01'::date, '2026-10-31'::date, interval '1 day') d where c.identidade = '${IDENTIDADE}';
+insert into public.areas (carga_id, fonte, codigo, fonte_chave, nome, classe, origem_rotulo, geometria_geral, geometria_real)
+select id, 'cnuc', 'A', 'focos', 'Área fictícia', 'protecao_integral', 'rotulo', '{}', '{}' from public.cargas where identidade = '${IDENTIDADE}';
+insert into public.deteccoes_areas select id, 'api1', 'cnuc', 'A', 'interior' from public.cargas where identidade = '${IDENTIDADE}';
 ${aprovar(IDENTIDADE)}
 update public.cargas set estado = 'publicada' where identidade = '${IDENTIDADE}';
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${IDENTIDADE}';
@@ -194,6 +200,12 @@ test('RP: primeiro login → cadastro → leitura → revogação', async () => 
   for (const [nome, r] of Object.entries(await consultarTodas(token))) {
     assert.equal(r.status, 200, `RP ${nome}: ${r.texto}`);
     assert.equal(String(r.json.carga.id), sqlAdmin('select carga_id from public.publicacao_vigente;'), `RP ${nome} usa a carga vigente`);
+  }
+
+  for (const tabela of ['areas', 'deteccoes_areas']) {
+    const r = await ler(token, `${tabela}?select=carga_id`);
+    assert.equal(r.status, 200);
+    assert.equal(r.json.length, 1, `RP lê ${tabela} publicada`);
   }
 
   // Tabelas filhas pelo ID de cargas em preparação e retirada, sem JOIN com cargas.

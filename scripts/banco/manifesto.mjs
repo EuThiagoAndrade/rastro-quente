@@ -72,7 +72,7 @@ const inteiroOuNulo = (v) => (v === '' || v === undefined ? null : Number(v));
 const iso = (v) => new Date(v).toISOString().replace('.000Z', 'Z');
 
 // Lê do disco as saídas do item 1 e confere, byte a byte, o que será carregado.
-export async function carregarEntradas({ exibicao = EXIBICAO_PADRAO, raizes = {} } = {}) {
+export async function carregarEntradas({ exibicao = EXIBICAO_PADRAO, semAreas = false, raizes = {} } = {}) {
   exigir(QUALIDADES_EXIBICAO.includes(exibicao), `Qualidade de exibição desconhecida: ${exibicao}`);
   const caminhos = { fontes: FONTES, avisos: AVISOS, saidas: SAIDAS, brutos: BRUTOS, relatorio: path.join(LOCAL, 'relatorio.json'), ...raizes };
   const fontes = await lerJson(caminhos.fontes);
@@ -83,7 +83,7 @@ export async function carregarEntradas({ exibicao = EXIBICAO_PADRAO, raizes = {}
     return { dados, sha256: sha256(dados) };
   };
   const saidas = {};
-  for (const nome of ['deteccoes.csv', 'disponibilidade.csv']) saidas[nome] = await ler(path.join(caminhos.saidas, nome));
+  for (const nome of ['deteccoes.csv', 'disponibilidade.csv', ...(semAreas ? [] : ['areas.json', 'deteccoes_areas.csv'])]) saidas[nome] = await ler(path.join(caminhos.saidas, nome));
   const item = (id) => {
     const i = fontes.itens.find((x) => x.id === id);
     exigir(i, `Item de fonte ausente em fontes.json: ${id}`);
@@ -95,7 +95,7 @@ export async function carregarEntradas({ exibicao = EXIBICAO_PADRAO, raizes = {}
     exigir(arquivo.sha256 === item(id).sha256, `SHA-256 de ${item(id).destino} diverge de fontes.json. Parado.`);
     brutos[id] = arquivo;
   }
-  return { fontes, avisos, relatorio, saidas, brutos, exibicao };
+  return { fontes, avisos, relatorio, saidas, brutos, exibicao, semAreas };
 }
 
 // Confere o encadeamento fontes → relatório → saídas e devolve { manifesto, identidade, dados }.
@@ -149,6 +149,20 @@ export function construirCarga(entradas) {
   exigir(deteccoes.every((d) => codigos.has(d.municipio_codigo)), 'Detecção em município fora da malha de exibição.');
   exigir(disponibilidade.every((d) => codigos.has(d.municipio_codigo)), 'Disponibilidade em município fora da malha de exibição.');
 
+  const comAreas = !entradas.semAreas;
+  if (comAreas) exigir(saidas['areas.json'] && saidas['deteccoes_areas.csv'], 'Saídas de áreas ausentes. Parado.');
+  const fonteArea = Object.fromEntries(fontes.itens.filter((i) => i.papel === 'areas').map((i) => [i.fonte, i.id]));
+  const areas = comAreas ? JSON.parse(saidas['areas.json'].dados.toString('utf8')).map((a) => {
+    exigir(fonteArea[a.fonte], `Fonte da área ausente: ${a.fonte}`);
+    return { ...a, fonte_chave: fonteArea[a.fonte] };
+  }) : [];
+  const deteccoes_areas = comAreas ? lerCsv(saidas['deteccoes_areas.csv'].dados.toString('utf8')).linhas.map((v) => ({
+    id_tecnico: v.id_tecnico, area_fonte: v.fonte, area_codigo: v.codigo, posicao: v.posicao,
+  })) : [];
+  if (comAreas) {
+    exigir(areas.length === relatorio.areas?.total && deteccoes_areas.length === relatorio.areas?.vinculos, 'Totais de áreas divergem do relatório.');
+  }
+
   // 4. Totais conferidos contra o relatório e contra as linhas lidas.
   const totais = {
     principal: deteccoes.filter((d) => d.escopo === 'principal').length,
@@ -156,6 +170,7 @@ export function construirCarga(entradas) {
     municipios: municipios.length,
     disponibilidade: disponibilidade.length,
   };
+  if (comAreas) { totais.areas = areas.length; totais.vinculos_area = deteccoes_areas.length; }
   exigir(totais.principal === relatorio.totais.principal && totais.envelope === relatorio.totais.envelope, 'Totais de detecções divergem do relatório.');
   exigir(totais.municipios === relatorio.territorio.municipiosNaMalha, 'Municípios divergem do relatório.');
   exigir(totais.disponibilidade === relatorio.disponibilidade.municipioDias, 'Disponibilidade diverge do relatório.');
@@ -169,13 +184,27 @@ export function construirCarga(entradas) {
     formato: 'rq-metodo-1', kb: 'KB-004', classificacao: 'maxima', exibicao, regra_historico: regra, revisao,
     desvio_horas_sensibilidade: fontes.envelope.desvioHoras,
   };
+  if (comAreas) {
+    exigir(fonteArea.cnuc && fonteArea.funai, 'As duas fontes de áreas são obrigatórias.');
+    metodo.areas = 'areas-006-v1';
+    metodo.parametros_areas = {
+      leitura: { formato: 'shp_polygon', crs: 'SIRGAS_2000_geografico', codificacao: { cnuc: 'utf-8', funai: 'iso-8859-1' }, null_shape: 'somente_registro_excluido' },
+      classes: ['protecao_integral', 'uso_sustentavel', 'terra_indigena'],
+      exclusoes: ['rppn', 'zona_amortecimento', 'inativa', 'em_estudo'],
+      pertencimento: 'poligono_integral_borda_incluida_principal', selecao: 'rotulo_mt_ou_vinculo',
+      exibicao: { algoritmo: 'douglas_peucker_anel_fechado', tolerancias_graus: [0.005, 0.001, 0.0005, 0.00025, 0.000125, 0],
+        casas_geral: 4, casas_real: [5, 6, 8, 14], recuo_buraco_graus: 0.0000001,
+        limite_reparo_graus: 0.0000008, validar_topologia: true, preservar_aneis_pequenos: true },
+    };
+  }
+  const fontesCarga = fontes.itens.filter((i) => comAreas || i.papel !== 'areas');
   const manifesto = {
     formato: FORMATO_MANIFESTO,
     satelite: SATELITE,
     janela, envelope, fuso_sensibilidade: fontes.envelope.fuso,
     metodo,
-    fontes: fontes.itens.map((i) => ({ chave: i.id, papel: i.papel, url: i.url, sha256: i.sha256, bytes: i.tamanho })).sort((a, b) => a.chave.localeCompare(b.chave)),
-    saidas: Object.entries(saidas).map(([arquivo, s]) => ({ arquivo, sha256: s.sha256 })).sort((a, b) => a.arquivo.localeCompare(b.arquivo)),
+    fontes: fontesCarga.map((i) => ({ chave: i.id, papel: i.papel, url: i.url, sha256: i.sha256, bytes: i.tamanho })).sort((a, b) => a.chave.localeCompare(b.chave)),
+    saidas: Object.entries(saidas).filter(([arquivo]) => comAreas || !['areas.json', 'deteccoes_areas.csv'].includes(arquivo)).map(([arquivo, s]) => ({ arquivo, sha256: s.sha256 })).sort((a, b) => a.arquivo.localeCompare(b.arquivo)),
     totais,
   };
 
@@ -184,12 +213,12 @@ export function construirCarga(entradas) {
     return c ? `${c.uso}: ${c.resumo}` : 'não registrada';
   };
   const dados = {
-    fontes: fontes.itens.map((i) => ({ chave: i.id, papel: i.papel, url: i.url, sha256: i.sha256, bytes: i.tamanho, obtida_em: i.obtidoEm, condicoes_uso: condicao(i.fonte) })),
+    fontes: fontesCarga.map((i) => ({ chave: i.id, papel: i.papel, url: i.url, sha256: i.sha256, bytes: i.tamanho, obtida_em: i.obtidoEm, condicoes_uso: condicao(i.fonte) })),
     malhas: [
       { uso: 'classificacao', fonte_chave: 'ibge-malha-mt-municipios-maxima', qualidade: 'maxima', parametros: { calculo: 'integral', coordenadas: 'originais' } },
       { uso: 'exibicao', fonte_chave: `ibge-malha-mt-municipios-${exibicao}`, qualidade: exibicao, parametros: { uso: 'visual', simplificada: exibicao !== 'maxima' } },
     ],
-    municipios, deteccoes, disponibilidade,
+    municipios, deteccoes, disponibilidade, areas, deteccoes_areas,
   };
   return { manifesto, identidade: identidadeDe(manifesto), dados };
 }
@@ -202,6 +231,7 @@ export function camposDaCarga(manifesto, identidade) {
     fuso_sensibilidade: manifesto.fuso_sensibilidade, metodo: manifesto.metodo,
     total_principal: manifesto.totais.principal, total_envelope: manifesto.totais.envelope,
     total_municipios: manifesto.totais.municipios, total_disponibilidade: manifesto.totais.disponibilidade,
+    total_areas: manifesto.totais.areas ?? null, total_vinculos_area: manifesto.totais.vinculos_area ?? null,
   };
 }
 

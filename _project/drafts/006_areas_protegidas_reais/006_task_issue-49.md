@@ -2,13 +2,13 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#49`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-49`
 > **PR:** [#53](https://github.com/EuThiagoAndrade/rastro-quente/pull/53)
-> **Integração:** `Pendente`
+> **Integração:** PR #53 integrada em 2026-11-13
 > **Autorização inicial:** "autorizo a implementação da issue #49" em 2026-11-12
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-12
@@ -54,7 +54,7 @@ Não se aplica.
 | Testes | Protótipo: 67 testes passaram; conferência: 5 testes passaram; RLS: 173 pgTAP e 35 testes Node passaram; E2E: 68 passaram após ajuste de espera autorizado. Duas execuções anteriores falharam no logout. |
 | Validador | Passou: 0 erros e 0 avisos; itens manuais pendentes. |
 | `git diff --check` | Passou; avisos Git de conversão de fim de linha. |
-| Checks remotos | Pendente |
+| Checks remotos | Governance, Database RLS and query contract e Interface typecheck, build and E2E passaram na PR #53. |
 
 ## Revisão da correção
 
@@ -92,10 +92,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 006 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #53
-Diga: "aprovo o merge da PR #53"
+Situação: Pronto para continuar — ciclo 006 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 006"
 ```
 
 ## Handoff de saída
@@ -104,7 +104,7 @@ Diga: "aprovo o merge da PR #53"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 49 + v5@9d84efbf9c95f9e503259d46baee40fd78da939f`
 - `effect_class`: `remote_mutation`
 - `state_before`: implementação e conferência local concluídas, issue aberta e branch pronta para publicação.
-- `state_after`: branch publicada e PR #53 aberta; integração pendente.
-- `result`: `executed`
-- `evidence`: PR #53 aberta via gh; commit `108f505292239f9d1562bf2f9ebc7388f48adb0e`; gates locais e conferência independente passaram.
-- `blockers`: checks remotos e aprovação específica do merge pendentes; aquisição automatizada real da FUNAI não foi comprovada após HTTP 403.
+- `state_after`: PR #53 integrada; issue #49 fechada.
+- `result`: `already_executed_and_reconciled`
+- `evidence`: PR #53 integrada no commit `57c279e5cd6e58f5a7380e077bb4bd7bb917306d`; checks remotos, gates locais e conferência independente passaram.
+- `blockers`: nenhum para a issue #49; aquisição automatizada real da FUNAI não foi comprovada após HTTP 403.

@@ -15,7 +15,7 @@ export const TETO_BANCO_BYTES = 400_000_000;
 // Medido com a carga integral do item 1: 1,14–1,15 (ADR-006). Usa-se 1,5, cerca de 30% de folga.
 export const FATOR_PERSISTENCIA = 1.5;
 const PONTOS_CONSTRAINT_CONCORRENTE = new Set(['cargas_identidade_key', 'publicacao_vigente_pkey']);
-const TABELAS_FILHAS = ['fontes', 'malhas', 'municipios', 'deteccoes', 'disponibilidade'];
+const TABELAS_FILHAS = ['fontes', 'malhas', 'municipios', 'deteccoes', 'disponibilidade', 'areas', 'deteccoes_areas'];
 const LOOPBACK = new Set(['127.0.0.1', 'localhost', '[::1]', '::1']);
 
 // --- Alvo e conexão -------------------------------------------------------------------------
@@ -79,7 +79,9 @@ async function fechar(c) {
 
 const SQL_ESTADO = `
 select c.id, c.estado, coalesce((select v.carga_id = c.id from public.publicacao_vigente v), false) as vigente,
-  c.total_principal, c.total_envelope, c.total_municipios, c.total_disponibilidade,
+  c.total_principal, c.total_envelope, c.total_municipios, c.total_disponibilidade, c.total_areas, c.total_vinculos_area,
+  (select count(*) from public.areas a where a.carga_id = c.id)::int as areas,
+  (select count(*) from public.deteccoes_areas v where v.carga_id = c.id)::int as vinculos_area,
   (select count(*) from public.deteccoes d where d.carga_id = c.id and d.escopo = 'principal')::int as principal,
   (select count(*) from public.deteccoes d where d.carga_id = c.id and d.escopo = 'envelope')::int as envelope,
   (select count(*) from public.municipios m where m.carga_id = c.id)::int as municipios,
@@ -92,7 +94,8 @@ export async function classificar(c, identidade) {
   if (!r) return { situacao: 'ausente' };
   const contagens = { principal: r.principal, envelope: r.envelope, municipios: r.municipios, disponibilidade: r.disponibilidade };
   const completa = r.principal === r.total_principal && r.envelope === r.total_envelope
-    && r.municipios === r.total_municipios && r.disponibilidade === r.total_disponibilidade;
+    && r.municipios === r.total_municipios && r.disponibilidade === r.total_disponibilidade
+    && r.areas === (r.total_areas ?? 0) && r.vinculos_area === (r.total_vinculos_area ?? 0);
   if (r.estado === 'retirada') return { situacao: 'retirada', cargaId: Number(r.id), contagens };
   if (r.estado === 'publicada' && r.vigente && completa) return { situacao: 'concluida', cargaId: Number(r.id), contagens };
   return { situacao: 'ambigua', cargaId: Number(r.id), estado: r.estado, vigente: r.vigente, completa, contagens };
@@ -101,6 +104,12 @@ export async function classificar(c, identidade) {
 // --- Inserção -------------------------------------------------------------------------------
 
 const INSERCOES = {
+  areas: `insert into public.areas (carga_id, fonte, codigo, fonte_chave, nome, classe, categoria, fase, modalidade, esfera, qualidade, origem_rotulo, geometria_geral, geometria_real)
+    select $1, x.fonte, x.codigo, x.fonte_chave, x.nome, x.classe, x.categoria, x.fase, x.modalidade, x.esfera, x.qualidade, x.origem_rotulo, x.geometria_geral, x.geometria_real
+    from jsonb_to_recordset($2::jsonb) as x(fonte text, codigo text, fonte_chave text, nome text, classe text, categoria text, fase text, modalidade text, esfera text, qualidade text, origem_rotulo text, geometria_geral jsonb, geometria_real jsonb)`,
+  deteccoes_areas: `insert into public.deteccoes_areas (carga_id, id_tecnico, area_fonte, area_codigo, posicao)
+    select $1, x.id_tecnico, x.area_fonte, x.area_codigo, x.posicao from jsonb_to_recordset($2::jsonb)
+    as x(id_tecnico text, area_fonte text, area_codigo text, posicao text)`,
   fontes: `insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
     select $1, x.chave, x.papel, x.url, x.sha256, x.bytes, x.obtida_em, x.condicoes_uso
     from jsonb_to_recordset($2::jsonb) as x(chave text, papel text, url text, sha256 text, bytes bigint, obtida_em timestamptz, condicoes_uso text)`,
@@ -123,8 +132,8 @@ const INSERCOES = {
 };
 
 const SQL_CARGA = `insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim, fuso_sensibilidade,
-    metodo, total_principal, total_envelope, total_municipios, total_disponibilidade)
-  values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12) returning id`;
+    metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
+  values ($1, $2, $3, $4, $5, $6, $7, $8::jsonb, $9, $10, $11, $12, $13, $14) returning id`;
 
 // --- apply ----------------------------------------------------------------------------------
 
@@ -159,11 +168,11 @@ async function tentar({ novoCliente, campos, identidade, dados, gancho }) {
     await gancho('inicio', ctx);
     const v = campos;
     const { rows } = await c.query(SQL_CARGA, [v.identidade, v.satelite, v.janela_inicio, v.janela_fim, v.envelope_inicio, v.envelope_fim,
-      v.fuso_sensibilidade, JSON.stringify(v.metodo), v.total_principal, v.total_envelope, v.total_municipios, v.total_disponibilidade]);
+      v.fuso_sensibilidade, JSON.stringify(v.metodo), v.total_principal, v.total_envelope, v.total_municipios, v.total_disponibilidade, v.total_areas, v.total_vinculos_area]);
     const id = Number(rows[0].id);
     await gancho('apos_carga', ctx);
     for (const tabela of TABELAS_FILHAS) {
-      await c.query(INSERCOES[tabela], [id, JSON.stringify(dados[tabela])]);
+      await c.query(INSERCOES[tabela], [id, JSON.stringify(dados[tabela] ?? [])]);
       await gancho(`apos_${tabela}`, ctx);
     }
     const anterior = (await c.query('select carga_id from public.publicacao_vigente for update')).rows[0]?.carga_id ?? null;
@@ -267,7 +276,7 @@ export async function expirar({ novoCliente, simular = false }) {
     const removidas = [];
     for (const ca of cargas) {
       const n = {};
-      for (const tabela of ['disponibilidade', 'deteccoes', 'municipios', 'malhas', 'fontes']) {
+      for (const tabela of ['deteccoes_areas', 'areas', 'disponibilidade', 'deteccoes', 'municipios', 'malhas', 'fontes']) {
         n[tabela] = simular
           ? (await c.query(`select count(*)::int as n from public.${tabela} where carga_id = $1`, [ca.id])).rows[0].n
           : (await c.query(`delete from public.${tabela} where carga_id = $1`, [ca.id])).rowCount;
@@ -287,6 +296,8 @@ export async function expirar({ novoCliente, simular = false }) {
 // --- resumo de conteúdo (comparação entre reconstruções) ------------------------------------
 
 const EXPRESSOES = {
+  areas: ['fonte, codigo, fonte_chave, nome, classe, categoria, fase, modalidade, esfera, qualidade, origem_rotulo, geometria_geral, geometria_real', 'fonte, codigo'],
+  deteccoes_areas: ['id_tecnico, area_fonte, area_codigo, posicao', 'id_tecnico, area_fonte, area_codigo'],
   fontes: ['chave, papel, url, sha256, bytes, obtida_em, condicoes_uso', 'chave'],
   malhas: ['uso, fonte_chave, qualidade, parametros', 'uso'],
   municipios: ['codigo, nome, geometria_exibicao', 'codigo'],
@@ -299,14 +310,17 @@ export async function resumoDaVigente(c) {
   const id = (await c.query('select carga_id from public.publicacao_vigente')).rows[0]?.carga_id;
   if (id === undefined) return null;
   const carga = (await c.query(`select identidade, estado, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim, fuso_sensibilidade,
-    metodo, total_principal, total_envelope, total_municipios, total_disponibilidade from public.cargas where id = $1`, [id])).rows[0];
+    metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area from public.cargas where id = $1`, [id])).rows[0];
   const tabelas = {};
   for (const [tabela, [colunas, ordem]] of Object.entries(EXPRESSOES)) {
     const r = (await c.query(`select count(*)::int as n, encode(sha256(convert_to(coalesce(string_agg(row(${colunas})::text, E'\\n' order by ${ordem}), ''), 'UTF8')), 'hex') as h
       from public.${tabela} where carga_id = $1`, [id])).rows[0];
     tabelas[tabela] = { linhas: r.n, sha256: r.h };
   }
-  return { identidade: carga.identidade, estado: carga.estado, totais: { principal: carga.total_principal, envelope: carga.total_envelope, municipios: carga.total_municipios, disponibilidade: carga.total_disponibilidade }, tabelas };
+  const porClasse = (await c.query(`select a.classe, count(distinct (a.fonte, a.codigo))::int as areas, count(v.id_tecnico)::int as vinculos
+    from public.areas a left join public.deteccoes_areas v on (v.carga_id, v.area_fonte, v.area_codigo) = (a.carga_id, a.fonte, a.codigo)
+    where a.carga_id = $1 group by a.classe order by a.classe`, [id])).rows;
+  return { porClasse, identidade: carga.identidade, estado: carga.estado, totais: { principal: carga.total_principal, envelope: carga.total_envelope, municipios: carga.total_municipios, disponibilidade: carga.total_disponibilidade, areas: carga.total_areas, vinculos_area: carga.total_vinculos_area }, tabelas };
 }
 
 // --- CLI ------------------------------------------------------------------------------------
@@ -319,7 +333,7 @@ function opcao(args, nome, padrao) {
 async function carregar(args) {
   const exibicao = opcao(args, '--exibicao', EXIBICAO_PADRAO);
   const revisao = Number(opcao(args, '--revisao', 1));
-  const entradas = await carregarEntradas({ exibicao });
+  const entradas = await carregarEntradas({ exibicao, semAreas: args.includes('--sem-areas') });
   return construirCarga({ ...entradas, revisao });
 }
 
@@ -364,7 +378,7 @@ export async function executarCli(args) {
       await fechar(c);
     }
   } else {
-    process.stderr.write('Uso: node scripts/banco/carga.mjs <plan [--offline] [--sql arq] | apply --identidade HEX | expirar [--simular] | resumo> --alvo URL [--exibicao q] [--revisao n]\n');
+    process.stderr.write('Uso: node scripts/banco/carga.mjs <plan [--offline] [--sql arq] | apply --identidade HEX | expirar [--simular] | resumo> --alvo URL [--exibicao q] [--revisao n] [--sem-areas]\n');
     process.exitCode = 2;
   }
 }

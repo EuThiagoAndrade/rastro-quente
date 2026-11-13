@@ -12,6 +12,8 @@ Nada aqui autoriza teste destrutivo em produção. Nenhum comando abaixo pede se
 
 ## 2. Atualizar os dados (versão nova)
 
+Desde a issue #50, a carga normal lê também `areas.json` e `deteccoes_areas.csv` do relatório local, confere seus hashes e totais e incorpora as duas fontes e `areas-006-v1` ao manifesto. O resumo mostra áreas e vínculos por classe. Os polígonos integrais e os arquivos das fontes permanecem locais; somente as geometrias de exibição são publicadas.
+
 1. **Gerar os insumos.** `janela`, `obter` e `processar` do item 1. Fonte corrigida, janela diferente ou método corrigido mudam os hashes e, portanto, a identidade.
 2. **Abrir a janela do EX (administrador).** O `plan` com `--alvo` consulta o banco como EX, e o EX nasce sem `LOGIN`: sem esta etapa o plano falha na conexão. `\password rq_executor` no `psql` (a senha é cifrada no cliente e não aparece no log) e `alter role rq_executor login;`. Guardar a senha em cofre ou ambiente local ignorado.
 3. **Plano, sem escrita.** `node scripts/banco/carga.mjs plan --alvo postgresql://rq_executor@127.0.0.1:55322/postgres --sql aprovacao.sql`
@@ -36,6 +38,8 @@ Nada aqui autoriza teste destrutivo em produção. Nenhum comando abaixo pede se
 Códigos de saída: 0 (`executed` ou reconciliado), 3 (`not_executed` ou parada do plano), 4 (ambíguo), 2 (erro de uso).
 
 ## 3. Reversão segura dos dados
+
+Para retirar a camada de áreas, use `--sem-areas --revisao N` tanto no `plan` quanto no `apply`, com uma revisão nova, e confira identidade, totais nulos e resumo. Os insumos locais não são removidos.
 
 Não há `force` nem retorno de carga retirada. Para voltar ao conteúdo anterior: gerar o plano do **mesmo conteúdo com `--revisao N+1`**, aprovar o novo manifesto e aplicar. A versão ruim é retirada pela troca e depois expirada. Falha antes do commit não exige reversão: a versão vigente nunca saiu do lugar.
 
@@ -74,6 +78,8 @@ Reconstrução medida com a carga real (`node scripts/banco/reconstruir.mjs`, m�
 - **Conferência:** o EX não é proprietário, não tem `BYPASSRLS` nem DDL e não lê a lista do RP. `privado.conferir_papel_executor('rq_executor')` e `privado.auditar_exposicao()` (proprietário) comprovam; os testes automatizados estão em `npm run test:rls`.
 
 ## 8. Medições de referência (carga real, banco local)
+
+Ciclo 006, issue #50: `npm run medir:carga` mede novamente com as duas tabelas, reconciliação, expiração e rollback `--sem-areas`. Os resultados e limites específicos da execução ficam na task da issue. O teto aprovado para o acréscimo é 10.000.000 bytes; se excedido, parar antes da PR.
 
 | Medida | Valor |
 | :-- | :-- |
@@ -137,6 +143,8 @@ Variáveis do build (nomes em `.env.example`): `VITE_SUPABASE_URL` (https fora d
 - Dados do E2E: três municípios inventados (`99000xx`), contas `.test` criadas e removidas pelo próprio teste, senhas geradas na hora.
 
 ## 11. Roteiro do item 5 — operação hospedada (atos do responsável)
+
+**Atualização do ciclo 006:** depois do merge da issue #50, somente o responsável aplica a migração e a carga hospedadas conforme o roteiro específico da task da issue. Antes do `db push`, comparar `--dry-run` com as migrações pendentes do repositório, sem reset ou repair; conferir manifesto e identidade local; aprovar o manifesto como proprietário, abrir e fechar a janela EX e verificar `auditar_exposicao()` vazia. A ação hospedada não foi executada pelo agente nem é coberta pela autorização de implementação.
 
 Escopo: issue #24 do ciclo `003`. **Nada daqui começa antes da PR técnica integrada** (merge aprovado, commit na `main`). O agente prepara este roteiro, confere por leitura o que alcançar e executa só a carga pelo EX; todo o resto é seu. O agente nunca recebe senha de proprietário, token da CLI, chave secreta (`sb_secret_…`, `service_role`), segredo do Google, senha do EX no chat, UUID ou e-mail reais. Ao concluir cada etapa, responda "concluí a ação externa da issue #24" **dizendo o número da etapa** e colando só as saídas sanitizadas pedidas. Dúvida, divergência, cobrança, cartão, trial, cota insuficiente ou comando que não bate com o esperado: **pare e conte ao agente**.
 

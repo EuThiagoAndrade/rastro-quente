@@ -46,7 +46,7 @@ function entradasFicticias({ revisao = 1 } = {}) {
       saidas: Object.entries(saidas).map(([arquivo, s]) => ({ arquivo, sha256: s.sha256, bytes: s.dados.length })),
       totais: { principal: 2, envelope: 1 }, territorio: { municipiosNaMalha: 2 }, disponibilidade: { municipioDias: 4 },
     },
-    saidas, brutos: Object.fromEntries(Object.entries(brutos).map(([id, b]) => [id, { dados: b, sha256: sha256(b) }])), exibicao: EXIBICAO, revisao,
+    semAreas: true, saidas, brutos: Object.fromEntries(Object.entries(brutos).map(([id, b]) => [id, { dados: b, sha256: sha256(b) }])), exibicao: EXIBICAO, revisao,
   };
 }
 
@@ -145,4 +145,38 @@ test('sqlAprovacao: um INSERT com a mesma identidade e os mesmos campos da carga
   assert.ok(sql.includes(`'${JSON.stringify(campos.metodo)}'::jsonb`));
   assert.equal(sql.match(/insert into/g).length, 1);
   assert.doesNotMatch(sql, /password|senha|secret/i);
+});
+
+test('áreas: identidade e totais incluem saídas; rollback omite camada e preserva entradas', () => {
+  const e = entradasFicticias();
+  e.semAreas = false;
+  const fontes = [
+    { id: 'cnuc-teste', papel: 'areas', fonte: 'cnuc', url: 'https://exemplo.test/cnuc', tamanho: 1, sha256: 'c'.repeat(64), obtidoEm: '2026-11-07T10:00:00Z' },
+    { id: 'funai-teste', papel: 'areas', fonte: 'funai', url: 'https://exemplo.test/funai', tamanho: 1, sha256: 'd'.repeat(64), obtidoEm: '2026-11-07T10:00:00Z' },
+  ];
+  e.fontes.itens.push(...fontes);
+  e.relatorio.insumos.push(...fontes.map((i) => ({ id: i.id, sha256: i.sha256 })));
+  e.saidas['areas.json'] = { dados: Buffer.from(JSON.stringify([{ fonte: 'cnuc', codigo: 'A1', nome: 'Área fictícia', classe: 'protecao_integral', origem_rotulo: 'rotulo', geometria_geral: {}, geometria_real: {} }])) };
+  e.saidas['deteccoes_areas.csv'] = { dados: Buffer.from('id_tecnico,fonte,codigo,posicao\naaaa:2,cnuc,A1,borda\n') };
+  for (const nome of ['areas.json', 'deteccoes_areas.csv']) {
+    const v = e.saidas[nome]; v.sha256 = sha256(v.dados);
+    e.relatorio.saidas.push({ arquivo: nome, sha256: v.sha256, bytes: v.dados.length });
+  }
+  e.relatorio.areas = { total: 1, vinculos: 1 };
+  const incompleta = { ...e, saidas: { ...e.saidas } };
+  delete incompleta.saidas['areas.json'];
+  assert.throws(() => construirCarga(incompleta), /Saídas de áreas ausentes/);
+  const normal = construirCarga(e);
+  assert.equal(normal.manifesto.metodo.areas, 'areas-006-v1');
+  assert.equal(normal.manifesto.totais.areas, 1);
+  assert.equal(normal.manifesto.totais.vinculos_area, 1);
+  assert.equal(normal.dados.areas[0].fonte_chave, 'cnuc-teste');
+  assert.deepEqual(normal.dados.deteccoes_areas[0], { id_tecnico: 'aaaa:2', area_fonte: 'cnuc', area_codigo: 'A1', posicao: 'borda' });
+  const rollback = construirCarga({ ...e, semAreas: true, revisao: 2 });
+  assert.notEqual(rollback.identidade, normal.identidade);
+  assert.equal(camposDaCarga(rollback.manifesto, rollback.identidade).total_areas, null);
+  assert.equal(rollback.manifesto.metodo.areas, undefined);
+  assert.equal(rollback.dados.areas.length, 0);
+  e.relatorio.areas.vinculos = 2;
+  assert.throws(() => construirCarga(e), /Totais de áreas divergem/);
 });

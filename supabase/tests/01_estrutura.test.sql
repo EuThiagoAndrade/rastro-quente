@@ -14,7 +14,7 @@ select is(
 select is(
   (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
    where n.nspname = 'public' and c.relkind in ('r', 'p')),
-  7, 'schema public tem exatamente as 7 tabelas do contrato');
+  9, 'schema public tem exatamente as 9 tabelas do contrato');
 
 select is(
   (select count(*)::int from pg_class c join pg_namespace n on n.oid = c.relnamespace
