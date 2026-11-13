@@ -11,7 +11,10 @@ async function cmdJanela(args) {
   const fontes = await lerJson(FONTES);
   if (fontes.janela && !args.includes('--refixar')) throw new Error(`Janela já fixada (${fontes.janela.inicio} a ${fontes.janela.fim}); use --refixar para nova versão.`);
   const r = await fixarJanela({ ultimoMes });
-  Object.assign(fontes, { janela: r.janela, sondasMensais: r.sondas, envelope: r.envelope, itens: r.itens });
+  // Refixar a janela não autoriza trocar o retrato das áreas.
+  const areasExistentes = fontes.itens?.filter((i) => i.papel === 'areas') ?? [];
+  const itens = areasExistentes.length ? [...r.itens.filter((i) => i.papel !== 'areas'), ...areasExistentes] : r.itens;
+  Object.assign(fontes, { janela: r.janela, sondasMensais: r.sondas, envelope: r.envelope, itens });
   await salvarJson(FONTES, fontes);
   console.log(JSON.stringify({ janela: r.janela, envelope: r.envelope, itens: r.itens.length }, null, 2));
 }
@@ -24,7 +27,9 @@ async function cmdObter() {
   let erro = null;
   try {
     for (const item of fontes.itens) {
+      const hashAnterior = item.sha256;
       const r = await garantirItem(item, BRUTOS);
+      if (!hashAnterior && item.sha256) await salvarJson(FONTES, fontes);
       registro.push({ id: item.id, ...r });
       console.log(`${r.estado}: ${item.id} (${item.tamanho} bytes)`);
     }
@@ -32,7 +37,6 @@ async function cmdObter() {
     erro = e.message;
     console.error(`erro: ${erro}`);
   }
-  await salvarJson(FONTES, fontes);
   const medicao = {
     em: new Date().toISOString(), ms: Math.round(performance.now() - t0), erro, itens: registro,
     bytesBaixados: registro.reduce((s, r) => s + r.bytes, 0),

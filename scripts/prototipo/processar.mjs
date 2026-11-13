@@ -12,6 +12,8 @@ import { desvioFixo } from './janela.mjs';
 import { lerArquivo } from './leitura.mjs';
 import { AVISOS, BRUTOS, FONTES, LOCAL, lerJson, SAIDAS, salvarJson } from './caminhos.mjs';
 import { atribuir, criarMalhaMunicipal } from './territorio.mjs';
+import { lerShapefile } from './shapefile.mjs';
+import { prepararAreas } from './processar-areas.mjs';
 
 const HORA_MS = 3_600_000;
 const mesDe = (ms) => new Date(ms).toISOString().slice(0, 7);
@@ -200,6 +202,9 @@ export async function executar() {
   const amostrasMemoria = [];
   const relogio = setInterval(() => amostrasMemoria.push(process.memoryUsage().rss), 500);
   try {
+    // Um erro precoce nunca deixa um relatório anterior com estado Pronto.
+    await salvarJson(path.join(LOCAL, 'relatorio.json'), { situacao: 'Parado', paradas: ['processamento_nao_concluido'] });
+    const fontesHashInicial = await sha256Arquivo(FONTES), avisosHashInicial = await sha256Arquivo(AVISOS);
     const fontes = await lerJson(FONTES);
     const registroAvisos = await lerJson(AVISOS);
     const { janela, envelope } = fontes;
@@ -279,8 +284,29 @@ export async function executar() {
       geometrias[id] = m;
     }
 
-    // 7. Saídas locais.
+    // 7. Áreas: arquivos validados pelo hash, classificação na geometria integral.
+    const itensAreas = fontes.itens.filter((i) => i.papel === 'areas');
+    if (itensAreas.length !== 2 || new Set(itensAreas.map(i => i.fonte)).size !== 2 || !['cnuc','funai'].every(f => itensAreas.some(i => i.fonte === f))) throw new Error('Fontes de áreas incompletas. Parado.');
+    const registrosAreas = [], hashesMembros = {}, codificacoes = {};
+    for (const item of itensAreas) {
+      const lido = lerShapefile(await readFile(path.join(BRUTOS,item.destino)),item);
+      registrosAreas.push(...lido.registros.map(r=>({...r,fonte:item.fonte})));
+      hashesMembros[item.fonte]=lido.hashes;codificacoes[item.fonte]=lido.codificacao;
+    }
+    const deteccoesAreas = recorte.registros.filter(r=>r.escopo==='principal').map(r=>({id_tecnico:r.idTecnico,longitude:r.lon,latitude:r.lat}));
+    const areasProcessadas = prepararAreas(registrosAreas,deteccoesAreas);
+    const bytesFontes = Buffer.byteLength(JSON.stringify(itensAreas));
+    const bytesBancoEstimado = areasProcessadas.medicao.bytesAreas + areasProcessadas.medicao.bytesVinculos + bytesFontes;
+
+    // 8. Saídas locais.
     const saidas = [];
+    await salvarJson(path.join(SAIDAS,'areas.json'),areasProcessadas.areas);
+    await salvarJson(path.join(SAIDAS,'areas_excluidas.json'),areasProcessadas.exclusoes);
+    for (const nome of ['areas.json','areas_excluidas.json']) {
+      const arquivo=path.join(SAIDAS,nome), info=await stat(arquivo);
+      saidas.push({arquivo:nome,bytes:info.size,sha256:await sha256Arquivo(arquivo)});
+    }
+    saidas.push(await escreverCsv(path.join(SAIDAS,'deteccoes_areas.csv'),['id_tecnico','fonte','codigo','posicao'],areasProcessadas.vinculos.map(v=>[v.id_tecnico,v.fonte,v.codigo,v.posicao])));
     saidas.push(await escreverCsv(path.join(SAIDAS, 'deteccoes.csv'),
       ['id_tecnico', 'fonte', 'linha', 'id_fonte', 'data_hora_gmt', 'lat', 'lon', 'municipio_ibge', 'posicao', 'municipio_inpe', 'estado_inpe', 'escopo'],
       recorte.registros.map((r) => [r.idTecnico, r.fonte, r.linha, r.idFonte, r.dataHoraGmt, r.lat, r.lon, r.municipio, r.posicao, r.municipioInpe, r.estadoInpe, r.escopo])));
@@ -300,6 +326,10 @@ export async function executar() {
     }));
 
     const paradas = [];
+    if (await sha256Arquivo(FONTES) !== fontesHashInicial || await sha256Arquivo(AVISOS) !== avisosHashInicial) paradas.push('manifesto_ou_avisos_alterados_durante_processamento');
+    for (const item of fontes.itens) if (await sha256Arquivo(path.join(BRUTOS,item.destino)) !== item.sha256) paradas.push(`insumo_alterado:${item.id}`);
+    if (areasProcessadas.medicao.bytesVisaoGeral > 600_000) paradas.push('visao_geral_excede_600000_bytes');
+    if (bytesBancoEstimado > 10_000_000) paradas.push('banco_estimado_excede_10000000_bytes');
     if (recorte.invalidas.length) paradas.push(`linhas_invalidas:${recorte.invalidas.length}`);
     if (recorte.ambiguos.length) paradas.push(`pontos_ambiguos:${recorte.ambiguos.length}`);
     if (!listaConfere) paradas.push('lista_de_municipios_diverge_da_malha');
@@ -328,6 +358,8 @@ export async function executar() {
         ambiguos: recorte.ambiguos.length,
         pontosNaBorda: agregados.bordas,
       },
+      areas: { total: areasProcessadas.areas.length, vinculos: areasProcessadas.vinculos.length, exclusoes: areasProcessadas.exclusoes,
+        hashesMembros, codificacoes, ajustes: areasProcessadas.ajustes, medicao: {...areasProcessadas.medicao,bytesFontes,bytesBancoEstimado} },
       divergencias: recorte.divergencias.contagem,
       idFonte: { ...idFonte, repetidos: undefined },
       conferenciaEnvelope: confEnvelope,

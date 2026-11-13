@@ -18,6 +18,7 @@
     "test:interface": "node --test tests/unit/*.test.mjs",
     "test:e2e": "supabase db reset && playwright test",
     "medir:interface": "supabase db reset && node scripts/interface/medir-geometria.mjs",
+    "conferir:areas": "supabase db reset && node --max-old-space-size=4096 scripts/areas/conferir.mjs",
     "conferir:lentes": "supabase db reset && node scripts/lentes/conferir.mjs",
     "conferir:combinacao": "supabase db reset && node scripts/lentes/conferir-combinacao.mjs",
     "medir:lentes": "supabase db reset && node scripts/interface/medir-lentes.mjs"

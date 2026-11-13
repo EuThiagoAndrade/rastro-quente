@@ -93,7 +93,7 @@ test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   await expect(page.locator('#total-principal')).toHaveCount(0);
   await expect(page.locator('#conteudo')).toBeHidden();
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
-  expect(await page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('auth-token')))).toEqual([]);
+  await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('auth-token')))).toEqual([]);
   // Recarregar não restaura nada.
   await page.reload();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();
