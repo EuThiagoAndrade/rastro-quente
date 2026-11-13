@@ -2,12 +2,12 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#50`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-50`
-> **PR:** —
+> **PR:** [#54](https://github.com/EuThiagoAndrade/rastro-quente/pull/54)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #50" em 2026-11-13
 > **Modo contínuo:** `—`
@@ -44,7 +44,7 @@ Não se aplica.
 
 - [x] Implementar migração, carga e testes.
 - [x] Medir volume, demonstrar rollback e registrar documentação.
-- [ ] Executar gates e publicar PR.
+- [x] Executar gates e publicar PR.
 
 ## Evidências
 
@@ -84,19 +84,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 006 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 006"
+Situação: Aguardando merge — ciclo 006 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #54
+Diga: "aprovo o merge da PR #54"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 50 + 57c279e5cd6e58f5a7380e077bb4bd7bb917306d`
-- `effect_class`: `local_mutation`
-- `state_before`: issue aberta, plano em execução, dependência integrada.
-- `state_after`: branch e task criadas; implementação pendente.
+- `effect_class`: `remote_mutation`
+- `state_before`: implementação e gates locais concluídos, issue aberta e branch publicada.
+- `state_after`: PR #54 aberta; integração pendente.
 - `result`: `executed`
-- `evidence`: PR #53 integrada; branch `feature/issue-50` baseada em `57c279e5cd6e58f5a7380e077bb4bd7bb917306d`.
-- `blockers`: nenhum identificado até o momento.
+- `evidence`: PR #54 aberta; commit de implementação `180130e`; gates e medição locais registrados acima.
+- `blockers`: checks remotos e aprovação específica do merge pendentes.
