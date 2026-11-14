@@ -14,7 +14,7 @@ origin_cycle: "006"
 
 ## Finalidade
 
-Registrar as fontes e o método local usados para associar detecções principais a áreas protegidas e produzir geometrias de exibição. A conferência dos retratos do ciclo 006 está em `_project/drafts/006_areas_protegidas_reais/006_research_conferencia_areas.md` enquanto o ciclo estiver ativo; o destino estável é o ciclo 006 em `_project/cycles.md`.
+Registrar as fontes e o método local usados para associar detecções principais a áreas protegidas e produzir geometrias de exibição. A conferência dos retratos do ciclo 006 está em `_project/executed/006_areas_protegidas_reais/006_research_conferencia_areas.md`; o destino estável é o ciclo 006 em `_project/cycles.md`.
 
 ## Limite de autoridade
 

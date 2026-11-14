@@ -188,6 +188,8 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 - O carregamento da janela inteira trafega os registros completos (medição no relatório do ciclo).
 - Na combinação, as uniões com mais de mil células na janela inteira ("concentração ou recorrência", "concentração ou persistência" e "as três, ou") levam de 41 a 55 s no perfil do ADR-007, acima do orçamento de 20 s; os bytes ficam dentro. Desvio aceito pelo responsável no ciclo `005`, com a otimização adiada (relatório da combinação e task da issue #43).
 - A verificação hospedada da combinação foi dispensada pelo responsável no encerramento do ciclo `005`; não há identidade integral nem medições de produção conferidas. O comportamento hospedado não está atestado (task de encerramento do ciclo `005`).
+- Na sobreposição, a classe terra indígena levou 42,3 s no perfil do ADR-007 (acima do orçamento de 20 s) devido a 51 consultas municipais de disponibilidade; desvio aceito pelo responsável no ciclo `006`, com progresso visível e otimização adiada (relatório da sobreposição e task da issue #52).
+- A verificação hospedada da sobreposição e da camada de áreas foi dispensada pelo responsável no encerramento do ciclo `006`; não há resultados de produção observados nem atestados (task de encerramento do ciclo `006`).
 
 ## Fontes
 
@@ -198,8 +200,8 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 | Relatório `005` | Conferência independente e medição local | `_project/executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` | Gerado em 2026-11-12 | Evidência local; não comprova comportamento hospedado |
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
-| Plano `006` | Regras da sobreposição (T22, T23 e T25) e casos SB | `_project/drafts/006_areas_protegidas_reais/006_plan.md` | v5 aprovado em 2026-11-12 | Autoridade das regras da sobreposição; esta KB não a substitui |
-| Relatório `006` | Conferência independente da sobreposição | `_project/drafts/006_areas_protegidas_reais/006_research_conferencia_areas.md` | Seção da issue #51, 2026-11-14 | Evidência local; não comprova comportamento hospedado |
+| Plano `006` | Regras da sobreposição (T22, T23 e T25) e casos SB | `_project/executed/006_areas_protegidas_reais/006_plan.md` | v5 aprovado em 2026-11-12 | Autoridade das regras da sobreposição; esta KB não a substitui |
+| Relatório `006` | Conferência independente da sobreposição | `_project/executed/006_areas_protegidas_reais/006_research_conferencia_areas.md` | Seção da issue #51, 2026-11-14 | Evidência local; não comprova comportamento hospedado |
 
 ## Histórico
 
@@ -214,3 +216,4 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 | 2026-11-12 | `005` | Encerramento: combinação e interface consolidadas; medição local com desvio de tempo aceito; verificação hospedada dispensada, sem resultados de produção |
 | 2026-11-14 | `006` | Item 3 (issue #51): seção "Sobreposição", leitor T25 e `sobreposicao-006-v1`, sem interface |
 | 2026-11-14 | `006` | Item 4 (issue #52): interface da sobreposição, fontes do leitor em `src/consulta.ts`, contornos reais sob demanda e E2E |
+| 2026-11-14 | `006` | Encerramento: caminhos para `executed/`; sobreposição consolidada; desvio de tempo da terra indígena aceito; verificação hospedada dispensada |

@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-12"
+last_updated: "2026-11-14"
 origin_cycle: "000"
 ---
 
@@ -72,6 +72,15 @@ A interface permite combinar de duas a três lentes por célula de 0,05° usando
 
 A conferência e a medição locais estão no relatório do ciclo. Três configurações de união excederam o orçamento de 20 s no perfil medido; o responsável aceitou esse desvio local e adiou a otimização. A verificação hospedada foi dispensada por decisão do responsável no encerramento, sem resultados de produção observados; este registro não atesta o comportamento hospedado.
 
+### Áreas protegidas reais e lente de sobreposição do ciclo 006
+
+O protótipo incorporou o contexto territorial de unidades de conservação (CNUC/MMA) e terras indígenas (FUNAI):
+
+- **Camada no mapa:** visão geral com polígonos simplificados sob demanda (hachuras e traços distintos por classe), legenda textual, atribuição de fontes e contorno real sob demanda por área.
+- **Lente de sobreposição (`sobreposicao-006-v1`):** destaca células de 0,05° que contenham detecções principais dentro de áreas protegidas de cada uma das três classes (proteção integral, uso sustentável e terra indígena), com evidência estruturada, ressalvas de borda/qualidade do polígono e cobertura de disponibilidade. Não é ranking nem prova de infração, dano ou autoria, e não indica situação fundiária.
+- **Persistência e isolamento (ADR-008):** tabelas `areas` e `deteccoes_areas` em `public` sob RLS, com integridade garantida pelo protocolo transacional de publicação da carga.
+- **Conferência e medição:** conferência independente por SQL célula a célula na carga real local (`conferir:sobreposicao`), sem divergências. Medição local de terra indígena excedeu o orçamento de tempo (42,3 s para 20,0 s) devido às 51 consultas de disponibilidade municipal; desvio aceito pelo responsável com progresso visível. A verificação em produção foi dispensada pelo responsável no encerramento, sem resultados hospedados observados; este registro não atesta o comportamento em produção.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -82,6 +91,7 @@ A conferência e a medição locais estão no relatório do ciclo. Três configu
 - Ciclo `003`: issue #24, runbook e ADRs 005 a 007 para banco, carga e interface. A implantação usa as entregas integradas nas PRs #25 a #29.
 - Ciclo `004`: [plano](../executed/004_contrato_lentes_selecao/004_plan.md), [conferência e medição](../executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md) e [encerramento](../executed/004_contrato_lentes_selecao/004_task_closure.md). As entregas foram integradas nas PRs #36 a #38.
 - Ciclo `005`: [plano](../executed/005_combinacao_criterios_selecao/005_plan.md), [conferência e medição](../executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md) e [encerramento](../executed/005_combinacao_criterios_selecao/005_task_closure.md). As entregas foram integradas nas PRs #44 e #45; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
+- Ciclo `006`: [plano](../executed/006_areas_protegidas_reais/006_plan.md), [conferência](../executed/006_areas_protegidas_reais/006_research_conferencia_areas.md), [encerramento](../executed/006_areas_protegidas_reais/006_task_closure.md), [KB-006](KB-006_areas_protegidas.md) e [ADR-008](../decisions/ADR-008_persistencia_areas_protegidas.md). As entregas foram integradas nas PRs #53 a #56; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 
 ## Histórico
 
@@ -93,3 +103,4 @@ A conferência e a medição locais estão no relatório do ciclo. Três configu
 | 2026-11-10 | `003` | Recorte, funcionamento e limites verificados do protótipo hospedado |
 | 2026-11-11 | `004` | Lentes de seleção (concentração, recorrência e persistência), limites e verificação hospedada parcial |
 | 2026-11-12 | `005` | Combinação explicável por interseção ou união; desvio de desempenho local aceito; verificação hospedada dispensada, sem resultados de produção |
+| 2026-11-14 | `006` | Contexto de áreas protegidas reais (CNUC/FUNAI), camada territorial, lente de sobreposição e persistência sob RLS; verificação hospedada dispensada |

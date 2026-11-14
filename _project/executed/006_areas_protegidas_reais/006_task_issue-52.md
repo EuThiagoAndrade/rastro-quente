@@ -2,13 +2,13 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#52`
-> **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
+> **Plano:** `_project/executed/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-52`
 > **PR:** [#56](https://github.com/EuThiagoAndrade/rastro-quente/pull/56)
-> **Integração:** `Pendente`
+> **Integração:** PR #56 integrada em 2026-11-14 (`652017f`)
 > **Autorização inicial:** "autorizo a implementação da issue #52" em 2026-11-14
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-14
@@ -55,7 +55,7 @@ Não se aplica.
 - [x] Roteiro de verificação em produção com valores locais esperados.
 - [x] Gates locais.
 - [x] Decisão do responsável sobre o orçamento da terra indígena: desvio aceito.
-- [x] Publicar PR.
+- [x] Publicar PR (#56); checks remotos verdes; integrada por squash.
 
 ## Evidências
 
@@ -68,7 +68,7 @@ Não se aplica.
 | Medição — abertura de célula (sem teto) | Comprimida: proteção integral, célula com 2 áreas 0,3–0,4 s (2 requisições, 9.226 bytes) e de maior contorno 0,6 s (1, 47.536); uso sustentável 0,5 s (1, 29.891); terra indígena, célula com 2 áreas e maior soma 1,3 s (2, 163.653). Bruta: 0,6 a 5,7 s, até 1.063.391 bytes. |
 | Validador | 0 erros e 0 avisos, com itens manuais. |
 | `git diff --check` | Passou. |
-| Checks remotos | Pendente na PR #56. |
+| Checks remotos | Validate governance, Database RLS and query contract e Interface typecheck, build and E2E passaram na PR #56. |
 
 A medição usou cargas locais com outras revisões (identidades `13991fa4…d7e2` nas lentes e `b4359c96…1092` na interface), com os mesmos insumos da carga conferida `d0739e4e…6813`. O conteúdo de áreas e vínculos é o mesmo (154 e 2.831), e as células por classe coincidem com a conferência da issue #51 (39, 74 e 747).
 
@@ -92,6 +92,7 @@ Não se aplica.
 - **Proveniência:** o texto de escopo dizia "não há … unidades de conservação"; com a camada, passa a declará-las como contexto territorial. Cargas sem camada mantêm o texto anterior.
 - **E2E de perda de acesso:** a fixture tem 58 vínculos (uma página), então a revogação ocorre entre a leitura das áreas e a dos vínculos. A revogação entre páginas de vínculos foi provada pela API local na issue #51 (1.201 vínculos, HTTP 416). Vínculos da fixture escritos à mão.
 - **Medição:** `medir:lentes` aceita um argumento opcional que limita as configurações pelo prefixo do nome; só a sobreposição foi medida nesta entrega. As configurações dos ciclos `004` e `005` não mudaram.
+- **Verificação em produção dispensada:** em 2026-11-14, o responsável determinou 'dispensar a verificação em produção do ciclo 006' para priorizar velocidade, confiando nas suítes locais de teste (RLS, unitários, E2E) e de medição com a carga real local. Nenhum resultado ou medição hospedada é alegado ou inferido.
 
 ### Roteiro de verificação em produção (após o merge e a autorização própria)
 
@@ -112,13 +113,24 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 006 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR [#56](https://github.com/EuThiagoAndrade/rastro-quente/pull/56)
-Diga: "aprovo o merge da PR #56"
+Situação: Concluído — ciclo 006 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + reconciliar_integracao + 52 + 652017f`
+- `effect_class`: `local_mutation`
+- `state_before`: PR #56 integrada em `main`; task ainda registrada como `Aguardando integração`.
+- `state_after`: integração reconciliada; task `Concluída`; dispensa de verificação em produção registrada; transição para o encerramento do ciclo.
+- `result`: `executed`
+- `evidence`: PR #56 integrada em 2026-11-14 pelo commit `652017f`, com os três checks remotos em `SUCCESS`; issue #52 fechada.
+- `blockers`: nenhum.
+
+### Registro anterior — publicação da PR
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 52 + 453d046`

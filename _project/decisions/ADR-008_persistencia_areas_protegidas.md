@@ -4,7 +4,7 @@ tags:
   - arquitetura
 author: "Codex (GPT-6; modelo exato não registrado)"
 module: "banco"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 origin_cycle: "006"
 ---
 
@@ -12,7 +12,7 @@ origin_cycle: "006"
 
 ## Status
 
-Aceito pelo plano do ciclo 006, sujeito à integração da issue #50.
+Aceito. Implementado e integrado no ciclo 006 (PRs #54 e #56).
 
 ## Contexto
 
@@ -48,6 +48,6 @@ Versionar a camada separadamente abriria combinações de identidades inconsiste
 
 ## Referências
 
-- Plano `_project/drafts/006_areas_protegidas_reais/006_plan.md`, T16 a T21 e item 2.
+- Plano `_project/executed/006_areas_protegidas_reais/006_plan.md`, T16 a T21 e item 2.
 - [ADR-005](ADR-005_banco_autorizacao_prototipo.md), [ADR-006](ADR-006_carga_idempotente_unica_transacao.md) e [KB-006](../knowledge/KB-006_areas_protegidas.md).
 - `supabase/migrations/20261113120000_areas_protegidas.sql` e `docs/runbook.md`.
