@@ -429,7 +429,7 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
+| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (aberta; checks remotos pendentes) |
 | Branch(es) | `chore/cycle-007-plan` (documental) |
 | Destino após conclusão | `_project/executed/007_interface_base/007_plan.md` |
 
@@ -437,10 +437,10 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 007 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 007"
+Situação: Aguardando merge — ciclo 007 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59)
+Diga: "aprovo o merge da PR #59"
 ```
 
 ## Handoff de saída
@@ -453,6 +453,17 @@ Diga: "continue o ciclo 007"
 - `result`: `executed`
 - `evidence`: frase literal "aprovo o plano do ciclo 007" posterior ao veredito da rodada 4; parágrafo "Aprovação do plano — v4"; cabeçalho; linha `007` de `_project/cycles.md`.
 - `blockers`: nenhum.
+
+### Publicação da PR documental
+
+- `handoff_schema_version: 2`
+- `logical_key`: `rastro-quente + 007 + publicar_pr_documental + ideacao_plano_cycles + plano-v4`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano `v4` `Aprovado`; branch local `chore/cycle-007-plan` em `861bba6` com três arquivos staged; nenhuma PR ou branch remota do ciclo 007.
+- `state_after`: commit `9e0ee1318b8bae3b8e7559c89e0a14c233788169` publicado em `chore/cycle-007-plan`; PR [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) aberta contra `main`; situação `Aguardando merge`.
+- `result`: `executed`
+- `evidence`: [PR #59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59), arquivos e commit observados via `gh`; gates locais: teste de governança 55/55, validador 0 erros e 0 avisos, `git diff --check` sem achados; checks remotos consultados em 2026-11-14 e ainda `pending`.
+- `blockers`: checks remotos pendentes; aprovação específica do merge ainda não concedida.
 
 ### Registro anterior — revisão da rodada 4
 
