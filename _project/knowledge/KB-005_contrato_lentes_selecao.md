@@ -7,7 +7,7 @@ tags:
   - seleção
 author: "Claude Code (Opus 5.5)"
 module: "src/lentes"
-last_updated: "2026-11-12"
+last_updated: "2026-11-14"
 origin_cycle: "004"
 ---
 
@@ -19,7 +19,7 @@ Registra o contrato único das lentes de seleção (C1) e como o módulo `src/le
 
 ## Limite de autoridade
 
-Conhecimento de referência. As regras das lentes são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. As regras da combinação são as do plano `005` v2, aprovado em 2026-11-11: decisões Q1 a Q9 da ideação `005` e detalhes T8 a T14, ratificados na aprovação. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra de uma lente é nova decisão de G1, novo plano e nova `versao_metodo`, e mudar regra da combinação é nova decisão de G1, novo plano e nova `versao_combinacao`. Não decide limiares de lentes futuras, pontuação ou pesos nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
+Conhecimento de referência. As regras das lentes são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. As regras da combinação são as do plano `005` v2, aprovado em 2026-11-11: decisões Q1 a Q9 da ideação `005` e detalhes T8 a T14, ratificados na aprovação. As regras da sobreposição são as do plano `006` v5, aprovado em 2026-11-12: T22, T23 e T25 e os casos SB, ratificados na aprovação; mudá-las exige nova decisão de G1 e nova versão além de `sobreposicao-006-v1`. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra de uma lente é nova decisão de G1, novo plano e nova `versao_metodo`, e mudar regra da combinação é nova decisão de G1, novo plano e nova `versao_combinacao`. Não decide limiares de lentes futuras, pontuação ou pesos nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
 
 ## Conteúdo
 
@@ -36,6 +36,8 @@ Conhecimento de referência. As regras das lentes são as do plano `004` v3, apr
 | `persistencia.ts` | Lente de persistência: sequências de dias GMT consecutivos por célula e ressalva de borda (T4) |
 | `carregar.ts` | Leitura no recorte M1-a, verificações por resposta, integridade T3, destino dos erros e concorrência limitada |
 | `combinacao.ts` | Combinação das lentes por célula de 0,05° (ciclo `005`): `ResultadoCombinacao`, `VERSAO_COMBINACAO` (`combinacao-005-v1`), `combinar` e `qualificarCombinacao` |
+| `carregar-areas.ts` | Leitor T25 das áreas protegidas e dos vínculos da carga fixada (ciclo `006`), com conferência por página e diagnóstico da ausência da linha da carga |
+| `sobreposicao.ts` | Lente de sobreposição com áreas protegidas (ciclo `006`): `ResultadoSobreposicao`, `VERSAO_SOBREPOSICAO` (`sobreposicao-006-v1`), `sobreposicao` e `qualificarSobreposicao` |
 
 Tudo é função pura, sem rede, DOM ou relógio, e roda tanto no navegador quanto em `node --test` (o Node 24 remove os tipos; por isso o módulo não usa propriedades de parâmetro nem `enum`).
 
@@ -116,6 +118,27 @@ Combina 2 ou 3 lentes por interseção ("e") ou união ("ou"), sempre por célul
   - "Nenhuma célula em comum não indica ausência de focos nem de risco.", só no "e".
 - **Disponibilidade:** `municipiosDaCombinacao` lista os municípios a ler para qualificar as células.
 
+### Sobreposição
+
+Lente de sobreposição com áreas protegidas, do plano `006` (T22, T23 e T25). Fica fora de `TipoLente` e da combinação (K1): `validarEscolha` a trata como lente desconhecida, e C1, as três lentes, `lentes-004-v1` e `combinacao-005-v1` não mudam. A versão própria é `sobreposicao-006-v1`.
+
+- **Entrada:** `sobreposicao(entrada, camada, classe)` recebe a `EntradaLente` já lida e conferida, a camada lida por `lerAreas` e uma das classes `protecao_integral`, `uso_sustentavel` ou `terra_indigena`. A lente não usa geometria: os vínculos detecção × área vêm prontos da carga, calculados com o polígono integral da fonte (KB-006).
+- **Regra (S1):** para a classe, uma célula T1 é destacada se tiver pelo menos uma detecção principal da janela vinculada a uma área da classe, com a borda incluída. Vínculos de detecções fora da janela são ignorados. O identificador é `sobreposicao:<classe>:celula_005:<id>`. A ordem é a T5, sem ordem por área ou por contagem e sem `ordem` nem `ordenacao`.
+- **Resultado (`ResultadoSobreposicao`):** `lente: 'sobreposicao'`, `versao_metodo`, `classe`, `carga`, `janela`, `recorte` (M1-a), `parametros`, `estado` (`com_destaques`, `sem_destaques` ou `sem_camada`), `destaques`, `conferencia` (a de C1, mais `areas_lidas` e `vinculos_lidos`) e `limitacoes`.
+- **Destaque:** o `Destaque` de C1 mais `areas`, uma entrada por área da classe com vínculo na célula, em ordem de chave: `chave` (`<fonte>:<código>`), `nome`, `classe`, `categoria_ou_fase`, `esfera` (nula na terra indígena), `qualidade_poligono`, `deteccoes` (ordenadas), `na_borda` e `ressalvas`. `evidencia.deteccoes` é a união ordenada, sem repetição, e `evidencia.valor` é o tamanho dela; `datas` fica vazia.
+- **Textos (T23):** o motivo tem um trecho por área, separados por "; ": "4 de 10 detecções desta célula dentro de <nome> (proteção integral, <categoria>, <esfera>)" ou "… dentro da Terra Indígena <nome> (fase: <fase>)". Categoria, esfera e fase aparecem como na fonte, sem conversão de caixa. As ressalvas por área são a do limite estimado e a da representação esquemática (pelo `quali_pol` do CNUC) e "N detecção(ões) exatamente sobre o limite da área". No destaque, cada ressalva leva o nome exibido da área como prefixo ("<nome>: …"). O estado sem destaques usa `textoSemDestaques(classe)`; a carga sem camada, `TEXTO_SEM_CAMADA`.
+- **Limitações:** a de domínio, com o acréscimo sobre infração, autoria e situação fundiária; as comuns e as das células; retrato datado da fonte; polígono integral na classificação e contorno simplificado no mapa; áreas que não entram; SIRGAS 2000 e WGS84; e "a lista não é ranking". O retrato é citado como "CNUC e FUNAI; versão e data no cartão de Proveniência", porque a lente não recebe as fontes.
+- **Cobertura:** `qualificarSobreposicao` aplica o qualificador comum aos municípios de todas as detecções da célula na janela (D13); `municipiosDaSobreposicao` lista os municípios a ler. A seleção não depende da cobertura.
+- **Erros:** área, vínculo ou camada de outra carga, vínculo para área não lida, vínculo ou área repetidos, qualidade de polígono fora dos três valores do CNUC e coordenada fora da forma canônica lançam `ErroLente`. Classe fora das três lança `ErroEntradaSobreposicao`, subclasse de `ErroLente` ("entrada inválida"). Nada é exibido.
+
+**Leitor T25 (`lerAreas`):**
+
+- lê a linha da carga em `cargas` (id, identidade e totais). Totais nulos dão `sem_camada`, sem ler as tabelas; nulidade parcial é `ErroLente`;
+- com totais, pagina `areas` e `deteccoes_areas` em 1.000 linhas, pela chave primária completa, com contagem exata. Cada página tem de ter o total declarado na carga, min(1.000, total − deslocamento) linhas, só linhas da carga pedida e chaves inéditas. Ao fim, todo vínculo aponta para área lida. Linha de outra carga é `ErroLente` direto;
+- página curta (inclusive HTTP 416 `PGRST103`), total divergente ou chave repetida levam a reler a linha da carga. Presente, é `ErroLente`. Ausente, a sondagem existente (`sondarAcesso`) decide: `negado` dá `acesso_negado`; `sem_publicacao` dá `sem_publicacao`; erro de sessão propaga `sessao_expirada`; `autorizado` consulta `publicacao_vigente`, e vigente diferente dá `versao_substituida`, igual dá `ErroLente`. Os diagnósticos são `ErroConsulta` e seguem `destinoErro`. Nunca há resultado parcial.
+
+As fontes do leitor são injetadas. No item 3 do ciclo `006`, a implementação sobre a API (supabase-js) está em `scripts/lentes/fontes-areas.mjs`, usada pelo teste da API e pela conferência; a da interface pertence ao item 4.
+
 ### Leitura e erros
 
 O carregador chama `consultar_resumo` e pagina `consultar_deteccoes` (1.000 por página) com `p_municipio` `null`, carga fixada e a janela da aplicação.
@@ -144,7 +167,9 @@ A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do me
 - `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
 - `tests/unit/combinacao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/combinacao.json`: casos CB-1 a CB-16 (operadores, pares, projeção P1 e empate, sequências com ressalvas próprias, indisponibilidade, interseção e união vazias, cobertura por união, pendente e falha, ressalvas por lente, entrada inconsistente ou inválida e determinismo) e o ponto de entrada de produção com N=10.
 - `tests/e2e/06-combinacao.spec.mjs`, sobre uma carga fictícia de junho a outubro com 12 municípios inventados: "as três" com "e" e "ou", cabeçalho, parâmetros, limitações e ausência de ranking, lista paginada, painel por critério com a evidência em união, sequências com ressalvas próprias, os estados de T11, cobertura não verificada, leitura inconsistente, falha, cancelada, configuração alterada durante a aplicação (R1-7), concorrência com lente individual e com "Nenhuma", acesso negado, sessão expirada, versão substituída e acessibilidade a 360 e 390 px com toque, 200% e reflow a 320 px.
-- Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao` e `npm run medir:lentes` (no ciclo `005`, as três lentes e as 8 configurações da combinação).
+- `tests/unit/sobreposicao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/sobreposicao.json`: casos SB-1 a SB-16 do plano `006`. Cobrem regra S1, borda, duas classes, duas áreas da mesma classe, terra indígena, janela, sem destaques, ordem T5, cobertura, entrada inconsistente ou inválida, determinismo, combinação intacta, carga sem camada, paginação completa e leitura incompleta com o diagnóstico da ausência, inclusive a resposta 416.
+- `scripts/banco/api.test.mjs` (em `test:rls`): o leitor T25 pela API local, numa carga fictícia com 1.201 vínculos (SB-15), e a revogação da autorização entre páginas, que termina em `acesso_negado` (R3-1).
+- Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao`, `npm run conferir:sobreposicao` e `npm run medir:lentes` (no ciclo `005`, as três lentes e as 8 configurações da combinação).
 
 ### Limitações conhecidas
 
@@ -164,6 +189,8 @@ A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do me
 | Relatório `005` | Conferência independente e medição local | `_project/executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md` | Gerado em 2026-11-12 | Evidência local; não comprova comportamento hospedado |
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
+| Plano `006` | Regras da sobreposição (T22, T23 e T25) e casos SB | `_project/drafts/006_areas_protegidas_reais/006_plan.md` | v5 aprovado em 2026-11-12 | Autoridade das regras da sobreposição; esta KB não a substitui |
+| Relatório `006` | Conferência independente da sobreposição | `_project/drafts/006_areas_protegidas_reais/006_research_conferencia_areas.md` | Seção da issue #51, 2026-11-14 | Evidência local; não comprova comportamento hospedado |
 
 ## Histórico
 
@@ -176,3 +203,4 @@ A combinação (ciclo `005`, item 2) é a opção "Combinação de lentes" do me
 | 2026-11-12 | `005` | Item 1 (issue #42): combinação de lentes por célula, `ResultadoCombinacao` e `combinacao-005-v1`; limite de autoridade ajustado |
 | 2026-11-12 | `005` | Item 2 (issue #43): interface da combinação, estados, E2E e limitação geral por operador (R2-1) |
 | 2026-11-12 | `005` | Encerramento: combinação e interface consolidadas; medição local com desvio de tempo aceito; verificação hospedada dispensada, sem resultados de produção |
+| 2026-11-14 | `006` | Item 3 (issue #51): seção "Sobreposição", leitor T25 e `sobreposicao-006-v1`, sem interface |
