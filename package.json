@@ -21,6 +21,7 @@
     "conferir:areas": "supabase db reset && node --max-old-space-size=4096 scripts/areas/conferir.mjs",
     "conferir:lentes": "supabase db reset && node scripts/lentes/conferir.mjs",
     "conferir:combinacao": "supabase db reset && node scripts/lentes/conferir-combinacao.mjs",
+    "conferir:sobreposicao": "supabase db reset && node scripts/lentes/conferir-sobreposicao.mjs",
     "medir:lentes": "supabase db reset && node scripts/interface/medir-lentes.mjs"
   },
   "devDependencies": {

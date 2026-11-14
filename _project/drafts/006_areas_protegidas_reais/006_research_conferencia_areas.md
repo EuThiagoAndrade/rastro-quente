@@ -69,3 +69,32 @@ Para os três contornos problemáticos, os reparos de exibição foram avaliados
 ## Limites e próximo passo
 
 Os testes de fixtures e a conferência local não constituem verificação em produção. A publicação das tabelas e o isolamento de acesso pertencem à issue #50, condicionada à integração da #49 e à autorização correspondente. A tolerância da visão geral de 0,005° e o tratamento de exibição foram instruções posteriores do responsável; a PR da issue deve expor essas decisões e as medições para revisão.
+
+## Lente de sobreposição — issue #51
+
+`npm run conferir:sobreposicao` partiu do banco local vazio e publicou a carga real pela CLI com exibição intermediária e revisão 1. A identidade `d0739e4e5e5d853e673748c13502357bc0b2e0a72c588ed88e32801f86756813` foi a mesma no início e no fim e é igual à da carga hospedada (task da issue #50). Os insumos são os da etapa 2: `deteccoes.csv` `7a50aaaf…48f40` e `deteccoes_areas.csv` `6857b3ef…083ba`.
+
+Dois caminhos sem código de cálculo em comum:
+
+- **Módulo:** RP fictício sob RLS; registros pelas RPCs (`lerRegistros`), áreas e vínculos pelas tabelas com o leitor T25 (`lerAreas`: 154 áreas e 2.831 vínculos, iguais a `areas.json` e `deteccoes_areas.csv`), `sobreposicao` e `qualificarSobreposicao`;
+- **SQL escrito à parte:** células em `numeric` a partir do texto decimal de `deteccoes.csv`, vínculos de `deteccoes_areas.csv` e atributos de `areas.json`, sem importar `src/lentes/`.
+
+A comparação, célula a célula, abrange evidência, áreas citadas com detecções e borda, motivo, ressalvas, municípios da cobertura, "N de M" com os dias restritivos e a ordem T5. Não houve divergência nas três classes e nas três janelas, e a grade T1 coincidiu nas 10.640 detecções. Uma mutação proposital do texto do motivo no módulo foi detectada pela comparação e revertida.
+
+| Janela | Classe | Células | Detecções na evidência | Áreas citadas | Células com mais de uma área | Municípios na cobertura |
+| :-- | :-- | --: | --: | --: | --: | --: |
+| 2025-11-01 a 2026-10-31 | Proteção integral | 39 | 78 | 11 | 1 | 10 |
+| | Uso sustentável | 74 | 254 | 9 | 0 | 12 |
+| | Terra indígena | 747 | 2.493 | 56 | 10 | 51 |
+| 2026-08-01 a 2026-10-31 | Proteção integral | 31 | 63 | 8 | 1 | 6 |
+| | Uso sustentável | 61 | 230 | 8 | 0 | 10 |
+| | Terra indígena | 563 | 1.837 | 48 | 8 | 46 |
+| 2026-10-01 a 2026-10-31 | Proteção integral | 2 | 2 | 2 | 0 | 2 |
+| | Uso sustentável | 12 | 21 | 3 | 0 | 3 |
+| | Terra indígena | 47 | 86 | 21 | 0 | 18 |
+
+Na janela inteira, as células por classe são iguais às da etapa 2 (39, 74 e 747), com as mesmas detecções (78, 254 e 2.493). A referência exploratória de 37 células de proteção integral é a restrita ao rótulo MT; a diferença de duas células é a explicada na etapa 1. Uso sustentável continua em 74. Nenhuma detecção está sobre a borda. Uma célula de uso sustentável tem a ressalva de limite estimado. A cobertura foi completa em todas as células: 286 de 365 dias sem evidência de lacuna na janela inteira, 72 de 92 em agosto a outubro e 22 de 31 em outubro.
+
+O leitor T25 também foi exercitado pela API local (`test:rls`), numa carga fictícia com 1.201 vínculos. A célula cuja única evidência está no vínculo de posição 1.150 foi destacada. Com a autorização revogada entre a primeira e a segunda página e a carga ainda vigente, o PostgREST respondeu HTTP 416 (`PGRST103`) na segunda página, e a leitura terminou em `acesso_negado` (R3-1).
+
+A conferência é local e não constitui verificação em produção. A interface da lente e a medição de orçamento pertencem ao item 4.

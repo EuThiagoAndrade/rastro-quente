@@ -1,0 +1,47 @@
+{
+  "descricao": "Fixture fictícia da lente de sobreposição (plano 006, casos SB-1 a SB-14). Áreas com os atributos das guardadas em AP-10; vínculos escritos à mão, sem geometria. Células T1 calculadas à mão: P (-9.97; -59.97) → c-200_-1200; Q (-9.97; -59.92) → c-200_-1199; R (-9.92; -59.91) → c-199_-1199; S (-9.87; -59.82) → c-198_-1197; T (-10.02; -59.97) → c-201_-1200.",
+  "janela": { "inicio": "2026-10-01", "fim": "2026-10-31" },
+  "municipios": { "9910001": "Município Fictício M1", "9910002": "Município Fictício M2" },
+  "celulas": {
+    "P": { "lat": -9.97, "lon": -59.97, "id": "c-200_-1200" },
+    "Q": { "lat": -9.97, "lon": -59.92, "id": "c-200_-1199" },
+    "R": { "lat": -9.92, "lon": -59.91, "id": "c-199_-1199" },
+    "S": { "lat": -9.87, "lon": -59.82, "id": "c-198_-1197" },
+    "T": { "lat": -10.02, "lon": -59.97, "id": "c-201_-1200" }
+  },
+  "registros": [
+    ["p1", "2026-10-02T15:00:00Z", "P", 9910001],
+    ["p2", "2026-10-03T15:00:00Z", "P", 9910002],
+    ["p3", "2026-10-04T15:00:00Z", "P", 9910002],
+    ["p4", "2026-10-05T15:00:00Z", "P", 9910002],
+    ["p5", "2026-10-06T15:00:00Z", "P", 9910002],
+    ["p6", "2026-10-07T15:00:00Z", "P", 9910002],
+    ["p7", "2026-10-08T15:00:00Z", "P", 9910002],
+    ["q1", "2026-10-09T15:00:00Z", "Q", 9910001],
+    ["q2", "2026-10-10T15:00:00Z", "Q", 9910001],
+    ["q3", "2026-10-11T15:00:00Z", "Q", 9910001],
+    ["r1", "2026-10-12T15:00:00Z", "R", 9910001],
+    ["r2", "2026-10-13T15:00:00Z", "R", 9910001],
+    ["s1", "2026-10-14T15:00:00Z", "S", 9910001],
+    ["t1", "2026-10-31T23:59:59Z", "T", 9910001],
+    ["x1", "2026-09-15T15:00:00Z", "Q", 9910001]
+  ],
+  "areas": [
+    { "fonte": "cnuc", "codigo": "A1", "nome": "A1", "classe": "protecao_integral", "categoria": "parque", "fase": null, "modalidade": null, "esfera": "estadual", "qualidade": "Polígono corresponde ao memorial descritivo" },
+    { "fonte": "cnuc", "codigo": "A2", "nome": "A2", "classe": "uso_sustentavel", "categoria": "APA", "fase": null, "modalidade": null, "esfera": "federal", "qualidade": "Polígono é uma estimativa dos limites da UC" },
+    { "fonte": "funai", "codigo": "A3", "nome": "A3", "classe": "terra_indigena", "categoria": null, "fase": "regularizada", "modalidade": "Tradicionalmente ocupada", "esfera": null, "qualidade": null },
+    { "fonte": "cnuc", "codigo": "A7", "nome": "A7", "classe": "uso_sustentavel", "categoria": "APA", "fase": null, "modalidade": null, "esfera": "federal", "qualidade": "Polígono corresponde ao memorial descritivo" },
+    { "fonte": "funai", "codigo": "A9", "nome": "A9", "classe": "terra_indigena", "categoria": null, "fase": "regularizada", "modalidade": "Tradicionalmente ocupada", "esfera": null, "qualidade": null }
+  ],
+  "area_a2_linha": { "fonte": "cnuc", "codigo": "A2'", "nome": "A2'", "classe": "uso_sustentavel", "categoria": "APA", "fase": null, "modalidade": null, "esfera": "federal", "qualidade": "Polígono corresponde ao memorial descritivo" },
+  "vinculos": [
+    ["p1", "cnuc", "A1", "interior"],
+    ["r1", "cnuc", "A1", "borda"],
+    ["r1", "cnuc", "A2", "interior"],
+    ["r2", "cnuc", "A1", "interior"],
+    ["r2", "cnuc", "A2", "interior"],
+    ["s1", "funai", "A3", "interior"],
+    ["t1", "cnuc", "A1", "borda"],
+    ["x1", "cnuc", "A1", "interior"]
+  ]
+}

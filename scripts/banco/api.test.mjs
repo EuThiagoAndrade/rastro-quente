@@ -274,3 +274,89 @@ test('RP: primeiro login → cadastro → leitura → revogação', async () => 
   todasNegadas(await consultarTodas(token), 'RP revogado');
   token = null;
 });
+
+// Ciclo 006, issue #51 — leitor T25 pela API local (SB-15 e R3-1): carga fictícia publicada com 1.201 vínculos; a
+// única evidência da célula de proteção integral é o vínculo de posição 1.150 (segunda página). Depois, a
+// autorização é revogada entre a primeira e a segunda página, com a carga ainda vigente.
+const AREAS_1201 = 'f'.repeat(63) + '4';
+const FIXTURE_1201 = `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
+values ('${AREAS_1201}', 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', 1201, 0, 1, 31, 2, 1201);
+insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
+select c.id, k.chave, 'ficticia', 'https://exemplo.test/' || k.chave, repeat('9', 64), 1, '2026-11-02T00:00Z', 'fictícia'
+from public.cargas c, (values ('focos'), ('malha_max'), ('malha_min')) k(chave) where c.identidade = '${AREAS_1201}';
+insert into public.malhas (carga_id, uso, fonte_chave, qualidade)
+select c.id, k.uso, k.fonte, k.q from public.cargas c,
+  (values ('classificacao', 'malha_max', 'maxima'), ('exibicao', 'malha_min', 'minima')) k(uso, fonte, q)
+where c.identidade = '${AREAS_1201}';
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, 9900001, 'Município Fictício', '{}' from public.cargas c where c.identidade = '${AREAS_1201}';
+-- v1149 (posição 1.150 na ordem da chave) fica na célula c-200_-1200; as demais, em c-198_-1197.
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao)
+select c.id, 'v' || lpad(n::text, 4, '0'), 'focos', n + 1, 'principal', '2026-10-15T12:00Z',
+  case when n = 1149 then -9.97 else -9.87 end, case when n = 1149 then -59.97 else -59.82 end, 9900001, 'interior'
+from public.cargas c, generate_series(0, 1200) n where c.identidade = '${AREAS_1201}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico)
+select c.id, d::date, 'AQUA_M-T', 9900001, 'sem_evidencia_de_lacuna', array['historico_nao_verificado'], 'parcial'
+from public.cargas c, generate_series('2026-10-01'::date, '2026-10-31'::date, interval '1 day') d where c.identidade = '${AREAS_1201}';
+insert into public.areas (carga_id, fonte, codigo, fonte_chave, nome, classe, categoria, esfera, qualidade, fase, origem_rotulo, geometria_geral, geometria_real)
+select c.id, k.fonte, k.codigo, 'focos', k.codigo, k.classe, k.categoria, k.esfera, k.qualidade, k.fase, 'rotulo', '{}', '{}'
+from public.cargas c, (values
+  ('cnuc', 'Z1', 'protecao_integral', 'parque', 'estadual', 'Polígono corresponde ao memorial descritivo', null),
+  ('funai', 'T1', 'terra_indigena', null, null, null, 'regularizada')) k(fonte, codigo, classe, categoria, esfera, qualidade, fase)
+where c.identidade = '${AREAS_1201}';
+insert into public.deteccoes_areas
+select c.id, 'v' || lpad(n::text, 4, '0'), case when n = 1149 then 'cnuc' else 'funai' end, case when n = 1149 then 'Z1' else 'T1' end, 'interior'
+from public.cargas c, generate_series(0, 1200) n where c.identidade = '${AREAS_1201}';
+${aprovar(AREAS_1201)}
+update public.cargas set estado = 'publicada' where identidade = '${AREAS_1201}';
+update public.publicacao_vigente set carga_id = (select id from public.cargas where identidade = '${AREAS_1201}');
+commit;`;
+
+test('T25 pela API: 1.201 vínculos em duas páginas (SB-15) e revogação entre páginas → acesso_negado (R3-1)', async (t) => {
+  const { clienteSessao, fontesAreas } = await import('../lentes/fontes-areas.mjs');
+  const { lerAreas } = await import('../../src/lentes/carregar-areas.ts');
+  const { lerRegistros } = await import('../../src/lentes/carregar.ts');
+  const { sobreposicao } = await import('../../src/lentes/sobreposicao.ts');
+  const { ErroConsulta } = await import('../../src/erros.ts');
+  const { consultarDeteccoes, consultarDisponibilidade, consultarResumo } = await import('../../src/consulta.ts');
+
+  sqlAdmin(FIXTURE_1201);
+  const carga = Number(sqlAdmin(`select id from public.cargas where identidade = '${AREAS_1201}';`));
+  sqlAdmin(`insert into privado.responsaveis_autorizados (user_id) values ('${usuarios.rp.id}') on conflict do nothing;`);
+  const c = clienteSessao(L.api, L.anon, await entrar(usuarios.rp.id, usuarios.rp.email));
+
+  const paginas = [];
+  const leitura = await lerAreas(fontesAreas(c, { aoLerVinculos: async (d) => { paginas.push(d); } }), carga, () => true);
+  assert.equal(leitura.estado, 'completa');
+  assert.deepEqual(paginas, [0, 1000], 'duas páginas de vínculos');
+  assert.equal(leitura.vinculos.length, 1201);
+  assert.equal(leitura.areas.length, 2);
+
+  const janela = { inicio: '2026-10-01', fim: '2026-10-31' };
+  const fontesLente = {
+    resumo: (f) => consultarResumo(c, f),
+    pagina: (f, limite, deslocamento) => consultarDeteccoes(c, f, limite, deslocamento),
+    disponibilidade: (f) => consultarDisponibilidade(c, f),
+  };
+  const lidos = await lerRegistros(fontesLente, { carga, janela }, () => true);
+  const entrada = { carga: { id: carga, identidade: AREAS_1201 }, janela, registros: lidos.registros, totalResumo: lidos.totalResumo, nomes: new Map() };
+  const r = sobreposicao(entrada, leitura, 'protecao_integral');
+  assert.deepEqual(r.destaques.map((d) => [d.unidade.id, d.evidencia.deteccoes]), [['c-200_-1200', ['v1149']]]);
+
+  // Revogação entre a primeira e a segunda página de vínculos, com a carga ainda vigente.
+  const respostas = [];
+  const fontes = fontesAreas(c, {
+    aoLerVinculos: async (d) => {
+      if (d === 1000) sqlAdmin(`delete from privado.responsaveis_autorizados where user_id = '${usuarios.rp.id}';`);
+    },
+  });
+  const vinculos = fontes.vinculos;
+  fontes.vinculos = async (...args) => { const pg = await vinculos(...args); respostas.push('fora_da_faixa' in pg ? 'HTTP 416' : `${pg.linhas.length} de ${pg.total}`); return pg; };
+  await assert.rejects(lerAreas(fontes, carga, () => true), (x) => x instanceof ErroConsulta && x.tipo === 'acesso_negado');
+  assert.equal(respostas[0], '1000 de 1201');
+  assert.ok(['HTTP 416', '0 de 0'].includes(respostas[1]), `resposta real da segunda página: ${respostas[1]}`);
+  t.diagnostic(`segunda página após a revogação: ${respostas[1]}`);
+  assert.equal(sqlAdmin(`select carga_id from public.publicacao_vigente;`), String(carga), 'carga ainda vigente');
+});
