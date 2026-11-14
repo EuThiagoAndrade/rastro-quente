@@ -1,6 +1,6 @@
 # Registro de ciclos
 
-> **Próximo ciclo:** `007`
+> **Próximo ciclo:** `008`
 
 | Ciclo | Assunto | Estado | Ideação | Plano | Issues | Encerramento |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
@@ -11,3 +11,4 @@
 | `004` | Contrato de lente de seleção e lentes com dados já carregados | `Concluído` | [Ideação](ideations/004_contrato_lentes_selecao.md) | [Plano](executed/004_contrato_lentes_selecao/004_plan.md) (v3 aprovado em 2026-11-11, integrado na PR [#32](https://github.com/EuThiagoAndrade/rastro-quente/pull/32)) | [#33](https://github.com/EuThiagoAndrade/rastro-quente/issues/33) (item 1), [#34](https://github.com/EuThiagoAndrade/rastro-quente/issues/34) (item 2), [#35](https://github.com/EuThiagoAndrade/rastro-quente/issues/35) (item 3) | [Encerramento prospectivo](executed/004_contrato_lentes_selecao/004_task_closure.md) |
 | `005` | Combinação de critérios de seleção | `Concluído` | [Ideação](ideations/005_combinacao_criterios_selecao.md) | [Plano](executed/005_combinacao_criterios_selecao/005_plan.md) (v2 aprovado em 2026-11-11; PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41) integrada) | [#42](https://github.com/EuThiagoAndrade/rastro-quente/issues/42) (item 1), [#43](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) (item 2) | [Encerramento prospectivo](executed/005_combinacao_criterios_selecao/005_task_closure.md) |
 | `006` | Áreas protegidas reais | `Concluído` | [Ideação](ideations/006_areas_protegidas_reais.md) | [Plano](executed/006_areas_protegidas_reais/006_plan.md) (v5 aprovado em 2026-11-12; PR documental [#48](https://github.com/EuThiagoAndrade/rastro-quente/pull/48) integrada) | [#49](https://github.com/EuThiagoAndrade/rastro-quente/issues/49) (item 1), [#50](https://github.com/EuThiagoAndrade/rastro-quente/issues/50) (item 2), [#51](https://github.com/EuThiagoAndrade/rastro-quente/issues/51) (item 3), [#52](https://github.com/EuThiagoAndrade/rastro-quente/issues/52) (item 4) | [Encerramento prospectivo](executed/006_areas_protegidas_reais/006_task_closure.md) |
+| `007` | Interface base | `Planejamento` | [Ideação](ideations/007_interface_base.md) | [Plano](drafts/007_interface_base/007_plan.md) (v4 aprovado em 2026-11-14; PR documental [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) aberta) | — | — |
