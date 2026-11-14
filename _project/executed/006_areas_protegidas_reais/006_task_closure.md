@@ -7,7 +7,7 @@
 > **Issue:** `— (encerramento documental, sem issue própria)`
 > **Plano:** `_project/executed/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `chore/cycle-006-closure`
-> **PR:** Pendente de abertura
+> **PR:** [#58](https://github.com/EuThiagoAndrade/rastro-quente/pull/58)
 > **Integração:** `Pendente`
 > **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** encerramento previsto na aprovação humana do plano v5 ("aprovo o plano do ciclo 006", 2026-11-12); pedido explícito "dispensar a verificação em produção do ciclo 006" em 2026-11-14
