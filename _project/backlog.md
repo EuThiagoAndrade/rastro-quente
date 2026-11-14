@@ -212,19 +212,46 @@ Com um único usuário, o custo da atualização manual é baixo, então a urgê
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
 
-## BL-009 — Motor de IA local de apoio à análise
+## BL-009 — Explicação dos destaques das lentes no mapa
 
 > **Criado em:** `2026-11-10`
-> **Atualizado em:** `2026-11-10`
+> **Atualizado em:** `2026-11-14`
 > **Estado:** `Disponível`
 
 ### Problema e benefício esperado
 
-Um motor de IA local que auxilie ainda mais as análises, por exemplo explicando por que uma área foi selecionada. Benefício: apoio à leitura dos resultados dos critérios.
+Permitir que o usuário entenda, no mapa, o que levou uma célula a ser destacada pelas lentes selecionadas e o que mudou quando compara dois períodos, com acesso aos critérios, às evidências e às ressalvas da análise. O usuário pode conferir o que sustenta a seleção e usar essa informação para orientar a avaliação técnica.
 
 ### Contexto
 
-Deve ser o último item a ser feito, depois dos critérios existirem. O escopo precisa ser discutido antes de qualquer plano. Atua como apoio e não como decisão, e seus resultados precisam de rótulo e limites claros. Custo, privacidade dos dados territoriais e reprodutibilidade são pontos a definir.
+- A explicação acompanha o que está selecionado no mapa. Com uma lente, mostra o critério e as evidências. Em uma combinação, indica quais critérios contribuíram e como o operador `E` ou `OU` afetou o resultado. O contrato atual combina concentração, recorrência e persistência. A sobreposição pode ser explicada quando usada como lente individual.
+- Para “Por que esta célula foi destacada?”, a interface pode apresentar o motivo, as evidências e as ressalvas que a lente já calculou. A comparação direta de dois períodos também pode ser calculada pelo código do projeto, mantendo a mesma regra, a mesma carga e os parâmetros pertinentes.
+- A proposta de agentes no mapa serve para perguntas que pedem cruzamento de evidências, como “Por que esta célula apareceu em outubro e sumiu em novembro?”. Um agente principal recebe a pergunta e o recorte da tela, delega a comparação dos critérios a um subagente e a verificação de disponibilidade a outro, e sintetiza os resultados. O painel mostra etapas da execução real e permite consultar as evidências. As contagens e a aplicação dos critérios ficam a cargo do método do Rastro Quente. A explicação apoia a avaliação técnica. Detecções e sobreposições, por si só, são insuficientes para concluir que houve incêndio, dano, autoria ou infração.
+- A proposta original considerava um motor local depois das lentes. Uma alternativa a avaliar é uma função na Vercel consultar o Supabase com as permissões do usuário e enviar um resumo autorizado à API Gemini. A credencial ficaria no servidor. Uso do modelo, custo, privacidade dos dados territoriais, reprodução das evidências e identificação da resposta gerada por IA são pontos a avaliar antes de qualquer plano. Essa é uma possibilidade de integração e a lógica das lentes permanece no projeto.
+
+Exemplo fictício para demonstrar a comparação de períodos na lente de persistência.
+
+```mermaid
+flowchart TD
+    U["Usuário seleciona uma célula, a lente e dois períodos<br/>Clica em Comparar períodos"]
+    V["Função na Vercel valida a sessão<br/>e recebe a célula, a lente e os períodos"]
+    A["Agente principal recebe a pergunta<br/>Por que a célula apareceu em outubro e sumiu em novembro?"]
+    U --> V --> A
+
+    A -->|"Delega a comparação do critério"| L["Subagente da lente<br/>Investiga o que mudou entre os períodos"]
+    A -->|"Delega a verificação de disponibilidade"| D["Subagente de disponibilidade<br/>Investiga lacunas e dias indeterminados"]
+
+    L <-->|"Consulta o resultado"| C["Código do Rastro Quente<br/>Aplica a mesma regra da lente aos dois períodos"]
+    C -->|"Lê as detecções autorizadas"| S["Supabase<br/>Detecções e avisos acessíveis ao usuário"]
+    D <-->|"Consulta os avisos"| S
+
+    L -.-> P["Painel mostra as etapas em andamento<br/>Comparando o critério da lente<br/>Verificando a disponibilidade dos dados"]
+    D -.-> P
+    L -->|"Outubro teve 3 dias consecutivos com detecções<br/>Novembro teve 2"| R["Agente principal reúne as evidências<br/>e sintetiza a resposta com o Gemini"]
+    D -->|"Novembro teve 2 dias com disponibilidade indeterminada"| R
+
+    R --> F["Painel exibe a resposta e as evidências<br/>Em novembro, a célula ficou abaixo do mínimo de 3 dias consecutivos.<br/>A disponibilidade indeterminada limita a interpretação."]
+```
 
 ### Encaminhamentos
 
@@ -237,3 +264,4 @@ Deve ser o último item a ser feito, depois dos critérios existirem. O escopo p
 ### Registro
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
+- 2026-11-14 — Pedido explícito de registrar na fila a proposta de explicação das lentes selecionadas no mapa. O item foi detalhado com o caso de comparação entre períodos, as funções dos subagentes e o diagrama da interação.
