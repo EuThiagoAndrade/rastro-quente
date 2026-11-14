@@ -2,7 +2,7 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Bloqueada`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#52`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
@@ -54,8 +54,8 @@ Não se aplica.
 - [x] Runbook (seção 10), KB-005 e KB-006.
 - [x] Roteiro de verificação em produção com valores locais esperados.
 - [x] Gates locais.
-- [ ] Decisão do responsável sobre o orçamento da terra indígena (parada antes da PR).
-- [ ] PR.
+- [x] Decisão do responsável sobre o orçamento da terra indígena: desvio aceito.
+- [x] Publicar PR.
 
 ## Evidências
 
@@ -82,6 +82,8 @@ Não se aplica.
   1. aceitar com progresso visível ("disponibilidade N de 51 municípios") e registrar o desvio, como no ciclo `005`;
   2. cobertura sob demanda: qualificar só a célula aberta no painel (a lista mostraria a cobertura como não verificada até a abertura); muda o comportamento de T24 e exige revisão;
   3. ajustar o orçamento para esta classe.
+
+  **Decisão:** "aceito o desvio, siga para a PR", do responsável, em 2026-11-14 (alternativa 1). O código não muda: a lista e os retângulos aparecem após a leitura de registros, áreas e vínculos, e a cobertura é qualificada com o progresso "disponibilidade N de 51 municípios". O desvio é local, no perfil do ADR-007; o tempo hospedado é informado na verificação em produção.
 - **Fontes do leitor na interface:** `fontesAreas` e `lerContornoReal` em `src/consulta.ts`; `scripts/lentes/fontes-areas.mjs` (item 3) não foi refatorado. `diagnosticarAusencia` passou a ser exportada, sem mudança de comportamento, para diagnosticar a linha de área ausente na leitura do contorno.
 - **Camada e vínculos:** o leitor T25 lê sempre áreas e vínculos. A camada lê também os vínculos (3 requisições), que não entram na medida da visão geral, como define o plano.
 - **Hachura:** as áreas ficam num painel próprio do Leaflet desenhado em SVG, porque o canvas usado pelos pontos não tem padrões. Tokens `--area-*` com teste de contraste e de paridade com o mapa.
