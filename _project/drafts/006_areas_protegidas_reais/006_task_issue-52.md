@@ -7,7 +7,7 @@
 > **Issue:** `#52`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-52`
-> **PR:** —
+> **PR:** [#56](https://github.com/EuThiagoAndrade/rastro-quente/pull/56)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #52" em 2026-11-14
 > **Modo contínuo:** `—`
@@ -68,7 +68,7 @@ Não se aplica.
 | Medição — abertura de célula (sem teto) | Comprimida: proteção integral, célula com 2 áreas 0,3–0,4 s (2 requisições, 9.226 bytes) e de maior contorno 0,6 s (1, 47.536); uso sustentável 0,5 s (1, 29.891); terra indígena, célula com 2 áreas e maior soma 1,3 s (2, 163.653). Bruta: 0,6 a 5,7 s, até 1.063.391 bytes. |
 | Validador | 0 erros e 0 avisos, com itens manuais. |
 | `git diff --check` | Passou. |
-| Checks remotos | Pendente (sem PR). |
+| Checks remotos | Pendente na PR #56. |
 
 A medição usou cargas locais com outras revisões (identidades `13991fa4…d7e2` nas lentes e `b4359c96…1092` na interface), com os mesmos insumos da carga conferida `d0739e4e…6813`. O conteúdo de áreas e vínculos é o mesmo (154 e 2.831), e as células por classe coincidem com a conferência da issue #51 (39, 74 e 747).
 
@@ -112,19 +112,28 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 006 (completo)
+Situação: Aguardando merge — ciclo 006 (completo)
 Quem: Responsável
-Conferir: A pergunta registrada: a lente de terra indígena levou 42,3 s (mediana comprimida) contra o teto de 20,0 s; escolher entre aceitar o desvio com progresso visível, cobertura sob demanda da célula aberta ou ajustar o orçamento
-Diga: sua resposta à pergunta registrada
+Conferir: Checks e diff da PR [#56](https://github.com/EuThiagoAndrade/rastro-quente/pull/56)
+Diga: "aprovo o merge da PR #56"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 52 + 453d046`
-- `effect_class`: `local_mutation`
-- `state_before`: issue #52 aberta; PR #55 integrada; ação externa da issue #50 concluída.
-- `state_after`: implementação, testes, documentação e medição em commits locais na branch `feature/issue-52`; nenhuma publicação; parada por orçamento antes da PR.
+- `effect_class`: `remote_mutation`
+- `state_before`: parada por orçamento antes da PR; implementação em commits locais.
+- `state_after`: desvio aceito pelo responsável ("aceito o desvio, siga para a PR", 2026-11-14); branch `feature/issue-52` publicada e PR #56 aberta, aguardando checks e aprovação do merge.
 - `result`: `executed`
-- `evidence`: gates e medições acima; `local/dados-prototipo/medicao-lentes.json` e `medicao-interface.json` (fora do Git).
-- `blockers`: decisão do responsável sobre a mediana da terra indígena (42,3 s > 20,0 s).
+- `evidence`: PR #56; gates e medições acima; `local/dados-prototipo/medicao-lentes.json` e `medicao-interface.json` (fora do Git).
+- `blockers`: checks remotos e aprovação específica do merge.
+
+### Registro anterior — parada por orçamento
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 52 + 453d046`
+- `effect_class`: `local_mutation`
+- `state_after`: implementação em commits locais; parada antes da PR pela mediana da terra indígena (42,3 s > 20,0 s).
+- `result`: `executed`
+- `blockers`: decisão do responsável, depois concedida.
