@@ -12,7 +12,16 @@ import {
 import {
   CELULAS_POR_PAGINA, paginaValida, renderResultadoCombinacao, type ManipuladoresCombinacao,
 } from './apresentacao-combinacao.ts';
+import {
+  atualizarContornoArea, atualizarContornosPainel, renderAreaSelecionada, renderEstadoAreas, renderLegendaAreas,
+  renderResultadoSobreposicao, type AreaExibida, type EstadoContorno, type ManipuladoresSobreposicao,
+} from './apresentacao-areas.ts';
 import { lerConfiguracao } from './config.ts';
+import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
+import {
+  CLASSES_AREA, municipiosDaSobreposicao, qualificarSobreposicao, sobreposicao, type AreaSobreposicao,
+  type DestaqueSobreposicao, type ResultadoSobreposicao,
+} from './lentes/sobreposicao.ts';
 import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
 import {
   combinar, LENTES_CANONICAS, municipiosDaCombinacao, qualificarCombinacao, validarEscolha,
@@ -29,12 +38,12 @@ import {
   ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
 } from './lentes/contrato.ts';
 import {
-  consultarDeteccoes, consultarDisponibilidade, consultarResumo, lerCargaVigente, lerLimites, lerMunicipios,
-  lerProveniencia, sondarAcesso, type Filtro,
+  consultarDeteccoes, consultarDisponibilidade, consultarResumo, fontesAreas, lerCargaVigente, lerContornoReal, lerLimites,
+  lerMunicipios, lerProveniencia, sondarAcesso, type Filtro,
 } from './consulta.ts';
 import { ErroConsulta, type TipoErro } from './erros.ts';
 import { primeiroDiaGmt, ultimoDiaGmt } from './formato.ts';
-import { criarMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
+import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
 import type {
   CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, PaginaDeteccoes, Resumo,
@@ -85,6 +94,23 @@ interface CombinacaoAplicada {
   porId: Map<string, RegistroLente>;
 }
 
+/** Sobreposição aplicada (plano 006, T24): pedido, resultado qualificado, navegação e contornos da célula aberta. */
+interface SobreposicaoAplicada {
+  pedido: PedidoLente;
+  resultado: ResultadoSobreposicao;
+  selecionado: string | null;
+  pagina: number;
+  paginaEvidencia: number;
+  porId: Map<string, RegistroLente>;
+  contornos: EstadoContorno;
+}
+
+/** Visão geral da camada de áreas, lida uma vez por carga e sessão (T24, T25). */
+interface CamadaAreas {
+  carga: number;
+  areas: AreaLida[];
+}
+
 /** Lentes disponíveis no seletor; cada uma é função pura da mesma entrada. */
 const LENTES = { concentracao, recorrencia, persistencia } as const;
 
@@ -127,6 +153,15 @@ class Controlador {
   // Configuração da combinação em aplicação ou exibida; base do aviso de formulário alterado (R1-7).
   private configCombinacao: ConfigCombinacao | null = null;
   private pedidoLente: PedidoLente | null = null;
+  // Sobreposição (plano 006): resultado exibido e classe em aplicação ou exibida (base do "tentar de novo").
+  private sobreposicao: SobreposicaoAplicada | null = null;
+  private classeSobreposicao: ClasseArea | null = null;
+  // Camada de áreas: visão geral em memória, geração própria (mostrar/ocultar) e área selecionada.
+  private camadaAreas: CamadaAreas | null = null;
+  private geracaoAreas = 0;
+  private areaSelecionada: AreaExibida | null = null;
+  // Contornos reais por `carga|chave`, em voo ou lidos; limpos como os limites municipais (ADR-007).
+  private contornos = new Map<string, Promise<unknown>>();
   private memoriaLente: MemoriaLente | null = null;
   private usuarioAutorizado = false;
   private motivoPendente: 'saiu' | 'expirada' | undefined;
@@ -158,6 +193,7 @@ class Controlador {
     $('l-lente').addEventListener('change', () => {
       const valor = $<HTMLSelectElement>('l-lente').value;
       $('lente-combinacao').hidden = valor !== 'combinacao';
+      $('lente-sobreposicao').hidden = valor !== 'sobreposicao';
       this.mostrarValidacaoLente(null);
       if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
       else this.atualizarAvisoConfig();
@@ -167,7 +203,9 @@ class Controlador {
       this.mostrarValidacaoLente(null);
       this.atualizarAvisoConfig();
     });
+    $('lente-sobreposicao').addEventListener('change', () => this.mostrarValidacaoLente(null));
     $('botao-limites').addEventListener('click', () => void this.alternarLimites());
+    $('botao-areas').addEventListener('click', () => void this.alternarAreas());
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
     const arrastar = $('botao-arrastar');
     arrastar.addEventListener('click', () => {
@@ -308,6 +346,7 @@ class Controlador {
     $('botao-limites').setAttribute('aria-pressed', 'false');
     // Sessão, acesso ou publicação mudaram: a lente e toda a memória reaproveitável saem junto (R2-1).
     this.limparLente({ memoria: true, estado: { tipo: 'nenhuma' } });
+    this.limparAreas();
   }
 
   // --- Consulta --------------------------------------------------------------------------------------
@@ -317,6 +356,7 @@ class Controlador {
     this.mapa = criarMapa($('mapa'));
     this.mapa.aoSelecionar((id) => this.selecionar(id));
     this.mapa.aoSelecionarDestaque((id) => this.selecionarDestaque(id));
+    this.mapa.aoSelecionarArea((chave) => this.selecionarAreaDaCamada(chave));
     if (window.matchMedia('(pointer: coarse)').matches) {
       // Em tela de toque, um dedo rola a página; o mapa só arrasta quando o usuário ativa.
       this.mapa.permitirArrastar(false);
@@ -405,8 +445,12 @@ class Controlador {
         memoria: true,
         estado: this.configCombinacao
           ? { tipo: 'versao_substituida' }
-          : { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' },
+          : this.classeSobreposicao
+            ? { tipo: 'versao_substituida', lente: true }
+            : { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' },
       });
+      // A camada e os contornos eram da versão substituída.
+      this.limparAreas();
     }
     this.resultado = null;
     this.mapa?.limparTudo();
@@ -475,6 +519,7 @@ class Controlador {
       tentarDeNovo: () => {
         // A combinação repete a configuração aplicada, não a do formulário (R1-7).
         if (this.configCombinacao) void this.aplicarCombinacao(this.configCombinacao);
+        else if (this.classeSobreposicao) void this.aplicarSobreposicao(this.classeSobreposicao);
         else void this.aplicarLente();
       },
       selecionar: (id) => this.selecionarDestaque(id),
@@ -498,9 +543,15 @@ class Controlador {
     this.lente = null;
     this.combinacao = null;
     this.configCombinacao = null;
+    this.sobreposicao = null;
+    this.classeSobreposicao = null;
     this.pedidoLente = null;
     if (o.memoria) this.memoriaLente = null;
     this.mapa?.limparDestaques();
+    // Contornos reais e área selecionada exibidos pela lente saem com ela.
+    this.mapa?.definirContornos([]);
+    this.areaSelecionada = null;
+    renderAreaSelecionada(null, () => {});
     limparCorpoLente();
     this.estadoLente(o.estado);
     this.atualizarAvisoConfig();
@@ -538,6 +589,10 @@ class Controlador {
   }
 
   private selecionarDestaque(id: string): void {
+    if (this.sobreposicao) {
+      this.selecionarCelulaSobreposicao(id);
+      return;
+    }
     if (this.combinacao) {
       this.selecionarCelula(id);
       return;
@@ -563,6 +618,17 @@ class Controlador {
         return;
       }
       await this.aplicarCombinacao(config);
+      return;
+    }
+    if (escolhida === 'sobreposicao') {
+      const marcada = document.querySelector<HTMLInputElement>('input[name="l-classe"]:checked')?.value;
+      const classe = CLASSES_AREA.find((c) => c === marcada);
+      // Sem classe escolhida: só o aviso; a aplicação em curso não muda.
+      if (!classe) {
+        this.mostrarValidacaoLente('Escolha a classe de área protegida.');
+        return;
+      }
+      await this.aplicarSobreposicao(classe);
       return;
     }
     if (!Object.hasOwn(LENTES, escolhida)) {
@@ -839,6 +905,308 @@ class Controlador {
     else if (final.estado === 'sem_celulas') this.estadoLente({ tipo: final.operador === 'e' ? 'sem_celulas_em_comum' : 'sem_celulas_destacadas', segundos });
     else if (final.celulas.some((c) => c.cobertura.estado !== 'completa')) this.estadoLente({ tipo: 'cobertura_nao_verificada', combinacao: true });
     else this.estadoLente({ tipo: 'completo', segundos, combinacao: true });
+  }
+
+  // --- Sobreposição com áreas protegidas (plano 006, item 4) -------------------------------------------
+
+  private manipuladoresSobreposicao(): ManipuladoresSobreposicao {
+    return {
+      selecionar: (id) => this.selecionarCelulaSobreposicao(id),
+      pagina: (pagina) => {
+        if (!this.sobreposicao) return;
+        this.sobreposicao.pagina = paginaValida(pagina, this.sobreposicao.resultado.destaques.length);
+        this.mostrarSobreposicao();
+        document.getElementById('lente-celulas-info')?.focus();
+      },
+      paginaEvidencia: (pagina) => {
+        if (!this.sobreposicao) return;
+        this.sobreposicao.paginaEvidencia = pagina;
+        this.mostrarSobreposicao();
+        document.getElementById('lente-evidencia-info')?.focus();
+      },
+      selecionarArea: (a: AreaSobreposicao) => this.selecionarArea({
+        chave: a.chave, nome: a.nome, classe: a.classe, categoria_ou_fase: a.categoria_ou_fase, esfera: a.esfera,
+        qualidade_poligono: a.qualidade_poligono,
+      }),
+    };
+  }
+
+  private mostrarSobreposicao(): void {
+    const s = this.sobreposicao;
+    if (!s || !this.dados) return;
+    renderResultadoSobreposicao(s.resultado, s.selecionado, {
+      nomes: this.dados.nomes, registros: s.porId, pagina: s.pagina, paginaEvidencia: s.paginaEvidencia,
+      noMapa: this.mapa?.contagem().destaques ?? 0, contornos: s.contornos,
+    }, this.manipuladoresSobreposicao());
+  }
+
+  /** Abre a célula (pela lista ou pelo mapa) e baixa o contorno real de cada área citada (R1-6). */
+  private selecionarCelulaSobreposicao(id: string): void {
+    const s = this.sobreposicao;
+    if (!s) return;
+    const i = s.resultado.destaques.findIndex((d) => d.id_destaque === id);
+    const d = s.resultado.destaques[i];
+    if (!d) return;
+    s.selecionado = id;
+    s.pagina = Math.floor(i / CELULAS_POR_PAGINA);
+    s.paginaEvidencia = 0;
+    s.contornos = 'carregando';
+    this.mostrarSobreposicao();
+    this.mapa?.selecionarDestaque(id);
+    document.getElementById('lente-painel-titulo')?.focus();
+    void this.abrirContornosDaCelula(s, d);
+  }
+
+  private async abrirContornosDaCelula(s: SobreposicaoAplicada, d: DestaqueSobreposicao): Promise<void> {
+    const g = this.geracaoSessao;
+    const atual = () => g === this.geracaoSessao && this.sobreposicao === s && s.selecionado === d.id_destaque;
+    let estado: EstadoContorno;
+    try {
+      const itens = await this.obterContornos(s.pedido.carga, d.areas.map((a) => ({ chave: a.chave, classe: a.classe })),
+        () => g === this.geracaoSessao);
+      if (!atual()) return;
+      this.mapa?.definirContornos(itens);
+      estado = 'exibido';
+    } catch (e) {
+      if (g !== this.geracaoSessao || this.erroDaLente(e, 'geometria') === 'global' || !atual()) return;
+      this.mapa?.definirContornos([]);
+      estado = 'falha';
+    }
+    s.contornos = estado;
+    atualizarContornosPainel(estado);
+  }
+
+  /** Contornos reais das áreas pedidas, uma requisição por área ainda não lida nesta carga e sessão. */
+  private async obterContornos(carga: number, areas: { chave: string; classe: ClasseArea }[], atual: () => boolean): Promise<AreaMapa[]> {
+    const lidos = new Map<string, unknown>();
+    let erro: unknown = null;
+    await emParalelo(areas, CONCORRENCIA_DISPONIBILIDADE, atual, async (a) => {
+      try {
+        lidos.set(a.chave, await this.contornoReal(carga, a.chave));
+      } catch (e) {
+        erro ??= e;
+      }
+    });
+    if (erro !== null) throw erro;
+    return areas.flatMap((a) => (lidos.has(a.chave) ? [{ chave: a.chave, classe: a.classe, geometria: lidos.get(a.chave) }] : []));
+  }
+
+  private contornoReal(carga: number, chave: string): Promise<unknown> {
+    const k = `${carga}|${chave}`;
+    const existente = this.contornos.get(k);
+    if (existente) return existente;
+    const cliente = this.sessao.cliente;
+    const separador = chave.indexOf(':');
+    const pedido = (async () => {
+      const geometria = await lerContornoReal(cliente, carga, chave.slice(0, separador), chave.slice(separador + 1));
+      // Linha oculta: a RLS a esconde tanto na perda de acesso quanto na troca de versão (R2-3).
+      return geometria ?? diagnosticarAusencia(fontesAreas(cliente), carga);
+    })();
+    this.contornos.set(k, pedido);
+    // Falha não fica na memória: a próxima abertura tenta de novo.
+    pedido.catch(() => { if (this.contornos.get(k) === pedido) this.contornos.delete(k); });
+    return pedido;
+  }
+
+  /**
+   * Leitura dos registros (com a memória), da camada da carga por T25 (sem geometria), a lente (T22) sobre a
+   * entrada conferida e a disponibilidade dos municípios das células (D13). Uma classe por aplicação.
+   */
+  private async aplicarSobreposicao(classe: ClasseArea): Promise<void> {
+    const dados = this.dados;
+    const filtro = this.lerFiltro();
+    if (!dados || !filtro) return;
+    this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
+    this.classeSobreposicao = classe;
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    this.pedidoLente = pedido;
+    const g = this.geracaoSessao;
+    const gl = this.geracaoLente;
+    const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
+    const inicio = performance.now();
+    const chave = chaveLente(pedido);
+    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
+    let resultado: ResultadoSobreposicao;
+    let mem: MemoriaLente;
+    try {
+      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
+        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
+        anterior);
+      if (!lido || !atual()) return;
+      mem = lido.reaproveitado && anterior ? anterior
+        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
+      this.memoriaLente = mem;
+      this.estadoLente({ tipo: 'carregando', etapa: 'areas', feitos: 0, total: 0 });
+      const camada = await lerAreas(fontesAreas(this.sessao.cliente), pedido.carga, atual);
+      if (!camada || !atual()) return;
+      resultado = sobreposicao({
+        carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+      }, camada, classe);
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
+      this.mapa?.limparDestaques();
+      limparCorpoLente();
+      this.estadoLente(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' });
+      return;
+    }
+
+    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
+    const disponibilidade = new Map(mem.disponibilidade);
+    this.sobreposicao = {
+      pedido, resultado: qualificarSobreposicao(resultado, disponibilidade), selecionado: null, pagina: 0, paginaEvidencia: 0,
+      porId: new Map(mem.registros.map((x) => [x.id_tecnico, x])), contornos: 'nenhum',
+    };
+    if (this.mapa) {
+      this.mapa.definirDestaques(resultado.destaques.flatMap((d): DestaqueMapa[] => (d.unidade.tipo === 'celula_005'
+        ? [{ id: d.id_destaque, retangulo: [[Number(d.unidade.sul), Number(d.unidade.oeste)], [Number(d.unidade.norte), Number(d.unidade.leste)]] }]
+        : [])));
+      this.mapa.enquadrarDestaques();
+    }
+    this.mostrarSobreposicao();
+    if (resultado.estado === 'sem_camada') {
+      this.estadoLente({ tipo: 'sem_camada', segundos: (performance.now() - inicio) / 1000 });
+      return;
+    }
+
+    const faltam = municipiosDaSobreposicao(resultado).filter((c) => !disponibilidade.has(c));
+    let feitos = 0;
+    if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
+      let d: DisponibilidadeMunicipio;
+      try {
+        const resp = await consultarDisponibilidade(this.sessao.cliente,
+          { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: codigo });
+        if (!atual()) return;
+        d = { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, dados.carga.satelite, resp) };
+        mem.disponibilidade.set(codigo, d);
+      } catch (e) {
+        if (!atual() || this.erroDaLente(e, 'disponibilidade') === 'global') return;
+        d = { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' };
+      }
+      disponibilidade.set(codigo, d);
+      feitos += 1;
+      if (!this.sobreposicao) return;
+      this.sobreposicao.resultado = qualificarSobreposicao(resultado, disponibilidade);
+      this.mostrarSobreposicao();
+      this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
+    });
+    if (!atual() || !this.sobreposicao) return;
+    this.sobreposicao.resultado = qualificarSobreposicao(resultado, disponibilidade);
+    this.mostrarSobreposicao();
+    const segundos = (performance.now() - inicio) / 1000;
+    if (resultado.estado === 'sem_destaques') this.estadoLente({ tipo: 'sem_destaques', segundos });
+    else if (this.sobreposicao.resultado.destaques.some((d) => d.cobertura.estado !== 'completa')) this.estadoLente({ tipo: 'cobertura_nao_verificada' });
+    else this.estadoLente({ tipo: 'completo', segundos });
+  }
+
+  // --- Camada de áreas protegidas, sob demanda (plano 006, T24) -----------------------------------------
+
+  /** Remove camada, legenda, área selecionada, contornos e a memória das áreas; invalida leituras em voo. */
+  private limparAreas(): void {
+    this.geracaoAreas++;
+    this.camadaAreas = null;
+    this.contornos.clear();
+    this.areaSelecionada = null;
+    this.mapa?.definirAreas([]);
+    this.mapa?.definirContornos([]);
+    $('botao-areas').setAttribute('aria-pressed', 'false');
+    renderLegendaAreas(null, []);
+    renderAreaSelecionada(null, () => {});
+    renderEstadoAreas({ tipo: 'oculta' }, () => {});
+  }
+
+  private async alternarAreas(): Promise<void> {
+    if ($('botao-areas').getAttribute('aria-pressed') !== 'true') {
+      await this.mostrarAreas();
+      return;
+    }
+    // Ocultar: a visão geral fica na memória para a próxima abertura na mesma carga e sessão.
+    this.geracaoAreas++;
+    $('botao-areas').setAttribute('aria-pressed', 'false');
+    this.mapa?.definirAreas([]);
+    renderLegendaAreas(null, []);
+    renderEstadoAreas({ tipo: 'oculta' }, () => {});
+    if (!this.sobreposicao?.selecionado) {
+      this.mapa?.definirContornos([]);
+      this.areaSelecionada = null;
+      renderAreaSelecionada(null, () => {});
+    }
+  }
+
+  /** Lê a visão geral uma vez (T25, com a geometria geral) e desenha as três classes com a legenda. */
+  private async mostrarAreas(): Promise<void> {
+    const dados = this.dados;
+    if (!dados) return;
+    const botao = $('botao-areas');
+    botao.setAttribute('aria-pressed', 'true');
+    const g = this.geracaoSessao;
+    const ga = ++this.geracaoAreas;
+    const atual = () => g === this.geracaoSessao && ga === this.geracaoAreas;
+    const tentar = () => void this.mostrarAreas();
+    let camada = this.camadaAreas;
+    if (camada?.carga !== dados.carga.id) {
+      renderEstadoAreas({ tipo: 'carregando' }, tentar);
+      try {
+        const lido = await lerAreas(fontesAreas(this.sessao.cliente), dados.carga.id, atual, true);
+        if (!lido || !atual()) return;
+        if (lido.estado === 'sem_camada') {
+          botao.setAttribute('aria-pressed', 'false');
+          renderEstadoAreas({ tipo: 'sem_camada' }, tentar);
+          return;
+        }
+        camada = { carga: dados.carga.id, areas: lido.areas };
+        this.camadaAreas = camada;
+      } catch (e) {
+        if (!atual() || this.erroDaLente(e, 'geometria') === 'global') return;
+        botao.setAttribute('aria-pressed', 'false');
+        renderEstadoAreas(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' }, tentar);
+        return;
+      }
+    }
+    const areas = camada.areas;
+    this.mapa?.definirAreas(areas.map((a) => ({ chave: chaveArea(a.fonte, a.codigo), classe: a.classe, geometria: a.geometria_geral })));
+    const porClasse: Record<ClasseArea, number> = { protecao_integral: 0, uso_sustentavel: 0, terra_indigena: 0 };
+    for (const a of areas) porClasse[a.classe] += 1;
+    renderLegendaAreas(porClasse, dados.fontes);
+    renderEstadoAreas({ tipo: 'visivel', total: areas.length }, tentar);
+  }
+
+  /** Toque numa área da camada: mostra os dados dela; o contorno real só vem pelo botão. */
+  private selecionarAreaDaCamada(chave: string): void {
+    const a = this.camadaAreas?.areas.find((x) => chaveArea(x.fonte, x.codigo) === chave);
+    if (!a) return;
+    const ti = a.classe === 'terra_indigena';
+    this.selecionarArea({
+      chave, nome: a.nome, classe: a.classe, categoria_ou_fase: ti ? a.fase : a.categoria, esfera: ti ? null : a.esfera,
+      qualidade_poligono: a.qualidade,
+    });
+  }
+
+  private selecionarArea(a: AreaExibida): void {
+    this.areaSelecionada = a;
+    renderAreaSelecionada(a, (chave) => void this.verContornoReal(chave));
+    document.getElementById('areas-selecao-titulo')?.focus();
+  }
+
+  /** "Ver contorno real": baixa só aquela área (ou reaproveita a memória) e enquadra o contorno. */
+  private async verContornoReal(chave: string): Promise<void> {
+    const a = this.areaSelecionada;
+    const dados = this.dados;
+    if (!a || a.chave !== chave || !dados) return;
+    const g = this.geracaoSessao;
+    const atual = () => g === this.geracaoSessao && this.areaSelecionada === a;
+    atualizarContornoArea('carregando');
+    try {
+      const [item] = await this.obterContornos(dados.carga.id, [{ chave, classe: a.classe }], () => g === this.geracaoSessao);
+      if (!atual() || !item) return;
+      this.mapa?.definirContornos([item]);
+      this.mapa?.enquadrarContornos();
+      atualizarContornoArea('exibido');
+    } catch (e) {
+      if (g !== this.geracaoSessao || this.erroDaLente(e, 'geometria') === 'global' || !atual()) return;
+      atualizarContornoArea('falha');
+    }
   }
 
   // --- Limites municipais, sob demanda ---------------------------------------------------------------------

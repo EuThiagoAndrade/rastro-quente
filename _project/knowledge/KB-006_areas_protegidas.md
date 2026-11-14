@@ -6,7 +6,7 @@ tags:
   - áreas protegidas
 author: "Codex; modelo exato não registrado"
 module: "scripts/prototipo"
-last_updated: "2026-11-13"
+last_updated: "2026-11-14"
 origin_cycle: "006"
 ---
 
@@ -38,7 +38,11 @@ Depois dos vínculos, preservam-se as áreas cujo rótulo cita MT ou que contêm
 
 O contorno real é arredondado, sem alterar a geometria do pertencimento. Visão geral tenta Douglas-Peucker em anéis fechados, primeiro 0,005°; uma geometria inválida passa às tolerâncias menores e ao contorno real, com verificação topológica e limite de desvio após arredondamento. A instrução posterior do responsável também permitiu tentar, nos contornos problemáticos, maior precisão e recuo de um buraco triangular apenas na exibição, com preservação de partes e buracos e desvio limitado. Se nenhuma alternativa for válida, há parada. A visão geral é aproximada; o contorno detalhado permanece sob demanda.
 
-O script `npm run conferir:areas` reavalia os anéis crus por número de voltas e células decimais exatas, compara vínculos e posições da carga e decompõe a diferença entre os retratos da FUNAI. O método, hashes, resultados e limites de volume estão no relatório da issue. A verificação em produção e as tabelas com RLS não fazem parte desta entrega.
+O script `npm run conferir:areas` reavalia os anéis crus por número de voltas e células decimais exatas, compara vínculos e posições da carga e decompõe a diferença entre os retratos da FUNAI. O método, hashes, resultados e limites de volume estão no relatório da issue. As tabelas com RLS e a carga são do ADR-008.
+
+### Camada na interface
+
+A camada é aberta só por pedido ("Mostrar áreas protegidas") e lê a visão geral pelo leitor T25 (KB-005), uma vez por sessão e carga. As três classes têm cor, traço e hachura próprios, descritos em texto na legenda, sem ordem entre elas. A legenda e o cartão de Proveniência citam fonte, retrato, data e condições de uso, e a legenda avisa que áreas de outros estados sem detecção desta carga não aparecem. O contorno real é baixado só por área: pelo botão "Ver contorno real" de uma área selecionada ou ao abrir uma célula da lente (uma requisição por área). A geometria exibida nunca define pertencimento. A medição da visão geral e do maior contorno real está na task da issue #52 e no relatório do ciclo.
 
 ## Fontes
 
@@ -52,3 +56,4 @@ O script `npm run conferir:areas` reavalia os anéis crus por número de voltas 
 | :-- | :-- | :-- |
 | 2026-11-12 | `006` | Fontes, regras de pertencimento, apresentação, proveniência e limites locais da issue #49. |
 | 2026-11-13 | `006` | Conferência dos descritores de codificação declarados nos ZIPs fixados. |
+| 2026-11-14 | `006` | Item 4 (issue #52): camada na interface, legenda, atribuição e contorno real sob demanda. |

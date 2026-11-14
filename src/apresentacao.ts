@@ -414,10 +414,18 @@ function valorTexto(v: unknown): string {
   return typeof v === 'string' ? v : JSON.stringify(v);
 }
 
+/** Atribuição de uma fonte de áreas protegidas (T24): fonte, retrato, data de obtenção e condições de uso. */
+export function textoAtribuicaoArea(f: Fonte): string {
+  const nome = f.chave.startsWith('cnuc') ? 'CNUC (MMA)' : f.chave.startsWith('funai') ? 'FUNAI' : f.chave;
+  return `${nome}: retrato ${f.chave}, obtido em ${fmtDataHoraGmt(f.obtida_em)}; ${f.condicoes_uso}`;
+}
+
 export function renderProveniencia(c: CargaDetalhe, fontes: Fonte[], malhas: Malha[]): void {
   const corpo = $('proveniencia-corpo');
   limpar(corpo);
   const item = (t: string, ...v: Filho[]) => [h('dt', {}, t), h('dd', {}, ...v)];
+  // Atribuição das áreas protegidas (plano 006, T24): fonte, retrato, data e condições de uso.
+  const areas = fontes.filter((f) => f.papel === 'areas');
   corpo.append(
     h('dl', { class: 'definicoes', id: 'versao-dados' },
       ...item('Versão (carga)', `nº ${c.id}`),
@@ -428,7 +436,9 @@ export function renderProveniencia(c: CargaDetalhe, fontes: Fonte[], malhas: Mal
       ...item('Fuso da sensibilidade', c.fuso_sensibilidade),
       ...item('Totais declarados', `${fmtNumero(c.total_principal)} principais · ${fmtNumero(c.total_envelope)} no envelope · ${fmtNumero(c.total_municipios)} municípios · ${fmtNumero(c.total_disponibilidade)} município-dias`),
       ...item('Última atualização (publicação)', fmtDataHoraGmt(c.publicada_em)),
-      ...item('Método', Object.entries(c.metodo).map(([k, v]) => `${k}: ${valorTexto(v)}`).join(' · ') || 'não informado')),
+      ...item('Método', Object.entries(c.metodo).map(([k, v]) => `${k}: ${valorTexto(v)}`).join(' · ') || 'não informado'),
+      ...(areas.length ? item('Áreas protegidas (atribuição)', h('ul', { class: 'lista-simples', id: 'proveniencia-areas' },
+        ...areas.map((f) => h('li', {}, textoAtribuicaoArea(f))))) : [])),
     h('details', { class: 'detalhes' }, h('summary', {}, `Fontes (${fontes.length})`),
       tabela('Fontes da versão', ['Chave', 'Papel', 'URL', 'SHA-256', 'Bytes', 'Obtida em', 'Condições de uso'],
         fontes.map((f) => [f.chave, f.papel, f.url, h('code', {}, f.sha256), fmtBytes(f.bytes), fmtDataHoraGmt(f.obtida_em), f.condicoes_uso]), 'Tabela de fontes')),
@@ -436,7 +446,9 @@ export function renderProveniencia(c: CargaDetalhe, fontes: Fonte[], malhas: Mal
       ...malhas.map((m) => h('li', {}, `Malha de ${m.uso === 'exibicao' ? 'exibição' : 'classificação'}: ${m.qualidade} (fonte ${m.fonte_chave}${Object.keys(m.parametros).length ? `; ${valorTexto(m.parametros)}` : ''})`))),
     h('h3', {}, 'Limitações'),
     h('ul', { class: 'lista-simples' },
-      h('li', {}, 'Escopo: somente AQUA_M-T, 12 meses completos, Mato Grosso. Não há outros satélites, imóveis, unidades de conservação nem ranking.'),
+      h('li', {}, areas.length
+        ? 'Escopo: somente AQUA_M-T, 12 meses completos, Mato Grosso. Não há outros satélites, imóveis nem ranking. Unidades de conservação e terras indígenas entram só como contexto territorial, por pedido; estar dentro de uma delas não indica infração, autoria nem situação fundiária.'
+        : 'Escopo: somente AQUA_M-T, 12 meses completos, Mato Grosso. Não há outros satélites, imóveis, unidades de conservação nem ranking.'),
       h('li', {}, 'Dias, totais e séries são GMT. A sensibilidade em America/Cuiaba é separada e pode diferir do total principal.'),
       h('li', {}, 'Detecção de calor não comprova incêndio, dano, autoria ou infração. A ausência de detecção não comprova ausência de fogo.'),
       h('li', {}, 'Disponibilidade: três classes por município-dia GMT; "sem evidência de lacuna" significa cobertura não comprovada.'),

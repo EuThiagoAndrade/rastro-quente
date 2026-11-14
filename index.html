@@ -84,6 +84,7 @@
                 <option value="recorrencia">Recorrência (células de 0,05° com detecções em 3 ou mais meses)</option>
                 <option value="persistencia">Persistência (células de 0,05° com detecções em 3 ou mais dias seguidos)</option>
                 <option value="combinacao">Combinação de lentes</option>
+                <option value="sobreposicao">Sobreposição com áreas protegidas (células de 0,05° com detecção dentro de área da classe)</option>
               </select>
             </div>
           </div>
@@ -102,6 +103,18 @@
             <p class="ajuda">
               O resultado é por célula de 0,05°, na ordem da posição da célula; não é ranking. Células destacadas por mais lentes
               não são mais graves nem prioritárias.
+            </p>
+          </div>
+          <div id="lente-sobreposicao" class="escolha-combinacao" hidden>
+            <fieldset class="grupo-opcoes">
+              <legend>Classe de área protegida</legend>
+              <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral (unidades de conservação)</label>
+              <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável (unidades de conservação)</label>
+              <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
+            </fieldset>
+            <p class="ajuda">
+              Uma classe por aplicação; a ordem das classes não indica prioridade. Estar dentro de uma área protegida orienta a
+              avaliação técnica e não indica infração, autoria nem situação fundiária.
             </p>
           </div>
           <div class="acoes">
@@ -125,6 +138,7 @@
             <button id="botao-limites" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar limites municipais</button>
             <button id="botao-arrastar" type="button" class="botao botao--secundario" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
             <button id="botao-enquadrar" type="button" class="botao botao--secundario">Enquadrar os dados</button>
+            <button id="botao-areas" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar áreas protegidas</button>
           </div>
           <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A tabela de registros é a alternativa em texto." tabindex="-1"></div>
           <p id="mapa-contagem" class="ajuda" role="status"></p>
@@ -137,6 +151,11 @@
           </ul>
           <p id="mapa-aviso" class="ajuda" hidden></p>
           <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>
+          <div id="mapa-areas" data-estado-areas="oculta">
+            <div id="areas-estado" role="status"></div>
+            <div id="areas-legenda" hidden></div>
+            <div id="areas-selecao" class="painel-lente" hidden></div>
+          </div>
         </section>
 
         <section class="cartao grade__serie" aria-labelledby="t-serie">

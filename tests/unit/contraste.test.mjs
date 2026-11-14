@@ -28,6 +28,7 @@ const PISTAS = [
   ['acento-claro', 'mapa-fundo'], ['deteccao', 'mapa-fundo'], ['limite', 'mapa-fundo'],
   ['barra', 'superficie-suave'], ['deteccao-escura', 'superficie'], ['classe-lacuna', 'superficie'],
   ['classe-indeterminada', 'superficie'], ['classe-sem-evidencia', 'superficie'], ['aviso-borda', 'aviso-fundo'],
+  ['area-integral', 'mapa-fundo'], ['area-sustentavel', 'mapa-fundo'], ['area-indigena', 'mapa-fundo'],
 ];
 
 for (const [fg, bg] of TEXTO) {
@@ -61,4 +62,12 @@ test('escala de cinza: preenchimento do primário e superfície do secundário b
   const cinza = (hex) => { const [r, g, b] = rgb(hex); return 0.299 * r + 0.587 * g + 0.114 * b; };
   assert.ok(cinza(t('superficie')) - cinza(t('acento')) > 120);
   assert.ok(razao(t('acento'), t('superficie')) >= 4.5);
+});
+
+test('áreas protegidas: as cores do mapa (ESTILO_AREA) são as mesmas dos tokens --area-*', () => {
+  const mapa = readFileSync(path.resolve(import.meta.dirname, '../../src/mapa.ts'), 'utf8');
+  const cor = (classe) => new RegExp(`${classe}: \{ cor: '(#[0-9a-f]{6})'`, 'i').exec(mapa)?.[1];
+  assert.equal(cor('protecao_integral'), t('area-integral'));
+  assert.equal(cor('uso_sustentavel'), t('area-sustentavel'));
+  assert.equal(cor('terra_indigena'), t('area-indigena'));
 });

@@ -2,13 +2,13 @@
 
 > **Ciclo:** `006`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#51`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-51`
 > **PR:** [#55](https://github.com/EuThiagoAndrade/rastro-quente/pull/55)
-> **Integração:** `Pendente`
+> **Integração:** PR #55 integrada em 2026-11-14 (`453d046`)
 > **Autorização inicial:** "autorizo a implementação da issue #51" em 2026-11-14
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-14
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Conferência `conferir:sobreposicao` e registro no relatório do ciclo.
 - [x] Seção "Sobreposição" na KB-005.
 - [x] Gates locais.
-- [x] Publicar PR (#55); checks remotos em andamento.
+- [x] Publicar PR (#55); checks remotos verdes; integrada por squash.
 
 ## Evidências
 
@@ -62,7 +62,7 @@ Não se aplica.
 | Conferência local | `conferir:sobreposicao`: `conferido`, identidade `d0739e4e…6813` no início e no fim, igual à hospedada; 0 divergências; grade T1 igual em 10.640 detecções. Relatório em `006_research_conferencia_areas.md`. |
 | Validador | 0 erros e 0 avisos, com itens manuais. |
 | `git diff --check` | Passou. |
-| Checks remotos | Pendente |
+| Checks remotos | Validate governance, Database RLS and query contract e Interface typecheck, build and E2E passaram na PR #55. |
 
 ## Revisão da correção
 
@@ -86,13 +86,24 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 006 (completo)
+Situação: Aguardando autorização de implementação — ciclo 006 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #55
-Diga: "aprovo o merge da PR #55"
+Conferir: Issue [#52](https://github.com/EuThiagoAndrade/rastro-quente/issues/52) e escopo do item 4 do plano
+Diga: "autorizo a implementação da issue #52"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + reconciliar_integracao + 51 + 453d046`
+- `effect_class`: `local_mutation`
+- `state_before`: PR #55 integrada em `main`; task ainda registrada como `Aguardando integração`.
+- `state_after`: integração reconciliada; task `Concluída`; reconciliação gravada na branch `feature/issue-52`, em commit próprio, pelo workflow seguinte.
+- `result`: `executed`
+- `evidence`: PR #55 integrada em 2026-11-14 pelo commit `453d0466dcace7c9e3c7ca7e459e2f6bae39ace8`, com os três checks remotos em `SUCCESS`; issue #51 fechada.
+- `blockers`: nenhum.
+
+### Registro anterior — publicação da PR
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 51 + acb54c0`

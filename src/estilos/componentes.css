@@ -419,3 +419,20 @@ tr.selecionada td {
 .destaque-original p {
   margin: 0.25rem 0;
 }
+
+/* Sobreposição com áreas protegidas (ciclo 006): uma entrada por área citada na célula, sem ordem por área. */
+.area-citada {
+  margin: 0.75rem 0;
+  padding: 0.5rem 0.75rem;
+  border-left: 0.25rem solid var(--contorno);
+  background: var(--superficie);
+}
+
+.area-citada h4 {
+  margin: 0 0 0.25rem;
+  font-size: var(--t-base);
+}
+
+.area-citada p {
+  margin: 0.25rem 0;
+}

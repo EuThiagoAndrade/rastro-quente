@@ -68,6 +68,11 @@ function coletor(cdp) {
       const soma = (xs) => ({ requisicoes: xs.length, bytes: xs.reduce((s, x) => s + x.bytes, 0) });
       return { total: soma(feitas), geometria: soma(geom), outras: soma(feitas.filter((f) => !geom.includes(f))) };
     },
+    /** Soma das requisições (sem pré-voo) cuja URL decodificada satisfaz `pred`. */
+    filtrar(pred) {
+      const xs = feitas.filter((f) => f.metodo !== 'OPTIONS' && pred(decodeURIComponent(f.url)));
+      return { requisicoes: xs.length, bytes: xs.reduce((s, x) => s + x.bytes, 0) };
+    },
   };
 }
 
@@ -127,6 +132,67 @@ async function medirQualidade(browser, qualidade, cargaId) {
   return r;
 }
 
+// Ciclo 006, issue #52 — camada de áreas protegidas: visão geral (teto de 0,6 MB brutos, Q8) e o contorno real da
+// maior área, isolado (sem teto; tempo e bytes registrados). Mesmo perfil de rede e CPU; sessão já guardada.
+const TETO_VISAO_GERAL = 600_000;
+async function medirAreas(browser, cargaId) {
+  const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
+  const page = await contexto.newPage();
+  const cdp = await contexto.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  const c = coletor(cdp);
+  await page.goto(BASE);
+  await page.locator('#l-email').fill(EMAIL);
+  await page.locator('#l-senha').fill(senhaRp);
+  await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
+  await page.locator('#total-principal').waitFor({ timeout: 120_000 });
+  await cdp.send('Network.emulateNetworkConditions', REDE);
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
+  const finais = ['visivel', 'sem_camada', 'falha', 'leitura_inconsistente'];
+
+  // 1. Visão geral: do clique em "Mostrar áreas protegidas" até a camada desenhada.
+  c.zerar();
+  let t0 = performance.now();
+  await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
+  await page.waitForFunction((f) => f.includes(document.getElementById('mapa-areas')?.dataset.estadoAreas ?? ''), finais, { timeout: 120_000, polling: 50 });
+  const visao = {
+    ms: Math.round(performance.now() - t0),
+    estado: await page.locator('#mapa-areas').getAttribute('data-estado-areas'),
+    areasNoMapa: await page.locator('#mapa path[data-chave]').count(),
+    areas: c.filtrar((u) => u.includes('/rest/v1/areas?')),
+    vinculos: c.filtrar((u) => u.includes('/rest/v1/deteccoes_areas')),
+    total: c.filtrar(() => true),
+  };
+  visao.dentroDoTeto = visao.estado === 'visivel' && visao.areas.bytes <= TETO_VISAO_GERAL;
+
+  // 2. Contorno real da maior área (pela geometria real guardada), isolado.
+  const chave = sqlAdmin(`select fonte || ':' || codigo from public.areas where carga_id = ${cargaId} order by octet_length(geometria_real::text) desc limit 1;`);
+  const bytesNoBanco = Number(sqlAdmin(`select octet_length(geometria_real::text) from public.areas where carga_id = ${cargaId} and fonte || ':' || codigo = '${chave}';`));
+  await page.locator(`#mapa path[data-chave="${chave}"]`).first().dispatchEvent('click');
+  await page.locator('#botao-contorno-real').waitFor();
+  c.zerar();
+  t0 = performance.now();
+  await page.locator('#botao-contorno-real').click();
+  await page.waitForFunction(() => ['exibido', 'falha'].includes(document.getElementById('areas-contorno-estado')?.dataset.contorno ?? ''), null, { timeout: 180_000, polling: 50 });
+  const maiorContorno = {
+    ms: Math.round(performance.now() - t0),
+    estado: await page.locator('#areas-contorno-estado').getAttribute('data-contorno'),
+    bytesTextoNoBanco: bytesNoBanco,
+    contorno: c.filtrar((u) => u.includes('geometria_real')),
+  };
+  await cdp.send('Emulation.setCPUThrottlingRate', { rate: 1 });
+  await contexto.close();
+
+  // Corpo bruto da visão geral pela API (mesma consulta da camada) e gzip estimado, para contexto.
+  const select = 'carga_id,fonte,codigo,nome,classe,categoria,fase,modalidade,esfera,qualidade,geometria_geral';
+  const r = await fetch(`${L.api}/rest/v1/areas?select=${select}&carga_id=eq.${cargaId}&order=carga_id,fonte,codigo`, { headers: { apikey: L.anon, Authorization: `Bearer ${await tokenRp()}`, Prefer: 'count=exact', Range: '0-999' } });
+  const corpo = Buffer.from(await r.arrayBuffer());
+  visao.corpoBrutoBytes = corpo.length;
+  visao.corpoGzipEstimadoBytes = gzipSync(corpo, { level: 6 }).length;
+  return { tetoVisaoGeralBytes: TETO_VISAO_GERAL, visaoGeral: visao, maiorContorno };
+}
+
 // --- Execução ----------------------------------------------------------------------------------------
 sqlAdmin(`alter role rq_executor login password '${verificadorScram(senhaEx)}';`);
 const u = await requisitar(L.api, '/auth/v1/admin/users', { metodo: 'POST', chave: L.servico, token: L.servico, corpo: { email: EMAIL, password: senhaRp, email_confirm: true } });
@@ -143,6 +209,7 @@ try {
   const browser = await chromium.launch({ channel: 'chrome' });
   relatorio.perfil.versaoChrome = browser.version();
   let revisao = 20;
+  let ultimaCarga = null;
   for (const qualidade of ['minima', 'intermediaria', 'maxima']) {
     const identidade = carregar(qualidade, revisao);
     revisao += 1;
@@ -154,7 +221,11 @@ try {
     medida.conjuntoBrutoBytes = corpo.length;
     medida.conjuntoGzipEstimadoBytes = gzipSync(corpo, { level: 6 }).length;
     relatorio.qualidades.push(medida);
+    ultimaCarga = id;
   }
+  // A camada não depende da qualidade da malha municipal: medida uma vez, na última carga publicada.
+  relatorio.areas = await medirAreas(browser, ultimaCarga);
+  relatorio.areas.identidade = sqlAdmin(`select identidade from public.cargas where id = ${ultimaCarga};`);
   await browser.close();
 } finally {
   servidor.kill();
@@ -162,6 +233,7 @@ try {
 begin;
 delete from public.publicacao_vigente;
 update public.cargas set estado = 'retirada' where estado = 'publicada';
+delete from public.deteccoes_areas; delete from public.areas;
 delete from public.disponibilidade; delete from public.deteccoes; delete from public.municipios; delete from public.malhas; delete from public.fontes;
 delete from public.cargas; delete from privado.manifestos_aprovados;
 delete from privado.responsaveis_autorizados where user_id = '${u.json.id}';

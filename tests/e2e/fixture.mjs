@@ -395,3 +395,122 @@ update public.cargas set estado = 'publicada' where identidade = '${id}';
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
 commit;`;
 }
+
+// Ciclo 006, issue #52 — carga fictícia de outubro/2026 com a camada de áreas protegidas: quatro áreas inventadas,
+// sem relação com áreas reais, e vínculos escritos à mão (a carga real os calcula com o polígono integral, T18).
+// Mesmos três municípios e limites da carga de recorrência. Grade T1: índice = piso de coordenada × 20. Valores
+// esperados derivados à mão:
+// - áreas: A1 (cnuc:ficticia-1, Parque Fictício Um, proteção integral, Parque, Estadual, polígono estimado),
+//   A2 (cnuc:ficticia-2, Reserva Fictícia Dois, uso sustentável, Reserva Extrativista, Federal, memorial),
+//   T1 (funai:9001, Fictícia Alfa, Regularizada) e T2 (funai:9002, Fictícia Beta, Declarada). Totais: 4 áreas e
+//   58 vínculos;
+// - célula K c-231_-1130 [−11,55; −11,50) × [−56,50; −56,45), Alfa: k1 em A1 (interior), k2 no limite oeste de A1
+//   (borda), k3 fora → proteção integral, "2 de 3 detecções", ressalvas de polígono estimado e de 1 detecção sobre
+//   o limite; Alfa com lacuna conhecida em 10/10 → cobertura 30 de 31;
+// - célula L c-229_-1113 [−11,45; −11,40) × [−55,65; −55,60), Beta: l1 em A2 (15/10), l2 fora → uso sustentável,
+//   "1 de 2 detecções", sem ressalva (memorial). Na janela de 01 a 03/10, uso sustentável não tem destaque;
+// - célula M c-233_-1091 [−11,65; −11,60) × [−54,55; −54,50), Gama: m1 e m3 em T1, m2 em T2 → terra indígena com
+//   duas áreas, em ordem de chave; evidência 3 (m1, m2, m3), sem repetição;
+// - 52 células de preenchimento ao sul de M (6 faixas de 9 colunas, a última com 7), uma detecção cada, todas em
+//   T1 → terra indígena com 53 células (M primeiro, ordem T5), em 2 páginas de 50. Cobertura de Beta e Gama:
+//   31 de 31.
+// Total 60 detecções principais (Alfa 3, Beta 2, Gama 55).
+export const IDENTIDADE_AREAS = `${PREFIXO}6`;
+export const AREAS_FICTICIAS = {
+  a1: { fonte: 'cnuc', codigo: 'ficticia-1', fonte_chave: 'cnuc-ficticio', nome: 'Parque Fictício Um', classe: 'protecao_integral', categoria: 'Parque', fase: null, modalidade: null, esfera: 'Estadual', qualidade: 'Polígono é uma estimativa dos limites da UC', lon: [-56.5, -56.4], lat: [-11.6, -11.51] },
+  a2: { fonte: 'cnuc', codigo: 'ficticia-2', fonte_chave: 'cnuc-ficticio', nome: 'Reserva Fictícia Dois', classe: 'uso_sustentavel', categoria: 'Reserva Extrativista', fase: null, modalidade: null, esfera: 'Federal', qualidade: 'Polígono corresponde ao memorial descritivo', lon: [-55.7, -55.615], lat: [-11.5, -11.35] },
+  t1: { fonte: 'funai', codigo: '9001', fonte_chave: 'funai-ficticio', nome: 'Fictícia Alfa', classe: 'terra_indigena', categoria: null, fase: 'Regularizada', modalidade: 'Tradicionalmente ocupada', esfera: null, qualidade: null, lon: [-55, -54.51], lat: [-11.95, -11.6] },
+  t2: { fonte: 'funai', codigo: '9002', fonte_chave: 'funai-ficticio', nome: 'Fictícia Beta', classe: 'terra_indigena', categoria: null, fase: 'Declarada', modalidade: 'Tradicionalmente ocupada', esfera: null, qualidade: null, lon: [-54.51, -54.4], lat: [-11.65, -11.58] },
+};
+
+function deteccoesAreas() {
+  const linhas = [];
+  const add = (id, m, instante, lat, lon, vinculos = []) => linhas.push({ id, m, instante, lat, lon, vinculos, linha: linhas.length + 1 });
+  add('k1', 'alfa', '2026-10-05T12:00:00Z', -11.52, -56.48, [['a1', 'interior']]);
+  add('k2', 'alfa', '2026-10-20T12:00:00Z', -11.53, -56.5, [['a1', 'borda']]);
+  add('k3', 'alfa', '2026-10-21T12:00:00Z', -11.505, -56.47);
+  add('l1', 'beta', '2026-10-15T09:00:00Z', -11.42, -55.62, [['a2', 'interior']]);
+  add('l2', 'beta', '2026-10-16T09:00:00Z', -11.44, -55.61);
+  add('m1', 'gama', '2026-10-07T15:00:00Z', -11.62, -54.53, [['t1', 'interior']]);
+  add('m2', 'gama', '2026-10-08T15:00:00Z', -11.62, -54.505, [['t2', 'interior']]);
+  add('m3', 'gama', '2026-10-09T15:00:00Z', -11.64, -54.52, [['t1', 'interior']]);
+  for (let i = 0; i < 52; i += 1) {
+    const lat = (-1167 - 5 * Math.floor(i / 9)) / 100;
+    const lon = (-5498 + 5 * (i % 9)) / 100;
+    add(`f${String(i).padStart(2, '0')}`, 'gama', `2026-10-${String(1 + (i % 28)).padStart(2, '0')}T15:00:00Z`, lat, lon, [['t1', 'interior']]);
+  }
+  return linhas;
+}
+
+function disponibilidadeAreas() {
+  const linhas = [];
+  for (let dia = 1; dia <= 31; dia += 1) {
+    const d = `2026-10-${String(dia).padStart(2, '0')}`;
+    for (const m of ['alfa', 'beta', 'gama']) {
+      linhas.push(m === 'alfa' && d === '2026-10-10'
+        ? { m, d, classe: 'lacuna_conhecida', motivos: ['aviso_cobre_municipio'] }
+        : { m, d, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'] });
+    }
+  }
+  return linhas;
+}
+
+/** MultiPolygon retangular; o contorno "real" leva um vértice a mais em cada lado, para diferir da visão geral. */
+function retangulo([oeste, leste], [sul, norte], real = false) {
+  const meio = (a, b) => Math.round(((a + b) / 2) * 100000) / 100000;
+  const anel = real
+    ? [[oeste, sul], [meio(oeste, leste), sul], [leste, sul], [leste, meio(sul, norte)], [leste, norte], [meio(oeste, leste), norte], [oeste, norte], [oeste, meio(sul, norte)], [oeste, sul]]
+    : [[oeste, sul], [leste, sul], [leste, norte], [oeste, norte], [oeste, sul]];
+  return JSON.stringify({ type: 'MultiPolygon', coordinates: [[anel]] });
+}
+
+/** Publica a carga com camada de áreas no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
+export function sqlFixtureAreas() {
+  const id = IDENTIDADE_AREAS;
+  const d = deteccoesAreas();
+  const disp = disponibilidadeAreas();
+  const areas = Object.values(AREAS_FICTICIAS);
+  const vinculos = d.flatMap((x) => x.vinculos.map(([a, posicao]) => ({ id: x.id, area: AREAS_FICTICIAS[a], posicao })));
+  const lit = (v) => (v === null ? 'null::text' : aspas(v));
+  const linhasD = d.map((x) => `('${x.id}', 'focos', ${x.linha}, 'INPE-P${x.linha}', 'principal', ${tsz(x.instante)}, ${x.lat}::float8, ${x.lon}::float8, ${MUNICIPIOS[x.m].codigo}, 'interior', ${MUNICIPIOS[x.m].codigo}, 99)`).join(',\n');
+  const linhasV = disp.map((x) => `('${x.d}'::date, 'AQUA_M-T', ${MUNICIPIOS[x.m].codigo}, '${x.classe}', array[${x.motivos.map(aspas).join(',')}]::text[], 'verificado', array[]::text[])`).join(',\n');
+  const linhasA = areas.map((a) => `('${a.fonte}', '${a.codigo}', '${a.fonte_chave}', ${aspas(a.nome)}, '${a.classe}', ${lit(a.categoria)}, ${lit(a.fase)}, ${lit(a.modalidade)}, ${lit(a.esfera)}, ${lit(a.qualidade)}, 'rotulo', '${retangulo(a.lon, a.lat)}'::jsonb, '${retangulo(a.lon, a.lat, true)}'::jsonb)`).join(',\n');
+  const linhasL = vinculos.map((v) => `('${v.id}', '${v.area.fonte}', '${v.area.codigo}', '${v.posicao}')`).join(',\n');
+  return `
+begin;
+insert into public.cargas (identidade, satelite, janela_inicio, janela_fim, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area, metodo)
+values ('${id}', 'AQUA_M-T', '2026-10-01T00:00Z', '2026-11-01T00:00Z', ${d.length}, 0, 3, ${disp.length}, ${areas.length}, ${vinculos.length}, '{"regra_historico":"H1 fictícia","versao_kb":"KB-004","areas":"areas-ficticia"}');
+${fontes(id)}
+insert into public.fontes (carga_id, chave, papel, url, sha256, bytes, obtida_em, condicoes_uso)
+select c.id, k.chave, 'areas', 'https://exemplo.test/' || k.chave, repeat('8', 64), 4321, '2026-11-12T12:00Z', k.condicoes
+from public.cargas c, (values ('cnuc-ficticio', 'fonte fictícia de unidades de conservação, CC BY'), ('funai-ficticio', 'fonte fictícia de terras indígenas, reprodução com citação')) k(chave, condicoes)
+where c.identidade = '${id}';
+insert into public.municipios (carga_id, codigo, nome, geometria_exibicao)
+select c.id, v.codigo, v.nome, v.geom::jsonb from public.cargas c, (values
+${Object.entries(MUNICIPIOS).map(([k, x]) => `  (${x.codigo}, '${x.nome}', '${poligono(LIMITES_RECORRENCIA[k])}')`).join(',\n')}
+) v(codigo, nome, geom) where c.identidade = '${id}';
+insert into public.deteccoes (carga_id, id_tecnico, fonte_chave, linha, id_fonte, escopo, data_hora_gmt, latitude, longitude, municipio_codigo, posicao, municipio_inpe, estado_inpe)
+select c.id, v.* from public.cargas c, (values
+${linhasD}
+) v where c.identidade = '${id}';
+insert into public.disponibilidade (carga_id, dia, satelite, municipio_codigo, classe, motivos, alcance_historico, avisos)
+select c.id, v.* from public.cargas c, (values
+${linhasV}
+) v where c.identidade = '${id}';
+insert into public.areas (carga_id, fonte, codigo, fonte_chave, nome, classe, categoria, fase, modalidade, esfera, qualidade, origem_rotulo, geometria_geral, geometria_real)
+select c.id, v.* from public.cargas c, (values
+${linhasA}
+) v where c.identidade = '${id}';
+insert into public.deteccoes_areas (carga_id, id_tecnico, area_fonte, area_codigo, posicao)
+select c.id, v.* from public.cargas c, (values
+${linhasL}
+) v where c.identidade = '${id}';
+insert into privado.manifestos_aprovados (identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area)
+select identidade, satelite, janela_inicio, janela_fim, envelope_inicio, envelope_fim,
+  fuso_sensibilidade, metodo, total_principal, total_envelope, total_municipios, total_disponibilidade, total_areas, total_vinculos_area
+from public.cargas where identidade = '${id}';
+update public.cargas set estado = 'publicada' where identidade = '${id}';
+insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
+commit;`;
+}
