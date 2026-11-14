@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#51`
-> **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
+> **Plano:** `_project/executed/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-51`
 > **PR:** [#55](https://github.com/EuThiagoAndrade/rastro-quente/pull/55)
 > **Integração:** PR #55 integrada em 2026-11-14 (`453d046`)
@@ -86,10 +86,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 006 (completo)
-Quem: Responsável
-Conferir: Issue [#52](https://github.com/EuThiagoAndrade/rastro-quente/issues/52) e escopo do item 4 do plano
-Diga: "autorizo a implementação da issue #52"
+Situação: Concluído — ciclo 006 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

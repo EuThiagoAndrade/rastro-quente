@@ -1,10 +1,10 @@
 # Plano de Implementação — Áreas protegidas reais
 
 > **Ciclo:** `006`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v5`
 > **Data de criação:** 2026-11-12
-> **Última atualização:** 2026-11-12
+> **Última atualização:** 2026-11-14
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -58,6 +58,18 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merges, a implementação das issues, a ação humana externa nem a verificação em produção. Cada um desses passos tem frase própria.
+
+**Publicação e issues.** A PR documental #48 foi integrada em 2026-11-12 (`9d84efb`). As issues #49 (item 1), #50 (item 2), #51 (item 3) e #52 (item 4) foram criadas em 2026-11-12.
+
+**Execução do item 1:** autorização literal "autorizo a implementação da issue #49" recebida em 2026-11-12. Integrado pela PR #53 em 2026-11-13 (`57c279e`); task `006_task_issue-49.md` `Concluída`.
+
+**Execução do item 2:** autorização literal "autorizo a implementação da issue #50" recebida em 2026-11-13, após integração do item 1. Integrado pela PR #54 em 2026-11-13 (`acb54c0`); task `006_task_issue-50.md` `Concluída`. Ação humana externa ("concluí a ação externa da issue #50", 2026-11-13) executada com sucesso pelo responsável, aplicando a migração `20261113120000_areas_protegidas.sql` e publicando a carga nova `d0739e4e…6813` no Supabase hospedado.
+
+**Execução do item 3:** autorização literal "autorizo a implementação da issue #51" recebida em 2026-11-14. Integrado pela PR #55 em 2026-11-14 (`453d046`); task `006_task_issue-51.md` `Concluída`. Conferência independente por SQL célula a célula coincidiu exatamente nas três classes e três janelas.
+
+**Execução do item 4:** autorização literal "autorizo a implementação da issue #52" recebida em 2026-11-14. Integrado pela PR #56 em 2026-11-14 (`652017f`); task `006_task_issue-52.md` `Concluída`. A medição local de terra indígena excedeu o orçamento de tempo (42,3 s para 20,0 s) devido às 51 requisições de disponibilidade municipal; desvio aceito pelo responsável com progresso visível.
+
+**Decisão do responsável sobre a verificação em produção — 2026-11-14:** o responsável manifestou literalmente "dispensar a verificação em produção do ciclo 006" para priorizar velocidade, confiando nas evidências e suítes completas de testes locais (RLS, unitários, E2E e medição com carga real). Nenhum resultado hospedado foi observado ou é alegado.
 
 **Autorização da correção — v2, 2026-11-12:** "corrija o plano do ciclo 006", depois do veredito `REQUER NOVA RODADA` da rodada 1 (revisor: Codex, GPT-6). A v2 responde a R1-1 a R1-9 (ver "Resposta do autor à rodada 1 — v2"), preserva a rodada 1 e mantém o plano `Em Revisão`, aguardando a rodada 2. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova: T15 a T25 continuam propostas a ratificar na aprovação.
 
@@ -566,10 +578,10 @@ Uma reversão não reabre nem arquiva o BL-002 automaticamente; o efeito é rela
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 006 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 006 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 006"
+Diga: —
 ```
 
 ## Handoff de saída
@@ -807,8 +819,8 @@ Nenhum.
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
+- **Data de conclusão:** 2026-11-14 (prospectiva; efetiva após a integração da PR de encerramento).
+- **Desvios:** a sobreposição de terra indígena excedeu o tempo de 20,0 s (42,3 s, com bytes dentro); desvio aceito pelo responsável no item 4 e otimização adiada. A verificação em produção, exigida no plano, foi dispensada pelo responsável em 2026-11-14 para priorizar velocidade; nenhum resultado hospedado é alegado ou inferido.
 - **Lições comprovadas:** —
 
 ## Referência do bootstrap

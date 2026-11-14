@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#49`
-> **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
+> **Plano:** `_project/executed/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-49`
 > **PR:** [#53](https://github.com/EuThiagoAndrade/rastro-quente/pull/53)
 > **Integração:** PR #53 integrada em 2026-11-13
@@ -92,10 +92,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 006 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 006 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 006"
+Diga: —
 ```
 
 ## Handoff de saída
