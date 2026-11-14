@@ -27,6 +27,10 @@
   --classe-indeterminada: #6b4a00;
   --classe-sem-evidencia: #2f4a3c;
   --barra: #b45309;
+  /* Áreas protegidas (ciclo 006): mesmos valores de ESTILO_AREA em src/mapa.ts; traço e hachura também distinguem. */
+  --area-integral: #86efac;
+  --area-sustentavel: #c4b5fd;
+  --area-indigena: #f9a8d4;
 
   --t-base: 1rem;
   --t-pequeno: 0.875rem;

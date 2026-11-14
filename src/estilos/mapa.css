@@ -87,3 +87,23 @@
   border: 2px solid var(--deteccao-escura);
   background: #fde68a;
 }
+
+/* Áreas protegidas (ciclo 006): amostra com o traço e a hachura de cada classe; o texto da legenda descreve os dois. */
+.legenda__amostra--protecao_integral {
+  border: 2px solid var(--area-integral);
+  background: repeating-linear-gradient(45deg, var(--area-integral) 0 2px, var(--mapa-fundo) 2px 6px);
+}
+
+.legenda__amostra--uso_sustentavel {
+  border: 2px dashed var(--area-sustentavel);
+  background: repeating-linear-gradient(-45deg, var(--area-sustentavel) 0 2px, var(--mapa-fundo) 2px 6px);
+}
+
+.legenda__amostra--terra_indigena {
+  border: 2px dotted var(--area-indigena);
+  background: repeating-linear-gradient(90deg, var(--area-indigena) 0 2px, var(--mapa-fundo) 2px 6px);
+}
+
+#mapa-areas .legenda {
+  flex-direction: column;
+}

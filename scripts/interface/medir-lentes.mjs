@@ -31,13 +31,22 @@ const MAX_TENTATIVAS = 6;
 const ORCAMENTO = { segundosComprimida: 20.0, bytesBrutos: 10_000_000 };
 const LENTES = ['concentracao', 'recorrencia', 'persistencia'];
 const PARES_E_TRES = [['concentracao', 'recorrencia'], ['concentracao', 'persistencia'], ['recorrencia', 'persistencia'], LENTES];
-/** As três lentes, repetidas, e as 8 configurações da combinação (plano 005, R1-6). */
-const CONFIGURACOES = [
+const CLASSES = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
+/**
+ * As três lentes, repetidas, as 8 configurações da combinação (plano 005, R1-6) e, no ciclo 006 (issue #52), a
+ * sobreposição nas três classes. Um argumento opcional limita às configurações cujo nome começa com ele
+ * (por exemplo, `sobreposicao`), sem mudar a regra de aceite.
+ */
+const TODAS = [
   ...LENTES.map((l) => ({ nome: l, lente: l })),
   ...PARES_E_TRES.flatMap((lentes) => ['e', 'ou'].map((operador) => ({ nome: `${lentes.join('+')} (${operador})`, lente: 'combinacao', lentes, operador }))),
+  ...CLASSES.map((classe) => ({ nome: `sobreposicao:${classe}`, lente: 'sobreposicao', classe })),
 ];
+const SO = process.argv[2] ?? '';
+const CONFIGURACOES = TODAS.filter((c) => c.nome.startsWith(SO));
+if (!CONFIGURACOES.length) throw new Error(`nenhuma configuração começa com "${SO}"`);
 const FINAIS = ['completo', 'sem_destaques', 'janela_insuficiente', 'cobertura_nao_verificada', 'contorno_indisponivel', 'leitura_inconsistente', 'falha', 'cancelada',
-  'sem_celulas_em_comum', 'sem_celulas_destacadas', 'indisponivel', 'versao_substituida'];
+  'sem_celulas_em_comum', 'sem_celulas_destacadas', 'indisponivel', 'versao_substituida', 'sem_camada'];
 const VALIDOS = ['completo', 'sem_destaques', 'sem_celulas_em_comum', 'sem_celulas_destacadas'];
 
 // --- Proxy de compressão ---------------------------------------------------------------------------
@@ -87,7 +96,10 @@ function coletor(cdp) {
   return {
     zerar() { ativas = new Map(); feitas = []; },
     resumo() {
-      const parte = (f) => (f.url.includes('consultar_disponibilidade') ? 'disponibilidade' : f.url.includes('geometria_exibicao') ? 'geometria' : 'registros');
+      // Áreas: linha da carga, áreas e vínculos lidos por T25 (sobreposição) e contornos reais.
+      const ehArea = (u) => u.includes('/rest/v1/areas') || u.includes('/rest/v1/deteccoes_areas') || u.includes('/rest/v1/cargas') || u.includes('/rest/v1/publicacao_vigente');
+      const parte = (f) => (f.url.includes('consultar_disponibilidade') ? 'disponibilidade' : f.url.includes('geometria_exibicao') ? 'geometria'
+        : f.url.includes('geometria_real') ? 'contornos' : ehArea(f.url) ? 'areas' : 'registros');
       const soma = (xs) => ({ requisicoes: xs.length, bytes: xs.reduce((s, x) => s + x.bytes, 0) });
       const dados = feitas.filter((f) => f.metodo !== 'OPTIONS');
       return {
@@ -95,6 +107,8 @@ function coletor(cdp) {
         registros: soma(dados.filter((f) => parte(f) === 'registros')),
         disponibilidade: soma(dados.filter((f) => parte(f) === 'disponibilidade')),
         geometria: soma(dados.filter((f) => parte(f) === 'geometria')),
+        areas: soma(dados.filter((f) => parte(f) === 'areas')),
+        contornos: soma(dados.filter((f) => parte(f) === 'contornos')),
       };
     },
   };
@@ -108,7 +122,7 @@ async function esperarServidor() {
   throw new Error('servidor da interface não subiu');
 }
 
-async function executar(browser, rp, config) {
+async function executar(browser, rp, config, indice = 0) {
   const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
   const page = await contexto.newPage();
   const cdp = await contexto.newCDPSession(page);
@@ -126,6 +140,7 @@ async function executar(browser, rp, config) {
       for (const l of LENTES) await page.locator(`input[name="l-comb"][value="${l}"]`).setChecked(config.lentes.includes(l));
       await page.locator(`input[name="l-operador"][value="${config.operador}"]`).check();
     }
+    if (config.lente === 'sobreposicao') await page.locator(`input[name="l-classe"][value="${config.classe}"]`).check();
     await cdp.send('Network.emulateNetworkConditions', REDE);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     c.zerar();
@@ -139,10 +154,26 @@ async function executar(browser, rp, config) {
     const segundos = Math.round((performance.now() - t0) / 100) / 10;
     const textoApp = (await page.locator('#lente-estado').innerText().catch(() => '')).trim();
     const valida = VALIDOS.includes(estado ?? '');
-    // Combinação: número de células declarado pela lista ("Células 1 a 50 de M.").
-    const info = config.lente === 'combinacao' ? await page.locator('#lente-celulas-info').innerText().catch(() => '') : '';
+    // Combinação e sobreposição: número de células declarado pela lista ("Células 1 a 50 de M.").
+    const info = config.lente === 'combinacao' || config.lente === 'sobreposicao' ? await page.locator('#lente-celulas-info').innerText().catch(() => '') : '';
     const celulas = /de ([\d.]+)\.$/.exec(info.trim())?.[1]?.replaceAll('.', '') ?? null;
-    return { valida, estado, segundos, textoApp, celulas: celulas === null ? null : Number(celulas), ...c.resumo() };
+    const resumo = c.resumo();
+    // Abertura de célula (R1-8), fora do aceite: contornos reais de cada área do destaque, depois do estado completo.
+    const aberturas = [];
+    // Uma célula-alvo por execução, em contexto novo: a memória de contornos começa vazia em cada abertura.
+    for (const alvo of valida && config.alvos?.length ? [config.alvos[indice % config.alvos.length]] : []) {
+      while (!(await page.locator(`#lente-destaques button[data-id="${alvo.id}"]`).count())) {
+        if (!(await page.locator('#celulas-proxima:not([disabled])').count())) break;
+        await page.locator('#celulas-proxima').click();
+      }
+      c.zerar();
+      const t1 = performance.now();
+      await page.locator(`#lente-destaques button[data-id="${alvo.id}"]`).click();
+      await page.waitForFunction(() => ['exibido', 'falha'].includes(document.getElementById('lente-contornos')?.dataset.contornos ?? ''), null, { timeout: PRAZO_MS, polling: 50 });
+      const estadoContornos = await page.locator('#lente-contornos').getAttribute('data-contornos');
+      aberturas.push({ alvo: alvo.tipo, areas: alvo.areas, estado: estadoContornos, ms: Math.round(performance.now() - t1), contornos: c.resumo().contornos });
+    }
+    return { valida, estado, segundos, textoApp, celulas: celulas === null ? null : Number(celulas), ...resumo, aberturas };
   } finally {
     await contexto.close();
   }
@@ -163,6 +194,19 @@ let excedeu = false;
 try {
   const carga = publicarCargaReal(40);
   relatorio.carga = { id: carga.id, identidade: carga.identidade, janela: carga.janela };
+  // Células-alvo da abertura (R1-8), por classe: a de mais áreas e a de maior soma de bytes de contorno real.
+  for (const config of CONFIGURACOES.filter((x) => x.lente === 'sobreposicao')) {
+    const sql = (ordem) => sqlAdmin(`with v as (
+  select distinct floor(d.latitude::numeric * 20)::int as la, floor(d.longitude::numeric * 20)::int as lo, a.fonte, a.codigo, octet_length(a.geometria_real::text) as b
+  from public.deteccoes_areas v join public.deteccoes d on (d.carga_id, d.id_tecnico) = (v.carga_id, v.id_tecnico)
+  join public.areas a on (a.carga_id, a.fonte, a.codigo) = (v.carga_id, v.area_fonte, v.area_codigo)
+  where v.carga_id = ${carga.id} and d.escopo = 'principal' and a.classe = '${config.classe}')
+select la, lo, count(*), sum(b) from v group by la, lo order by ${ordem}, la desc, lo limit 1;`).split('|').map(Number);
+    config.alvos = [['mais_areas', 'count(*) desc, sum(b) desc'], ['maior_soma_bytes', 'sum(b) desc']].map(([tipo, ordem]) => {
+      const [la, lo, areas, bytes] = sql(ordem);
+      return { tipo, id: `sobreposicao:${config.classe}:celula_005:c${la}_${lo}`, areas, bytesContornoNoBanco: bytes };
+    });
+  }
   rp = await criarRp('rp-medicao-lentes@exemplo.test');
   await new Promise((ok, erro) => { proxy.once('error', erro); proxy.listen(0, '127.0.0.1', ok); });
   const portaProxy = proxy.address().port;
@@ -180,7 +224,7 @@ try {
       const validas = [];
       const invalidas = [];
       for (let tentativa = 1; tentativa <= MAX_TENTATIVAS && validas.length < VALIDAS; tentativa += 1) {
-        const r = await executar(browser, rp, config);
+        const r = await executar(browser, rp, config, validas.length);
         if (r.valida) validas.push(r);
         else invalidas.push({ tentativa, estado: r.estado, segundos: r.segundos, textoApp: r.textoApp });
       }
@@ -189,7 +233,7 @@ try {
         medianaSegundos: validas.length >= VALIDAS ? mediana(validas.map((v) => v.segundos)) : null,
         maxSegundos: validas.length ? Math.max(...validas.map((v) => v.segundos)) : null,
         maxBytes: validas.length ? Math.max(...validas.map((v) => v.total.bytes)) : null,
-        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, celulas: v.celulas, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria })),
+        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, celulas: v.celulas, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria, areas: v.areas, aberturas: v.aberturas })),
       };
     }
     const b = porPassagem.bruta;
@@ -200,7 +244,10 @@ try {
     const todas = [...b.execucoes, ...c.execucoes];
     const municipios = [...new Set(todas.map((v) => v.disponibilidade.requisicoes))];
     const celulas = [...new Set(todas.map((v) => v.celulas))];
-    relatorio.configuracoes.push({ configuracao: config.nome, dentroDoOrcamento: dentro, celulas, municipios, ...porPassagem });
+    // Abertura de célula: registrada por passagem e alvo, sem teto (Q8, R1-8).
+    const aberturas = Object.entries(porPassagem).flatMap(([passagem, x]) => x.execucoes.flatMap((v) => v.aberturas.map((a) => ({ passagem, ...a }))));
+    const areas = [...new Set(todas.map((v) => JSON.stringify(v.areas)))].map((x) => JSON.parse(x));
+    relatorio.configuracoes.push({ configuracao: config.nome, dentroDoOrcamento: dentro, celulas, municipios, alvos: config.alvos, aberturas, areasLidas: areas, ...porPassagem });
     process.stderr.write(`${config.nome}: ${dentro ? 'dentro' : 'FORA'} (comprimida ${c.medianaSegundos} s; bruta, maior total ${b.maxBytes} bytes)\n`);
   }
   await browser.close();
@@ -214,5 +261,5 @@ try {
 relatorio.resultado = excedeu ? 'parado' : 'dentro_do_orcamento';
 await mkdir(LOCAL, { recursive: true });
 await writeFile(path.join(LOCAL, 'medicao-lentes.json'), `${JSON.stringify(relatorio, null, 2)}\n`);
-process.stdout.write(`${JSON.stringify({ ...relatorio, configuracoes: relatorio.configuracoes.map((l) => ({ configuracao: l.configuracao, dentroDoOrcamento: l.dentroDoOrcamento, celulas: l.celulas, municipios: l.municipios, bruta: { ...l.bruta, execucoes: undefined }, comprimida: { ...l.comprimida, execucoes: undefined } })) }, null, 2)}\n`);
+process.stdout.write(`${JSON.stringify({ ...relatorio, configuracoes: relatorio.configuracoes.map((l) => ({ configuracao: l.configuracao, dentroDoOrcamento: l.dentroDoOrcamento, celulas: l.celulas, municipios: l.municipios, alvos: l.alvos, aberturas: l.aberturas, areasLidas: l.areasLidas, bruta: { ...l.bruta, execucoes: undefined }, comprimida: { ...l.comprimida, execucoes: undefined } })) }, null, 2)}\n`);
 if (excedeu) process.exitCode = 1;

@@ -2,6 +2,7 @@
 // Cada chamada fixa a carga (versão) quando ela é conhecida.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { classificarErro, ErroConsulta, type ErroApi } from './erros.ts';
+import type { AreaLida, FontesAreas, PaginaTabela, VinculoLido } from './lentes/carregar-areas.ts';
 import type {
   CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, PaginaDeteccoes, Resumo,
 } from './tipos.ts';
@@ -81,4 +82,58 @@ export async function lerLimites(c: SupabaseClient, carga: number, municipio: nu
   let q = c.from('municipios').select('codigo,nome,geometria_exibicao').eq('carga_id', carga);
   if (municipio !== null) q = q.eq('codigo', municipio);
   return desembrulhar((await q.order('codigo')) as unknown as RespostaSdk<Limite[]>);
+}
+
+// --- Áreas protegidas (plano 006, T24 e T25) -------------------------------------------------------------
+
+const COLUNAS_AREA = 'carga_id,fonte,codigo,nome,classe,categoria,fase,modalidade,esfera,qualidade';
+const COLUNAS_VINCULO = 'carga_id,id_tecnico,area_fonte,area_codigo,posicao';
+
+interface RespostaContada<T> extends RespostaSdk<T> {
+  count: number | null;
+}
+
+interface ConsultaPaginavel {
+  range(de: number, ate: number): PromiseLike<unknown>;
+}
+
+/** Página com contagem exata; a resposta HTTP 416 (`PGRST103`) vira `fora_da_faixa` (R3-1). */
+async function paginaContada<T>(q: ConsultaPaginavel, deslocamento: number, limite: number): Promise<PaginaTabela<T>> {
+  const r = (await q.range(deslocamento, deslocamento + limite - 1)) as RespostaContada<T[]>;
+  if (r.status === 416 && r.error?.code === 'PGRST103') return { fora_da_faixa: true };
+  if (r.error) throw new ErroConsulta(classificarErro(r.error, r.status), r.error.message ?? 'erro');
+  if (typeof r.count !== 'number' || !Number.isInteger(r.count)) throw new ErroConsulta('fonte_indisponivel', 'contagem exata ausente');
+  return { linhas: r.data ?? [], total: r.count };
+}
+
+/** Fontes do leitor T25 sobre a API, sob a sessão do usuário (RLS integral). */
+export function fontesAreas(c: SupabaseClient): FontesAreas {
+  return {
+    async carga(id) {
+      const linhas = desembrulhar((await c.from('cargas').select('id,identidade,total_areas,total_vinculos_area').eq('id', id)) as unknown as RespostaSdk<
+        { id: number; identidade: string; total_areas: number | null; total_vinculos_area: number | null }[]>);
+      return linhas[0] ?? null;
+    },
+    areas: (carga, deslocamento, limite, comGeometria) => paginaContada<AreaLida>(
+      c.from('areas').select(comGeometria ? `${COLUNAS_AREA},geometria_geral` : COLUNAS_AREA, { count: 'exact' })
+        .eq('carga_id', carga).order('carga_id').order('fonte').order('codigo'),
+      deslocamento, limite),
+    vinculos: (carga, deslocamento, limite) => paginaContada<VinculoLido>(
+      c.from('deteccoes_areas').select(COLUNAS_VINCULO, { count: 'exact' })
+        .eq('carga_id', carga).order('carga_id').order('id_tecnico').order('area_fonte').order('area_codigo'),
+      deslocamento, limite),
+    sondar: () => sondarAcesso(c),
+    async vigente() {
+      const v = desembrulhar((await c.from('publicacao_vigente').select('carga_id')) as unknown as RespostaSdk<{ carga_id: number }[]>);
+      return v[0]?.carga_id ?? null;
+    },
+  };
+}
+
+/** Contorno real de uma área, sob demanda (uma requisição por área); `null` se a RLS não mostra a linha. */
+export async function lerContornoReal(c: SupabaseClient, carga: number, fonte: string, codigo: string): Promise<unknown | null> {
+  const linhas = desembrulhar((await c.from('areas').select('geometria_real').eq('carga_id', carga).eq('fonte', fonte)
+    .eq('codigo', codigo)) as unknown as RespostaSdk<{ geometria_real: unknown }[]>);
+  if (linhas.length > 1) throw new ErroConsulta('fonte_indisponivel', 'área repetida');
+  return linhas[0]?.geometria_real ?? null;
 }

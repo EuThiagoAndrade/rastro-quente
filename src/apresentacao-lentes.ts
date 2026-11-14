@@ -20,7 +20,7 @@ export interface ContextoLente {
 
 export type EstadoLente =
   | { tipo: 'nenhuma' }
-  | { tipo: 'carregando'; etapa: 'registros' | 'disponibilidade'; feitos: number; total: number }
+  | { tipo: 'carregando'; etapa: 'registros' | 'areas' | 'disponibilidade'; feitos: number; total: number }
   | { tipo: 'completo'; segundos: number; combinacao?: boolean }
   | { tipo: 'sem_destaques'; segundos: number }
   | { tipo: 'janela_insuficiente'; segundos: number; texto: string }
@@ -30,7 +30,10 @@ export type EstadoLente =
   | { tipo: 'sem_celulas_em_comum'; segundos: number }
   | { tipo: 'sem_celulas_destacadas'; segundos: number }
   | { tipo: 'indisponivel'; segundos: number; textos: string[] }
-  | { tipo: 'versao_substituida' }
+  // `lente`: a sobreposição (plano 006, T24) usa o mesmo estado, com o texto da lente.
+  | { tipo: 'versao_substituida'; lente?: boolean }
+  // Sobreposição sobre carga sem a camada de áreas (`total_areas` nulo): não é erro (T24, SB-14).
+  | { tipo: 'sem_camada'; segundos: number }
   | { tipo: 'contorno_indisponivel' }
   | { tipo: 'leitura_inconsistente'; motivo: string }
   | { tipo: 'falha' }
@@ -50,7 +53,8 @@ function textoEstado(e: EstadoLente): string {
     case 'nenhuma': return 'Nenhuma lente aplicada.';
     case 'carregando': return e.etapa === 'registros'
       ? `Carregando: registros ${fmtNumero(e.feitos)} de ${fmtNumero(e.total)}…`
-      : `Carregando: disponibilidade ${fmtNumero(e.feitos)} de ${fmtNumero(e.total)} municípios…`;
+      : e.etapa === 'areas' ? 'Carregando: áreas protegidas e vínculos da carga…'
+        : `Carregando: disponibilidade ${fmtNumero(e.feitos)} de ${fmtNumero(e.total)} municípios…`;
     case 'completo': return `${e.combinacao ? 'Combinação concluída' : 'Lente concluída'} em ${segundos(e.segundos)} s.`;
     case 'sem_destaques': return `Lente concluída em ${segundos(e.segundos)} s, sem destaques nesta janela.`;
     case 'janela_insuficiente': return `Janela insuficiente: ${e.texto} Nenhum destaque; escolha uma janela maior.`;
@@ -60,7 +64,8 @@ function textoEstado(e: EstadoLente): string {
     case 'sem_celulas_em_comum': return `Combinação concluída em ${segundos(e.segundos)} s. ${textoSemCelulas('e')}`;
     case 'sem_celulas_destacadas': return `Combinação concluída em ${segundos(e.segundos)} s. ${textoSemCelulas('ou')}`;
     case 'indisponivel': return `Combinação indisponível nesta janela: ${e.textos.join('; ')}. Nenhuma célula foi calculada; escolha uma janela maior ou outras lentes.`;
-    case 'versao_substituida': return 'Combinação cancelada: a versão de dados foi substituída; recarregue a versão vigente e aplique de novo.';
+    case 'versao_substituida': return `${e.lente ? 'Lente cancelada' : 'Combinação cancelada'}: a versão de dados foi substituída; recarregue a versão vigente e aplique de novo.`;
+    case 'sem_camada': return `Lente concluída em ${segundos(e.segundos)} s: esta versão dos dados não tem a camada de áreas protegidas.`;
     case 'contorno_indisponivel': return 'Lente aplicada, mas o contorno de algum município destacado está indisponível no mapa; a lista e o painel continuam válidos.';
     case 'leitura_inconsistente': return `Leitura inconsistente (${e.motivo}). Nenhum destaque foi exibido; tente de novo.`;
     case 'falha': return 'Fonte de dados indisponível. Nenhum destaque foi exibido; isso não indica ausência de detecções. Tente de novo.';

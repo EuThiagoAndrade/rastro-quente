@@ -77,7 +77,7 @@ const chaveVinculo = (v: VinculoLido): string => `${v.id_tecnico}|${chaveArea(v.
  * Diagnóstico da ausência da linha da carga (R2-3): `negado` → acesso_negado; `sem_publicacao` → sem_publicacao;
  * `autorizado` com vigente diferente → versao_substituida; com vigente igual → leitura inconsistente.
  */
-async function diagnosticarAusencia(fontes: FontesAreas, carga: number): Promise<never> {
+export async function diagnosticarAusencia(fontes: FontesAreas, carga: number): Promise<never> {
   const acesso = await fontes.sondar();
   if (acesso === 'negado') throw new ErroConsulta('acesso_negado', 'linha da carga oculta: acesso negado');
   if (acesso === 'sem_publicacao') throw new ErroConsulta('sem_publicacao', 'linha da carga oculta: sem publicação');
