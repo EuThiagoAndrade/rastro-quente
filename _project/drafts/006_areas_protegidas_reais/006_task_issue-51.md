@@ -7,7 +7,7 @@
 > **Issue:** `#51`
 > **Plano:** `_project/drafts/006_areas_protegidas_reais/006_plan.md`
 > **Branch:** `feature/issue-51`
-> **PR:** —
+> **PR:** [#55](https://github.com/EuThiagoAndrade/rastro-quente/pull/55)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #51" em 2026-11-14
 > **Modo contínuo:** `—`
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Conferência `conferir:sobreposicao` e registro no relatório do ciclo.
 - [x] Seção "Sobreposição" na KB-005.
 - [x] Gates locais.
-- [ ] Publicar PR e checks remotos.
+- [x] Publicar PR (#55); checks remotos em andamento.
 
 ## Evidências
 
@@ -88,8 +88,8 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 006 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #N
-Diga: "aprovo o merge da PR #N"
+Conferir: Checks e diff da PR #55
+Diga: "aprovo o merge da PR #55"
 ```
 
 ## Handoff de saída
@@ -98,7 +98,7 @@ Diga: "aprovo o merge da PR #N"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 006 + implementar_issue + 51 + acb54c0`
 - `effect_class`: `remote_mutation`
 - `state_before`: issue #51 aberta; PR #54 integrada e ação externa da issue #50 concluída; task da issue #50 com reconciliação local não commitada.
-- `state_after`: branch `feature/issue-51` com a reconciliação da #50 e a entrega do item 3; PR pendente de publicação.
+- `state_after`: branch `feature/issue-51` com a reconciliação da #50 e a entrega do item 3; PR #55 aberta, aguardando checks e aprovação do merge.
 - `result`: `executed`
 - `evidence`: gates e conferência locais acima.
 - `blockers`: nenhum.
