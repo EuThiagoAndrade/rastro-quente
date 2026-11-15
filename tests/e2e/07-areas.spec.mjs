@@ -7,7 +7,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp, revogarRp } from './contas.mjs';
-import { abrirDestaque, consultar, entrar, escolherLente } from './ajuda.mjs';
+import { abrirDestaque, alternarCamada, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { SQL_LIMPEZA, sqlFixture, sqlFixtureAreas } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -100,10 +100,10 @@ test('camada sob demanda: nada na abertura; legenda em texto, atribuição, áre
   await expect(page.locator('#proveniencia-areas')).toContainText('CNUC (MMA): retrato cnuc-ficticio, obtido em 2026-11-12 12:00 GMT; fonte fictícia de unidades de conservação, CC BY');
   await expect(page.locator('#proveniencia-areas')).toContainText('FUNAI: retrato funai-ficticio');
 
-  const botao = page.getByRole('button', { name: 'Mostrar áreas protegidas' });
-  await botao.click();
+  const botao = page.locator('#c-areas');
+  await alternarCamada(page, 'c-areas');
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'visivel');
-  await expect(botao).toHaveAttribute('aria-pressed', 'true');
+  await expect(botao).toBeChecked();
   await expect(page.locator('#areas-estado')).toContainText('Áreas protegidas no mapa: 4 (contorno simplificado');
   await expect(page.locator('#areas-legenda li[data-classe]')).toHaveText([
     'Proteção integral (contorno contínuo verde, hachura inclinada para a direita): 1 área',
@@ -135,12 +135,12 @@ test('camada sob demanda: nada na abertura; legenda em texto, atribuição, áre
   expect(req.real).toHaveLength(1);
 
   // Ocultar e mostrar de novo: sem nova leitura da visão geral.
-  await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
-  await expect(botao).toHaveAttribute('aria-pressed', 'false');
+  await alternarCamada(page, 'c-areas');
+  await expect(botao).not.toBeChecked();
   await expect(page.locator('#areas-legenda')).toBeHidden();
   await expect(areasNoMapa(page)).toHaveCount(0);
   await expect(page.locator('#areas-selecao')).toBeHidden();
-  await botao.click();
+  await alternarCamada(page, 'c-areas');
   await expect(areasNoMapa(page)).toHaveCount(4);
   expect(req.geral).toHaveLength(1);
 });
@@ -285,7 +285,7 @@ test('leitura inconsistente (contagem divergente nos vínculos), falha da fonte 
   await expect(page.locator('#lente-estado')).toContainText('total 59 diferente do declarado 58');
   await expect(itens(page)).toHaveCount(0);
   // A camada usa o mesmo leitor: o mesmo estado, sem área desenhada.
-  await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
+  await alternarCamada(page, 'c-areas');
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'leitura_inconsistente');
   await expect(areasNoMapa(page)).toHaveCount(0);
   await page.unrouteAll({ behavior: 'ignoreErrors' });
@@ -369,7 +369,7 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
 
 test('perda de acesso entre a leitura das áreas e a dos vínculos, com a carga vigente: acesso negado, limpa camada, lente e memória', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
+  await alternarCamada(page, 'c-areas');
   await expect(areasNoMapa(page)).toHaveCount(4);
   let revogado = false;
   await page.route('**/rest/v1/deteccoes_areas*', async (route) => {
@@ -386,7 +386,7 @@ test('perda de acesso entre a leitura das áreas e a dos vínculos, com a carga 
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
     await expect(itens(page)).toHaveCount(0);
     await expect(areasNoMapa(page)).toHaveCount(0);
-    await expect(page.locator('#botao-areas')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('#c-areas')).not.toBeChecked();
     await expect(page.locator('#areas-legenda')).toBeHidden();
     await expect(page.locator('#estado-consulta')).not.toHaveAttribute('data-estado', 'versao_substituida');
   } finally {
@@ -410,7 +410,7 @@ test('sessão expirada nos vínculos limpa tudo; após novo login, nenhuma lente
 
 test('versão substituída (linha da carga oculta e outra vigente): estado próprio, limpa lente, camada e contornos', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
+  await alternarCamada(page, 'c-areas');
   await expect(areasNoMapa(page)).toHaveCount(4);
   await page.route((u) => u.pathname.endsWith('/rest/v1/cargas') && (u.searchParams.get('select') ?? '').includes('total_areas'),
     (route) => route.fulfill({ status: 200, json: [], headers: { 'content-range': '*/0' } }));
@@ -421,7 +421,7 @@ test('versão substituída (linha da carga oculta e outra vigente): estado próp
   await expect(page.locator('#lente-estado')).toContainText('Lente cancelada: a versão de dados foi substituída');
   await expect(itens(page)).toHaveCount(0);
   await expect(areasNoMapa(page)).toHaveCount(0);
-  await expect(page.locator('#botao-areas')).toHaveAttribute('aria-pressed', 'false');
+  await expect(page.locator('#c-areas')).not.toBeChecked();
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
   await expect(page.locator('#total-principal')).toHaveText('60');
@@ -465,7 +465,7 @@ for (const largura of [360, 390]) {
       await expect(page.locator('#lente-painel-titulo')).toBeFocused();
       await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'exibido');
       // A camada abre pelo botão; a citação da área leva aos dados dela.
-      await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).tap();
+      await alternarCamada(page, 'c-areas', true);
       await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'visivel');
       await page.getByRole('button', { name: 'Ver dados e contorno de Terra Indígena Fictícia Alfa' }).focus();
       await page.keyboard.press('Enter');
@@ -505,10 +505,10 @@ test('carga sem camada (totais nulos): estado próprio na lente e na camada, sem
     await expect(page.locator('#lente-estado')).toContainText('esta versão dos dados não tem a camada de áreas protegidas');
     await expect(page.locator('#lente-sem-camada')).toHaveText(SEM_CAMADA);
     await expect(itens(page)).toHaveCount(0);
-    await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).click();
+    await alternarCamada(page, 'c-areas');
     await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'sem_camada');
     await expect(page.locator('#areas-estado')).toHaveText('Camada indisponível: esta versão dos dados não tem a camada de áreas protegidas.');
-    await expect(page.locator('#botao-areas')).toHaveAttribute('aria-pressed', 'false');
+    await expect(page.locator('#c-areas')).not.toBeChecked();
     expect([...req.geral, ...req.lente, ...req.real, ...req.vinculos]).toEqual([]);
   } finally {
     sqlAdmin(SQL_LIMPEZA);

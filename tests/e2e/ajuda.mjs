@@ -14,6 +14,17 @@ export async function entrar(page, nome, { esperar = 'dados' } = {}) {
   else if (esperar) await expect(page.locator(`#acesso[data-estado="${esperar}"]`)).toBeVisible();
 }
 
+/** Liga ou desliga uma camada do mapa no menu "Camadas" (item 3 do ciclo 007), por clique ou toque. */
+export async function alternarCamada(page, id, toque = false) {
+  const menu = page.locator('#camadas');
+  if ((await menu.getAttribute('open')) === null) {
+    const resumo = menu.locator(':scope > summary');
+    if (toque) await resumo.tap(); else await resumo.click();
+  }
+  const caixa = page.locator(`#${id}`);
+  if (toque) await caixa.tap(); else await caixa.click();
+}
+
 /** Abre uma seção recolhível dos filtros (fechada por padrão em tela estreita, T17). */
 export async function abrirSecao(page, id) {
   const secao = page.locator(`#${id}`);

@@ -11,7 +11,7 @@
 2. **O que está à esquerda vale para tudo.** O recorte aplicado (período e município) é o único que o mapa, a série e os municípios usam. Enquanto as lentes forem estaduais (até o item 4 do ciclo 007), a tela diz isso.
 3. **Domínio antes de estética.** Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração; uma lente indica onde olhar, não ranking nem prova; densidade é contagem, não gravidade. As três frases ficam no rodapé fixo.
 4. **Cor nunca é o único sinal.** Toda distinção por cor tem também texto, símbolo, traço ou preenchimento.
-5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (série mensal, "Camadas", ampliar, fundo de satélite: itens 3 e 5 do ciclo 007; abas e ordenação chegaram no item 2).
+5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (fundo de satélite: item 5 do ciclo 007; abas e ordenação chegaram no item 2; série mensal, "Camadas" e ampliar, no item 3).
 6. **Nada gravado no navegador.** Nem dados de consulta nem preferências: o tema vale só enquanto a página estiver aberta (ADR-007).
 
 ## Tokens de cor
@@ -41,6 +41,7 @@ A tela abre sempre no tema claro (`:root`); o botão da lua define `data-tema="e
 | `--classe-sem-evidencia` | `#2f4a3c` | `#a7d3b8` | Disponibilidade: sem evidência de lacuna (borda pontilhada) |
 | `--barra` | `#f97316` | `#f97316` | Barras da série (laranja da detecção) |
 | `--deteccao-escura` | `#7c2d12` | `#fdba74` | Borda das amostras na legenda |
+| `--densidade-0` a `--densidade-4` | `#fed7aa` `#fdba74` `#f97316` `#c2410c` `#7c2d12` | iguais | Densidade por célula, classes 1 · 2–3 · 4–9 · 10–24 · 25+ (mapa e legenda); cada classe tem o número escrito na legenda |
 
 Iguais nos dois temas, porque o mapa tem fundo próprio escuro: `--mapa-fundo` `#152e27`, `--deteccao` `#f97316`, `--selecao-mapa` `#93c5fd`, `--limite` `#6f9a88`, `--destaque` `#fde68a` e as áreas protegidas `--area-integral` `#86efac`, `--area-sustentavel` `#c4b5fd`, `--area-indigena` `#f9a8d4` (as mesmas constantes de `src/mapa.ts`; cada classe também tem traço e hachura próprios).
 
@@ -68,7 +69,10 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Seção recolhível:** `<details>` com título clicável sem seleção de texto e "+"/"−" à direita; a etiqueta "ativa" aparece na seção da lente marcada; a Consulta fechada mostra o recorte aplicado no título.
 - **Campo:** seletor e data com borda de 1 px `--contorno`; o período usa um seletor ("Janela inteira", "Últimos 6 meses", "Últimos 3 meses", "Último mês", "Intervalo personalizado…") e o resumo "dd/mm/aaaa a dd/mm/aaaa · N dias GMT".
 - **Opção de lente:** cartão com o nome, a pergunta que responde e a descrição; marcada com fundo `--escolha-suave` e barra à esquerda; a combinação tem borda tracejada; classes e lentes a combinar aparecem dentro do cartão marcado.
-- **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (ferramentas no alto à esquerda, "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita).
+- **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (ferramentas no alto à esquerda, "Camadas" recolhível e o botão de ampliar no alto à direita, "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita). No celular, as ferramentas descem para a linha abaixo de "Camadas". O painel "Camadas" aberto fica por cima da legenda.
+- **Camadas:** caixas "Limites municipais (IBGE)" (ligada), "Áreas protegidas", "Detecções individuais" (ligada) e "Densidade por célula"; alvo de 44 px por linha.
+- **Mapa ampliado:** ícone de setas (ampliar/reduzir) com `aria-pressed` e rótulo "Ampliar mapa"/"Reduzir mapa"; as colunas laterais saem e mapa e cartões do centro ocupam a largura toda.
+- **Série:** barras da V13 (valor na mensal, coluna `--barra` e rótulo em dia ou mês GMT); mês parcial com `*` e coluna hachurada; nota da unidade acima e legenda com o total e a nota de mês parcial abaixo; tabela recolhível como alternativa.
 - **Cartão:** superfície com borda `--contorno-suave`, título em rótulo de caixa alta.
 - **Abas do resultado (V13):** "Destaques · N" e "Municípios", texto `0.875rem` peso 600; a aba aberta tem fundo `--superficie-suave` e sublinhado de 3 px em `--barra`; as abas quebram de linha em vez de transbordar.
 - **Lista de destaques:** resumo da lente (bloco com barra `--escolha` à esquerda, nome, quantidade em número grande e o recorte), itens como botões de linha inteira (alvo ≥ 44 px), o aberto marcado com barra `--escolha`; a concentração traz a ressalva de contagem absoluta em caixa de aviso. Sem lente, estado vazio com o ícone de satélite.
@@ -95,6 +99,8 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Consulta:** carregando, zero (nunca "ausência de fogo"), fonte indisponível e inconsistente (com "Tentar novamente"), entrada recusada e versão substituída (com "Carregar a versão vigente").
 - **Painel:** `data-estado-painel` em `#conteudo`: `carregando`, `pronto` (filtros, série e municípios prontos) ou `erro`.
 - **Pontos (ADR-009):** `data-estado-pontos` em `#conteudo`: `nenhum`, `carregando` (com "N de M detecções"), `completo` (todos os pontos do recorte) ou `erro` (nenhum ponto pela metade).
+- **Limites (ADR-009):** `data-estado-limites` em `#conteudo`: `desligado`, `carregando`, `completo` ou `erro` (com o aviso próprio; pontos e números continuam).
+- **Somas em tela:** `data-total` em `#serie` e em `#legenda-densidade`, iguais a `principal.total` do recorte aplicado.
 - **Recorte aplicado:** período personalizado inválido mostra o erro junto do campo e a linha "Mostrando <recorte>"; a tela não muda.
 - **Lente, combinação, sobreposição e áreas:** estados de `data-estado-lente` e `data-estado-areas`, com os textos das KBs e dos ciclos `004` a `006`, mais `incompleta` (combinação com menos de 2 lentes). A lente é calculada ao escolher, sem botão; o estado fica acima da lista e da explicação. Como na V13, não há "Nenhuma lente" visível: a lente sai por "Limpar tudo".
 - Zero, pendente e indisponível nunca são apresentados como valor numérico parcial.
@@ -106,5 +112,6 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - Todo controle tem rótulo (os botões de ícone por `aria-label`); grupos usam `fieldset`/`legend`; estados dinâmicos usam `role="status"` ou `role="alert"`.
 - Texto ampliado a 200% e largura de 320 px sem corte nem rolagem horizontal da página.
 - Toque: um dedo rola a página; o mapa só arrasta com "Mover o mapa com um dedo".
+- Mapa ampliado: o foco vai para o mapa; Esc ou o mesmo botão voltam, com o foco no botão.
 - O mapa tem alternativa em texto ("Lista de focos" e lista da aba Destaques); as abas seguem o padrão de abas (setas, Home e End); voltar da explicação devolve o foco ao item aberto.
 - `prefers-reduced-motion` desliga animações e transições.
