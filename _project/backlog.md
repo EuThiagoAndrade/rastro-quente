@@ -462,3 +462,34 @@ A ordem e o tamanho da faixa não indicam prioridade, gravidade nem risco, como 
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o ajuste da lista de municípios; captura local.
 - 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
+
+## BL-017 — Rótulos das lentes e espaço do mapa
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+A relação entre as opções de lentes à esquerda e os resultados à direita não fica evidente, e os cartões de resumo abaixo do mapa ocupam espaço que não ajuda a leitura. Clarificar a identificação das lentes e liberar espaço para o mapa, preservando a série temporal e a Lista de focos. Benefício: reconhecer qual lente produz cada resultado e ter mais área de mapa sem dificultar o acesso à lista de detecções.
+
+### Contexto
+
+- Na coluna esquerda, acrescentar o rótulo **Lentes** antes das opções existentes e mudar somente **Lente de seleção** para **Seleção**. Manter **Contexto territorial** e **Cruzar critérios** como estão; os controles e seus comportamentos permanecem.
+- Na coluna direita, mudar a aba **Destaques** para **Lentes**. Dentro dela, o título do resultado identifica a opção ativa — **Concentração**, **Recorrência**, **Persistência**, **Sobreposição com áreas protegidas** ou **Combinação de lentes** — no lugar de títulos genéricos como “Células destacadas” ou “Municípios destacados”. As listas e explicações existentes permanecem.
+- Abaixo do mapa, retirar **No mapa**, **Detecções no período (dias GMT)** e **Disponibilidade dos dados**, incluindo seu detalhamento de classes, histórico, dias e motivos. Manter somente a série temporal em barras, vinculada ao período aplicado na consulta. A Lista de focos permanece inalterada.
+- Usar parte do espaço liberado para aumentar moderadamente a altura do mapa, com limite para que a Lista de focos continue visível e acessível quando aberta.
+- Preservar **Como ler esta tela** como visão geral de alto nível, no formato atual; atualizar somente referências que fiquem desatualizadas, sem transformá-lo em manual.
+- Não alterar os métodos, cálculos ou critérios das lentes.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar em um único item as mudanças de identificação das lentes, simplificação da área do mapa e atualização pontual de “Como ler esta tela”; captura local.
