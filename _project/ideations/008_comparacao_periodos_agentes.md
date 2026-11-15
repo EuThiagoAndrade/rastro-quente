@@ -119,6 +119,8 @@ As perguntas prontas garantem uma demonstração estável e mostram ao usuário 
 
 ## Perguntas em aberto
 
+As perguntas abaixo preservam a exploração original. As decisões de 2026-11-15 e o rascunho v1, registrados a seguir, passam a orientar a continuidade; não são todas pendências atuais.
+
 1. Qual provedor e modelo? Os critérios são custo zero, cota, uso dos dados enviados e qualidade da chamada de ferramentas.
 2. A camada sem IA (comparação de períodos) entra como primeira issue do ciclo, antes dos agentes?
 3. Os subagentes serão chamadas próprias ao modelo ou apenas ferramentas do agente principal?
@@ -144,14 +146,39 @@ As perguntas prontas garantem uma demonstração estável e mostram ao usuário 
 - Definida a matriz de acesso da função de servidor (G2) e os casos de referência da comparação de períodos (G1).
 - Acordado que a nova arquitetura será registrada em ADR no plano.
 
+### Decisões recebidas em 2026-11-15
+
+1. **Provedor:** Gemini. O responsável informou possuir Google AI Pro e admitiu criar acesso pelo Google AI Studio. O modelo específico permanece proposta técnica do plano; assinatura não comprova cota da API.
+2. **Sequência:** aceita a comparação determinística como primeira entrega.
+3. **Agentes:** aceita um principal e dois subagentes com chamadas próprias ao modelo; cálculos permanecem no código.
+4. **Perguntas:** aceita as três iniciais ("Por que esta célula foi destacada?", "O que mudou entre estes períodos?" e "Há lacunas nos dados?") e texto livre nesta versão.
+5. **Municípios:** rejeita o adiamento; comparação entre municípios deve entrar nesta entrega.
+6. **Períodos:** aceita mesma duração, carga, lente e parâmetros, lacunas explícitas e comparação indisponível quando um período estiver totalmente sem dados, sem tratá-lo como zero.
+7. **Dados enviados ao Gemini:** o responsável declarou públicos os dados territoriais do Rastro Quente e autorizou seu envio sem restrição de conteúdo para os agentes responderem. Essa instrução posterior substitui a proposta de enviar somente resumo sanitizado: detalhes públicos, inclusive coordenadas e detecções, podem ser enviados. Limites técnicos de contexto/custo não são restrições de privacidade. Credenciais, JWT e dados de conta continuam fora dos prompts.
+
+### Reconciliação dos critérios de entrada
+
+- Decisões de produto recebidas; o plano propõe o modelo Gemini concreto e detalhes técnicos para revisão, sem atribuí-los ao responsável.
+- Documentação pública conferida em 2026-11-15: [preços/modelos gratuitos](https://aistudio.google.com/docs/pricing), [cotas](https://aistudio.google.com/docs/rate-limits), [billing](https://aistudio.google.com/docs/billing) e [termos](https://aistudio.google.com/docs/terms). O serviço gratuito pode usar entradas/saídas para melhoria e revisão humana. A autorização de dados públicos acima foi recebida depois dessa informação ser comunicada.
+- Existência de camada gratuita conferida; a cota concreta da conta não foi acessada. Sua verificação é precondição de ativação no item 5, sem afirmar garantia de disponibilidade ou autorizar cobrança.
+- Matriz de acesso, casos de referência e ADR prevista constam dos detalhes T4, T8 e item 2 do plano. São propostas para revisão/aprovação, não implementação nem decisões analíticas incidentais.
+- Perguntas 7 a 9 têm propostas explícitas no plano: eventos por etapa, logs sem conteúdo e budgets por execução com cotas do provedor, sem contador global fictício.
+- Rascunho criado em _project/drafts/008_comparacao_periodos_agentes/008_plan.md; esse plano é agora o artefato ativo.
+
 ## Próximo passo
+
+### Autorização recebida e pendências
+
+- Em 2026-11-15, o responsável declarou: "autorizo o rascunho do plano do ciclo 008". A autorização permanece válida; não é aprovação de plano nem de implementação.
+- Na conferência inicial, as perguntas 1 a 6 ainda não tinham respostas e nenhum plano foi criado. A parada foi registrada; as respostas posteriores acima resolvem a pendência de produto.
+- A autorização foi consumida na criação do rascunho v1, com as pendências de ativação declaradas no plano. Próxima etapa: revisão formal, sem implementação automática.
 
 ```text
 PRÓXIMO PASSO
-Situação: Ideação registrada — ciclo 008 (completo)
-Quem: Responsável
-Conferir: Perguntas em aberto 1 a 9 e alternativas desta ideação (_project/ideations/008_comparacao_periodos_agentes.md)
-Diga: "autorizo o rascunho do plano do ciclo 008"
+Situação: Aguardando revisão (rodada 1) — ciclo 008 (completo)
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise o plano do ciclo 008"
 ```
 
 ## Handoff de saída
@@ -163,3 +190,23 @@ Diga: "autorizo o rascunho do plano do ciclo 008"
 - `result`: `executed`
 - `evidence`: esta ideação e a linha `008` de `_project/cycles.md` na branch `chore/cycle-008-ideation`, criada a partir de `origin/main` (`52a8509`); o commit local é registrado no histórico da branch
 - `blockers`: nenhum para a ideação. O planejamento depende das perguntas em aberto
+
+### Conferência para rascunho — 2026-11-15
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + rascunhar_plano + 008_plan + v1`
+- `effect_class`: `local_mutation`
+- `state_before` / `state_after`: ciclo `008` em `Ideação`, situação `Ideação registrada`, sem plano / ciclo permanece em `Ideação`, situação `Parado`, autorização registrada e sem plano
+- `result`: `not_executed` (rascunho); somente autorização e bloqueio registrados nesta ideação
+- `evidence`: revisão de origem `47c91b3ddbc7d6cf364f3ee490462919dab95714`; perguntas e critérios de entrada desta ideação; seção "Autorização recebida e pendências"
+- `blockers`: decisões humanas das perguntas 1 a 6 ausentes; condições do provedor, matriz de acesso e casos de referência ainda pendentes
+
+### Reconciliação após decisões e rascunho — 2026-11-15
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + rascunhar_plano + 008_plan + v1`
+- `effect_class`: `local_mutation`
+- `state_before` / `state_after`: ciclo em Ideação, sem plano e Parado / ciclo em Planejamento, plano v1 em Rascunho, Aguardando revisão (rodada 1)
+- `result`: `executed`
+- `evidence`: decisões acima, _project/drafts/008_comparacao_periodos_agentes/008_plan.md e linha 008 de cycles.md; branch chore/cycle-008-plan, revisão de origem 47c91b3ddbc7d6cf364f3ee490462919dab95714
+- `blockers`: nenhum para revisão; quota da conta, configuração e testes reais são pendências explícitas de ativação
