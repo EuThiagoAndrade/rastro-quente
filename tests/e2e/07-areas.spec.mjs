@@ -7,7 +7,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp, revogarRp } from './contas.mjs';
-import { consultar, entrar } from './ajuda.mjs';
+import { consultar, entrar, escolherLente } from './ajuda.mjs';
 import { SQL_LIMPEZA, sqlFixture, sqlFixtureAreas } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -38,7 +38,7 @@ const areasNoMapa = (page) => page.locator('#mapa path[data-chave]');
 const contornosNoMapa = (page) => page.locator('#mapa .leaflet-areas-pane path:not([data-chave])');
 
 async function aplicar(page, classe) {
-  await page.locator('#l-lente').selectOption('sobreposicao');
+  await escolherLente(page, 'sobreposicao');
   await page.locator(`input[name="l-classe"][value="${classe}"]`).check();
   await page.getByRole('button', { name: 'Aplicar lente' }).click();
 }
@@ -258,7 +258,7 @@ test('uso sustentável: destaque na janela inteira e "sem destaques" de 01 a 03/
 
 test('sem classe escolhida: só o aviso, sem aplicação', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.locator('#l-lente').selectOption('sobreposicao');
+  await escolherLente(page, 'sobreposicao');
   await expect(page.locator('#lente-sobreposicao')).toBeVisible();
   await page.getByRole('button', { name: 'Aplicar lente' }).click();
   await expect(page.locator('#lente-validacao')).toHaveText('Escolha a classe de área protegida.');
@@ -339,7 +339,7 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
   r = await reter(page, '**/rest/v1/deteccoes_areas*');
   await aplicar(page, 'terra_indigena');
   await r.chegada;
-  await page.locator('#l-lente').selectOption('nenhuma');
+  await escolherLente(page, 'nenhuma');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
   await expect(page.locator('#lente-sobreposicao')).toBeHidden();
   r.soltar();
@@ -351,7 +351,7 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
   r = await reter(page, '**/rest/v1/deteccoes_areas*');
   await aplicar(page, 'terra_indigena');
   await r.chegada;
-  await page.locator('#l-lente').selectOption('concentracao');
+  await escolherLente(page, 'concentracao');
   await page.getByRole('button', { name: 'Aplicar lente' }).click();
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   r.soltar();
@@ -426,7 +426,7 @@ test('versão substituída (linha da carga oculta e outra vigente): estado próp
 /** Controles visíveis menores que 44×44, elementos fora da janela e rolagem horizontal global. */
 const auditar = () => {
   const visivel = (e) => { const r = e.getBoundingClientRect(); return r.width >= 2 && r.height >= 2 && !e.closest('[hidden]'); };
-  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('mapa-areas'), document.querySelector('.ferramentas-mapa')];
+  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros'), document.getElementById('mapa-areas'), document.querySelector('.ferramentas-mapa')];
   const alvos = raizes.flatMap((raiz) => [...raiz.querySelectorAll('button, select, summary, .opcao')])
     .filter((e) => visivel(e) && !e.matches(':disabled'))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })
@@ -444,7 +444,7 @@ for (const largura of [360, 390]) {
 
     test('teclado, foco, alvos de 44 px e sem rolagem horizontal; 200% e reflow a 320 px', async ({ page }) => {
       await entrar(page, 'rp');
-      await page.locator('#l-lente').selectOption('sobreposicao');
+      await escolherLente(page, 'sobreposicao');
       // Teclado: o grupo de rádio recebe o foco e as setas trocam a classe.
       await page.locator('input[name="l-classe"][value="protecao_integral"]').focus();
       await page.keyboard.press('Space');

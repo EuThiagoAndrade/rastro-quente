@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar } from './ajuda.mjs';
+import { consultar, entrar, escolherLente } from './ajuda.mjs';
 import { SQL_LIMPEZA, sqlFixture, sqlFixtureCombinacao } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -37,7 +37,7 @@ const rotulos = (page) => itens(page).locator('.botao-nome').allInnerTexts();
 const corpoRpc = (route) => JSON.parse(route.request().postData() ?? '{}');
 
 async function escolher(page, lentes, operador = 'e') {
-  await page.locator('#l-lente').selectOption('combinacao');
+  await escolherLente(page, 'combinacao');
   for (const l of TRES) await page.locator(`input[name="l-comb"][value="${l}"]`).setChecked(lentes.includes(l));
   await page.locator(`input[name="l-operador"][value="${operador}"]`).check();
 }
@@ -48,8 +48,7 @@ async function combinar(page, lentes, operador = 'e') {
 }
 
 async function janela(page, inicio, fim) {
-  await page.locator('#f-inicio').fill(inicio);
-  await page.locator('#f-fim').fill(fim);
+  await consultar(page, { inicio, fim });
 }
 
 /** Segura a primeira chamada que casar com `filtro` até `soltar()`; com `resposta`, libera com ela. */
@@ -328,7 +327,7 @@ test('cancelada: nova janela durante a leitura cancela; a resposta atrasada não
 test('concorrência: lente individual retida e combinação aplicada antes; só a combinação aparece', async ({ page }) => {
   await entrar(page, 'rp');
   const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
-  await page.locator('#l-lente').selectOption('concentracao');
+  await escolherLente(page, 'concentracao');
   await page.getByRole('button', { name: 'Aplicar lente' }).click();
   await r.chegada;
   await combinar(page, TRES, 'e');
@@ -345,7 +344,7 @@ test('concorrência: combinação retida e "Nenhuma"; nada aparece depois', asyn
   const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
   await combinar(page, TRES, 'ou');
   await r.chegada;
-  await page.locator('#l-lente').selectOption('nenhuma');
+  await escolherLente(page, 'nenhuma');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
   await expect(page.locator('#lente-combinacao')).toBeHidden();
   r.soltar();
@@ -407,12 +406,12 @@ test('versão substituída (carga indisponível) na disponibilidade: estado pró
 /** Controles visíveis do cartão menores que 44×44, elementos fora da janela e rolagem horizontal global. */
 const auditarCartao = () => {
   const visivel = (e) => { const r = e.getBoundingClientRect(); return r.width >= 2 && r.height >= 2 && !e.closest('[hidden]'); };
-  const cartao = document.getElementById('cartao-lentes');
-  const alvos = [...cartao.querySelectorAll('button, select, summary, .opcao')]
+  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros')];
+  const alvos = raizes.flatMap((r) => [...r.querySelectorAll('button, select, summary, .opcao')])
     .filter((e) => visivel(e) && !e.matches(':disabled'))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })
     .map((e) => `${e.tagName} ${e.textContent.trim().slice(0, 30)}`);
-  const fora = [...cartao.querySelectorAll('*')]
+  const fora = raizes.flatMap((r) => [...r.querySelectorAll('*')])
     .filter((e) => visivel(e) && !e.closest('.rolavel'))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.right > window.innerWidth + 1 || r.left < -1; })
     .map((e) => `${e.tagName}#${e.id}`);
@@ -425,7 +424,7 @@ for (const largura of [360, 390]) {
 
     test('teclado, foco, alvos de 44 px e sem rolagem horizontal; 200% e reflow a 320 px', async ({ page }) => {
       await entrar(page, 'rp');
-      await page.locator('#l-lente').selectOption('combinacao');
+      await escolherLente(page, 'combinacao');
       // Teclado: Tab chega às caixas e ao operador; Espaço marca.
       await page.locator('input[name="l-comb"][value="concentracao"]').focus();
       await page.keyboard.press('Space');
@@ -439,7 +438,7 @@ for (const largura of [360, 390]) {
       await page.keyboard.press('Enter');
       await expect(page.locator('#lente-painel-titulo')).toBeFocused();
       // Toque: o rótulo inteiro marca a caixa.
-      await page.locator('.opcao', { hasText: 'Persistência' }).tap();
+      await page.locator('#lente-combinacao .opcao', { hasText: 'Persistência' }).tap();
       await expect(page.locator('input[name="l-comb"][value="persistencia"]')).toBeChecked();
       await expect(page.locator('#lente-aviso-config')).toBeVisible();
 

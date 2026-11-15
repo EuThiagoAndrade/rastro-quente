@@ -2,6 +2,7 @@
   "$comment": "Regras estruturais do validador de governança. Adicionar um arquivo obrigatório exige editar só este manifesto (G6). A política vive em .agent/ai_behavior.md e _project/README.md.",
   "requiredFiles": [
     "README.md",
+    "DESIGN.md",
     ".gitignore",
     ".gitattributes",
     "AGENTS.md",
@@ -58,7 +59,8 @@
       "## Contrato de handoff (versão 2)",
       "handoff_schema_version: 2",
       "## Autorizações e pontos de aprovação",
-      "## Privacidade de dados territoriais e pessoais"
+      "## Privacidade de dados territoriais e pessoais",
+      "| Contrato visual (`DESIGN.md`) |"
     ],
     "_project/README.md": [
       "## Níveis e triagem",
@@ -79,7 +81,8 @@
       "### G4",
       "## Branches, commits e migrações",
       "## Gates mínimos",
-      "## Glossário"
+      "## Glossário",
+      "- contrato visual: `DESIGN.md`"
     ],
     ".agent/templates/task.md": [
       "**Trilha:**",
@@ -143,6 +146,15 @@
     ".agent/templates/ideacao.md": [
       "**handoff_schema_version:** `2`",
       "## Próximo passo"
+    ],
+    "DESIGN.md": [
+      "## Princípios",
+      "## Tokens de cor",
+      "## Tipografia e espaçamento",
+      "## Componentes",
+      "## Layout",
+      "## Estados",
+      "## Acessibilidade"
     ]
   },
   "adapters": {

@@ -2,7 +2,7 @@
 // texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar, numero, observarRest } from './ajuda.mjs';
+import { consultar, entrar, escolherLente, numero, observarRest } from './ajuda.mjs';
 import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -24,9 +24,16 @@ test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', 
   expect(sens).toContain('2026-11-01 04:00 GMT');
   await expect(page.getByText('Total principal — GMT')).toBeVisible();
   await expect(page.getByText('Sensibilidade — America/Cuiaba')).toBeVisible();
-  await expect(page.getByLabel('Início (dia GMT)')).toHaveValue('2026-10-01');
-  await expect(page.getByLabel('Fim (dia GMT, inclusivo)')).toHaveValue('2026-10-31');
-  await expect(page.getByRole('heading', { name: 'Série diária (dias GMT)' })).toBeVisible();
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
+  await expect(page.locator('#periodo-resumo')).toHaveText('01/10/2026 a 31/10/2026 · 31 dias GMT');
+  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
+  await expect(page.locator('#f-fim')).toHaveValue('2026-10-31');
+  // T18: total principal e sensibilidade ficam no cartão da série, no centro, acima das barras.
+  const cartaoSerie = page.locator('section[aria-labelledby="t-resumo"]');
+  await expect(page.getByRole('heading', { name: 'Detecções no período (dias GMT)' })).toBeVisible();
+  await expect(cartaoSerie.locator('#total-principal')).toHaveText('100');
+  await expect(cartaoSerie.locator('#sens-total')).toHaveText('102');
+  await expect(cartaoSerie.locator('#serie-corpo svg')).toBeVisible();
   await expect(page.locator('#versao-consultada')).toContainText('Última atualização (publicação)');
 
   // Nenhum registro do envelope aparece na tabela (todas as páginas em uma só, 1.000 por página).
@@ -217,26 +224,95 @@ test('proveniência: versão, fontes, método e limitações', async ({ page }) 
   await expect(prov.locator('#versao-dados')).toContainText('2026-10-01 00:00 GMT');
   await expect(prov.locator('#versao-dados')).toContainText('Envelope da sensibilidade');
   await expect(prov.locator('#versao-dados')).toContainText('regra_historico: H1 fictícia');
+  // Proveniência completa no diálogo "Sobre os dados" do topo (T13).
+  await page.getByRole('button', { name: 'Sobre os dados' }).click();
+  await expect(page.locator('#dialogo-sobre')).toBeVisible();
   await prov.getByText(/Fontes \(3\)/).click();
   await expect(prov.locator('tbody tr')).toHaveCount(3);
   await expect(prov).toContainText('https://exemplo.test/focos');
   await expect(prov.locator('#malhas')).toContainText('exibição: intermediaria');
   await expect(prov).toContainText('não comprova incêndio, dano, autoria ou infração');
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#dialogo-sobre')).toBeHidden();
+  await expect(page.locator('#botao-sobre')).toBeFocused();
+  // Chips do topo vêm da versão consultada.
+  await expect(page.locator('#chip-satelite')).toHaveText('Satélite AQUA_M-T · INPE');
+  await expect(page.locator('#chip-fontes')).toContainText('Fontes: IBGE');
+  // "Como ler esta tela": diálogo com o aviso de domínio; "Fechar" devolve o foco.
+  await page.getByRole('button', { name: 'Como ler esta tela' }).click();
   await expect(page.locator('#t-aviso')).toBeVisible();
+  await expect(page.locator('#dialogo-como-ler')).toContainText('não comprovam incêndio, dano, autoria ou infração');
+  await page.locator('#dialogo-como-ler').getByRole('button', { name: 'Entendi' }).click();
+  await expect(page.locator('#botao-como-ler')).toBeFocused();
 });
 
-test('filtro inválido: erro associado ao campo e nenhuma consulta', async ({ page }) => {
+test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a linha "Mostrando"', async ({ page }) => {
   await entrar(page, 'rp');
+  await consultar(page, { inicio: '2026-10-20' });
+  await expect(page.locator('#consulta-aplicada')).toHaveText('Todo Mato Grosso · 2026-10-20 a 2026-10-31');
+  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-20 00:00 GMT');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'pronto');
+  const total = await numero(page, 'total-principal');
   const rest = observarRest(page);
-  await consultar(page, { inicio: '2026-10-20', fim: '2026-10-10' });
+  await consultar(page, { fim: '2026-10-10' });
   await expect(page.locator('#f-erro')).toBeVisible();
   await expect(page.locator('#f-erro')).toHaveAttribute('role', 'alert');
+  await expect(page.locator('#f-erro')).toContainText('não pode ser depois do fim');
   await expect(page.locator('#f-inicio')).toHaveAttribute('aria-invalid', 'true');
-  await expect(page.locator('#f-inicio')).toBeFocused();
-  expect(rest.filter((r) => r.includes('/rpc/'))).toEqual([]);
-  await consultar(page, { inicio: '2026-09-01', fim: '2026-10-10' });
+  await expect(page.locator('#f-mostrando')).toHaveText('Mostrando Todo Mato Grosso · 2026-10-20 a 2026-10-31: o período digitado ainda não foi aplicado.');
+  await expect(page.locator('#total-principal')).toHaveText(total);
+  await consultar(page, { inicio: '2026-09-01' });
   await expect(page.locator('#f-erro')).toContainText('dentro da janela');
+  await page.waitForTimeout(300);
+  expect(rest.filter((r) => r.includes('/rpc/')), 'período inválido não consulta').toEqual([]);
+  // Com o período inválido, o município ainda se aplica, no período aplicado.
+  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
+  await expect(page.locator('#consulta-aplicada')).toHaveText('Município Alfa · 2026-10-20 a 2026-10-31');
+  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-31' });
   await expect(page.locator('#f-erro')).toBeHidden();
+  await expect(page.locator('#f-mostrando')).toBeHidden();
+  await expect(page.locator('#total-principal')).toHaveText('60');
+});
+
+test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tudo" volta ao padrão', async ({ page }) => {
+  await entrar(page, 'rp');
+  await expect(page.getByRole('button', { name: 'Consultar' })).toHaveCount(0);
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
+  await expect(page.locator('#periodo-resumo')).toHaveText('01/10/2026 a 31/10/2026 · 31 dias GMT');
+  await expect(page.locator('#intervalo')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
+  // Resumo do primeiro intervalo retido; o segundo termina antes e vence.
+  let chamadas = 0;
+  await page.route('**/rest/v1/rpc/consultar_resumo', async (rota) => {
+    chamadas += 1;
+    if (chamadas === 1) await new Promise((r) => setTimeout(r, 2000));
+    await rota.continue();
+  });
+  await consultar(page, { inicio: '2026-10-25' });
+  await expect(page.locator('#intervalo')).toBeVisible();
+  await consultar(page, { inicio: '2026-10-02' });
+  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
+  await page.waitForTimeout(2500);
+  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
+  await expect(page.locator('#periodo-resumo')).toHaveText('02/10/2026 a 31/10/2026 · 30 dias GMT');
+  await expect(page.locator('#consulta-aplicada')).toHaveText('Todo Mato Grosso · 2026-10-02 a 2026-10-31');
+  await page.unrouteAll({ behavior: 'ignoreErrors' });
+  // Atalho: "Último mês" volta ao mês inteiro do fim da janela (aqui, a janela inteira da fixture).
+  await page.locator('#f-periodo').selectOption('u1');
+  await expect(page.locator('#intervalo')).toBeHidden();
+  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
   await expect(page.locator('#total-principal')).toHaveText('100');
+
+  await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
+  await escolherLente(page, 'recorrencia');
+  await expect(page.locator('#secao-lente .marca-ativa')).toBeVisible();
+  await page.getByRole('button', { name: 'Limpar tudo' }).click();
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
+  await expect(page.locator('#f-municipio')).toHaveValue('');
+  await expect(page.locator('input[name="l-lente"][value="nenhuma"]')).toBeChecked();
+  await expect(page.locator('#secao-lente .marca-ativa')).toBeHidden();
+  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
+  await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · todo Mato Grosso · 2026-10-01 a 2026-10-31');
 });

@@ -482,13 +482,21 @@ test('17. task da trilha curta completa passa', () =>
     await expectValid(root);
   }));
 
-test('18. design system adiado passa sem pasta e não alega conformidade visual', () =>
+test('18. contrato visual: DESIGN.md na raiz é obrigatório, com as seções exigidas, e a conformidade visual segue manual', () =>
   withFixture(async (root) => {
     await expectValid(root);
     assert.equal(manifest.designSystem, undefined);
-    assert.ok((await validate(root)).manual.includes('Design system adiado: contrato visual não auditado.'));
-    await put(root, 'design-system/DESIGN.md', '# Documento ainda não aprovado');
-    assert.ok((await validate(root)).manual.includes('Design system adiado: contrato visual não auditado.'));
+    const MANUAL = 'Contrato visual: conformidade da tela com o DESIGN.md conferida por testes de contraste e E2E; revisão visual manual.';
+    assert.ok((await validate(root)).manual.includes(MANUAL));
+    await put(root, 'DESIGN.md', (await read(root, 'DESIGN.md')).replace('## Tokens de cor', '## Outra seção'));
+    await expectError(root, /DESIGN\.md sem o trecho obrigatório "## Tokens de cor"/);
+    await rm(path.join(root, 'DESIGN.md'));
+    await expectError(root, /Arquivo obrigatório ausente: DESIGN\.md/);
+    // Um DESIGN.md em outra pasta não substitui o da raiz.
+    await put(root, 'design-system/DESIGN.md', designDoc(['Tokens de cor']));
+    await expectError(root, /Arquivo obrigatório ausente: DESIGN\.md/);
+    await put(root, '.agent/ai_behavior.md', (await read(root, '.agent/ai_behavior.md')).replace('| Contrato visual (`DESIGN.md`) |', '| Contrato visual futuro |'));
+    await expectError(root, /ai_behavior\.md sem o trecho obrigatório "\| Contrato visual \(`DESIGN\.md`\) \|"/);
   }));
 
 test('19. template de PR fora do caminho padrão ou sem as barreiras', () =>

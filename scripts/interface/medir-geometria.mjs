@@ -110,10 +110,11 @@ async function medirQualidade(browser, qualidade, cargaId) {
   for (const [nome, codigo] of Object.entries(alvos)) {
     await page.reload();
     await page.locator('#total-principal').waitFor({ timeout: 120_000 });
-    await page.locator('#f-municipio').selectOption(codigo);
+    // Plano 007 (T16): sem botão "Consultar"; o município se aplica ao mudar (seção Consulta fechada em tela estreita).
+    if ((await page.locator('#secao-consulta').getAttribute('open')) === null) await page.locator('#secao-consulta > summary').click();
     c.zerar();
     t0 = performance.now();
-    await page.getByRole('button', { name: 'Consultar' }).click();
+    await page.locator('#f-municipio').selectOption(codigo);
     await page.waitForFunction(() => /Limites municipais carregados: 1\b/.test(document.getElementById('mapa-contagem')?.textContent ?? ''), null, { timeout: 120_000 });
     const ms = Math.round(performance.now() - t0);
     r.municipio[nome] = { ms, ...c.resumo() };

@@ -37,3 +37,38 @@ test('configuração: só HTTPS fora do loopback; login por senha só no loopbac
   const local = lerConfiguracao({ VITE_SUPABASE_URL: 'http://127.0.0.1:55321', VITE_SUPABASE_CHAVE_PUBLICAVEL: 'k', VITE_AUTH_SENHA_LOCAL: 'true' });
   assert.equal(local?.senhaLocal, true);
 });
+
+// Ciclo 007, issue #60 — recorte aplicado (T16): validação do período e atalhos de meses da referência V13.
+import { atalhoDoPeriodo, periodoDoAtalho, resumoPeriodo, textoRecorte, validarPeriodo } from '../../src/recorte.ts';
+
+const JANELA_ANO = { inicio: '2025-11-01', fim: '2026-10-31' };
+
+test('T16: período inválido não é aplicado; válido dentro da janela é', () => {
+  assert.equal(validarPeriodo('', '2026-10-31', JANELA_ANO), 'Informe o início e o fim do período (dias GMT).');
+  assert.equal(validarPeriodo('2026-10-20', '2026-10-10', JANELA_ANO), 'O início do período não pode ser depois do fim.');
+  assert.match(validarPeriodo('2025-10-31', '2026-10-31', JANELA_ANO), /dentro da janela da versão: 2025-11-01 a 2026-10-31/);
+  assert.match(validarPeriodo('2026-01-01', '2026-11-01', JANELA_ANO), /dentro da janela/);
+  assert.equal(validarPeriodo('2026-10-31', '2026-10-31', JANELA_ANO), null);
+  assert.equal(validarPeriodo('2025-11-01', '2026-10-31', JANELA_ANO), null);
+});
+
+test('T16: atalhos em meses de calendário até o mês do fim da janela, cortados no início dela', () => {
+  assert.deepEqual(periodoDoAtalho('ano', JANELA_ANO), JANELA_ANO);
+  assert.deepEqual(periodoDoAtalho('u6', JANELA_ANO), { inicio: '2026-05-01', fim: '2026-10-31' });
+  assert.deepEqual(periodoDoAtalho('u3', JANELA_ANO), { inicio: '2026-08-01', fim: '2026-10-31' });
+  assert.deepEqual(periodoDoAtalho('u1', JANELA_ANO), { inicio: '2026-10-01', fim: '2026-10-31' });
+  // Virada de ano em GMT, sem fuso local.
+  assert.deepEqual(periodoDoAtalho('u3', { inicio: '2025-01-01', fim: '2026-01-15' }), { inicio: '2025-11-01', fim: '2026-01-15' });
+  // Janela curta: o atalho não sai dela.
+  assert.deepEqual(periodoDoAtalho('u6', { inicio: '2026-09-01', fim: '2026-09-01' }), { inicio: '2026-09-01', fim: '2026-09-01' });
+});
+
+test('T16: atalho reconhecido, resumo do período e texto do recorte aplicado', () => {
+  assert.equal(atalhoDoPeriodo(JANELA_ANO, JANELA_ANO), 'ano');
+  assert.equal(atalhoDoPeriodo({ inicio: '2026-08-01', fim: '2026-10-31' }, JANELA_ANO), 'u3');
+  assert.equal(atalhoDoPeriodo({ inicio: '2026-08-02', fim: '2026-10-31' }, JANELA_ANO), null);
+  assert.equal(resumoPeriodo(JANELA_ANO), '01/11/2025 a 31/10/2026 · 365 dias GMT');
+  assert.equal(resumoPeriodo({ inicio: '2026-10-31', fim: '2026-10-31' }), '31/10/2026 a 31/10/2026 · 1 dia GMT');
+  assert.equal(textoRecorte({ inicio: '2026-10-01', fim: '2026-10-31' }, null), 'Todo Mato Grosso · 2026-10-01 a 2026-10-31');
+  assert.equal(textoRecorte({ inicio: '2026-10-01', fim: '2026-10-31' }, 'Município Alfa'), 'Município Alfa · 2026-10-01 a 2026-10-31');
+});

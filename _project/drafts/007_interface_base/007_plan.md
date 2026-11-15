@@ -1,7 +1,7 @@
 # Plano de Implementação — Interface base
 
 > **Ciclo:** `007`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v4`
 > **Data de criação:** 2026-11-14
 > **Última atualização:** 2026-11-14
@@ -37,6 +37,8 @@ Cobre:
 - o encerramento, depois das entregas.
 
 Não cobre merges, a implementação das issues, a ação humana externa nem a verificação em produção. Cada um desses passos tem frase própria.
+
+**Confirmação dos payloads das issues — 2026-11-14:** depois da integração da PR #59, o responsável escreveu literalmente "confirmo os payloads dos itens 1 a 5". As cinco issues foram criadas com os payloads confirmados e as dependências registradas abaixo. Esta confirmação cobre a criação das issues, não a implementação.
 
 **Autorização da correção — v4, 2026-11-14:** "corrija o plano do ciclo 007", depois do veredito `REQUER NOVA RODADA` da rodada 3 (revisor: Codex, GPT-6). A v4 responde a R3-1 a R3-3 (ver "Resposta do autor à rodada 3 — v4"), preserva as rodadas 1 a 3 e mantém o plano `Em Revisão`, aguardando a rodada 4. Autor: Claude Code (Opus 5.5). Nenhuma decisão humana nova. Proposta destacada para a aprovação, que substitui a da v3: a tabela fixa continua fora da tela (A5), mas o mapa ganha um botão **"Lista de focos"**, que abre sob demanda a lista textual dos registros do recorte, acessível por teclado e leitor de tela (T21).
 
@@ -387,11 +389,11 @@ Toda cadeia autorizada para em "Parado" quando: um caso RC, DS, SR ou CM falhar;
 
 | Issue | Título proposto | Tipo | Depende de |
 | :-- | :-- | :-- | :-- |
-| 1 | `[FEATURE] Contrato visual e estrutura base da interface` | feature | — |
-| 2 | `[FEATURE] Coluna de resultado e explicação dos destaques, com todos os pontos no mapa` | feature | 1 |
-| 3 | `[FEATURE] Limites, densidade e série do período` | feature | 2 (leitura completa T6 e T7) |
-| 4 | `[FEATURE] Lentes no recorte da consulta` | feature | 3 |
-| 5 | `[FEATURE] Mapa-base de satélite` | feature | 3 |
+| [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) (item 1) | `[FEATURE] Contrato visual e estrutura base da interface` | feature | — |
+| [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (item 2) | `[FEATURE] Coluna de resultado e explicação dos destaques, com todos os pontos no mapa` | feature | [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) |
+| [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) (item 3) | `[FEATURE] Limites, densidade e série do período` | feature | [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (leitura completa T6 e T7) |
+| [#63](https://github.com/EuThiagoAndrade/rastro-quente/issues/63) (item 4) | `[FEATURE] Lentes no recorte da consulta` | feature | [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) |
+| [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) (item 5) | `[FEATURE] Mapa-base de satélite` | feature | [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) |
 
 Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 → 2 → 3 → 4 → 5 (o item 5 pode vir antes do 4, se o 4 parar por G1).
 
@@ -428,19 +430,19 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
-| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (aberta; checks remotos pendentes) |
-| Branch(es) | `chore/cycle-007-plan` (documental) |
+| Issue(s) | [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) (item 1), [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (item 2), [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) (item 3), [#63](https://github.com/EuThiagoAndrade/rastro-quente/issues/63) (item 4), [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) (item 5) |
+| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (squash integrada em 2026-11-14); [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) (item 1, aberta) |
+| Branch(es) | `chore/cycle-007-plan` (documental); `feature/issue-60` (item 1, task [007_task_issue-60.md](007_task_issue-60.md)) |
 | Destino após conclusão | `_project/executed/007_interface_base/007_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 007 (completo)
+Situação: Aguardando autorização de implementação — ciclo 007 (completo)
 Quem: Responsável
-Conferir: Checks e diff da [PR #59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59)
-Diga: "aprovo o merge da PR #59"
+Conferir: Issue [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) e escopo do item 1 no plano
+Diga: "autorizo a implementação da issue #60"
 ```
 
 ## Handoff de saída
@@ -464,6 +466,17 @@ Diga: "aprovo o merge da PR #59"
 - `result`: `executed`
 - `evidence`: [PR #59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59), arquivos e commit observados via `gh`; gates locais: teste de governança 55/55, validador 0 erros e 0 avisos, `git diff --check` sem achados; checks remotos consultados em 2026-11-14 e ainda `pending`.
 - `blockers`: checks remotos pendentes; aprovação específica do merge ainda não concedida.
+
+### Criação das issues após confirmação dos payloads
+
+- `handoff_schema_version: 2`
+- `logical_key`: `rastro-quente + 007 + criar_issues + itens-1-a-5 + plano-v4`
+- `effect_class`: `remote_mutation`
+- `state_before`: PR #59 integrada em `2a0d3f5cf60059df2a7f6e5ba03abccb810f97c4`; plano v4 `Aprovado`; nenhuma issue do ciclo existia; último bloco registrado `Aguardando merge`.
+- `state_after`: issues [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) a [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) abertas com os payloads confirmados; dependências verificadas; ciclo `007` permanece em `Planejamento`; aguardando autorização de implementação da issue #60.
+- `result`: `executed`
+- `evidence`: mensagem literal "confirmo os payloads dos itens 1 a 5"; integração da PR #59; títulos, URLs, corpos e dependências conferidos no GitHub via `gh`.
+- `blockers`: autorização de implementação da issue #60 pendente.
 
 ### Registro anterior — revisão da rodada 4
 

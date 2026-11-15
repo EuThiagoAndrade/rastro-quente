@@ -63,8 +63,10 @@ export interface Mapa {
 
 export function criarMapa(elemento: HTMLElement): Mapa {
   const mapa = L.map(elemento, {
-    preferCanvas: true, minZoom: 3, maxZoom: 14, zoomSnap: 0.5, attributionControl: true,
+    preferCanvas: true, minZoom: 3, maxZoom: 14, zoomSnap: 0.5, attributionControl: true, zoomControl: false,
   });
+  // Zoom no canto inferior direito, como na referência V13; o topo do mapa fica para as ferramentas.
+  L.control.zoom({ position: 'bottomright' }).addTo(mapa);
   mapa.attributionControl.setPrefix(false);
   mapa.attributionControl.addAttribution('Leaflet 1.9.4 · sem mapa-base de terceiros');
   mapa.setView([-13, -56], 5);

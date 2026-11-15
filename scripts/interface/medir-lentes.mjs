@@ -9,6 +9,9 @@
 // medido, não estimado. Início: clique em "Aplicar lente"; fim: `data-estado-lente="completo"` (ou
 // "sem_destaques" e, na combinação, "sem_celulas_em_comum" ou "sem_celulas_destacadas"). Cache desligado e contexto novo por execução; login antes do início. 3 execuções
 // válidas por lente e passagem (mediana), prazo de 120 s, no máximo 6 tentativas. Imprime só agregados.
+// Ciclo 007, issue #60 — cenário M1 ("abertura", plano 007, T14): sessão já guardada, contexto novo; da recarga da
+// página até `data-estado-painel="pronto"` (filtros, série e municípios prontos). 5 execuções válidas por passagem,
+// mediana comprimida ≤ 5 s. Só ele: `npm run medir:lentes -- abertura`.
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -29,6 +32,7 @@ const PRAZO_MS = 120_000;
 const VALIDAS = 3;
 const MAX_TENTATIVAS = 6;
 const ORCAMENTO = { segundosComprimida: 20.0, bytesBrutos: 10_000_000 };
+const ABERTURA = { validas: 5, segundosComprimida: 5.0 };
 const LENTES = ['concentracao', 'recorrencia', 'persistencia'];
 const PARES_E_TRES = [['concentracao', 'recorrencia'], ['concentracao', 'persistencia'], ['recorrencia', 'persistencia'], LENTES];
 const CLASSES = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
@@ -38,6 +42,7 @@ const CLASSES = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
  * (por exemplo, `sobreposicao`), sem mudar a regra de aceite.
  */
 const TODAS = [
+  { nome: 'abertura', abertura: true },
   ...LENTES.map((l) => ({ nome: l, lente: l })),
   ...PARES_E_TRES.flatMap((lentes) => ['e', 'ou'].map((operador) => ({ nome: `${lentes.join('+')} (${operador})`, lente: 'combinacao', lentes, operador }))),
   ...CLASSES.map((classe) => ({ nome: `sobreposicao:${classe}`, lente: 'sobreposicao', classe })),
@@ -135,7 +140,11 @@ async function executar(browser, rp, config, indice = 0) {
     await page.locator('#l-senha').fill(rp.senha);
     await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
     await page.locator('#total-principal').waitFor({ timeout: PRAZO_MS });
-    await page.locator('#l-lente').selectOption(config.lente);
+    // Plano 007: a lente é um rádio dentro de uma seção recolhível (fechada em tela estreita).
+    const radio = page.locator(`input[name="l-lente"][value="${config.lente}"]`);
+    const secao = await radio.evaluate((e) => e.closest('details')?.id);
+    if (secao && (await page.locator(`#${secao}`).getAttribute('open')) === null) await page.locator(`#${secao} > summary`).click();
+    await radio.check();
     if (config.lente === 'combinacao') {
       for (const l of LENTES) await page.locator(`input[name="l-comb"][value="${l}"]`).setChecked(config.lentes.includes(l));
       await page.locator(`input[name="l-operador"][value="${config.operador}"]`).check();
@@ -174,6 +183,37 @@ async function executar(browser, rp, config, indice = 0) {
       aberturas.push({ alvo: alvo.tipo, areas: alvo.areas, estado: estadoContornos, ms: Math.round(performance.now() - t1), contornos: c.resumo().contornos });
     }
     return { valida, estado, segundos, textoApp, celulas: celulas === null ? null : Number(celulas), ...resumo, aberturas };
+  } finally {
+    await contexto.close();
+  }
+}
+
+/** M1 (T14): recarga com a sessão guardada até o painel pronto. */
+async function executarAbertura(browser, rp) {
+  const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
+  const page = await contexto.newPage();
+  const cdp = await contexto.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  const c = coletor(cdp);
+  try {
+    await page.goto(BASE);
+    await page.locator('#l-email').fill(rp.email);
+    await page.locator('#l-senha').fill(rp.senha);
+    await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
+    await page.locator('#conteudo[data-estado-painel="pronto"]').waitFor({ timeout: PRAZO_MS });
+    await cdp.send('Network.emulateNetworkConditions', REDE);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
+    c.zerar();
+    const t0 = performance.now();
+    await page.reload();
+    let estado = 'prazo';
+    try {
+      await page.waitForFunction(() => { const e = document.getElementById('conteudo'); return !!e && !e.hidden && ['pronto', 'erro'].includes(e.dataset.estadoPainel ?? ''); }, null, { timeout: PRAZO_MS, polling: 50 });
+      estado = await page.locator('#conteudo').getAttribute('data-estado-painel');
+    } catch { /* prazo */ }
+    const segundos = Math.round((performance.now() - t0) / 100) / 10;
+    return { valida: estado === 'pronto', estado, segundos, ...c.resumo() };
   } finally {
     await contexto.close();
   }
@@ -218,6 +258,32 @@ select la, lo, count(*), sum(b) from v group by la, lo order by ${ordem}, la des
   const browser = await chromium.launch({ channel: 'chrome' });
   relatorio.perfil.versaoChrome = browser.version();
   for (const config of CONFIGURACOES) {
+    if (config.abertura) {
+      const porPassagem = {};
+      for (const passagem of ['bruta', 'comprimida']) {
+        modo = passagem;
+        const validas = [];
+        const invalidas = [];
+        for (let tentativa = 1; tentativa <= ABERTURA.validas + 3 && validas.length < ABERTURA.validas; tentativa += 1) {
+          const r = await executarAbertura(browser, rp);
+          if (r.valida) validas.push(r);
+          else invalidas.push({ tentativa, estado: r.estado, segundos: r.segundos });
+        }
+        porPassagem[passagem] = {
+          validas: validas.length, invalidas,
+          medianaSegundos: validas.length >= ABERTURA.validas ? mediana(validas.map((v) => v.segundos)) : null,
+          maxSegundos: validas.length ? Math.max(...validas.map((v) => v.segundos)) : null,
+          maxBytes: validas.length ? Math.max(...validas.map((v) => v.total.bytes)) : null,
+          execucoes: validas.map((v) => ({ segundos: v.segundos, total: v.total, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria })),
+        };
+      }
+      const cm = porPassagem.comprimida;
+      const dentro = cm.medianaSegundos !== null && cm.medianaSegundos <= ABERTURA.segundosComprimida;
+      if (!dentro) excedeu = true;
+      relatorio.configuracoes.push({ configuracao: config.nome, orcamento: ABERTURA, dentroDoOrcamento: dentro, ...porPassagem });
+      process.stderr.write(`abertura (M1): ${dentro ? 'dentro' : 'FORA'} (comprimida ${cm.medianaSegundos} s; bruta ${porPassagem.bruta.medianaSegundos} s)\n`);
+      continue;
+    }
     const porPassagem = {};
     for (const passagem of ['bruta', 'comprimida']) {
       modo = passagem;
