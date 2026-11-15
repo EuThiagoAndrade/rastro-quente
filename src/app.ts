@@ -5,7 +5,7 @@
 import {
   $, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
   renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderProveniencia, renderRecorte, renderResumo,
-  renderLegendaDensidade, renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
+  renderConcentracaoDisponivel, renderLegendaDensidade, renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
 } from './apresentacao.ts';
 import {
   limparCorpoLente, renderEstadoLente, renderResultadoLente, TITULO_LENTE, type EstadoLente, type ManipuladoresLente,
@@ -39,7 +39,7 @@ import {
   type FontesLente, type OrigemChamada, type PedidoLente,
 } from './lentes/carregar.ts';
 import {
-  ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
+  ErroLente, recorteDe, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
 } from './lentes/contrato.ts';
 import { chaveRecorte, MemoriaRecortes, type LeituraRecorte } from './memoria.ts';
 import { celulasDistintas, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
@@ -145,6 +145,11 @@ const estadoLimites = (e: 'desligado' | 'carregando' | 'completo' | 'erro'): voi
 /** Lente marcada nos rádios das seções de lente (Lente de seleção, Contexto territorial, Cruzar critérios). */
 const lenteEscolhida = (): string => document.querySelector<HTMLInputElement>('input[name="l-lente"]:checked')?.value ?? 'nenhuma';
 
+const marcarNenhuma = (): void => {
+  const e = document.querySelector<HTMLInputElement>('input[name="l-lente"][value="nenhuma"]');
+  if (e) e.checked = true;
+};
+
 /** Configuração inicial das lentes, como na V13 (decisão do responsável na issue #61). */
 function configuracaoPadrao(): void {
   const marcar = (seletor: string, valor: boolean) => {
@@ -211,6 +216,8 @@ class Controlador {
   private memoria = new MemoriaRecortes();
   /** Leituras completas em curso por chave (T7: cada recorte é lido uma vez; a lente espera a da consulta). */
   private leiturasEmVoo = new Map<string, Promise<LeituraRecorte | null>>();
+  /** A concentração saiu da combinação ao escolher um município (T16): explica a combinação incompleta. */
+  private concentracaoRetirada = false;
   /** A janela mudou com uma lente escolhida: recalcular depois da leitura da consulta (sobrevive a consultas seguidas). */
   private lentePendente = false;
   /** Posição da rolagem da coluna de resultado antes de abrir uma explicação (voltar ao mesmo ponto). */
@@ -246,7 +253,10 @@ class Controlador {
       });
     }
     // Configuração da lente (classe, critérios, operador) vale ao mudar e recalcula no mesmo recorte (T16).
-    $('lente-combinacao').addEventListener('change', () => { if (lenteEscolhida() === 'combinacao') void this.aplicarLente(); });
+    $('lente-combinacao').addEventListener('change', () => {
+      this.concentracaoRetirada = false;
+      if (lenteEscolhida() === 'combinacao') void this.aplicarLente();
+    });
     $('lente-sobreposicao').addEventListener('change', () => { if (lenteEscolhida() === 'sobreposicao') void this.aplicarLente(); });
     // Camadas (T8, T10): limites, áreas, detecções individuais e densidade.
     $('c-limites').addEventListener('change', () => void this.alternarLimites());
@@ -462,6 +472,7 @@ class Controlador {
   private mostrarRecorte(invalido: boolean): void {
     if (!this.dados || !this.aplicado) return;
     renderRecorte(this.aplicado, this.nomeMunicipio(this.aplicado.municipio), invalido);
+    renderConcentracaoDisponivel(this.aplicado.municipio === null);
     this.atualizarLimpar();
   }
 
@@ -499,10 +510,34 @@ class Controlador {
     const novo: Filtro = {
       carga: dados.carga.id, inicio: periodo?.inicio ?? atual.inicio, fim: periodo?.fim ?? atual.fim, municipio: codigo ? Number(codigo) : null,
     };
+    if (novo.municipio !== atual.municipio) this.retirarConcentracao(novo.municipio);
     this.aplicado = novo;
     this.mostrarRecorte(periodo === null);
     if (novo.inicio === atual.inicio && novo.fim === atual.fim && novo.municipio === atual.municipio) return;
     void this.consultar();
+  }
+
+  /**
+   * Concentração com município (plano 007, T4 e T16): a interface nunca a pede. Ao escolher um município com a
+   * concentração ativa, a lente volta a "nenhuma" e a aba vai para Municípios; na combinação, a concentração sai e,
+   * se sobrar 1 critério, aparece o aviso próprio.
+   */
+  private retirarConcentracao(municipio: number | null): void {
+    if (municipio === null) {
+      this.concentracaoRetirada = false;
+      return;
+    }
+    if (lenteEscolhida() === 'concentracao') {
+      marcarNenhuma();
+      this.mostrarEscolhaLente();
+      this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+      abrirAba('municipios');
+    }
+    const caixa = document.querySelector<HTMLInputElement>('input[name="l-comb"][value="concentracao"]');
+    if (caixa?.checked) {
+      caixa.checked = false;
+      this.concentracaoRetirada = true;
+    }
   }
 
   private aplicarAtalho(atalho: Atalho): void {
@@ -546,9 +581,10 @@ class Controlador {
     const dados = this.dados;
     const filtro = this.aplicado;
     if (!dados || !filtro) return;
-    // Nova janela: a lente (estadual até o item 4) é recalculada depois da leitura da consulta (T16).
+    // Novo recorte (período ou município): a lente é recalculada depois da leitura da consulta (T16, plano 007 T1).
     const p = this.pedidoLente;
-    const recalcularLente = !!p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim);
+    const recalcularLente = !!p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim
+      || (p.municipio ?? null) !== filtro.municipio);
     if (recalcularLente) {
       this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
       this.lentePendente = true;
@@ -747,15 +783,15 @@ class Controlador {
       if (r.lente === 'concentracao') {
         return { ativos: { unidade: 'municipio', municipios: r.destaques.flatMap((d) => (d.unidade.tipo === 'municipio' ? [d.unidade.codigo] : [])) }, nome: TITULO_LENTE[r.lente], registros };
       }
-      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: TITULO_LENTE[r.lente], registros };
+      return { ativos: { unidade: 'celula', recorte: r.recorte.tipo, celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: TITULO_LENTE[r.lente], registros };
     }
     if (this.combinacao) {
       const r = this.combinacao.resultado;
-      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.celulas.map((c) => c.unidade.id)) }, nome: 'Combinação', registros: [...this.combinacao.porId.values()] };
+      return { ativos: { unidade: 'celula', recorte: r.recorte.tipo, celulas: celulasDistintas(r.celulas.map((c) => c.unidade.id)) }, nome: 'Combinação', registros: [...this.combinacao.porId.values()] };
     }
     if (this.sobreposicao) {
       const r = this.sobreposicao.resultado;
-      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: `Sobreposição · ${ROTULO_AREA[r.classe]}`, registros: [...this.sobreposicao.porId.values()] };
+      return { ativos: { unidade: 'celula', recorte: r.recorte.tipo, celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: `Sobreposição · ${ROTULO_AREA[r.classe]}`, registros: [...this.sobreposicao.porId.values()] };
     }
     return null;
   }
@@ -835,11 +871,11 @@ class Controlador {
   }
 
   /**
-   * Leitura de uma lente (estadual até o item 4) com a memória T6: o resumo é sempre relido; páginas já lidas e
-   * conferidas no mesmo recorte e com o mesmo total são reaproveitadas, sem nova requisição.
+   * Leitura de uma lente no recorte aplicado (plano 007, T1) com a memória T6: o resumo é sempre relido; páginas já
+   * lidas e conferidas no mesmo recorte e com o mesmo total são reaproveitadas, sem nova requisição.
    */
   private async lerParaLente(pedido: PedidoLente, atual: () => boolean): Promise<LeituraRecorte | null> {
-    const chave = chaveRecorte(this.geracaoSessao, { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: null });
+    const chave = chaveRecorte(this.geracaoSessao, { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: pedido.municipio ?? null });
     // Leitura do mesmo recorte ainda em curso na consulta: espera por ela em vez de ler as páginas de novo. Uma falha
     // nela não é desta lente, que então lê por conta própria; o resumo é relido de todo jeito (T6).
     const emVoo = this.memoria.obter(chave) ? undefined : this.leiturasEmVoo.get(chave);
@@ -931,7 +967,10 @@ class Controlador {
     if (escolhida === 'combinacao') {
       const config = this.lerConfigCombinacao();
       if (!config) {
-        this.limparLente({ memoria: false, estado: { tipo: 'incompleta', texto: 'Escolha pelo menos 2 lentes para combinar.' } });
+        const texto = this.concentracaoRetirada && this.aplicado?.municipio != null
+          ? 'Com município, a concentração sai da combinação: escolha outra lente.'
+          : 'Escolha pelo menos 2 lentes para combinar.';
+        this.limparLente({ memoria: false, estado: { tipo: 'incompleta', texto } });
         return;
       }
       await this.aplicarCombinacao(config);
@@ -952,11 +991,11 @@ class Controlador {
       return;
     }
     const calcular = LENTES[escolhida as keyof typeof LENTES];
-    // Período do recorte aplicado (T16); o município do filtro não se aplica às lentes até o item 4 (M1-a).
+    // Recorte aplicado inteiro (T16): período e município (plano 007, T1).
     const filtro = this.aplicado;
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
-    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim }, municipio: filtro.municipio };
     this.pedidoLente = pedido;
     const g = this.geracaoSessao;
     const gl = this.geracaoLente;
@@ -970,7 +1009,7 @@ class Controlador {
       mem = lido;
       resultado = calcular({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
-        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes, recorte: recorteDe(pedido.municipio),
       });
     } catch (e) {
       if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
@@ -1127,7 +1166,7 @@ class Controlador {
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     this.configCombinacao = config;
-    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim }, municipio: filtro.municipio };
     this.pedidoLente = pedido;
     const g = this.geracaoSessao;
     const gl = this.geracaoLente;
@@ -1141,7 +1180,7 @@ class Controlador {
       mem = lido;
       resultado = combinar({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
-        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes, recorte: recorteDe(pedido.municipio),
       }, config.lentes, config.operador);
     } catch (e) {
       if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
@@ -1315,7 +1354,7 @@ class Controlador {
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     this.classeSobreposicao = classe;
-    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+    const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim }, municipio: filtro.municipio };
     this.pedidoLente = pedido;
     const g = this.geracaoSessao;
     const gl = this.geracaoLente;
@@ -1332,7 +1371,7 @@ class Controlador {
       if (!camada || !atual()) return;
       resultado = sobreposicao({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
-        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
+        registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes, recorte: recorteDe(pedido.municipio),
       }, camada, classe);
     } catch (e) {
       if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;

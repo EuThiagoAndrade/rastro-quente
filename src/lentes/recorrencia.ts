@@ -5,7 +5,7 @@
 // código da célula, norte→sul e depois oeste→leste (T5). A disponibilidade só qualifica (D13).
 import { conferirEntrada } from './comum.ts';
 import {
-  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, VERSAO_METODO,
+  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, limitacoesDoRecorte, RECORTE_ESTADUAL, VERSAO_METODO,
   type Destaque, type EntradaLente, type Janela, type MesJanela, type ResultadoLente,
 } from './contrato.ts';
 import { celulaDe, ErroCoordenada, indiceGrade } from './grade.ts';
@@ -68,7 +68,7 @@ export function recorrencia(e: EntradaLente): ResultadoLente {
     versao_metodo: VERSAO_METODO,
     carga: e.carga,
     janela: { ...e.janela, referencia: 'dias GMT inclusivos' as const, meses },
-    recorte: { tipo: 'estado' as const, municipio: null },
+    recorte: e.recorte ?? RECORTE_ESTADUAL,
     parametros: [
       { nome: 'Unidade', valor: 'célula de 0,05° de lado, ancorada em 0° de latitude e longitude (bordas sul e oeste incluídas)' },
       { nome: 'Medida', valor: 'meses GMT distintos com detecção principal na célula, dentro da janela' },
@@ -77,7 +77,7 @@ export function recorrencia(e: EntradaLente): ResultadoLente {
     ],
     ordenacao: null,
     conferencia,
-    limitacoes: [...LIMITACOES_COMUNS, ...LIMITACOES_CELULA],
+    limitacoes: [...LIMITACOES_COMUNS, ...LIMITACOES_CELULA, ...limitacoesDoRecorte(e)],
   };
   if (meses.length < K_MESES) {
     observacoes.unshift(`A janela toca ${meses.length} ${meses.length === 1 ? 'mês GMT' : 'meses GMT'}; a recorrência exige pelo menos ${K_MESES}.`);

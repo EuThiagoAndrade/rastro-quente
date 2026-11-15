@@ -358,5 +358,5 @@ test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tud
   await expect(page.locator('#secao-lente .marca-ativa')).toBeHidden();
   await expect(page.locator('#total-principal')).toHaveText('100');
   await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
-  await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · todo Mato Grosso · 2026-10-01 a 2026-10-31');
+  await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · Todo Mato Grosso · 2026-10-01 a 2026-10-31');
 });

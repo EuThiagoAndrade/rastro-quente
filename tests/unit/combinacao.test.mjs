@@ -57,8 +57,8 @@ test('CB-1: interseção das três — só A, com os três critérios na ordem c
   assert.equal(r.estado, c.esperado.estado);
   assert.deepEqual(resumo(r), esperadoResumo(c.esperado.celulas));
   assert.equal(r.tipo, 'combinacao');
-  assert.equal(r.versao_combinacao, 'combinacao-005-v1');
-  assert.equal(VERSAO_COMBINACAO, 'combinacao-005-v1');
+  assert.equal(r.versao_combinacao, 'combinacao-007-v1');
+  assert.equal(VERSAO_COMBINACAO, 'combinacao-007-v1');
   assert.equal(r.versao_metodo, VERSAO_METODO);
   assert.deepEqual(r.recorte, { tipo: 'estado', municipio: null });
   assert.deepEqual(r.conferencia, { registros_lidos: 34, ids_distintos: 34, total_resumo: 34 });

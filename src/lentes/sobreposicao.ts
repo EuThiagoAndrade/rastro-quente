@@ -7,13 +7,13 @@
 import { qualificarCobertura } from './cobertura.ts';
 import { conferirEntrada } from './comum.ts';
 import {
-  AVISO_DOMINIO, ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS,
-  type CargaLente, type Destaque, type DisponibilidadeMunicipio, type EntradaLente, type Janela, type Parametro, type ResultadoLente,
+  AVISO_DOMINIO, ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, limitacoesDoRecorte, RECORTE_ESTADUAL,
+  type CargaLente, type Destaque, type DisponibilidadeMunicipio, type EntradaLente, type Janela, type Parametro, type Recorte, type ResultadoLente,
 } from './contrato.ts';
 import { chaveArea, type AreaLida, type ClasseArea, type LeituraAreas } from './carregar-areas.ts';
 import { celulaDe, ErroCoordenada, indiceGrade } from './grade.ts';
 
-export const VERSAO_SOBREPOSICAO = 'sobreposicao-006-v1';
+export const VERSAO_SOBREPOSICAO = 'sobreposicao-007-v1';
 
 export const CLASSES_AREA: readonly ClasseArea[] = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
 
@@ -81,7 +81,7 @@ export interface ResultadoSobreposicao {
   classe: ClasseArea;
   carga: CargaLente;
   janela: Janela & { referencia: 'dias GMT inclusivos' };
-  recorte: { tipo: 'estado'; municipio: null };
+  recorte: Recorte;
   parametros: Parametro[];
   estado: 'com_destaques' | 'sem_destaques' | 'sem_camada';
   destaques: DestaqueSobreposicao[];
@@ -156,9 +156,9 @@ export function sobreposicao(e: EntradaLente, camada: LeituraAreas, classeEscolh
     classe,
     carga: e.carga,
     janela: { ...e.janela, referencia: 'dias GMT inclusivos' as const },
-    recorte: { tipo: 'estado' as const, municipio: null },
+    recorte: e.recorte ?? RECORTE_ESTADUAL,
     parametros: PARAMETROS_SOBREPOSICAO(classe),
-    limitacoes: [...LIMITACOES_SOBREPOSICAO],
+    limitacoes: [...LIMITACOES_SOBREPOSICAO, ...limitacoesDoRecorte(e)],
   };
   if (camada.estado === 'sem_camada') {
     return { ...base, estado: 'sem_camada', destaques: [], conferencia: { ...conferencia, areas_lidas: 0, vinculos_lidos: 0 } };

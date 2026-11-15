@@ -98,8 +98,8 @@ test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa 
   await expect(page.locator('#lente-configuracao')).toHaveText(
     'Combinação aplicada: concentração e recorrência e persistência (operador e: células destacadas por todas as lentes escolhidas).');
   await expect(page.locator('#lente-escopo')).toContainText('2026-06-01 a 2026-10-31');
-  await expect(page.locator('#lente-escopo')).toContainText('combinação combinacao-005-v1 sobre o método lentes-004-v1');
-  await expect(page.locator('#lente-escopo')).toContainText('o filtro de município não se aplica às lentes');
+  await expect(page.locator('#lente-escopo')).toContainText('combinação combinacao-007-v1 sobre o método lentes-007-v1');
+  await expect(page.locator('#lente-escopo')).toContainText('recorte: todo o estado de Mato Grosso');
   await expect(page.locator('#lente-ordenacao')).toHaveText('Ordem fixa pela posição da célula (norte→sul, oeste→leste); não é ranking.');
   for (const p of ['com todos os empatados no 10º lugar', 'pelo menos 3 meses GMT distintos', 'pelo menos 3 dias GMT consecutivos',
     'a célula entra pela concentração se tiver pelo menos 1 detecção de município destacado']) {

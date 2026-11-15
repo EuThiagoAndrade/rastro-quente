@@ -100,7 +100,8 @@
             <p id="filtros-escopo" class="escopo-lente"></p>
             <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="concentracao" /> Concentração</span>
               <span class="pergunta">Onde há mais focos acumulados?</span>
-              <span class="descricao">Soma os focos de cada município e destaca os 10 com mais registros, com os empatados no 10º lugar. É contagem, não prioridade.</span></label>
+              <span class="descricao">Soma os focos de cada município e destaca os 10 com mais registros, com os empatados no 10º lugar. É contagem, não prioridade.</span>
+              <span class="indisponivel" id="concentracao-indisponivel" hidden>Compara municípios: disponível só com Todo Mato Grosso</span></label>
             <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="recorrencia" /> Recorrência</span>
               <span class="pergunta">Onde os focos voltam mês após mês no mesmo lugar?</span>
               <span class="descricao">Quadrados de 0,05° (cerca de 5,5 km) com focos em 3 meses diferentes ou mais.</span></label>
@@ -135,6 +136,7 @@
                 <fieldset class="sub__grupo">
                   <legend class="so-leitor">Lentes a combinar</legend>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" checked /> Concentração</label>
+                  <p class="indisponivel" id="comb-concentracao-indisponivel" hidden>Compara municípios: disponível só com Todo Mato Grosso</p>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" checked /> Recorrência</label>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
                 </fieldset>

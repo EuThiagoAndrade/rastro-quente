@@ -154,8 +154,8 @@ test('terra indígena: 53 células em 2 páginas; célula com duas áreas baixa 
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-estado')).toContainText(/Lente concluída em \d+,\d s\./);
   await expect(page.locator('#lente-classe')).toHaveText('Classe aplicada: terra indígena.');
-  await expect(page.locator('#lente-escopo')).toContainText('método sobreposicao-006-v1');
-  await expect(page.locator('#lente-escopo')).toContainText('o filtro de município não se aplica às lentes');
+  await expect(page.locator('#lente-escopo')).toContainText('método sobreposicao-007-v1');
+  await expect(page.locator('#lente-escopo')).toContainText('recorte: todo o estado de Mato Grosso');
   await expect(page.locator('#lente-ordenacao')).toHaveText('Lista na ordem das células, de norte a sul e de oeste a leste; não é ranking.');
   await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 53.');
   await expect(itens(page)).toHaveCount(50);
@@ -364,7 +364,7 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
   await page.waitForTimeout(500);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-classe')).toHaveCount(0);
-  await expect(page.locator('#lente-escopo')).toContainText('método lentes-004-v1');
+  await expect(page.locator('#lente-escopo')).toContainText('método lentes-007-v1');
 });
 
 test('perda de acesso entre a leitura das áreas e a dos vínculos, com a carga vigente: acesso negado, limpa camada, lente e memória', async ({ page }) => {

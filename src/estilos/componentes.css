@@ -775,6 +775,23 @@ tr.selecionada td {
   color: var(--texto-suave);
 }
 
+/* Concentração com município (plano 007, T4): opção desabilitada com o texto de A2. */
+.indisponivel {
+  display: block;
+  margin: 0.1rem 0 0 1.6rem;
+  font-size: var(--t-pequeno);
+  line-height: 1.45;
+  color: var(--aviso-texto);
+}
+
+.indisponivel[hidden] {
+  display: none;
+}
+
+.sub__grupo .indisponivel {
+  margin: 0 0 0.25rem 1.6rem;
+}
+
 .sub {
   display: flex;
   flex-direction: column;

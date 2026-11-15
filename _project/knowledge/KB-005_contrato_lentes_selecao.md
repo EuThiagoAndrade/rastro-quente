@@ -7,7 +7,7 @@ tags:
   - seleção
 author: "Claude Code (Opus 5.5)"
 module: "src/lentes"
-last_updated: "2026-11-14"
+last_updated: "2026-11-15"
 origin_cycle: "004"
 ---
 
@@ -19,7 +19,7 @@ Registra o contrato único das lentes de seleção (C1) e como o módulo `src/le
 
 ## Limite de autoridade
 
-Conhecimento de referência. As regras das lentes são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. As regras da combinação são as do plano `005` v2, aprovado em 2026-11-11: decisões Q1 a Q9 da ideação `005` e detalhes T8 a T14, ratificados na aprovação. As regras da sobreposição são as do plano `006` v5, aprovado em 2026-11-12: T22, T23 e T25 e os casos SB, ratificados na aprovação; mudá-las exige nova decisão de G1 e nova versão além de `sobreposicao-006-v1`. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra de uma lente é nova decisão de G1, novo plano e nova `versao_metodo`, e mudar regra da combinação é nova decisão de G1, novo plano e nova `versao_combinacao`. Não decide limiares de lentes futuras, pontuação ou pesos nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
+Conhecimento de referência. As regras das lentes são as do plano `004` v3, aprovado em 2026-11-11: decisões Q1 a Q12 e D13 a D16, recorte M1-a e detalhes T1 e T3 a T7, ratificados na aprovação. As regras da combinação são as do plano `005` v2, aprovado em 2026-11-11: decisões Q1 a Q9 da ideação `005` e detalhes T8 a T14, ratificados na aprovação. As regras da sobreposição são as do plano `006` v5, aprovado em 2026-11-12: T22, T23 e T25 e os casos SB, ratificados na aprovação; mudá-las exige nova decisão de G1 e nova versão além de `sobreposicao-006-v1`. O recorte das lentes é o do plano `007` v4, aprovado em 2026-11-14: decisões A1 e A2, detalhes T1 a T5 e casos RC-1 a RC-11, ratificados na aprovação, com as versões `lentes-007-v1`, `combinacao-007-v1` e `sobreposicao-007-v1`. Esta base descreve a implementação e não as altera; mudar parâmetro ou regra de uma lente é nova decisão de G1, novo plano e nova `versao_metodo`, e mudar regra da combinação é nova decisão de G1, novo plano e nova `versao_combinacao`. Não decide limiares de lentes futuras, pontuação ou pesos nem contrato visual. Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração, e nada aqui prioriza áreas.
 
 ## Conteúdo
 
@@ -27,29 +27,41 @@ Conhecimento de referência. As regras das lentes são as do plano `004` v3, apr
 
 | Módulo | Papel |
 | :-- | :-- |
-| `contrato.ts` | Tipos do contrato C1, `VERSAO_METODO` (`lentes-004-v1`), limitações comuns e rótulo de ordenação |
+| `contrato.ts` | Tipos do contrato C1, `Recorte` (plano `007`, T1), `VERSAO_METODO` (`lentes-007-v1`), limitações comuns, limitação do recorte municipal (T5) e rótulo de ordenação |
 | `grade.ts` | Grade T1 de 0,05° com aritmética decimal exata |
 | `cobertura.ts` | Qualificador de cobertura (D13, T3 e T7), seu texto e as ressalvas por classe da persistência (D15, T7) |
 | `comum.ts` | Conferência da entrada, aplicação do qualificador (e, na persistência, das ressalvas por classe) e estado agregado |
 | `concentracao.ts` | Lente de concentração |
 | `recorrencia.ts` | Lente de recorrência, meses GMT tocados pela janela e seus rótulos |
 | `persistencia.ts` | Lente de persistência: sequências de dias GMT consecutivos por célula e ressalva de borda (T4) |
-| `carregar.ts` | Leitura no recorte M1-a, verificações por resposta, integridade T3, destino dos erros e concorrência limitada |
-| `combinacao.ts` | Combinação das lentes por célula de 0,05° (ciclo `005`): `ResultadoCombinacao`, `VERSAO_COMBINACAO` (`combinacao-005-v1`), `combinar` e `qualificarCombinacao` |
+| `carregar.ts` | Leitura no recorte da consulta (estado ou município, plano `007`), verificações por resposta, integridade T3, destino dos erros e concorrência limitada |
+| `combinacao.ts` | Combinação das lentes por célula de 0,05° (ciclo `005`): `ResultadoCombinacao`, `VERSAO_COMBINACAO` (`combinacao-007-v1`), `combinar` e `qualificarCombinacao` |
 | `carregar-areas.ts` | Leitor T25 das áreas protegidas e dos vínculos da carga fixada (ciclo `006`), com conferência por página e diagnóstico da ausência da linha da carga |
-| `sobreposicao.ts` | Lente de sobreposição com áreas protegidas (ciclo `006`): `ResultadoSobreposicao`, `VERSAO_SOBREPOSICAO` (`sobreposicao-006-v1`), `sobreposicao` e `qualificarSobreposicao` |
+| `sobreposicao.ts` | Lente de sobreposição com áreas protegidas (ciclo `006`): `ResultadoSobreposicao`, `VERSAO_SOBREPOSICAO` (`sobreposicao-007-v1`), `sobreposicao` e `qualificarSobreposicao` |
 
 Tudo é função pura, sem rede, DOM ou relógio, e roda tanto no navegador quanto em `node --test` (o Node 24 remove os tipos; por isso o módulo não usa propriedades de parâmetro nem `enum`).
 
 ### Contrato C1
 
-Um `ResultadoLente` traz `lente`, `versao_metodo`, `carga` (id e identidade), `janela` (dias GMT inclusivos; na recorrência, também `meses`, os meses GMT tocados com a marca de parcial), `recorte` (`estado`, município `null`), `parametros` (nome e valor exibidos), `estado` (`com_destaques`, `sem_destaques` ou `janela_insuficiente`), `ordenacao` (só na concentração), `observacoes` (por exemplo, empatados incluídos), `destaques`, `conferencia` e `limitacoes`. A lente só é exibida se registros lidos, `id_tecnico` distintos e o total do resumo do mesmo recorte forem iguais.
+Um `ResultadoLente` traz `lente`, `versao_metodo`, `carga` (id e identidade), `janela` (dias GMT inclusivos; na recorrência, também `meses`, os meses GMT tocados com a marca de parcial), `recorte` (`{ tipo: 'estado', municipio: null }` ou `{ tipo: 'municipio', municipio: <código IBGE> }`, ver "Recorte da consulta"), `parametros` (nome e valor exibidos), `estado` (`com_destaques`, `sem_destaques` ou `janela_insuficiente`), `ordenacao` (só na concentração), `observacoes` (por exemplo, empatados incluídos), `destaques`, `conferencia` e `limitacoes`. A lente só é exibida se registros lidos, `id_tecnico` distintos e o total do resumo do mesmo recorte forem iguais.
 
 Cada `Destaque` traz:
 
 - `id_destaque`: lente + unidade, e o dia inicial na persistência (por exemplo `concentracao:municipio:5103254`, `recorrencia:celula_005:c-251_-1130` ou `persistencia:celula_005:c-251_-1130:2026-10-05`). Com carga, janela e `versao_metodo`, identifica o destaque; a combinação o preserva em cada célula;
 - `unidade`: município (código e nome) ou célula `celula_005` (id `c<kLat>_<kLon>` e bordas em texto decimal);
 - `motivo`, `evidencia` (`id_tecnico`, valor e datas), `ordem` (só na concentração), `cobertura` e `ressalvas`.
+
+### Recorte da consulta (plano `007`, T1 a T5)
+
+As lentes usam só as detecções do período e do município da consulta (A1). Nenhum cálculo muda: muda só o conjunto de entrada.
+
+- **Entrada:** `EntradaLente.recorte` (ausente é o estado inteiro). O carregador lê resumo, páginas e disponibilidade com o mesmo `p_municipio` da consulta e confere o eco do município; `conferirEntrada` recusa, com `ErroLente`, registro de outro município no recorte municipal.
+- **Resultado:** `recorte` ecoa a entrada nas três lentes, na combinação e na sobreposição.
+- **Versões (T2):** `lentes-007-v1`, `combinacao-007-v1` e `sobreposicao-007-v1`. No recorte estadual, os resultados são iguais campo a campo aos de `lentes-004-v1`, `combinacao-005-v1` e `sobreposicao-006-v1` na mesma entrada, exceto a versão (RC-1): os casos de referência dos ciclos `004` a `006` continuam passando com os mesmos valores esperados.
+- **Evidência e cobertura (T3):** a evidência traz só `id_tecnico` do município, e a cobertura da célula considera só ele, porque os municípios da cobertura são os das detecções da entrada (RC-11).
+- **Concentração (T4, A2):** recusa o recorte municipal com `ErroLente` "concentração exige recorte estadual" (RC-7), e a combinação com concentração no recorte municipal lança `ErroCombinacao` (RC-8). A interface nunca chega a pedir: desabilita a opção, avulsa e na combinação, com o texto "Compara municípios: disponível só com Todo Mato Grosso". Se a concentração estava ativa ao escolher um município, a lente volta a "nenhuma" e a aba vai para Municípios; na combinação, ela sai e, sobrando 1 critério, aparece "Com município, a concentração sai da combinação: escolha outra lente." (T16).
+- **Textos (T5):** escopo da coluna de filtros "Uma lente por vez · <Todo Mato Grosso | município> · <início a fim>"; resumo da aba Destaques "em todo Mato Grosso" ou "calculada só com os focos de <município>"; metadados "recorte: todo o estado de Mato Grosso" ou "recorte: só os focos de <município>"; limitação nova no resultado municipal: "Células na divisa podem perder destaque, porque só contam os focos de <município>."
+- **Efeito na divisa:** uma célula que cruza a divisa pode perder o destaque no recorte de cada município (RC-2, RC-4, RC-9) e manter no estado; uma célula só de um município não aparece no recorte do outro (RC-3).
 
 ### Cobertura (qualificador, sem limiar)
 
@@ -141,7 +153,7 @@ As fontes do leitor são injetadas. A implementação sobre a API (supabase-js) 
 
 ### Leitura e erros
 
-O carregador chama `consultar_resumo` e pagina `consultar_deteccoes` (1.000 por página) com `p_municipio` `null`, carga fixada e a janela da aplicação.
+O carregador chama `consultar_resumo` e pagina `consultar_deteccoes` (1.000 por página) com o `p_municipio` do recorte aplicado (`null` no estado inteiro), carga fixada e a janela da aplicação.
 
 - **Verificações por página:** eco de carga, período, município, limite e deslocamento; `total` igual ao do resumo; número de linhas; unicidade de `id_tecnico`; `data_hora_gmt` não decrescente, também entre páginas.
 - **Desempate por `id_tecnico`:** não é conferido no cliente, porque o banco usa a collation `en_US` via ICU, que ignora pontuação e caixa. Duplicação e omissão são pegas pela unicidade e pela contagem.
@@ -172,10 +184,11 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 ### Testes
 
 - `tests/unit/lentes.test.mjs`, com as fixtures fictícias de `tests/fixtures/lentes/`: casos C-1 a C-5, G-1, G-2, L-1 a L-3, V-1 a V-4, E-1, X-1, R-1 a R-4 (com coordenada inválida, conferência divergente, determinismo e união D13 na recorrência) e P-1 a P-8 (com a ressalva de cobertura pendente, coordenada inválida, conferência divergente e determinismo na persistência).
-- `tests/e2e/05-lentes.spec.mjs`: lista, painel, recorte M1-a com filtro municipal ativo, concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
+- `tests/e2e/05-lentes.spec.mjs`: lista, painel, concentração indisponível com município (T4), concorrência, "Nenhuma", logout, página duplicada, falha de disponibilidade, acesso negado, sessão expirada, carga indisponível e R3-1; na recorrência, sobre uma carga fictícia de três meses, células, cobertura por união, evidência paginada, meses parciais, janela insuficiente, recorte municipal (célula de divisa que perde o destaque) e a recorrência aplicada com uma concentração ainda em leitura; na persistência, sobre uma carga fictícia de outubro, sequências por célula (duas na mesma célula), ordem por início, ressalvas por classe com os municípios do dia, borda da janela, falha de disponibilidade e a persistência aplicada com uma recorrência ainda em leitura.
 - `tests/unit/combinacao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/combinacao.json`: casos CB-1 a CB-16 (operadores, pares, projeção P1 e empate, sequências com ressalvas próprias, indisponibilidade, interseção e união vazias, cobertura por união, pendente e falha, ressalvas por lente, entrada inconsistente ou inválida e determinismo) e o ponto de entrada de produção com N=10.
 - `tests/e2e/06-combinacao.spec.mjs`, sobre uma carga fictícia de junho a outubro com 12 municípios inventados: "as três" com "e" e "ou", cabeçalho, parâmetros, limitações e ausência de ranking, lista paginada, painel por critério com a evidência em união, sequências com ressalvas próprias, os estados de T11, cobertura não verificada, leitura inconsistente, falha, cancelada, configuração alterada durante a aplicação (R1-7), concorrência com lente individual e com "Nenhuma", acesso negado, sessão expirada, versão substituída e acessibilidade a 360 e 390 px com toque, 200% e reflow a 320 px.
 - `tests/unit/sobreposicao.test.mjs`, com a fixture fictícia `tests/fixtures/lentes/sobreposicao.json`: casos SB-1 a SB-16 do plano `006`. Cobrem regra S1, borda, duas classes, duas áreas da mesma classe, terra indígena, janela, sem destaques, ordem T5, cobertura, entrada inconsistente ou inválida, determinismo, combinação intacta, carga sem camada, paginação completa e leitura incompleta com o diagnóstico da ausência, inclusive a resposta 416.
+- `tests/unit/recorte.test.mjs`: casos RC-1 a RC-11 do plano `007` (recorte estadual igual com ou sem recorte explícito, divisa na recorrência, na persistência e na combinação, célula só de um município, sobreposição, recusas da concentração, janela insuficiente e cobertura só do município) e a recusa de registro de outro município no recorte.
 - `tests/e2e/07-areas.spec.mjs`, sobre uma carga fictícia de outubro com quatro áreas inventadas e 58 vínculos escritos à mão: camada sob demanda, legenda, atribuição, área selecionada e contorno real de uma área; as três classes, lista paginada, painel com motivo por área, ressalvas de polígono estimado e de borda, evidência sem duplicação e dois contornos numa célula com duas áreas, sem repetir ao reabrir; os estados de T24 (sem destaques, sem camada, cobertura não verificada, leitura inconsistente, falha, cancelada e versão substituída), concorrência com outra lente e com "Nenhuma", perda de acesso entre a leitura das áreas e a dos vínculos (acesso negado, nunca versão substituída), sessão expirada e acessibilidade a 360 e 390 px com toque, 200% e reflow a 320 px.
 - `scripts/banco/api.test.mjs` (em `test:rls`): o leitor T25 pela API local, numa carga fictícia com 1.201 vínculos (SB-15), e a revogação da autorização entre páginas, que termina em `acesso_negado` (R3-1).
 - Local, fora da CI: `npm run conferir:lentes`, `npm run conferir:combinacao`, `npm run conferir:sobreposicao` e `npm run medir:lentes` (no ciclo `005`, as três lentes e as 8 configurações da combinação).
@@ -183,6 +196,8 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 ### Limitações conhecidas
 
 - A célula não segue divisas, e focos vizinhos em células diferentes não são lidos como o mesmo local.
+- No recorte municipal, células na divisa podem perder destaque, porque só contam os focos do município (T5); a concentração não se aplica.
+- A conferência independente com a carga real no recorte municipal e as medições M3 e M6 do plano `007` não foram executadas no item 4, por decisão do responsável (task da issue #63); os scripts `conferir:*` cobrem só o recorte estadual.
 - A cobertura de uma célula usa os municípios das detecções, não a área da célula.
 - A cobertura da carga atual é uniforme entre municípios (79 dias indeterminados em toda MT), e o qualificador a exibe mesmo assim.
 - O carregamento da janela inteira trafega os registros completos (medição no relatório do ciclo).
@@ -201,6 +216,7 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
 | Plano `006` | Regras da sobreposição (T22, T23 e T25) e casos SB | `_project/executed/006_areas_protegidas_reais/006_plan.md` | v5 aprovado em 2026-11-12 | Autoridade das regras da sobreposição; esta KB não a substitui |
+| Plano `007` | Recorte das lentes (A1, A2, T1 a T5) e casos RC | `_project/drafts/007_interface_base/007_plan.md` | v4 aprovado em 2026-11-14 | Autoridade do recorte; esta KB não a substitui |
 | Relatório `006` | Conferência independente da sobreposição | `_project/executed/006_areas_protegidas_reais/006_research_conferencia_areas.md` | Seção da issue #51, 2026-11-14 | Evidência local; não comprova comportamento hospedado |
 
 ## Histórico
@@ -217,3 +233,4 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 | 2026-11-14 | `006` | Item 3 (issue #51): seção "Sobreposição", leitor T25 e `sobreposicao-006-v1`, sem interface |
 | 2026-11-14 | `006` | Item 4 (issue #52): interface da sobreposição, fontes do leitor em `src/consulta.ts`, contornos reais sob demanda e E2E |
 | 2026-11-14 | `006` | Encerramento: caminhos para `executed/`; sobreposição consolidada; desvio de tempo da terra indígena aceito; verificação hospedada dispensada |
+| 2026-11-15 | `007` | Item 4 (issue #63): recorte da consulta nas lentes, `lentes-007-v1`, `combinacao-007-v1` e `sobreposicao-007-v1`, concentração indisponível com município e casos RC-1 a RC-11 |

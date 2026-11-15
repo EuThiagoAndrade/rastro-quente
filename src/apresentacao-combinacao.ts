@@ -5,7 +5,7 @@
 import { $, h, tabela } from './apresentacao.ts';
 import { dataBr, EVIDENCIA_POR_PAGINA, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, renderResumoLente, rotularAbaDestaques,
+  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
 import {
@@ -168,13 +168,13 @@ export function renderResultadoCombinacao(
   corpo.replaceChildren();
   const n = r.estado === 'com_celulas' ? r.celulas.length : 0;
   rotularAbaDestaques(n);
-  renderResumoLente({ nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking' });
+  renderResumoLente({ nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
   // Cabeçalho: sempre a configuração do resultado, nunca a do formulário (R1-7).
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),
       `${descreverLentes(r.lentes, r.operador)} (operador ${DESCRICAO_OPERADOR[r.operador]}).`),
     h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · recorte: todo o estado de Mato Grosso (o filtro de município não se aplica às lentes) · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
     h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [
       h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, ORDEM_FIXA),

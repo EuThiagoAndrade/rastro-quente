@@ -52,11 +52,23 @@ export interface ResumoLente {
   unidade: 'celula' | 'municipio';
   janela: { inicio: string; fim: string };
   ordem: string;
+  /** Nome do município do recorte da lente; `null` é todo Mato Grosso (plano 007, T5). */
+  municipio: string | null;
 }
+
+/** Recorte da lente nos metadados (T5): todo o estado ou só os focos do município. */
+export function textoRecorteLente(recorte: { tipo: 'estado' | 'municipio'; municipio: number | null }, nomes: Map<number, string>): string {
+  if (recorte.tipo === 'estado' || recorte.municipio === null) return 'recorte: todo o estado de Mato Grosso';
+  return `recorte: só os focos de ${nomes.get(recorte.municipio) ?? `município ${recorte.municipio}`}`;
+}
+
+/** Nome do município do recorte da lente, ou `null` no estado. */
+export const municipioDoRecorte = (recorte: { tipo: 'estado' | 'municipio'; municipio: number | null }, nomes: Map<number, string>): string | null =>
+  recorte.tipo === 'municipio' && recorte.municipio !== null ? (nomes.get(recorte.municipio) ?? `município ${recorte.municipio}`) : null;
 
 const dataBr = (d: string) => d.split('-').reverse().join('/');
 
-/** Bloco de resumo da lista (V13): nome da lente, quantidade e o recorte das lentes (estaduais até o item 4). */
+/** Bloco de resumo da lista (V13): nome da lente, quantidade e o recorte da lente (T5). */
 export function renderResumoLente(r: ResumoLente | null): void {
   const alvo = $('resumo-lente');
   alvo.hidden = r === null;
@@ -70,7 +82,7 @@ export function renderResumoLente(r: ResumoLente | null): void {
   alvo.replaceChildren(
     h('div', { class: 'nota' }, r.nome),
     h('div', { class: 'numero', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),
-    h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `em todo Mato Grosso · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} · ${r.ordem}`));
+    h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} · ${r.ordem}`));
 }
 
 /** Mostra a explicação de um destaque (ou volta à lista, com `null`). */
@@ -146,7 +158,7 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
   $('t-municipios').textContent = comMunicipio ? 'Município no período' : 'Municípios no período';
   if (comMunicipio) {
     corpo.replaceChildren(
-      h('p', { class: 'nota', id: 'mun-explica' }, `Números calculados só com os focos de ${ctx.nomeMunicipio ?? 'município'} no período. As lentes ainda usam todo Mato Grosso.`),
+      h('p', { class: 'nota', id: 'mun-explica' }, `Números calculados só com os focos de ${ctx.nomeMunicipio ?? 'município'} no período. As lentes também usam só esses focos.`),
       cartaoMunicipio(ctx, m));
     return;
   }

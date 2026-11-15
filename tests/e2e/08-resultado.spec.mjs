@@ -71,20 +71,21 @@ test.describe('fixture comum (100 detecções)', () => {
     expect(c.paginas.length, 'memória vazia: a consulta relê as páginas').toBeGreaterThan(antes);
   });
 
-  test('cartão do município (itens 2 e 3): com uma lente por célula, "—" e "lente calculada em todo Mato Grosso"', async ({ page }) => {
+  test('cartão do município (item 4): a lente usa o recorte e a linha conta as células destacadas no município', async ({ page }) => {
     await entrar(page, 'rp');
+    // Concentração no estado: a linha de células não aparece (CM-6).
+    await escolherLente(page, 'concentracao');
+    await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'completo');
     await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
     await expect(page.locator('#cartao-focos')).toHaveText('60');
+    // Com município, a concentração sai: lente "nenhuma" e "—" (T4, CM-2).
+    await expect(page.locator('input[name="l-lente"][value="nenhuma"]')).toBeChecked();
+    await expect(page.locator('#cartao-destacadas')).toHaveText('—');
     await escolherLente(page, 'recorrencia');
+    await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'janela_insuficiente');
     await page.locator('#aba-municipios').click();
-    await expect(page.locator('#cartao-destacadas')).toContainText('—');
-    await escolherLente(page, 'persistencia');
-    await page.locator('#aba-municipios').click();
-    await expect(page.locator('#cartao-destacadas')).toHaveText('—lente calculada em todo Mato Grosso');
-    // Concentração: a linha de células não aparece (CM-6).
-    await escolherLente(page, 'concentracao');
-    await page.locator('#aba-municipios').click();
-    await expect(page.locator('#cartao-destacadas')).toHaveCount(0);
+    await expect(page.locator('#cartao-destacadas')).toHaveText('0');
+    await expect(page.locator('#mun-explica')).toContainText('As lentes também usam só esses focos.');
   });
 });
 

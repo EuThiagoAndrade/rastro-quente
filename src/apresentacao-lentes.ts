@@ -4,7 +4,7 @@
 // Desde o plano 007 (item 2), a lista fica na aba Destaques e o painel abre na vista de explicação (V13).
 import { $, h, tabela } from './apresentacao.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, esquecerEvidencias, ficha, metadados, mostrarExplicacao, renderResumoLente, rotularAbaDestaques,
+  caixaRessalvas, detalhesEvidencia, esquecerEvidencias, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
 import { textoSemCelulas } from './lentes/combinacao.ts';
@@ -227,6 +227,7 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
   renderResumoLente({
     nome: TITULO_LENTE[r.lente], quantidade: r.destaques.length, unidade: municipios ? 'municipio' : 'celula', janela: r.janela,
     ordem: municipios ? 'por contagem; não é ranking' : 'norte→sul, oeste→leste; não é ranking',
+    municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });
   if (municipios) corpo.append(h('p', { id: 'lente-ressalva-contagem', class: 'ressalva-contagem' }, RESSALVA_CONTAGEM));
   if (r.ordenacao) corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, `Lista ${r.ordenacao.rotulo}.`));
@@ -248,7 +249,7 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
   corpo.append(
     h('dl', { class: 'metadados', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-escopo', class: 'nota' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · recorte: todo o estado de Mato Grosso (o filtro de município não se aplica às lentes) · método ${r.versao_metodo}.`),
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
     h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'),
     h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
