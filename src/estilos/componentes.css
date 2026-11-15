@@ -15,21 +15,15 @@
 }
 
 .botao--primario {
-  background: var(--acento);
-  color: var(--sobre-acento);
-  border-color: var(--acento);
+  background: var(--escolha);
+  color: var(--sobre-escolha);
+  border-color: var(--escolha);
 }
 
 .botao--secundario {
   background: var(--superficie);
   color: var(--texto);
   border-color: var(--contorno);
-}
-
-.botao--sobre-escuro {
-  background: var(--superficie);
-  color: var(--identidade);
-  border-color: var(--superficie);
 }
 
 .botao--compacto {
@@ -57,7 +51,7 @@
   padding: 0.25rem 0;
   border: 0;
   background: none;
-  color: var(--acento);
+  color: var(--escolha);
   font: inherit;
   font-weight: 700;
   text-align: left;
@@ -274,8 +268,8 @@ td code {
 }
 
 tr.selecionada td {
-  background: #dbeafe;
-  box-shadow: inset 0.25rem 0 0 var(--acento);
+  background: var(--linha-selecionada);
+  box-shadow: inset 0.25rem 0 0 var(--selecao-amostra);
 }
 
 .municipios {
@@ -340,7 +334,9 @@ tr.selecionada td {
 }
 
 /* Em telas estreitas ou com texto ampliado, nenhuma palavra longa deve forçar rolagem horizontal. */
-.cartao :where(p, dd, dt, li, label, summary, h2, h3) {
+.cartao :where(p, dd, dt, li, label, summary, h2, h3),
+.painel :where(p, dd, dt, li, label, summary, h2, h3),
+.dialogo :where(p, dd, dt, li, label, summary, h2, h3) {
   overflow-wrap: anywhere;
 }
 
@@ -397,7 +393,7 @@ tr.selecionada td {
   width: 1.25rem;
   height: 1.25rem;
   margin: 0;
-  accent-color: var(--acento);
+  accent-color: var(--escolha);
 }
 
 .criterio {
@@ -435,4 +431,151 @@ tr.selecionada td {
 
 .area-citada p {
   margin: 0.25rem 0;
+}
+
+/* Ciclo 007 (DESIGN.md › Componentes): seção recolhível, chips, botão de texto, opção de lente e etiqueta "ativa". */
+.secao {
+  border-top: 1px solid var(--contorno-suave);
+}
+
+.secao__titulo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.25rem 0.5rem;
+  min-height: var(--alvo);
+  padding: 0.5rem 0;
+  font-weight: 700;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.secao__titulo::-webkit-details-marker {
+  display: none;
+}
+
+.secao__titulo::before {
+  content: '▸';
+  color: var(--texto-suave);
+}
+
+.secao[open] > .secao__titulo::before {
+  content: '▾';
+}
+
+.secao__resumo {
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+  color: var(--texto-suave);
+}
+
+.secao__corpo {
+  padding-bottom: 0.75rem;
+}
+
+.etiqueta-ativa {
+  padding: 0 0.5rem;
+  border-radius: 999px;
+  background: var(--escolha);
+  color: var(--sobre-escolha);
+  font-size: var(--t-pequeno);
+  font-weight: 700;
+}
+
+.chips,
+.chips-escolha {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.chip {
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: 999px;
+  background: var(--escolha-suave);
+  color: var(--texto);
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+}
+
+.chip-escolha {
+  min-height: var(--alvo);
+  padding: 0.25rem 0.875rem;
+  border: 2px solid var(--contorno);
+  border-radius: 999px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.chip-escolha[aria-pressed='true'] {
+  border-color: var(--escolha);
+  background: var(--escolha-suave);
+}
+
+.chip-escolha[aria-pressed='true']::before {
+  content: '✓ ';
+}
+
+.grupo-atalhos,
+.grupo-lentes {
+  min-width: 0;
+  margin: 0 0 0.75rem;
+  padding: 0;
+  border: 0;
+}
+
+.grupo-atalhos legend {
+  margin-bottom: 0.25rem;
+  padding: 0;
+  font-weight: 700;
+}
+
+.campos--periodo {
+  margin-bottom: 0.5rem;
+}
+
+.botao--texto {
+  min-width: 0;
+  padding: 0.5rem 0.25rem;
+  background: none;
+  color: var(--escolha);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+.opcao--lente {
+  align-items: flex-start;
+  padding: 0.25rem 0;
+}
+
+.opcao--lente input {
+  margin-top: 0.75rem;
+}
+
+.opcao--lente > span {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: var(--alvo);
+}
+
+.opcao__nome {
+  font-weight: 700;
+}
+
+.opcao__pergunta {
+  font-size: var(--t-pequeno);
+  color: var(--texto-suave);
+}
+
+.acoes--lente {
+  margin-top: 0.75rem;
 }

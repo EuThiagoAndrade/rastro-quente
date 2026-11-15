@@ -13,7 +13,7 @@ Este diretório organiza decisões, conhecimento, ciclos e correções do `rastr
 - registro local de execução e do próximo passo: task persistente;
 - estado global de colaboração: GitHub;
 - decisões e conhecimento duradouros: `decisions/` e `knowledge/`;
-- contrato visual: adiado para ciclo próprio; o mockup privado não é contrato.
+- contrato visual: `DESIGN.md`, na raiz (ciclo 007); o mockup privado não é contrato.
 
 ## Estrutura
 

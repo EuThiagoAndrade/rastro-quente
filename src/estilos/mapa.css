@@ -14,7 +14,7 @@
 }
 
 .mapa:focus-visible {
-  outline: 3px solid var(--acento-claro);
+  outline: 3px solid var(--foco);
   outline-offset: 2px;
 }
 
@@ -31,7 +31,9 @@
   height: var(--alvo);
   line-height: var(--alvo);
   font-size: 1.5rem;
+  background: var(--superficie);
   color: var(--texto);
+  border-color: var(--contorno-suave);
 }
 
 .leaflet-touch .leaflet-bar a:first-child,
@@ -41,7 +43,7 @@
 
 .leaflet-container .leaflet-control-attribution {
   padding: 0.25rem 0.5rem;
-  background: rgb(255 255 255 / 0.92);
+  background: var(--superficie);
   color: var(--texto);
   font-size: var(--t-pequeno);
 }
@@ -78,14 +80,14 @@
 }
 
 .legenda__amostra--selecao {
-  border: 3px dashed var(--acento);
+  border: 3px dashed var(--selecao-amostra);
   border-radius: 50%;
 }
 
 /* Destaque de lente: contorno contínuo amarelo claro sobre o fundo escuro do mapa (ciclo 004). */
 .legenda__amostra--destaque {
   border: 2px solid var(--deteccao-escura);
-  background: #fde68a;
+  background: var(--destaque);
 }
 
 /* Áreas protegidas (ciclo 006): amostra com o traço e a hachura de cada classe; o texto da legenda descreve os dois. */

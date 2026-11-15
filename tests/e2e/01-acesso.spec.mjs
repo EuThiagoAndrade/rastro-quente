@@ -15,6 +15,11 @@ test('AN: sem sessão só há a tela de entrada, sem chamadas de dados', async (
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();
   await expect(page.locator('#conteudo')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Entrar com o Google' })).toBeVisible();
+  // Tela de acesso própria (T13): aviso de domínio, sem chips nem diálogos de dados no topo.
+  await expect(page.locator('#acesso')).toContainText('não comprovam incêndio, dano, autoria ou infração');
+  for (const id of ['#topo-chips', '#botao-sobre', '#botao-como-ler']) await expect(page.locator(id)).toBeHidden();
+  await expect(page.locator('#botao-tema')).toBeVisible();
+  await expect(page.locator('.rodape')).toContainText('Uma lente indica onde olhar; não é ranking nem prova.');
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
   expect(rest, 'nenhuma chamada de dados sem sessão').toEqual([]);
 
@@ -26,11 +31,13 @@ test('AN: sem sessão só há a tela de entrada, sem chamadas de dados', async (
   expect([401, 403]).toContain(t.status);
 });
 
-test('Teclado: o primeiro Tab leva ao atalho para o conteúdo e depois ao login', async ({ page }) => {
+test('Teclado: o primeiro Tab leva ao atalho para o conteúdo, depois ao tema e ao login', async ({ page }) => {
   await page.goto('/');
   await expect(page.locator('#botao-google')).toBeVisible();
   await page.keyboard.press('Tab');
   await expect(page.locator('.pular')).toBeFocused();
+  await page.keyboard.press('Tab');
+  await expect(page.locator('#botao-tema')).toBeFocused();
   await page.keyboard.press('Tab');
   await expect(page.locator('#botao-google')).toBeFocused();
 });
@@ -92,6 +99,8 @@ test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toContainText('Você saiu');
   await expect(page.locator('#total-principal')).toHaveCount(0);
   await expect(page.locator('#conteudo')).toBeHidden();
+  for (const id of ['#topo-chips', '#botao-sobre', '#botao-como-ler']) await expect(page.locator(id)).toBeHidden();
+  await expect(page.locator('#topo-chips li')).toHaveCount(0);
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('auth-token')))).toEqual([]);
   // Recarregar não restaura nada.
@@ -145,22 +154,25 @@ test('Sessão expirada é um estado próprio e remove os dados', async ({ page }
 test('Fonte indisponível (HTTP 503 e falha de rede) é distinta de zero e de acesso negado', async ({ page }) => {
   await entrar(page, 'rp');
   await page.route('**/rest/v1/rpc/consultar_resumo', (rota) => rota.fulfill({ status: 503, contentType: 'application/json', body: '{"message":"indisponível"}' }));
-  await consultar(page, {});
+  await consultar(page, { municipio: 9900001 });
   const estado = page.locator('#estado-consulta');
   await expect(estado).toHaveAttribute('data-estado', 'fonte_indisponivel');
   await expect(estado).toContainText('Fonte de dados indisponível');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'erro');
   await expect(page.locator('#total-principal')).toHaveCount(0);
   await expect(page.locator('#acesso')).toBeHidden();
 
+  // Sem botão "Consultar" (T16): a mesma consulta se repete por "Tentar novamente".
   await page.unroute('**/rest/v1/rpc/consultar_resumo');
   await page.route('**/rest/v1/rpc/consultar_resumo', (rota) => rota.abort('failed'));
-  await consultar(page, {});
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
   await expect(estado).toHaveAttribute('data-estado', 'fonte_indisponivel');
 
   await page.unroute('**/rest/v1/rpc/consultar_resumo');
-  await consultar(page, {});
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await page.getByRole('button', { name: 'Tentar novamente' }).click();
+  await expect(page.locator('#total-principal')).toHaveText('60');
   await expect(estado).toHaveAttribute('data-estado', 'ocioso');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'pronto');
 });
 
 test('Armazenamento: nenhum dado de consulta em localStorage, sessionStorage, Cache ou IndexedDB', async ({ page }) => {

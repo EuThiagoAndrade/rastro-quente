@@ -3,8 +3,8 @@
 // Nenhum dado de consulta é gravado em armazenamento; sair, expirar ou perder o acesso limpa a tela.
 import {
   $, criarPainelRegistros, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
-  renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderMunicipios, renderProveniencia, renderResumo,
-  renderSelecao, renderSerie, limparResultados, type Acesso, type EstadoConsulta, type PainelRegistros,
+  renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderMunicipios, renderProveniencia, renderRecorte, renderResumo,
+  renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type PainelRegistros,
 } from './apresentacao.ts';
 import {
   limparCorpoLente, renderEstadoLente, renderResultadoLente, type EstadoLente, type ManipuladoresLente,
@@ -43,6 +43,8 @@ import {
 } from './consulta.ts';
 import { ErroConsulta, type TipoErro } from './erros.ts';
 import { primeiroDiaGmt, ultimoDiaGmt } from './formato.ts';
+import { periodoDoAtalho, validarPeriodo, type Atalho, type Janela } from './recorte.ts';
+import { fecharDialogos, iniciarTema, ligarDialogo } from './topo.ts';
 import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
 import type {
@@ -124,7 +126,15 @@ interface MemoriaLente {
 
 const chaveLente = (p: PedidoLente): string => `${p.carga}|${p.janela.inicio}|${p.janela.fim}|estado`;
 
+/** Lente marcada nos rádios das seções de lente (Lente de seleção, Contexto territorial, Cruzar critérios). */
+const lenteEscolhida = (): string => document.querySelector<HTMLInputElement>('input[name="l-lente"]:checked')?.value ?? 'nenhuma';
+
 export function iniciar(): void {
+  iniciarTema();
+  ligarDialogo('botao-sobre', 'dialogo-sobre');
+  ligarDialogo('botao-como-ler', 'dialogo-como-ler');
+  // Tela estreita (T17): seções fechadas, inclusive a Consulta, que mostra o recorte aplicado no título.
+  if (window.matchMedia('(max-width: 760px)').matches) $<HTMLDetailsElement>('secao-consulta').open = false;
   const config = lerConfiguracao(import.meta.env);
   const manipulador = { google() {}, senha() {}, tentarNovamente() {}, senhaLocal: false };
   if (!config) {
@@ -138,6 +148,8 @@ export function iniciar(): void {
 class Controlador {
   private dados: Dados | null = null;
   private resultado: Resultado | null = null;
+  /** Recorte aplicado (T16): a última combinação válida de período e município; a única que a tela usa. */
+  private aplicado: Filtro | null = null;
   private selecionado: string | null = null;
   private mapa: Mapa | null = null;
   private painel: PainelRegistros;
@@ -181,23 +193,24 @@ class Controlador {
     this.renderAcesso({ tipo: 'iniciando' });
     this.sessao.aoMudar((e, s) => this.aoMudarSessao(e, s?.user.id ?? null));
     $('botao-sair').addEventListener('click', () => void this.sair());
-    $('form-consulta').addEventListener('submit', (ev) => { ev.preventDefault(); void this.consultar(); });
-    $('botao-janela').addEventListener('click', () => {
-      if (!this.dados) return;
-      $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
-      $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
-      void this.consultar();
-    });
+    // Sem botão "Consultar" (T16): período, atalhos e município se aplicam ao mudar.
+    $('form-consulta').addEventListener('submit', (ev) => { ev.preventDefault(); this.aplicarFormulario(); });
+    for (const id of ['f-inicio', 'f-fim', 'f-municipio']) $(id).addEventListener('change', () => this.aplicarFormulario());
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-atalho]')) {
+      b.addEventListener('click', () => this.aplicarAtalho(b.dataset['atalho'] as Atalho));
+    }
+    $('botao-limpar').addEventListener('click', () => this.limparFiltros());
     $('botao-lente').addEventListener('click', () => void this.aplicarLente());
-    // Escolher "Nenhuma" cancela a lente na hora, inclusive durante a leitura.
-    $('l-lente').addEventListener('change', () => {
-      const valor = $<HTMLSelectElement>('l-lente').value;
-      $('lente-combinacao').hidden = valor !== 'combinacao';
-      $('lente-sobreposicao').hidden = valor !== 'sobreposicao';
-      this.mostrarValidacaoLente(null);
-      if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
-      else this.atualizarAvisoConfig();
-    });
+    // Escolher "Nenhuma lente" cancela a lente na hora, inclusive durante a leitura.
+    for (const r of document.querySelectorAll<HTMLInputElement>('input[name="l-lente"]')) {
+      r.addEventListener('change', () => {
+        const valor = lenteEscolhida();
+        this.mostrarEscolhaLente();
+        this.mostrarValidacaoLente(null);
+        if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+        else this.atualizarAvisoConfig();
+      });
+    }
     // Editar as lentes ou o operador não cancela nem muda a combinação aplicada; só avisa (R1-7).
     $('lente-combinacao').addEventListener('change', () => {
       this.mostrarValidacaoLente(null);
@@ -299,10 +312,13 @@ class Controlador {
       this.usuarioAutorizado = true;
       this.renderAcesso({ tipo: 'autorizado' });
       renderFiltros(carga, municipios, this.dados.janela);
+      renderTopo(carga, prov.fontes);
       renderProveniencia(carga, prov.fontes, prov.malhas);
       renderAvisoMapa(prov.malhas);
       $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
       $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
+      this.aplicado = { carga: carga.id, inicio: this.dados.janela.inicio, fim: this.dados.janela.fim, municipio: null };
+      this.mostrarRecorte(false);
       this.garantirMapa();
       await this.consultar();
     } catch (e) {
@@ -334,6 +350,9 @@ class Controlador {
     this.usuarioAutorizado = false;
     this.dados = null;
     this.resultado = null;
+    this.aplicado = null;
+    fecharDialogos();
+    $('conteudo').dataset['estadoPainel'] = 'carregando';
     this.selecionado = null;
     this.limites.clear();
     this.todosOsLimites = false;
@@ -364,31 +383,87 @@ class Controlador {
     }
   }
 
-  private lerFiltro(): Filtro | null {
+  /** Período digitado, validado; inválido mostra o erro junto dos campos e devolve `null` (o recorte aplicado fica). */
+  private lerPeriodo(): Janela | null {
     if (!this.dados) return null;
     const inicio = $<HTMLInputElement>('f-inicio').value;
     const fim = $<HTMLInputElement>('f-fim').value;
-    const { janela } = this.dados;
-    let erro: string | null = null;
-    if (!inicio || !fim) erro = 'Informe o início e o fim do período (dias GMT).';
-    else if (inicio > fim) erro = 'O início do período não pode ser depois do fim.';
-    else if (inicio < janela.inicio || fim > janela.fim) erro = `O período precisa estar dentro da janela da versão: ${janela.inicio} a ${janela.fim}.`;
+    const erro = validarPeriodo(inicio, fim, this.dados.janela);
     mostrarErroFiltro(erro);
-    if (erro) {
-      $(!inicio || inicio > fim || inicio < janela.inicio ? 'f-inicio' : 'f-fim').focus();
-      return null;
-    }
+    return erro ? null : { inicio, fim };
+  }
+
+  private nomeMunicipio(codigo: number | null): string | null {
+    if (codigo === null) return null;
+    return this.dados?.nomes.get(codigo) ?? String(codigo);
+  }
+
+  private mostrarRecorte(invalido: boolean): void {
+    if (!this.dados || !this.aplicado) return;
+    renderRecorte(this.aplicado, this.nomeMunicipio(this.aplicado.municipio), this.dados.janela, invalido);
+  }
+
+  /**
+   * Aplicação ao mudar (T16): com período válido, o recorte aplicado passa a ser o do formulário; com período inválido,
+   * só o município muda (se mudou) e a tela continua no período aplicado. Recorte igual ao aplicado não consulta de novo.
+   */
+  private aplicarFormulario(): void {
+    const dados = this.dados;
+    const atual = this.aplicado;
+    if (!dados || !atual) return;
+    const periodo = this.lerPeriodo();
     const codigo = $<HTMLSelectElement>('f-municipio').value;
-    return { carga: this.dados.carga.id, inicio, fim, municipio: codigo ? Number(codigo) : null };
+    const novo: Filtro = {
+      carga: dados.carga.id, inicio: periodo?.inicio ?? atual.inicio, fim: periodo?.fim ?? atual.fim, municipio: codigo ? Number(codigo) : null,
+    };
+    this.aplicado = novo;
+    this.mostrarRecorte(periodo === null);
+    if (novo.inicio === atual.inicio && novo.fim === atual.fim && novo.municipio === atual.municipio) return;
+    void this.consultar();
+  }
+
+  private aplicarAtalho(atalho: Atalho): void {
+    if (!this.dados) return;
+    const p = periodoDoAtalho(atalho, this.dados.janela);
+    $<HTMLInputElement>('f-inicio').value = p.inicio;
+    $<HTMLInputElement>('f-fim').value = p.fim;
+    this.aplicarFormulario();
+  }
+
+  /** "Limpar tudo": período, município e lente voltam ao padrão (janela inteira, todo o estado, nenhuma lente). */
+  private limparFiltros(): void {
+    if (!this.dados) return;
+    $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
+    $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
+    $<HTMLSelectElement>('f-municipio').value = '';
+    const nenhuma = document.querySelector<HTMLInputElement>('input[name="l-lente"][value="nenhuma"]');
+    if (nenhuma) nenhuma.checked = true;
+    this.mostrarEscolhaLente();
+    this.mostrarValidacaoLente(null);
+    this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+    this.aplicarFormulario();
+  }
+
+  /** Grupos da combinação e da sobreposição só com a lente deles marcada; etiqueta "ativa" na seção da lente. */
+  private mostrarEscolhaLente(): void {
+    const valor = lenteEscolhida();
+    $('lente-combinacao').hidden = valor !== 'combinacao';
+    $('lente-sobreposicao').hidden = valor !== 'sobreposicao';
+    for (const secao of document.querySelectorAll<HTMLElement>('[data-secao-lente]')) {
+      const marcada = secao.querySelector<HTMLInputElement>('input[name="l-lente"]:checked');
+      const etiqueta = secao.querySelector<HTMLElement>('.etiqueta-ativa');
+      if (etiqueta) etiqueta.hidden = !marcada || marcada.value === 'nenhuma';
+    }
   }
 
   private estado(e: EstadoConsulta): void {
-    renderEstadoConsulta(e, () => void this.verificarAcesso());
+    renderEstadoConsulta(e, () => void this.verificarAcesso(), () => void this.consultar());
+    if (e.tipo !== 'ocioso' && e.tipo !== 'zero') $('conteudo').dataset['estadoPainel'] = e.tipo === 'carregando' ? 'carregando' : 'erro';
   }
 
   private async consultar(): Promise<void> {
     const dados = this.dados;
-    const filtro = this.lerFiltro();
+    const filtro = this.aplicado;
     if (!dados || !filtro) return;
     const p = this.pedidoLente;
     if (p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim)) {
@@ -425,6 +500,8 @@ class Controlador {
       renderMunicipios(resumo, dados.municipios, (codigo) => this.escolherMunicipio(codigo));
       renderDisponibilidade(disponibilidade, nome);
       this.mostrarPagina(pagina);
+      // M1 (T14): filtros, cartão da série e municípios prontos, independentemente de limites e geometria.
+      $('conteudo').dataset['estadoPainel'] = 'pronto';
       await this.atualizarLimites(atual);
     } catch (e) {
       if (!atual()) return;
@@ -494,7 +571,7 @@ class Controlador {
 
   private escolherMunicipio(codigo: number): void {
     $<HTMLSelectElement>('f-municipio').value = String(codigo);
-    void this.consultar();
+    this.aplicarFormulario();
     const titulo = $('t-resumo');
     titulo.tabIndex = -1;
     titulo.scrollIntoView({ block: 'start' });
@@ -608,7 +685,7 @@ class Controlador {
 
   private async aplicarLente(): Promise<void> {
     const dados = this.dados;
-    const escolhida = $<HTMLSelectElement>('l-lente').value;
+    const escolhida = lenteEscolhida();
     this.mostrarValidacaoLente(null);
     if (escolhida === 'combinacao') {
       const config = this.lerConfigCombinacao();
@@ -636,8 +713,8 @@ class Controlador {
       return;
     }
     const calcular = LENTES[escolhida as keyof typeof LENTES];
-    // Datas validadas como na consulta; o município do filtro não se aplica às lentes (M1-a).
-    const filtro = this.lerFiltro();
+    // Período do recorte aplicado (T16); o município do filtro não se aplica às lentes até o item 4 (M1-a).
+    const filtro = this.aplicado;
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
@@ -770,7 +847,7 @@ class Controlador {
     let difere = false;
     if (c) {
       const f = this.lerFormularioCombinacao();
-      difere = $<HTMLSelectElement>('l-lente').value !== 'combinacao' || f.operador !== c.operador || f.lentes.join('+') !== c.lentes.join('+');
+      difere = lenteEscolhida() !== 'combinacao' || f.operador !== c.operador || f.lentes.join('+') !== c.lentes.join('+');
     }
     $('lente-aviso-config').hidden = !difere;
   }
@@ -824,7 +901,7 @@ class Controlador {
    */
   private async aplicarCombinacao(config: ConfigCombinacao): Promise<void> {
     const dados = this.dados;
-    const filtro = this.lerFiltro();
+    const filtro = this.aplicado;
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     this.configCombinacao = config;
@@ -1014,7 +1091,7 @@ class Controlador {
    */
   private async aplicarSobreposicao(classe: ClasseArea): Promise<void> {
     const dados = this.dados;
-    const filtro = this.lerFiltro();
+    const filtro = this.aplicado;
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     this.classeSobreposicao = classe;

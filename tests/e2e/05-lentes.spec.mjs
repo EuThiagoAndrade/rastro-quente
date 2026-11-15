@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar } from './ajuda.mjs';
+import { abrirSecao, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixturePersistencia, sqlFixtureRecorrencia } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -21,7 +21,7 @@ const cartao = (page) => page.locator('#cartao-lentes');
 const itens = (page) => page.locator('#lente-destaques > li');
 
 async function aplicar(page, lente = 'concentracao') {
-  await page.locator('#l-lente').selectOption(lente);
+  await escolherLente(page, lente);
   await page.getByRole('button', { name: 'Aplicar lente' }).click();
 }
 
@@ -124,7 +124,7 @@ test('concorrência: "Nenhuma" durante a leitura cancela; a resposta atrasada n�
   const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
   await aplicar(page);
   await r.chegada;
-  await page.locator('#l-lente').selectOption('nenhuma');
+  await escolherLente(page, 'nenhuma');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
   r.soltar();
   await page.waitForTimeout(500);
@@ -251,8 +251,10 @@ test('R3-1: página antiga liberada depois de "versão substituída" não repovo
 test('lente acessível: teclado e 360 px sem rolagem horizontal da página', async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 780 });
   await entrar(page, 'rp');
-  await page.locator('#l-lente').focus();
+  await abrirSecao(page, 'secao-lente');
+  await page.locator('input[name="l-lente"][value="nenhuma"]').focus();
   await page.keyboard.press('ArrowDown');
+  await expect(page.locator('input[name="l-lente"][value="concentracao"]')).toBeChecked();
   await page.locator('#botao-lente').focus();
   await page.keyboard.press('Enter');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');

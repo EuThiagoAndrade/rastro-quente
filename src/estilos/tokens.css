@@ -1,37 +1,52 @@
-/* Papéis de cor do protótipo (ciclo 003). Diretrizes do plano, não um design system: ação primária em
-   azul royal preenchido com texto branco; secundárias claras com contorno; verde só em identidade e
-   contexto; laranja só para detecção. Pares de texto/superfície conferidos por tests/unit/contraste.test.mjs. */
+/* Tokens do contrato visual (DESIGN.md, ciclo 007). Cada cor com tema usa light-dark(claro, escuro): o tema segue a
+   preferência do sistema e a alternância do topo fixa `data-tema` na raiz, só enquanto a página estiver aberta.
+   Cores sem light-dark são as mesmas nos dois temas (mapa, detecção, áreas). Pares de texto e pistas conferidos por
+   tests/unit/contraste.test.mjs nos dois temas. */
 :root {
-  --fundo: #f5f6f2;
-  --superficie: #ffffff;
-  --superficie-suave: #eef1ea;
-  --texto: #243c31;
-  --texto-suave: #46594e;
-  --identidade: #254b39;
-  --sobre-identidade: #ffffff;
-  --acento: #1d4ed8;
-  --sobre-acento: #ffffff;
-  --acento-claro: #93c5fd;
-  --foco: #1d4ed8;
-  --contorno: #5b6d63;
-  --contorno-suave: #cfd6cc;
+  color-scheme: light dark;
+
+  /* Superfícies, texto e linhas. */
+  --fundo: light-dark(#f4f5f1, #0f1714);
+  --superficie: light-dark(#ffffff, #17221d);
+  --superficie-suave: light-dark(#eef1ea, #1f2d27);
+  --texto: light-dark(#1f3329, #e6ede8);
+  --texto-suave: light-dark(#46594e, #b3c2b9);
+  --identidade: light-dark(#254b39, #a7d3b8);
+  --contorno: light-dark(#5b6d63, #8a9c91);
+  --contorno-suave: light-dark(#cfd6cc, #33463c);
+
+  /* Escolha (verde-sálvia): ação primária, opção marcada e foco. Nunca o azul, que é só da seleção no mapa. */
+  --escolha: light-dark(#3b6650, #9cc5ad);
+  --sobre-escolha: light-dark(#ffffff, #0f1714);
+  --escolha-suave: light-dark(#e1ebe4, #22352c);
+  --foco: light-dark(#3b6650, #9cc5ad);
+
+  /* Seleção no mapa (azul): o traço do mapa e a amostra da legenda; a linha selecionada da tabela de registros. */
+  --selecao-mapa: #93c5fd;
+  --selecao-amostra: light-dark(#1d4ed8, #93c5fd);
+  --linha-selecionada: light-dark(#dbeafe, #1e3a5f);
+
+  /* Avisos, erros e classes de disponibilidade. */
+  --erro: light-dark(#9b1c1c, #fca5a5);
+  --aviso-fundo: light-dark(#fff7e0, #2b2410);
+  --aviso-borda: light-dark(#8a5a00, #d4a72c);
+  --aviso-texto: light-dark(#4a3200, #f5e3b3);
+  --classe-lacuna: light-dark(#8a1c1c, #fca5a5);
+  --classe-indeterminada: light-dark(#6b4a00, #f3c969);
+  --classe-sem-evidencia: light-dark(#2f4a3c, #a7d3b8);
+  --barra: light-dark(#b45309, #f59e0b);
+
+  /* Mapa (fundo próprio escuro nos dois temas) e camadas. Mesmos valores das constantes de src/mapa.ts. */
   --mapa-fundo: #152e27;
   --deteccao: #f97316;
-  --deteccao-escura: #7c2d12;
+  --deteccao-escura: light-dark(#7c2d12, #fdba74);
   --limite: #6f9a88;
-  --erro: #9b1c1c;
-  --aviso-fundo: #fff7e0;
-  --aviso-borda: #8a5a00;
-  --aviso-texto: #4a3200;
-  --classe-lacuna: #8a1c1c;
-  --classe-indeterminada: #6b4a00;
-  --classe-sem-evidencia: #2f4a3c;
-  --barra: #b45309;
-  /* Áreas protegidas (ciclo 006): mesmos valores de ESTILO_AREA em src/mapa.ts; traço e hachura também distinguem. */
+  --destaque: #fde68a;
   --area-integral: #86efac;
   --area-sustentavel: #c4b5fd;
   --area-indigena: #f9a8d4;
 
+  /* Tipografia, alvos e espaçamento. */
   --t-base: 1rem;
   --t-pequeno: 0.875rem;
   --t-medio: 1.125rem;
@@ -41,4 +56,12 @@
   --raio: 0.75rem;
   --raio-pequeno: 0.5rem;
   --espaco: 1rem;
+}
+
+:root[data-tema='claro'] {
+  color-scheme: light;
+}
+
+:root[data-tema='escuro'] {
+  color-scheme: dark;
 }

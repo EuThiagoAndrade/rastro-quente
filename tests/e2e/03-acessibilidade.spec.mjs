@@ -2,7 +2,7 @@
 // Fixtures fictícias; capturas de trabalho ficam em test-results/ (ignorado pelo Git), nunca versionadas.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar } from './ajuda.mjs';
+import { abrirSecao, consultar, entrar } from './ajuda.mjs';
 
 test.beforeAll(() => cadastrarRp());
 
@@ -54,8 +54,8 @@ function auditoriaNaPagina() {
     const r = razao(sobre(fg, bg), bg);
     return r < (grande ? 3 : 4.5) ? [`${etiqueta(e)} ${r.toFixed(2)}`] : [];
   });
-  const alvos = [...document.querySelectorAll('button, input:not([type=hidden]), select, summary, a[href]')]
-    .filter((e) => visivel(e) && !e.closest('.so-leitor') && !e.matches(':disabled'))
+  const alvos = [...document.querySelectorAll('button, input:not([type=hidden]), select, summary, a[href], .opcao')]
+    .filter((e) => visivel(e) && !e.closest('.so-leitor') && !e.matches(':disabled') && !(e.matches('input') && e.closest('.opcao')))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })
     .map((e) => `${etiqueta(e)} ${Math.round(e.getBoundingClientRect().width)}x${Math.round(e.getBoundingClientRect().height)}`);
   const largura = window.innerWidth;
@@ -74,16 +74,20 @@ function auditoriaNaPagina() {
   };
 }
 
-const VIEWPORTS = [[360, 780], [390, 844], [768, 1024], [1440, 900]];
+// Temas claro e escuro (DESIGN.md): o contraste é auditado nos dois, nas larguras de celular e de computador.
+const VIEWPORTS = [[360, 780, 'light'], [390, 844, 'light'], [768, 1024, 'light'], [1440, 900, 'light'], [390, 844, 'dark'], [1440, 900, 'dark']];
 
-for (const [w, h] of VIEWPORTS) {
-  test(`${w}×${h}: fontes, contraste, alvos de toque e sem rolagem horizontal global`, async ({ page }) => {
+for (const [w, h, esquema] of VIEWPORTS) {
+  test(`${w}×${h} (${esquema === 'dark' ? 'tema escuro' : 'tema claro'}): fontes, contraste, alvos de toque e sem rolagem horizontal global`, async ({ page }) => {
+    await page.emulateMedia({ colorScheme: esquema });
     await page.setViewportSize({ width: w, height: h });
     await entrar(page, 'rp');
-    // Abre o que fica recolhido e seleciona um registro, para auditar também esses estados.
+    expect(await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(esquema === 'dark');
+    await expect(page.locator('#botao-tema')).toHaveAttribute('aria-pressed', String(esquema === 'dark'));
+    // Abre o que fica recolhido (seções dos filtros, série, municípios) e seleciona um registro.
+    for (const id of ['secao-consulta', 'secao-lente', 'secao-contexto', 'secao-cruzar']) await abrirSecao(page, id);
     await page.locator('#serie-corpo summary').click();
     await page.locator('#municipios-corpo summary').click();
-    await page.locator('#proveniencia-corpo summary').click();
     await page.locator('#registros-tabela button[data-id]').first().click();
     const a = await page.evaluate(auditoriaNaPagina);
     expect(a.larguraDocumento, 'sem rolagem horizontal global').toBeLessThanOrEqual(a.larguraJanela);
@@ -95,25 +99,61 @@ for (const [w, h] of VIEWPORTS) {
     expect(a.alvos, 'controles menores que 44×44 CSS px').toEqual([]);
     expect(a.transborda, 'elementos fora da largura da janela').toEqual([]);
     expect(a.cortados, 'conteúdo cortado').toEqual([]);
-    await page.screenshot({ path: `test-results/ref-${w}x${h}.png`, fullPage: true });
+    // O diálogo "Sobre os dados" também é auditado, aberto.
+    await page.getByRole('button', { name: 'Sobre os dados' }).click();
+    await page.locator('#proveniencia-corpo summary').click();
+    const d = await page.evaluate(auditoriaNaPagina);
+    expect(d.contraste, 'diálogo: contraste').toEqual([]);
+    expect(d.alvos, 'diálogo: alvos').toEqual([]);
+    expect(d.transborda, 'diálogo: fora da janela').toEqual([]);
+    await page.screenshot({ path: `test-results/ref-${w}x${h}-${esquema}.png`, fullPage: true });
   });
 }
 
-test('layout: uma coluna no celular; mapa e detalhes lado a lado no computador', async ({ page }) => {
+test('tema: segue o sistema e alterna sem gravar nada no navegador', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'light' });
+  await entrar(page, 'rp');
+  const fundo = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
+  const claro = await fundo();
+  const botao = page.getByRole('button', { name: 'Tema escuro' });
+  await expect(botao).toHaveAttribute('aria-pressed', 'false');
+  await botao.click();
+  await expect(botao).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.locator('html')).toHaveAttribute('data-tema', 'escuro');
+  expect(await fundo()).not.toBe(claro);
+  const a = await page.evaluate(auditoriaNaPagina);
+  expect(a.contraste, 'tema escuro pela alternância').toEqual([]);
+  await botao.click();
+  await expect(botao).toHaveAttribute('aria-pressed', 'false');
+  expect(await fundo()).toBe(claro);
+  const chaves = await page.evaluate(() => [...Object.keys(localStorage), ...Object.keys(sessionStorage)].filter((k) => !k.includes('auth-token') && !k.includes('code-verifier')));
+  expect(chaves).toEqual([]);
+});
+
+test('layout: uma coluna no celular (filtros, mapa, resultado, série); três colunas no computador', async ({ page }) => {
   const caixa = (sel) => page.locator(sel).evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y + scrollY, w: r.width, h: r.height }; });
   await page.setViewportSize({ width: 390, height: 844 });
   await entrar(page, 'rp');
-  const [mapa, resumo, serie, filtros] = [await caixa('.grade__mapa'), await caixa('.grade__resumo'), await caixa('.grade__serie'), await caixa('.grade__filtros')];
+  // T17: em tela estreita as seções começam fechadas e a Consulta mostra o recorte aplicado no título.
+  await expect(page.locator('#secao-consulta')).not.toHaveAttribute('open', '');
+  await expect(page.locator('#secao-consulta summary')).toContainText('Todo Mato Grosso · 2026-10-01 a 2026-10-31');
+  const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.painel__mapa'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
   expect(mapa.w).toBeGreaterThan(390 * 0.9);
-  expect(filtros.y).toBeLessThan(resumo.y);
-  expect(resumo.y).toBeLessThan(mapa.y);
-  expect(mapa.y).toBeLessThan(serie.y);
+  expect(filtros.y).toBeLessThan(mapa.y);
+  expect(mapa.y).toBeLessThan(resultado.y);
+  expect(resultado.y).toBeLessThan(serie.y);
+  const rodape = await caixa('.rodape');
+  expect(rodape.y).toBeGreaterThan(serie.y);
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  const [m2, r2] = [await caixa('.grade__mapa'), await caixa('.grade__resumo')];
+  const [f2, m2, r2, s2] = [await caixa('#filtros'), await caixa('.painel__mapa'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
+  expect(m2.x).toBeGreaterThan(f2.x + f2.w - 1);
   expect(r2.x).toBeGreaterThan(m2.x + m2.w - 1);
   expect(m2.w).toBeGreaterThan(r2.w);
   expect(Math.abs(m2.y - r2.y)).toBeLessThan(2);
+  expect(Math.abs(m2.y - f2.y)).toBeLessThan(2);
+  expect(s2.y).toBeGreaterThan(m2.y + m2.h - 1);
+  expect(Math.abs(s2.x - m2.x)).toBeLessThan(2);
 });
 
 test('ampliação do texto a 200% e reflow em 320 px não cortam conteúdo nem a função', async ({ page }) => {
@@ -146,8 +186,9 @@ test('escala de cinza: a ação primária se distingue por preenchimento e a sec
     const s = getComputedStyle(e);
     return { bg: s.backgroundColor, cor: s.color, borda: s.borderTopWidth, bordaCor: s.borderTopColor, peso: s.fontWeight };
   });
-  const primario = await estilo('#botao-consultar');
-  const secundario = await estilo('#botao-janela');
+  await abrirSecao(page, 'secao-consulta');
+  const primario = await estilo('#botao-lente');
+  const secundario = await estilo('#botao-limites');
   const cinza = (c) => { const [r, g, b] = c.match(/\d+(\.\d+)?/g).map(Number); return 0.299 * r + 0.587 * g + 0.114 * b; };
   expect(primario.bg).not.toBe('rgba(0, 0, 0, 0)');
   expect(primario.cor).toBe('rgb(255, 255, 255)');
@@ -160,9 +201,9 @@ test('escala de cinza: a ação primária se distingue por preenchimento e a sec
   // Captura de trabalho em cinza (não versionada).
   // Via CSSOM, não por <style> injetado: o E2E serve os cabeçalhos do deploy (CSP sem 'unsafe-inline').
   await page.evaluate(() => { document.documentElement.style.filter = 'grayscale(1)'; });
-  await page.locator('.grade__filtros').screenshot({ path: 'test-results/cinza-filtros.png' });
+  await page.locator('#filtros').screenshot({ path: 'test-results/cinza-filtros.png' });
   await page.locator('#mapa').scrollIntoViewIfNeeded();
-  await page.locator('.grade__mapa').screenshot({ path: 'test-results/cinza-mapa.png' });
+  await page.locator('.painel__mapa').screenshot({ path: 'test-results/cinza-mapa.png' });
 });
 
 test('foco visível e fluxo só por teclado', async ({ page }) => {
@@ -177,24 +218,25 @@ test('foco visível e fluxo só por teclado', async ({ page }) => {
   expect((await foco()).tag).toBe('A'); // link "Ir para o conteúdo"
   await page.keyboard.press('Tab');
   const vistos = [];
-  for (let i = 0; i < 12; i += 1) {
+  for (let i = 0; i < 30; i += 1) {
     const f = await foco();
     expect(f.estilo, `foco do elemento ${f.tag}#${f.id}`).not.toBe('none');
     expect(f.largura).toBeGreaterThanOrEqual(2);
     vistos.push(f.id || f.tag);
     await page.keyboard.press('Tab');
   }
-  expect(vistos).toContain('botao-sair');
-  expect(vistos).toContain('f-municipio');
-  expect(vistos).toContain('botao-consultar');
+  for (const id of ['botao-sobre', 'botao-tema', 'botao-sair', 'botao-limpar', 'botao-janela', 'f-municipio']) expect(vistos).toContain(id);
+  expect(vistos.indexOf('botao-limpar')).toBeLessThan(vistos.indexOf('f-municipio'));
 
-  // Município por teclado, depois Consultar com Enter.
+  // Município por teclado: aplica ao mudar, sem botão "Consultar" (T16).
   await page.locator('#f-municipio').focus();
   await page.keyboard.press('ArrowDown');
   await expect(page.locator('#f-municipio')).toHaveValue('9900001');
-  await page.locator('#botao-consultar').focus();
-  await page.keyboard.press('Enter');
   await expect(page.locator('#total-principal')).toHaveText('60');
+  // Seção recolhível por teclado: Enter no título abre e fecha.
+  await page.locator('#secao-lente summary').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#secao-lente')).toHaveAttribute('open', '');
   // O mapa é focável e a tabela é a alternativa em texto.
   await page.locator('#mapa').focus();
   expect(await page.evaluate(() => document.activeElement.id)).toBe('mapa');

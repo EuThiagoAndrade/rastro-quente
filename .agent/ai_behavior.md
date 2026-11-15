@@ -25,7 +25,7 @@ Em conflito, preserve a instrução humana mais recente e explícita, não ampli
 | `_project/cycles.md` | Numeração e estado corrente dos ciclos | Não redefine regras |
 | ADR local aceito (`_project/decisions/`) | Decisão duradoura | Não substitui plano executável |
 | KB local (`_project/knowledge/`) | Conhecimento reutilizável e especificações de referência | Não autoriza mudança |
-| Contrato visual futuro | A definir em ciclo próprio | Nenhum design system aprovado neste bootstrap |
+| Contrato visual (`DESIGN.md`) | Tokens, componentes, layout, estados e acessibilidade da interface (ciclo 007) | Não define regra analítica nem autoriza mudança de tela fora de plano ou da trilha curta |
 | Plano aprovado | Escopo, entregas, riscos, sequência, pontos de aprovação e validações | Não amplia a autorização humana |
 | Issue | Unidade planejada de entrega | Não amplia o plano |
 | Task persistente | Registro local de execução e do próximo passo de uma unidade | Não coordena branches concorrentes |

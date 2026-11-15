@@ -4,6 +4,7 @@ import {
   AVISO_SIMPLIFICACAO, fmtBytes, fmtDataHoraGmt, fmtDiferenca, fmtIntervaloGmt, fmtNumero, humanizar,
   ROTULO_ALCANCE, ROTULO_CLASSE, ROTULO_DIVERGENCIA,
 } from './formato.ts';
+import { atalhoDoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
 import type {
   CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, PaginaDeteccoes, Registro, Resumo,
 } from './tipos.ts';
@@ -74,6 +75,8 @@ export function renderAcesso(a: Acesso, m: ManipuladoresAcesso): void {
   $('sessao-estado').textContent = ROTULO_SESSAO[a.tipo];
   $('botao-sair').hidden = !['verificando', 'negado', 'sem_publicacao', 'fonte_indisponivel', 'autorizado'].includes(a.tipo);
   $('conteudo').hidden = a.tipo !== 'autorizado';
+  // Chips e diálogos do topo mostram dados da versão: só existem com acesso autorizado (T13).
+  for (const id of ['topo-chips', 'botao-sobre', 'botao-como-ler']) $(id).hidden = a.tipo !== 'autorizado';
   const secao = $('acesso');
   const corpo = $('acesso-corpo');
   secao.hidden = a.tipo === 'autorizado';
@@ -144,7 +147,34 @@ export function renderFiltros(carga: CargaDetalhe, municipios: MunicipioItem[], 
     i.min = janela.inicio;
     i.max = janela.fim;
   }
-  $('f-ajuda').textContent = `Datas em dias GMT. Janela da versão consultada: ${janela.inicio} a ${janela.fim} (carga ${carga.id}).`;
+  $('f-ajuda').textContent = `Datas em dias GMT. Janela da versão consultada: ${janela.inicio} a ${janela.fim} (carga ${carga.id}). Os atalhos contam a partir de ${janela.fim}. A consulta se aplica ao mudar.`;
+}
+
+/** Chips do topo: satélite e fontes da versão (T13). Só com acesso autorizado. */
+export function renderTopo(carga: CargaDetalhe, fontes: Fonte[]): void {
+  const nomes = ['IBGE'];
+  if (fontes.some((f) => f.chave.startsWith('cnuc'))) nomes.push('CNUC');
+  if (fontes.some((f) => f.chave.startsWith('funai'))) nomes.push('FUNAI');
+  $('topo-chips').replaceChildren(
+    h('li', { class: 'chip', id: 'chip-satelite' }, `Satélite ${carga.satelite} · INPE`),
+    h('li', { class: 'chip', id: 'chip-fontes' }, `Fontes: ${nomes.join(' · ')}`));
+}
+
+/**
+ * Recorte aplicado (T16) no título da seção Consulta, no escopo da coluna de filtros e nos atalhos. Com o período
+ * digitado inválido, a linha "Mostrando" diz qual recorte a tela continua mostrando.
+ */
+export function renderRecorte(aplicado: Janela, municipio: string | null, janela: Janela, invalido: boolean): void {
+  $('consulta-aplicada').textContent = textoRecorte(aplicado, municipio);
+  // Antes do item 4 as lentes são estaduais: a coluna diz isso, sem atribuir ao município resultados do estado.
+  $('filtros-escopo').textContent = `Uma lente por vez · Lentes: todo Mato Grosso · ${textoPeriodo(aplicado)}`;
+  const mostrando = $('f-mostrando');
+  mostrando.hidden = !invalido;
+  mostrando.textContent = invalido ? `Mostrando ${textoRecorte(aplicado, municipio)}: o período digitado ainda não foi aplicado.` : '';
+  const atalho = atalhoDoPeriodo(aplicado, janela);
+  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-atalho]')) {
+    b.setAttribute('aria-pressed', String(b.dataset['atalho'] === atalho));
+  }
 }
 
 export function mostrarErroFiltro(texto: string | null): void {
@@ -177,7 +207,7 @@ const TEXTO_ESTADO: Record<Exclude<EstadoConsulta['tipo'], 'ocioso'>, string> = 
   inconsistente: 'Os resultados desta consulta não coincidem entre si (total e registros). Nada foi exibido; tente novamente.',
 };
 
-export function renderEstadoConsulta(e: EstadoConsulta, aoRecarregar: () => void): void {
+export function renderEstadoConsulta(e: EstadoConsulta, aoRecarregar: () => void, aoRepetir: () => void): void {
   const alvo = $('estado-consulta');
   limpar(alvo);
   alvo.dataset['estado'] = e.tipo;
@@ -186,6 +216,12 @@ export function renderEstadoConsulta(e: EstadoConsulta, aoRecarregar: () => void
   if (e.tipo === 'versao_substituida') {
     const b = h('button', { type: 'button', id: 'botao-recarregar', class: 'botao botao--primario' }, 'Carregar a versão vigente');
     b.addEventListener('click', aoRecarregar);
+    alvo.append(h('div', { class: 'acoes' }, b));
+  }
+  // Sem botão "Consultar" (T16): a mesma consulta se repete por aqui.
+  if (e.tipo === 'fonte_indisponivel' || e.tipo === 'inconsistente') {
+    const b = h('button', { type: 'button', id: 'botao-repetir-consulta', class: 'botao botao--primario' }, 'Tentar novamente');
+    b.addEventListener('click', aoRepetir);
     alvo.append(h('div', { class: 'acoes' }, b));
   }
 }
@@ -466,4 +502,7 @@ export function limparResultados(): void {
   $('mapa-selecao').textContent = '';
   for (const id of ['f-municipio']) $<HTMLSelectElement>(id).replaceChildren();
   limpar($('proveniencia-corpo'));
+  limpar($('topo-chips'));
+  for (const id of ['consulta-aplicada', 'filtros-escopo', 'f-mostrando']) $(id).textContent = '';
+  $('f-mostrando').hidden = true;
 }

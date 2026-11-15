@@ -156,8 +156,9 @@ export async function validate(root) {
   // Cenário 17: tasks da trilha curta (G5).
   await validateShortTrack(root, manifest, errors);
 
-  // Contrato visual adiado pelo ciclo 000; não produzir declaração de conformidade.
-  manual.push('Design system adiado: contrato visual não auditado.');
+  // Contrato visual (ciclo 007): presença e seções do DESIGN.md são estruturais (manifesto); a conformidade da tela
+  // é coberta pelos testes de contraste e E2E, e a revisão visual continua manual.
+  manual.push('Contrato visual: conformidade da tela com o DESIGN.md conferida por testes de contraste e E2E; revisão visual manual.');
 
   if (!(await exists(path.join(root, 'package.json')))) {
     warnings.push('Nenhum package.json: esperado enquanto só existir tooling nativo de governança.');

@@ -14,126 +14,143 @@
         <h1 class="topo__titulo">Rastro Quente</h1>
         <p class="topo__subtitulo">Consulta territorial de detecções de calor</p>
       </div>
+      <ul id="topo-chips" class="chips" aria-label="Origem dos dados" hidden></ul>
+      <div class="topo__acoes">
+        <button id="botao-sobre" type="button" class="botao botao--secundario" aria-haspopup="dialog" hidden>Sobre os dados</button>
+        <button id="botao-como-ler" type="button" class="botao botao--secundario" aria-haspopup="dialog" hidden>Como ler esta tela</button>
+        <button id="botao-tema" type="button" class="botao botao--secundario" aria-pressed="false">Tema escuro</button>
+      </div>
       <div class="topo__sessao">
         <p id="sessao-estado" class="topo__estado" role="status">Verificando sessão…</p>
-        <button id="botao-sair" type="button" class="botao botao--sobre-escuro" hidden>Sair</button>
+        <button id="botao-sair" type="button" class="botao botao--secundario" hidden>Sair</button>
       </div>
     </header>
 
     <main id="principal" tabindex="-1">
       <noscript><p class="cartao">Esta consulta precisa de JavaScript.</p></noscript>
 
-      <section class="cartao cartao--aviso" aria-labelledby="t-aviso">
-        <h2 id="t-aviso" class="cartao__titulo">Como ler esta consulta</h2>
-        <p>
-          Cada ponto é uma <strong>detecção de calor</strong> do satélite AQUA_M-T (INPE) dentro dos limites municipais do IBGE em
-          Mato Grosso. Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>, e não há
-          ranking ambiental de municípios: a lente de concentração só ordena por contagem de detecções, não por prioridade,
-          gravidade ou risco.
+      <section class="acesso" id="acesso" aria-labelledby="t-acesso" hidden>
+        <h2 id="t-acesso" class="acesso__titulo" tabindex="-1">Acesso</h2>
+        <p class="acesso__aviso">
+          Consulta de <strong>detecções de calor</strong> do satélite AQUA_M-T (INPE) em Mato Grosso. Detecções e sobreposições
+          <strong>não comprovam incêndio, dano, autoria ou infração</strong>. Sem sessão autorizada, nenhum dado é carregado.
         </p>
-        <p>
-          Datas, totais e séries usam <strong>dia GMT</strong>. A sensibilidade em America/Cuiaba é um campo separado, nunca
-          substitui o total principal. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.
-        </p>
-      </section>
-
-      <section class="cartao" id="acesso" aria-labelledby="t-acesso" hidden>
-        <h2 id="t-acesso" class="cartao__titulo" tabindex="-1">Acesso</h2>
         <div id="acesso-corpo"></div>
       </section>
 
-      <div id="conteudo" class="grade" hidden>
-        <section class="cartao grade__filtros" aria-labelledby="t-filtros">
-          <h2 id="t-filtros" class="cartao__titulo">Consulta</h2>
-          <form id="form-consulta" novalidate>
-            <div class="campos">
-              <div class="campo">
-                <label for="f-municipio">Município</label>
-                <select id="f-municipio"></select>
-              </div>
-              <div class="campo">
-                <label for="f-inicio">Início (dia GMT)</label>
-                <input id="f-inicio" type="date" required aria-describedby="f-ajuda f-erro" />
-              </div>
-              <div class="campo">
-                <label for="f-fim">Fim (dia GMT, inclusivo)</label>
-                <input id="f-fim" type="date" required aria-describedby="f-ajuda f-erro" />
-              </div>
-            </div>
-            <p id="f-ajuda" class="ajuda"></p>
-            <p id="f-erro" class="erro" role="alert" hidden></p>
-            <div class="acoes">
-              <button id="botao-consultar" type="submit" class="botao botao--primario">Consultar</button>
-              <button id="botao-janela" type="button" class="botao botao--secundario">Usar a janela inteira</button>
-            </div>
-          </form>
-        </section>
+      <div id="conteudo" class="painel" data-estado-painel="carregando" hidden>
+        <aside id="filtros" class="painel__filtros coluna" aria-labelledby="t-filtros">
+          <div class="coluna__cabeca">
+            <h2 id="t-filtros" class="coluna__titulo">Filtros</h2>
+            <button id="botao-limpar" type="button" class="botao botao--texto">Limpar tudo</button>
+          </div>
+          <p id="filtros-escopo" class="ajuda"></p>
 
-        <section class="cartao grade__lentes" id="cartao-lentes" aria-labelledby="t-lentes" data-estado-lente="nenhuma">
-          <h2 id="t-lentes" class="cartao__titulo">Lentes de seleção</h2>
-          <p class="ajuda">
-            Destaques orientam avaliação técnica; não comprovam incêndio, dano, autoria ou infração. A lente usa todo o estado de
-            Mato Grosso na janela da consulta: o filtro de município não se aplica às lentes. Parâmetros fixos, sem edição.
-          </p>
-          <div class="campos campos--lente">
-            <div class="campo">
-              <label for="l-lente">Lente</label>
-              <select id="l-lente">
-                <option value="nenhuma">Nenhuma</option>
-                <option value="concentracao">Concentração (municípios por contagem)</option>
-                <option value="recorrencia">Recorrência (células de 0,05° com detecções em 3 ou mais meses)</option>
-                <option value="persistencia">Persistência (células de 0,05° com detecções em 3 ou mais dias seguidos)</option>
-                <option value="combinacao">Combinação de lentes</option>
-                <option value="sobreposicao">Sobreposição com áreas protegidas (células de 0,05° com detecção dentro de área da classe)</option>
-              </select>
+          <details id="secao-consulta" class="secao" open>
+            <summary class="secao__titulo"><span>Consulta</span> <span id="consulta-aplicada" class="secao__resumo"></span></summary>
+            <div class="secao__corpo">
+              <form id="form-consulta" novalidate>
+                <fieldset class="grupo-atalhos">
+                  <legend>Período</legend>
+                  <div class="chips-escolha">
+                    <button id="botao-janela" type="button" class="chip-escolha" data-atalho="janela" aria-pressed="false">Janela inteira</button>
+                    <button type="button" class="chip-escolha" data-atalho="30" aria-pressed="false">Últimos 30 dias</button>
+                    <button type="button" class="chip-escolha" data-atalho="7" aria-pressed="false">Últimos 7 dias</button>
+                  </div>
+                </fieldset>
+                <div class="campos campos--periodo">
+                  <div class="campo">
+                    <label for="f-inicio">Início (dia GMT)</label>
+                    <input id="f-inicio" type="date" required aria-describedby="f-ajuda f-erro" />
+                  </div>
+                  <div class="campo">
+                    <label for="f-fim">Fim (dia GMT, inclusivo)</label>
+                    <input id="f-fim" type="date" required aria-describedby="f-ajuda f-erro" />
+                  </div>
+                </div>
+                <p id="f-ajuda" class="ajuda"></p>
+                <p id="f-erro" class="erro" role="alert" hidden></p>
+                <p id="f-mostrando" class="aviso-estado" role="status" hidden></p>
+                <div class="campo">
+                  <label for="f-municipio">Município</label>
+                  <select id="f-municipio"></select>
+                </div>
+              </form>
             </div>
-          </div>
-          <div id="lente-combinacao" class="escolha-combinacao" hidden>
-            <fieldset class="grupo-opcoes">
-              <legend>Lentes a combinar</legend>
-              <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" /> Concentração</label>
-              <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" /> Recorrência</label>
-              <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
-            </fieldset>
-            <fieldset class="grupo-opcoes">
-              <legend>Operador</legend>
-              <label class="opcao"><input type="radio" name="l-operador" value="e" checked /> e: células destacadas por todas as lentes escolhidas</label>
-              <label class="opcao"><input type="radio" name="l-operador" value="ou" /> ou: células destacadas por pelo menos uma das lentes escolhidas</label>
-            </fieldset>
-            <p class="ajuda">
-              O resultado é por célula de 0,05°, na ordem da posição da célula; não é ranking. Células destacadas por mais lentes
-              não são mais graves nem prioritárias.
-            </p>
-          </div>
-          <div id="lente-sobreposicao" class="escolha-combinacao" hidden>
-            <fieldset class="grupo-opcoes">
-              <legend>Classe de área protegida</legend>
-              <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral (unidades de conservação)</label>
-              <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável (unidades de conservação)</label>
-              <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
-            </fieldset>
-            <p class="ajuda">
-              Uma classe por aplicação; a ordem das classes não indica prioridade. Estar dentro de uma área protegida orienta a
-              avaliação técnica e não indica infração, autoria nem situação fundiária.
-            </p>
-          </div>
-          <div class="acoes">
+          </details>
+
+          <details id="secao-lente" class="secao" data-secao-lente>
+            <summary class="secao__titulo"><span>Lente de seleção</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
+            <div class="secao__corpo">
+              <fieldset class="grupo-lentes">
+                <legend class="so-leitor">Lente de seleção</legend>
+                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="nenhuma" checked />
+                  <span><span class="opcao__nome">Nenhuma lente</span></span></label>
+                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="concentracao" />
+                  <span><span class="opcao__nome">Concentração</span> <span class="opcao__pergunta">Quais municípios somam mais detecções no período? Ordena por contagem, não por prioridade.</span></span></label>
+                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="recorrencia" />
+                  <span><span class="opcao__nome">Recorrência</span> <span class="opcao__pergunta">Onde as detecções voltam? Células de 0,05° com detecções em 3 ou mais meses.</span></span></label>
+                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="persistencia" />
+                  <span><span class="opcao__nome">Persistência</span> <span class="opcao__pergunta">Onde as detecções seguem por dias? Células de 0,05° com detecções em 3 ou mais dias seguidos.</span></span></label>
+              </fieldset>
+            </div>
+          </details>
+
+          <details id="secao-contexto" class="secao" data-secao-lente>
+            <summary class="secao__titulo"><span>Contexto territorial</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
+            <div class="secao__corpo">
+              <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="sobreposicao" />
+                <span><span class="opcao__nome">Sobreposição com áreas protegidas</span> <span class="opcao__pergunta">Onde há detecção dentro de área protegida de uma classe? Células de 0,05°.</span></span></label>
+              <div id="lente-sobreposicao" class="escolha-combinacao" hidden>
+                <fieldset class="grupo-opcoes">
+                  <legend>Classe de área protegida</legend>
+                  <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral (unidades de conservação)</label>
+                  <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável (unidades de conservação)</label>
+                  <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
+                </fieldset>
+                <p class="ajuda">
+                  Uma classe por aplicação; a ordem das classes não indica prioridade. Estar dentro de uma área protegida orienta a
+                  avaliação técnica e não indica infração, autoria nem situação fundiária.
+                </p>
+              </div>
+            </div>
+          </details>
+
+          <details id="secao-cruzar" class="secao" data-secao-lente>
+            <summary class="secao__titulo"><span>Cruzar critérios</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
+            <div class="secao__corpo">
+              <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="combinacao" />
+                <span><span class="opcao__nome">Combinação de lentes</span> <span class="opcao__pergunta">Onde duas ou mais lentes apontam a mesma célula de 0,05°?</span></span></label>
+              <div id="lente-combinacao" class="escolha-combinacao" hidden>
+                <fieldset class="grupo-opcoes">
+                  <legend>Lentes a combinar</legend>
+                  <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" /> Concentração</label>
+                  <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" /> Recorrência</label>
+                  <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
+                </fieldset>
+                <fieldset class="grupo-opcoes">
+                  <legend>Operador</legend>
+                  <label class="opcao"><input type="radio" name="l-operador" value="e" checked /> e: células destacadas por todas as lentes escolhidas</label>
+                  <label class="opcao"><input type="radio" name="l-operador" value="ou" /> ou: células destacadas por pelo menos uma das lentes escolhidas</label>
+                </fieldset>
+                <p class="ajuda">
+                  O resultado é por célula de 0,05°, na ordem da posição da célula; não é ranking. Células destacadas por mais lentes
+                  não são mais graves nem prioritárias.
+                </p>
+              </div>
+            </div>
+          </details>
+
+          <div class="acoes acoes--lente">
             <button id="botao-lente" type="button" class="botao botao--primario">Aplicar lente</button>
           </div>
           <p id="lente-validacao" class="erro" role="alert" hidden></p>
           <p id="lente-aviso-config" class="aviso-estado" role="status" hidden>A configuração escolhida mudou; aplique de novo para atualizar.</p>
-          <div id="lente-estado" role="status"></div>
-          <div id="lente-corpo"></div>
-        </section>
+        </aside>
 
-        <section class="cartao grade__resumo" aria-labelledby="t-resumo">
-          <h2 id="t-resumo" class="cartao__titulo">Resumo do período</h2>
+        <section class="painel__mapa bloco-painel" aria-labelledby="t-mapa">
           <div id="estado-consulta" role="status"></div>
-          <div id="resumo-corpo"></div>
-        </section>
-
-        <section class="cartao grade__mapa" aria-labelledby="t-mapa">
-          <h2 id="t-mapa" class="cartao__titulo">Mapa</h2>
+          <h2 id="t-mapa" class="bloco-painel__titulo">Mapa</h2>
           <div class="ferramentas-mapa">
             <button id="botao-limites" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar limites municipais</button>
             <button id="botao-arrastar" type="button" class="botao botao--secundario" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
@@ -158,32 +175,74 @@
           </div>
         </section>
 
-        <section class="cartao grade__serie" aria-labelledby="t-serie">
-          <h2 id="t-serie" class="cartao__titulo">Série diária (dias GMT)</h2>
-          <div id="serie-corpo"></div>
+        <section id="resultado" class="painel__resultado coluna" aria-labelledby="t-resultado">
+          <h2 id="t-resultado" class="coluna__titulo">Resultado</h2>
+          <section id="cartao-lentes" class="bloco-resultado" aria-labelledby="t-lentes" data-estado-lente="nenhuma">
+            <h3 id="t-lentes" class="bloco-resultado__titulo">Lente</h3>
+            <div id="lente-estado" role="status"></div>
+            <div id="lente-corpo"></div>
+          </section>
+          <section class="bloco-resultado" aria-labelledby="t-municipios">
+            <h3 id="t-municipios" class="bloco-resultado__titulo">Municípios</h3>
+            <div id="municipios-corpo"></div>
+          </section>
         </section>
 
-        <section class="cartao grade__disponibilidade" aria-labelledby="t-disp">
-          <h2 id="t-disp" class="cartao__titulo">Disponibilidade dos dados</h2>
-          <div id="disp-corpo"></div>
-        </section>
-
-        <section class="cartao grade__registros" aria-labelledby="t-registros">
-          <h2 id="t-registros" class="cartao__titulo">Registros de detecção</h2>
-          <div id="registros-corpo"></div>
-        </section>
-
-        <section class="cartao grade__municipios" aria-labelledby="t-municipios">
-          <h2 id="t-municipios" class="cartao__titulo">Municípios</h2>
-          <div id="municipios-corpo"></div>
-        </section>
-
-        <section class="cartao grade__proveniencia" aria-labelledby="t-proveniencia">
-          <h2 id="t-proveniencia" class="cartao__titulo">Versão, fontes e limitações</h2>
-          <div id="proveniencia-corpo"></div>
-        </section>
+        <div class="painel__detalhes">
+          <section class="bloco-painel" aria-labelledby="t-resumo">
+            <h2 id="t-resumo" class="bloco-painel__titulo" tabindex="-1">Detecções no período (dias GMT)</h2>
+            <div id="resumo-corpo"></div>
+            <div id="serie-corpo"></div>
+          </section>
+          <section class="bloco-painel" aria-labelledby="t-disp">
+            <h2 id="t-disp" class="bloco-painel__titulo">Disponibilidade dos dados</h2>
+            <div id="disp-corpo"></div>
+          </section>
+          <section class="bloco-painel" aria-labelledby="t-registros">
+            <h2 id="t-registros" class="bloco-painel__titulo">Registros de detecção</h2>
+            <div id="registros-corpo"></div>
+          </section>
+        </div>
       </div>
     </main>
+
+    <footer class="rodape">
+      <ul class="rodape__frases">
+        <li>Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.</li>
+        <li>Uma lente indica onde olhar; não é ranking nem prova.</li>
+        <li>Totais em dia GMT; disponibilidade é separada da detecção.</li>
+      </ul>
+    </footer>
+
+    <dialog id="dialogo-sobre" class="dialogo" aria-labelledby="t-proveniencia">
+      <div class="dialogo__cabeca">
+        <h2 id="t-proveniencia" class="dialogo__titulo">Sobre os dados: versão, fontes e limitações</h2>
+        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
+      </div>
+      <div id="proveniencia-corpo"></div>
+    </dialog>
+
+    <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
+      <div class="dialogo__cabeca">
+        <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
+        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
+      </div>
+      <p>
+        A tela vai da <strong>pergunta</strong> (filtros, à esquerda) ao <strong>onde</strong> (mapa e série, no centro) e à
+        <strong>resposta</strong> (resultado, à direita). O que se escolhe à esquerda vale para o mapa, a série e os municípios. As
+        lentes ainda usam todo Mato Grosso no período escolhido: o filtro de município não se aplica a elas.
+      </p>
+      <p>
+        Cada ponto é uma <strong>detecção de calor</strong> do satélite AQUA_M-T (INPE) dentro dos limites municipais do IBGE em
+        Mato Grosso. Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>, e não há
+        ranking ambiental de municípios: a lente de concentração só ordena por contagem de detecções, não por prioridade,
+        gravidade ou risco.
+      </p>
+      <p>
+        Datas, totais e séries usam <strong>dia GMT</strong>. A sensibilidade em America/Cuiaba é um campo separado, nunca
+        substitui o total principal. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.
+      </p>
+    </dialog>
 
     <script type="module" src="/src/main.ts"></script>
   </body>
