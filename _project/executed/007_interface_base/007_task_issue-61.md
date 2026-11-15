@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#61`
-> **Plano:** `_project/drafts/007_interface_base/007_plan.md`
+> **Plano:** `_project/executed/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-61`
 > **PR:** [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66)
 > **Integração:** squash `650bbc7` em `main` (2026-11-15)
@@ -101,10 +101,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 007 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66)
-Diga: "aprovo o merge da PR #66"
+Situação: Concluído — ciclo 007 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

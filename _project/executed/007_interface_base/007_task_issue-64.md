@@ -2,13 +2,13 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#64`
-> **Plano:** `_project/drafts/007_interface_base/007_plan.md`
+> **Plano:** `_project/executed/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-64`
 > **PR:** [#69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69)
-> **Integração:** `Pendente`
+> **Integração:** squash `17ebd04` em `main` (2026-11-15)
 > **Autorização inicial:** "autorizo a implementação da issue #64" em 2026-11-15
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-15
@@ -64,8 +64,9 @@ Não se aplica.
 | `npm run test:interface` | 186/186 (inclui `fundo.test.mjs` e o bundle com a CSP de dois hosts e a varredura de chave) |
 | `npm run test:e2e` | 101/101, com `10-mapa-base` (sem chave; valor fictício com tiles simulados, erro 403, `referrerpolicy`, atribuição, interrupção ao desligar e `maxZoom` 14/13). Na primeira rodada, o aviso dentro da barra do mapa cortava o cartão em 320 px a 200% e cobria o ponto tocado em dois testes do balão; o aviso foi para baixo do mapa e o seletor passou a quebrar linha |
 | `node --test scripts/validate-governance.test.mjs` / `node scripts/validate-governance.mjs` / `git diff --check` | 55/55; 0 erros; sem achados |
-| Checks remotos | Pendente (PR #69) |
-| Verificação em produção | Pendente (depende da ação externa e de autorização própria) |
+| Checks remotos | PR #69 com três checks verdes; integrada por squash (`17ebd04`) |
+| Ação humana externa | Concluída pelo responsável em 2026-11-15 ("concluí a ação externa da issue #64") |
+| Verificação em produção | Aprovada em 2026-11-15 (resultados no pós-mortem do plano) |
 
 ## Revisão da correção
 
@@ -102,10 +103,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 007 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69)
-Diga: "aprovo o merge da PR #69"
+Situação: Concluído — ciclo 007 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
