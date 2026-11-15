@@ -1,6 +1,6 @@
 # Registro de ciclos
 
-> **Próximo ciclo:** `008`
+> **Próximo ciclo:** `009`
 
 | Ciclo | Assunto | Estado | Ideação | Plano | Issues | Encerramento |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
@@ -12,3 +12,4 @@
 | `005` | Combinação de critérios de seleção | `Concluído` | [Ideação](ideations/005_combinacao_criterios_selecao.md) | [Plano](executed/005_combinacao_criterios_selecao/005_plan.md) (v2 aprovado em 2026-11-11; PR documental [#41](https://github.com/EuThiagoAndrade/rastro-quente/pull/41) integrada) | [#42](https://github.com/EuThiagoAndrade/rastro-quente/issues/42) (item 1), [#43](https://github.com/EuThiagoAndrade/rastro-quente/issues/43) (item 2) | [Encerramento prospectivo](executed/005_combinacao_criterios_selecao/005_task_closure.md) |
 | `006` | Áreas protegidas reais | `Concluído` | [Ideação](ideations/006_areas_protegidas_reais.md) | [Plano](executed/006_areas_protegidas_reais/006_plan.md) (v5 aprovado em 2026-11-12; PR documental [#48](https://github.com/EuThiagoAndrade/rastro-quente/pull/48) integrada) | [#49](https://github.com/EuThiagoAndrade/rastro-quente/issues/49) (item 1), [#50](https://github.com/EuThiagoAndrade/rastro-quente/issues/50) (item 2), [#51](https://github.com/EuThiagoAndrade/rastro-quente/issues/51) (item 3), [#52](https://github.com/EuThiagoAndrade/rastro-quente/issues/52) (item 4) | [Encerramento prospectivo](executed/006_areas_protegidas_reais/006_task_closure.md) |
 | `007` | Interface base | `Concluído` | [Ideação](ideations/007_interface_base.md) | [Plano](executed/007_interface_base/007_plan.md) (v4 aprovado em 2026-11-14; PR documental [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) integrada) | [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) (item 1), [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (item 2), [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) (item 3), [#63](https://github.com/EuThiagoAndrade/rastro-quente/issues/63) (item 4), [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) (item 5) | [Encerramento prospectivo](executed/007_interface_base/007_task_closure.md) |
+| `008` | Comparação de períodos e agentes de explicação | `Planejamento` | [Ideação](ideations/008_comparacao_periodos_agentes.md) | [Plano](drafts/008_comparacao_periodos_agentes/008_plan.md) (v3 aprovado em 2026-11-15; PR documental [#76](https://github.com/EuThiagoAndrade/rastro-quente/pull/76) aguardando integração) | — | — |
