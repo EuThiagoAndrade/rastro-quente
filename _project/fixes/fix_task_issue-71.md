@@ -2,7 +2,7 @@
 
 > **Ciclo:** `—`
 > **Trilha:** `curta`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `fix`
 > **Issue:** `#71`
 > **Plano:** `—`
@@ -130,6 +130,14 @@ O responsável testou localmente e pediu dois ajustes (2026-11-15):
 - **R3-1 — Corrigido.** `src/mapa.ts` mede a altura livre do cartão abaixo das pílulas, que quebram linha com texto grande, e grava `--altura-menu`. Os menus de "Mapa" e "Camadas" usam esse valor como `max-height`, com rolagem interna. E2E novo em `11-ajustes-tela`: a 320 × 640, com toque e texto a 200%, o menu fica dentro do cartão, "Mover o mapa com um dedo" e "Enquadrar os dados" rolam até a área visível e "Enquadrar" responde ao toque.
 - **Validação:** build sem erros; `test:interface` 193/193; `test:e2e` 111/111; `git diff --check` sem achados.
 
+### Rodada 4 — 2026-11-15
+
+- **Autor:** Claude Code (Opus 5.5).
+- **Revisor:** Codex (GPT-6).
+- **R3-1 — Resolvido.** Em uma conferência isolada no Chrome a 320 × 640, com toque e texto a 200%, o menu ficou dentro do cartão e a rolagem interna trouxe “Mover o mapa com um dedo” e “Enquadrar os dados” inteiramente à área visível. O novo E2E cobre a geometria, a rolagem e o toque na última opção.
+- **Itens conferidos:** diff da revisão `ccdc235` da PR #72, escopo e barreiras G1 a G4. Typecheck, 193 testes de interface e `git diff --check` passaram. A suíte E2E completa ficou sem reexecução local nesta rodada. Os 111 testes aprovados constam na resposta do autor.
+- **Veredito:** `APTO PARA APROVAÇÃO`. Nenhum achado novo.
+
 ## Decisões incidentais e desvios
 
 - **Sem testes de carga**, por decisão anterior do responsável.
@@ -145,18 +153,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 4) — correção da issue #71
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise a correção da issue #71"
+Situação: Aguardando merge — correção da issue #71
+Quem: Responsável
+Conferir: Checks e diff da [PR #72](https://github.com/EuThiagoAndrade/rastro-quente/pull/72)
+Diga: "aprovo o merge da PR #72"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + fix + corrigir_trilha_curta + 71 + 5236251`
-- `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: correção apta na rodada 2, sem commit / branch `fix/issue-71` publicada e PR #72 aberta
+- `logical_key`: `rastro-quente + fix + revisar_plano + 71/rodada-4 + ccdc235689bdb7e28ee570b53fe538258e42b1fe`
+- `effect_class`: `local_mutation`
+- `state_before` / `state_after`: aguardando revisão da rodada 4 / apto para aprovação, aguardando merge da PR #72
 - `result`: `executed`
-- `evidence`: PR #72; validações em "Evidências"; revisão em "Revisão da correção"
-- `blockers`: revisão da rodada 4, checks remotos e aprovação do merge
+- `evidence`: PR #72 e validações registradas na rodada 4 da seção "Revisão da correção"
+- `blockers`: checks remotos e aprovação do merge
