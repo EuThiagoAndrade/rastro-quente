@@ -46,6 +46,12 @@
   --area-integral: #86efac;
   --area-sustentavel: #c4b5fd;
   --area-indigena: #f9a8d4;
+  /* Densidade por célula (ciclo 007, T8): classes fixas 1 · 2–3 · 4–9 · 10–24 · 25+, do claro ao escuro. */
+  --densidade-0: #fed7aa;
+  --densidade-1: #fdba74;
+  --densidade-2: #f97316;
+  --densidade-3: #c2410c;
+  --densidade-4: #7c2d12;
 
   /* Tipografia, alvos e espaçamento. */
   --t-base: 1rem;

@@ -23,6 +23,15 @@ export const ESTILO_AREA: Record<ClasseArea, { cor: string; traco: string | unde
 };
 const COR_CONTORNO_REAL = '#ffffff';
 
+/** Densidade (plano 007, T8): uma cor por classe fixa (1 · 2–3 · 4–9 · 10–24 · 25+); mesmos valores de `--densidade-*`. */
+export const CORES_DENSIDADE = ['#fed7aa', '#fdba74', '#f97316', '#c2410c', '#7c2d12'] as const;
+
+/** Célula da densidade já classificada (classe 0 a 4). */
+export interface CelulaDensidadeMapa {
+  retangulo: [[number, number], [number, number]];
+  classe: number;
+}
+
 /** Área da visão geral (geometria simplificada) ou contorno real, identificada por `<fonte>:<código>`. */
 export interface AreaMapa {
   chave: string;
@@ -63,7 +72,15 @@ export interface Mapa {
   definirContornos(itens: AreaMapa[]): void;
   enquadrarContornos(): void;
   aoSelecionarArea(f: (chave: string) => void): void;
-  contagem(): { pontos: number; limites: number; destaques: number; areas: number; contornos: number };
+  /** Densidade por célula (T8), abaixo dos pontos; a camada só aparece com `mostrarDensidade(true)`. */
+  definirDensidade(celulas: CelulaDensidadeMapa[]): void;
+  mostrarDensidade(ativo: boolean): void;
+  /** Camada "Detecções individuais" (pontos e anel de seleção). */
+  mostrarPontos(ativo: boolean): void;
+  /** Recalcula o tamanho depois de ampliar ou reduzir o mapa. */
+  redimensionar(): void;
+  focar(): void;
+  contagem(): { pontos: number; limites: number; destaques: number; areas: number; contornos: number; densidade: number };
 }
 
 export function criarMapa(elemento: HTMLElement): Mapa {
@@ -105,6 +122,11 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     }
     svg.prepend(defs);
   }
+
+  // Densidade em painel próprio, abaixo dos limites, destaques e pontos, com canvas próprio e sem interação.
+  mapa.createPane('densidade').style.zIndex = '340';
+  const rendererDensidade = L.canvas({ pane: 'densidade' });
+  const camadaDensidade = L.layerGroup();
 
   const camadaLimites = L.layerGroup().addTo(mapa);
   // Destaques da lente: camada própria, separada dos pontos da página de registros. A limpeza da
@@ -237,6 +259,7 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       camadaPontos.clearLayers();
       camadaSelecao.clearLayers();
       marcadores.clear();
+      camadaDensidade.clearLayers();
       selecionadoId = null;
       limitesBounds = null;
       pontosBounds = null;
@@ -302,9 +325,35 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     aoSelecionarArea(f) {
       aoSelecionarAreaF = f;
     },
+    definirDensidade(celulas) {
+      camadaDensidade.clearLayers();
+      for (const c of celulas) {
+        L.rectangle(c.retangulo, {
+          pane: 'densidade', renderer: rendererDensidade, interactive: false, stroke: false,
+          fillColor: CORES_DENSIDADE[c.classe] ?? CORES_DENSIDADE[0], fillOpacity: 0.85,
+        }).addTo(camadaDensidade);
+      }
+    },
+    mostrarDensidade(ativo) {
+      if (ativo) camadaDensidade.addTo(mapa);
+      else camadaDensidade.remove();
+    },
+    mostrarPontos(ativo) {
+      for (const c of [camadaPontos, camadaSelecao]) {
+        if (ativo) c.addTo(mapa);
+        else c.remove();
+      }
+    },
+    redimensionar() {
+      mapa.invalidateSize({ pan: false });
+    },
+    focar() {
+      elemento.focus({ preventScroll: true });
+    },
     contagem: () => ({
       pontos: marcadores.size, limites: camadaLimites.getLayers().length, destaques: destaques.size,
       areas: camadaAreas.getLayers().length, contornos: camadaContornos.getLayers().length,
+      densidade: camadaDensidade.getLayers().length,
     }),
   };
 }

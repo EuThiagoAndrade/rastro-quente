@@ -2,7 +2,7 @@
 // disponibilidade D1, texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirBalao, abrirListaFocos, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
+import { abrirBalao, abrirListaFocos, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
 import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -33,7 +33,8 @@ test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', 
   await expect(page.getByRole('heading', { name: 'Detecções no período (dias GMT)' })).toBeVisible();
   await expect(cartaoSerie.locator('#total-principal')).toHaveText('100');
   await expect(cartaoSerie.locator('#sens-total')).toHaveText('102');
-  await expect(cartaoSerie.locator('#serie-corpo svg')).toBeVisible();
+  await expect(cartaoSerie.locator('#serie')).toBeVisible();
+  await expect(cartaoSerie.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.locator('#versao-consultada')).toContainText('Última atualização (publicação)');
 
   // Nenhum registro do envelope aparece na "Lista de focos" (duas páginas locais de 50).
@@ -204,31 +205,50 @@ test('respostas fora de ordem: a última consulta vence', async ({ page }) => {
   await expect(page.locator('#disp-corpo')).toContainText('Município Beta');
 });
 
-test('geometria só sob demanda: um município por vez e o conjunto por pedido', async ({ page }) => {
+test('limites municipais ligados por padrão (T10): o estado inteiro depois do painel, uma vez, sem bloquear a consulta', async ({ page }) => {
   const rest = observarRest(page);
   await entrar(page, 'rp');
   const geometria = () => rest.filter((r) => r.includes('geometria_exibicao'));
-  expect(geometria(), 'a abertura não baixa geometria').toEqual([]);
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'completo');
+  await expect(page.locator('#c-limites')).toBeChecked();
+  await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 3');
+  // Um pedido do estado inteiro, feito depois do resumo da consulta (a abertura não espera a geometria).
+  expect(geometria()).toHaveLength(1);
+  expect(geometria()[0]).not.toContain('codigo=eq.');
+  expect(rest.findIndex((r) => r.includes('rpc/consultar_resumo'))).toBeLessThan(rest.indexOf(geometria()[0]));
+
+  // Município escolhido: já está no conjunto, destacado; nada é baixado de novo.
+  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
+  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
+  await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 3');
+  expect(geometria()).toHaveLength(1);
+
+  // Camada desligada: só o contorno do município escolhido fica; sem município, nenhum.
+  await alternarCamada(page, 'c-limites');
+  await expect(page.locator('#c-limites')).not.toBeChecked();
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'desligado');
+  await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 1');
+  await consultar(page, { municipio: null });
+  await expect(page.locator('#total-principal')).toHaveText('100');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 0');
 
-  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 1');
-  expect(geometria()).toHaveLength(1);
-  expect(geometria()[0]).toContain(`codigo=eq.${MUNICIPIOS.alfa.codigo}`);
-
-  // O mesmo município não é baixado de novo.
-  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo, inicio: '2026-10-05' });
-  await expect(page.locator('#total-principal')).not.toHaveText('');
-  expect(geometria()).toHaveLength(1);
-
-  const botao = page.getByRole('button', { name: 'Mostrar limites municipais' });
-  await botao.click();
+  // Religada: volta da memória, sem novo pedido.
+  await alternarCamada(page, 'c-limites');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'completo');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 3');
-  await expect(botao).toHaveAttribute('aria-pressed', 'true');
-  expect(geometria()).toHaveLength(2);
-  expect(geometria()[1]).not.toContain('codigo=eq.');
-
+  expect(geometria()).toHaveLength(1);
   await expect(page.locator('#mapa-aviso')).toHaveText(AVISO_SIMPLIFICACAO);
+});
+
+test('falha só nos limites: estado de erro próprio, pontos e números continuam', async ({ page }) => {
+  await page.route((u) => u.pathname.endsWith('/rest/v1/municipios') && (u.searchParams.get('select') ?? '').includes('geometria_exibicao'),
+    (route) => route.fulfill({ status: 500, json: { code: 'XX000', message: 'falha' } }));
+  await entrar(page, 'rp');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'erro');
+  await expect(page.locator('#mapa-erro')).toHaveText('Limites municipais indisponíveis agora; os pontos e os números continuam válidos.');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
+  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#c-limites')).not.toBeChecked();
 });
 
 test('seleção na "Lista de focos" e no mapa, com indicador textual', async ({ page }) => {

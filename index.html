@@ -154,12 +154,26 @@
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
           <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
           <div class="flutuante flutuante--ferramentas ferramentas-mapa" role="group" aria-label="Ferramentas do mapa">
-            <button id="botao-limites" type="button" aria-pressed="false">Mostrar limites municipais</button>
             <button id="botao-arrastar" type="button" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
             <button id="botao-enquadrar" type="button">Enquadrar os dados</button>
-            <button id="botao-areas" type="button" aria-pressed="false">Mostrar áreas protegidas</button>
             <button id="botao-lista-focos" type="button" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
           </div>
+          <div class="flutuante flutuante--ampliar">
+            <button id="botao-ampliar" type="button" aria-pressed="false" aria-label="Ampliar mapa" title="Ampliar mapa">
+              <svg class="ic-ampliar" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
+              <svg class="ic-reduzir" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /></svg>
+            </button>
+          </div>
+          <details id="camadas" class="flutuante flutuante--camadas">
+            <summary>Camadas</summary>
+            <fieldset>
+              <legend class="so-leitor">Camadas do mapa</legend>
+              <label class="opcao"><input type="checkbox" id="c-limites" checked /> Limites municipais (IBGE)</label>
+              <label class="opcao"><input type="checkbox" id="c-areas" /> Áreas protegidas</label>
+              <label class="opcao"><input type="checkbox" id="c-pontos" checked /> Detecções individuais</label>
+              <label class="opcao"><input type="checkbox" id="c-densidade" /> Densidade por célula</label>
+            </fieldset>
+          </details>
           <details class="flutuante flutuante--legenda legenda-v13">
             <summary><strong>Legenda</strong></summary>
             <ul class="legenda" aria-label="Legenda do mapa">
@@ -167,6 +181,16 @@
               <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
               <li><span class="legenda__amostra legenda__amostra--destaque" aria-hidden="true"></span> Destacada pela lente (contorno amarelo claro; a lista da lente é a alternativa em texto)</li>
               <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Selecionada (tracejado azul claro)</li>
+              <li id="legenda-densidade" class="legenda-densidade" hidden>
+                <span>Detecções por célula: contagem, não gravidade</span>
+                <span class="escala-densidade">
+                  <span><span class="legenda__amostra legenda__amostra--dens-0" aria-hidden="true"></span>1</span>
+                  <span><span class="legenda__amostra legenda__amostra--dens-1" aria-hidden="true"></span>2–3</span>
+                  <span><span class="legenda__amostra legenda__amostra--dens-2" aria-hidden="true"></span>4–9</span>
+                  <span><span class="legenda__amostra legenda__amostra--dens-3" aria-hidden="true"></span>10–24</span>
+                  <span><span class="legenda__amostra legenda__amostra--dens-4" aria-hidden="true"></span>25 ou mais</span>
+                </span>
+              </li>
             </ul>
           </details>
         </section>
@@ -253,7 +277,7 @@
     <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
       <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
       <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro. As lentes ainda usam todo Mato Grosso no período escolhido. O satélite e as fontes aparecem no topo.</div></div>
-      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro; os limites municipais e as áreas protegidas entram pelos botões do mapa.</div></div>
+      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>

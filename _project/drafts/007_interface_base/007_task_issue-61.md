@@ -2,17 +2,17 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#61`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-61`
 > **PR:** [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66)
-> **Integração:** `Pendente`
+> **Integração:** squash `650bbc7` em `main` (2026-11-15)
 > **Autorização inicial:** "autorizo a implementação da issue #61" em 2026-11-14
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-14
-> **Última atualização:** 2026-11-14
+> **Última atualização:** 2026-11-14 (reconciliada na issue #62)
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -59,7 +59,7 @@ Não se aplica.
 - [x] Testes unitários e E2E.
 - [x] ADR-009 (proposto; aceito no item 3), `DESIGN.md`, runbook e KB-005 atualizados; task da issue #60 reconciliada.
 - [x] Medições M1 e M2; M3, M4 e conferências não executadas por decisão do responsável.
-- [x] PR [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66) aberta; checks remotos e merge pendentes.
+- [x] PR [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66) aberta, checks verdes e integrada por squash (`650bbc7`), conferido no GitHub em 2026-11-14 durante a issue #62.
 
 ## Evidências
 
@@ -75,7 +75,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes na PR #66 (governança, banco e RLS, interface com E2E) |
 
 ## Revisão da correção
 

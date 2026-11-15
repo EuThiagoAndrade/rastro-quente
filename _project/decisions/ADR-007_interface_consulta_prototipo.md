@@ -6,7 +6,7 @@ tags:
   - acessibilidade
 author: "Claude Code (Sonnet 5.5)"
 module: "src"
-last_updated: "2026-11-07"
+last_updated: "2026-11-14"
 origin_cycle: "003"
 ---
 
@@ -15,6 +15,8 @@ origin_cycle: "003"
 ## Status
 
 Aceito. Decisão técnica do item 4 do plano `003` v4 (aprovado em 2026-11-05), implementada na issue #23 sob a autorização literal "autorizo a implementação da issue #23" de 2026-11-07. Vigora com a integração da PR correspondente. Não institui design system nem contrato visual canônico.
+
+**Parcialmente substituído pelo ADR-009** (ciclo `007`, itens 2 e 3): o mapa com a página corrente da tabela de registros, a lente por botão, a memória de lente única e os limites do estado só por pedido deixam de valer. Continuam valendo a pilha estática, a sessão e a consulta sob RLS, as gerações e os estados, a abertura sem geometria e a representação `intermediaria` da carga.
 
 ## Contexto
 

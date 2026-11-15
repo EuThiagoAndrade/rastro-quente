@@ -211,6 +211,36 @@ main {
   }
 }
 
+/* Mapa ampliado (T17): as colunas laterais saem; mapa e cartões do centro ocupam a largura toda. */
+.mapa-ampliado .coluna--lentes,
+.mapa-ampliado .coluna--porque {
+  display: none;
+}
+
+.mapa-ampliado .grade {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.mapa-ampliado .mapa-cartao,
+.mapa-ampliado .rodape-mapa {
+  grid-column: 1;
+}
+
+.mapa-ampliado .mapa-cartao {
+  height: calc(100dvh - 10rem);
+  min-height: 320px;
+}
+
+@media (min-width: 1180px) and (min-height: 700px) {
+  .mapa-ampliado .grade {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .mapa-ampliado .mapa-cartao {
+    height: auto;
+  }
+}
+
 /* Celular: uma coluna, na ordem do percurso. */
 @media (max-width: 760px) {
   .topo {
@@ -260,6 +290,16 @@ main {
   .mapa-cartao {
     order: 1;
     height: 440px;
+  }
+
+  /* Ferramentas abaixo da linha de "Camadas" e do botão de ampliar, sem sobrepor. */
+  .flutuante--ferramentas {
+    top: calc(0.75rem + var(--alvo) + 0.5rem);
+    max-width: calc(100% - 1.5rem);
+  }
+
+  .mapa-ampliado .mapa-cartao {
+    height: calc(100dvh - 7rem);
   }
 
   .rodape-mapa {

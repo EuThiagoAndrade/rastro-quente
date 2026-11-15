@@ -321,22 +321,60 @@ tr.selecionada td {
   overflow-wrap: anywhere;
 }
 
-/* Gráfico de barras diárias. */
-.grafico {
-  display: block;
-  width: 100%;
-  height: 8rem;
-  background: var(--superficie-suave);
-  border-radius: 0.25rem;
+/* Série do período (V13): barras com valor, coluna e rótulo; mês parcial com `*` e coluna mais clara. */
+.serie-nota {
+  margin: 0.2rem 0 0;
+  color: var(--texto-suave);
+  font-size: var(--t-pequeno);
 }
 
-.grafico__barra {
-  fill: var(--barra);
-}
-
-.grafico__eixo {
+.serie {
   display: flex;
-  justify-content: space-between;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 5px;
+  height: 104px;
+  margin-top: 0.5rem;
+}
+
+.serie--dia {
+  gap: 2px;
+}
+
+.serie__barra {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 2px;
+  min-width: 0;
+  max-width: 84px;
+  height: 100%;
+  color: var(--texto-suave);
+  font-size: var(--t-pequeno);
+}
+
+.serie__valor {
+  color: var(--texto);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.serie__coluna {
+  width: 100%;
+  border-radius: 4px 4px 0 0;
+  background: var(--barra);
+}
+
+.serie__barra.parcial .serie__coluna {
+  background: repeating-linear-gradient(45deg, var(--barra) 0 4px, color-mix(in srgb, var(--barra) 45%, var(--superficie)) 4px 7px);
+}
+
+.serie__rotulo {
+  min-height: 1.3em;
+  white-space: nowrap;
 }
 
 /* Em telas estreitas ou com texto ampliado, nenhuma palavra longa deve forçar rolagem horizontal. */
@@ -793,7 +831,8 @@ tr.selecionada td {
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem;
-  max-width: calc(100% - 1.5rem);
+  /* Espaço à direita para "Camadas" e o botão de ampliar. */
+  max-width: calc(100% - 15rem);
   padding: 0.25rem;
 }
 
@@ -835,6 +874,105 @@ tr.selecionada td {
   gap: 0.2rem;
   margin: 0.25rem 0 0;
 }
+
+/* Ampliar mapa e "Camadas" (V13): no alto à direita. */
+.flutuante--ampliar {
+  top: 0.75rem;
+  right: 0.75rem;
+  padding: 0;
+}
+
+.flutuante--ampliar button {
+  display: grid;
+  place-items: center;
+  width: var(--alvo);
+  height: var(--alvo);
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--texto);
+  cursor: pointer;
+}
+
+.flutuante--ampliar .ic-reduzir,
+.mapa-ampliado .flutuante--ampliar .ic-ampliar {
+  display: none;
+}
+
+.mapa-ampliado .flutuante--ampliar .ic-reduzir {
+  display: block;
+}
+
+.flutuante--camadas {
+  /* Aberto, fica por cima da legenda quando o mapa é baixo. */
+  z-index: 510;
+  top: 0.75rem;
+  right: calc(0.75rem + var(--alvo) + 0.5rem);
+  max-width: calc(100% - 1.5rem - var(--alvo) - 0.5rem);
+  padding: 0 0.65rem;
+}
+
+.flutuante--camadas summary {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: var(--alvo);
+  font-weight: 600;
+  list-style: none;
+  cursor: pointer;
+  user-select: none;
+}
+
+.flutuante--camadas summary::-webkit-details-marker {
+  display: none;
+}
+
+.flutuante--camadas summary::before {
+  content: "☷";
+  font-size: 1.1rem;
+}
+
+.flutuante--camadas summary::after {
+  content: "+";
+  margin-left: 0.35rem;
+}
+
+.flutuante--camadas[open] summary::after {
+  content: "−";
+}
+
+.flutuante--camadas fieldset {
+  margin: 0 0 0.4rem;
+  padding: 0;
+  border: 0;
+}
+
+.flutuante--camadas label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-height: var(--alvo);
+  cursor: pointer;
+}
+
+/* Legenda da densidade: frase de domínio e as cinco classes fixas, cada uma com o número escrito. */
+.legenda-densidade {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+}
+
+.escala-densidade {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.6rem;
+}
+
+.legenda__amostra--dens-0 { background: var(--densidade-0); }
+.legenda__amostra--dens-1 { background: var(--densidade-1); }
+.legenda__amostra--dens-2 { background: var(--densidade-2); }
+.legenda__amostra--dens-3 { background: var(--densidade-3); }
+.legenda__amostra--dens-4 { background: var(--densidade-4); }
 
 /* Abaixo do mapa: cartões compactos. */
 .cartao {

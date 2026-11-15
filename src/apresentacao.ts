@@ -5,6 +5,7 @@ import {
   ROTULO_ALCANCE, ROTULO_CLASSE,
 } from './formato.ts';
 import { resumoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
+import { montarSerie, rotuloBarra, type BarraSerie } from './serie.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
 import type { CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, Resumo } from './tipos.ts';
 
@@ -252,38 +253,62 @@ export function renderResumo(r: Resumo, municipioNome: string | null): void {
 
 // --- Série e municípios -----------------------------------------------------------------------------
 
-const SVG = 'http://www.w3.org/2000/svg';
-
+/**
+ * Série do período (T9, T19): barras diárias até 31 dias GMT; mensais acima, só com os dias do período, e o mês
+ * cortado com `*`. Barras como na V13 (valor, coluna e rótulo); `data-total` = soma das barras = `principal.total`.
+ */
 export function renderSerie(r: Resumo): void {
   const corpo = $('serie-corpo');
   limpar(corpo);
-  const dias = r.principal.serie_diaria;
-  const max = Math.max(1, ...dias.map((d) => d.total));
-  const maior = dias.reduce((a, d) => (d.total > a.total ? d : a), dias[0] ?? { dia: '—', total: 0 });
-  const larg = 4;
-  const svg = document.createElementNS(SVG, 'svg');
-  svg.setAttribute('viewBox', `0 0 ${Math.max(1, dias.length) * larg} 100`);
-  svg.setAttribute('preserveAspectRatio', 'none');
-  svg.setAttribute('class', 'grafico');
-  svg.setAttribute('role', 'img');
-  svg.setAttribute('aria-label', `Barras diárias em GMT: ${fmtNumero(r.principal.total)} detecções em ${dias.length} dias; maior dia ${maior.dia} (${fmtNumero(maior.total)}).`);
-  dias.forEach((d, i) => {
-    const hgt = (d.total / max) * 96;
-    const barra = document.createElementNS(SVG, 'rect');
-    barra.setAttribute('x', String(i * larg));
-    barra.setAttribute('width', String(larg - 1));
-    barra.setAttribute('y', String(100 - hgt));
-    barra.setAttribute('height', String(hgt));
-    barra.setAttribute('class', 'grafico__barra');
-    svg.append(barra);
-  });
+  const s = montarSerie(r.periodo.inicio, r.periodo.fim, r.principal.serie_diaria);
+  const mensal = s.unidade === 'mes';
+  const max = Math.max(1, ...s.barras.map((b) => b.total));
+  const n = s.barras.length;
+  const descricao = (b: BarraSerie): string => mensal
+    ? `${rotuloBarra(b)}: ${fmtNumero(b.total)} ${b.total === 1 ? 'detecção' : 'detecções'}${b.parcial ? ' (mês parcial: só os dias do período)' : ''}`
+    : `${b.chave}: ${fmtNumero(b.total)} ${b.total === 1 ? 'detecção' : 'detecções'}`;
+  // Altura pelo CSSOM: a CSP (`style-src 'self'`) bloqueia o atributo `style`.
+  const coluna = (px: number): HTMLElement => {
+    const c = h('span', { class: 'serie__coluna', 'aria-hidden': 'true' });
+    c.style.height = `${px}px`;
+    return c;
+  };
+  // Na diária, o rótulo aparece no primeiro e no último dia e a cada 5 dias, para caber na largura.
+  const comRotulo = (i: number, b: BarraSerie) => mensal || i === 0 || i === n - 1 || Number(b.chave.slice(8, 10)) % 5 === 0;
+  const barras = h('div', {
+    id: 'serie', class: `serie serie--${s.unidade}`, role: 'list', 'aria-label': mensal ? 'Detecções por mês GMT' : 'Detecções por dia GMT',
+    'data-total': String(s.total), 'data-unidade': s.unidade, 'data-barras': String(n),
+  }, ...s.barras.map((b, i) => h('div', {
+    class: `serie__barra${b.parcial ? ' parcial' : ''}`, role: 'listitem', title: descricao(b), 'data-chave': b.chave, 'data-total': String(b.total),
+  },
+  h('span', { class: 'so-leitor' }, descricao(b)),
+  mensal ? h('span', { class: 'serie__valor', 'aria-hidden': 'true' }, b.parcial && b.total === 0 ? '0 no período' : fmtNumero(b.total)) : null,
+  coluna(b.total === 0 ? 0 : Math.max(2, (b.total / max) * 64)),
+  h('span', { class: 'serie__rotulo', 'aria-hidden': 'true' }, comRotulo(i, b) ? `${mensal ? rotuloBarra(b).slice(0, 3) : b.chave.slice(8, 10)}${b.parcial ? '*' : ''}` : ''))));
   corpo.append(
-    h('p', { class: 'ajuda' }, `Detecções por dia GMT (principal, sem o envelope). Maior valor: ${fmtNumero(max)}.`),
-    svg,
-    h('p', { class: 'etiqueta grafico__eixo' }, h('span', {}, dias[0]?.dia ?? ''), h('span', {}, dias.at(-1)?.dia ?? '')),
+    h('p', { class: 'serie-nota' }, mensal ? 'Detecções por mês · GMT · só os meses do período escolhido' : 'Detecções por dia · GMT · períodos de até 31 dias'),
+    barras,
+    h('p', { id: 'serie-legenda', class: 'nota' },
+      `${fmtNumero(s.total)} detecções no período (principal, sem o envelope da sensibilidade). Maior ${mensal ? 'mês' : 'dia'}: ${fmtNumero(max === 1 && s.total === 0 ? 0 : max)}.`,
+      s.temParcial ? ' * mês parcial: só os dias do período.' : ''),
     h('details', { class: 'detalhes' }, h('summary', {}, 'Ver a série como tabela'),
-      tabela('Detecções por dia GMT', ['Dia (GMT)', 'Detecções'], dias.map((d) => [d.dia, fmtNumero(d.total)]), 'Tabela da série diária')),
+      tabela(mensal ? 'Detecções por mês GMT' : 'Detecções por dia GMT', [mensal ? 'Mês (GMT)' : 'Dia (GMT)', 'Detecções'],
+        s.barras.map((b) => [mensal ? `${rotuloBarra(b)}${b.parcial ? ' * (mês parcial)' : ''}` : b.chave, mensal && b.parcial && b.total === 0 ? '0 no período' : fmtNumero(b.total)]),
+        mensal ? 'Tabela da série mensal' : 'Tabela da série diária')),
   );
+}
+
+/** Legenda da densidade (T8): aparece só com a camada ligada; `data-total` = soma das contagens (T19). */
+export function renderLegendaDensidade(visivel: boolean, total: number | null, celulas: number): void {
+  const item = $('legenda-densidade');
+  item.hidden = !visivel;
+  if (total === null) {
+    delete item.dataset['total'];
+    item.dataset['celulas'] = '0';
+  } else {
+    item.dataset['total'] = String(total);
+    item.dataset['celulas'] = String(celulas);
+  }
 }
 
 // --- Disponibilidade --------------------------------------------------------------------------------

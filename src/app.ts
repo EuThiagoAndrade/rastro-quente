@@ -5,7 +5,7 @@
 import {
   $, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
   renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderProveniencia, renderRecorte, renderResumo,
-  renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
+  renderLegendaDensidade, renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
 } from './apresentacao.ts';
 import {
   limparCorpoLente, renderEstadoLente, renderResultadoLente, TITULO_LENTE, type EstadoLente, type ManipuladoresLente,
@@ -52,6 +52,7 @@ import { primeiroDiaGmt, ultimoDiaGmt } from './formato.ts';
 import { periodoDoAtalho, validarPeriodo, type Atalho, type Janela } from './recorte.ts';
 import { fecharDialogos, iniciarTema, ligarDialogo } from './topo.ts';
 import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
+import { densidadePorCelula } from './densidade.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
 import type { CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, Registro, Resumo } from './tipos.ts';
 
@@ -136,6 +137,11 @@ function limitador(intervaloMs: number): () => boolean {
 /** Lentes disponíveis no seletor; cada uma é função pura da mesma entrada. */
 const LENTES = { concentracao, recorrencia, persistencia } as const;
 
+const marcado = (id: string): boolean => $<HTMLInputElement>(id).checked;
+const mapaAmpliado = (): boolean => document.body.classList.contains('mapa-ampliado');
+/** `data-estado-limites` em `#conteudo` (M5, T14): `desligado`, `carregando`, `completo` ou `erro`. */
+const estadoLimites = (e: 'desligado' | 'carregando' | 'completo' | 'erro'): void => { $('conteudo').dataset['estadoLimites'] = e; };
+
 /** Lente marcada nos rádios das seções de lente (Lente de seleção, Contexto territorial, Cruzar critérios). */
 const lenteEscolhida = (): string => document.querySelector<HTMLInputElement>('input[name="l-lente"]:checked')?.value ?? 'nenhuma';
 
@@ -178,7 +184,10 @@ class Controlador {
   private ordemMunicipios: OrdemMunicipios = 'deteccoes';
   private mapa: Mapa | null = null;
   private limites = new Map<number, Limite>();
-  private todosOsLimites = false;
+  /** Camada "Limites municipais" (T10): ligada por padrão; desligada, só o contorno do município escolhido fica. */
+  private todosOsLimites = true;
+  /** Soma das contagens da densidade do recorte aplicado (T19); `null` antes da leitura completa. */
+  private totalDensidade: number | null = null;
   private geracaoSessao = 0;
   private geracaoConsulta = 0;
   // Terceira geração (plano 004, R1-4): cada cálculo de lente, nova janela, troca de versão ou mudança de sessão a
@@ -239,8 +248,16 @@ class Controlador {
     // Configuração da lente (classe, critérios, operador) vale ao mudar e recalcula no mesmo recorte (T16).
     $('lente-combinacao').addEventListener('change', () => { if (lenteEscolhida() === 'combinacao') void this.aplicarLente(); });
     $('lente-sobreposicao').addEventListener('change', () => { if (lenteEscolhida() === 'sobreposicao') void this.aplicarLente(); });
-    $('botao-limites').addEventListener('click', () => void this.alternarLimites());
-    $('botao-areas').addEventListener('click', () => void this.alternarAreas());
+    // Camadas (T8, T10): limites, áreas, detecções individuais e densidade.
+    $('c-limites').addEventListener('change', () => void this.alternarLimites());
+    $('c-areas').addEventListener('change', () => void this.alternarAreas());
+    $('c-pontos').addEventListener('change', () => this.mapa?.mostrarPontos(marcado('c-pontos')));
+    $('c-densidade').addEventListener('change', () => this.mostrarDensidade());
+    // Ampliar mapa (T17): Esc ou o mesmo botão voltam, com o foco no botão.
+    $('botao-ampliar').addEventListener('click', () => this.ampliarMapa(!mapaAmpliado()));
+    document.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Escape' && mapaAmpliado() && !document.querySelector('dialog[open]')) this.ampliarMapa(false);
+    });
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
     $('botao-lista-focos').addEventListener('click', () => this.alternarListaFocos());
     $('botao-fechar-focos').addEventListener('click', () => this.fecharListaFocos());
@@ -388,7 +405,9 @@ class Controlador {
     $('conteudo').dataset['estadoPainel'] = 'carregando';
     this.selecionado = null;
     this.limites.clear();
-    this.todosOsLimites = false;
+    this.todosOsLimites = true;
+    this.totalDensidade = null;
+    this.ampliarMapa(false, false);
     this.mapa?.limparTudo();
     limparResultados();
     renderContagemMapa({ tipo: 'nenhum' }, 0);
@@ -396,7 +415,12 @@ class Controlador {
     renderAvisoMapa([]);
     mostrarErroMapa(null);
     mostrarErroFiltro(null);
-    $('botao-limites').setAttribute('aria-pressed', 'false');
+    // Camadas voltam ao padrão: limites e detecções ligados, densidade desligada.
+    for (const [id, v] of [['c-limites', true], ['c-pontos', true], ['c-densidade', false]] as const) $<HTMLInputElement>(id).checked = v;
+    this.mapa?.mostrarPontos(true);
+    this.mapa?.mostrarDensidade(false);
+    renderLegendaDensidade(false, null, 0);
+    delete $('conteudo').dataset['estadoLimites'];
     // Sessão, acesso ou publicação mudaram: a lente e toda a memória de recortes saem junto (R2-1, T6).
     this.limparLente({ memoria: true, estado: { tipo: 'nenhuma' } });
     this.limparAreas();
@@ -411,6 +435,8 @@ class Controlador {
     this.mapa.aoSelecionar((id) => this.selecionarPonto(id));
     this.mapa.aoSelecionarDestaque((id) => this.selecionarDestaque(id));
     this.mapa.aoSelecionarArea((chave) => this.selecionarAreaDaCamada(chave));
+    this.mapa.mostrarPontos(marcado('c-pontos'));
+    this.mapa.mostrarDensidade(marcado('c-densidade'));
     if (window.matchMedia('(pointer: coarse)').matches) {
       // Em tela de toque, um dedo rola a página; o mapa só arrasta quando o usuário ativa.
       this.mapa.permitirArrastar(false);
@@ -535,6 +561,8 @@ class Controlador {
     this.selecionado = null;
     this.paginaFocos = 0;
     this.mapa?.limparTudo();
+    this.totalDensidade = null;
+    renderLegendaDensidade(marcado('c-densidade'), null, 0);
     renderSelecao(null, null);
     mostrarErroMapa(null);
     renderContagemMapa({ tipo: 'carregando', lidos: 0, total: 0 }, 0);
@@ -560,7 +588,9 @@ class Controlador {
       this.mostrarMunicipios();
       // M1 (T14): filtros, cartão da série e municípios prontos, independentemente de pontos, limites e geometria.
       $('conteudo').dataset['estadoPainel'] = 'pronto';
-      await Promise.all([this.lerPontos(filtro, resumo, atual), this.atualizarLimites(atual)]);
+      // Limites pedidos depois do painel pronto, sem bloquear a consulta nem a lente (T10).
+      void this.atualizarLimites(atual);
+      await this.lerPontos(filtro, resumo, atual);
     } catch (e) {
       if (!atual()) return;
       this.aoFalharConsulta(e);
@@ -596,6 +626,7 @@ class Controlador {
     }
     this.pontos = leitura.registros;
     this.mapa?.definirPontos(leitura.registros);
+    this.desenharDensidade(filtro);
     if (!this.limites.size || !this.mapa?.contagem().limites) this.mapa?.enquadrar();
     this.mostrarEstadoPontos();
     this.mostrarListaFocos();
@@ -850,6 +881,8 @@ class Controlador {
 
   /** Antes de abrir uma explicação: guarda a rolagem da lista e mostra a aba Destaques. */
   private prepararExplicacao(): void {
+    // Abrir um destaque reduz o mapa ampliado, para a explicação aparecer (T17).
+    if (mapaAmpliado()) this.ampliarMapa(false, false);
     if (!explicacaoAberta()) this.rolagemLista = $('resultado').scrollTop;
     abrirAba('destaques');
   }
@@ -1372,20 +1405,19 @@ class Controlador {
     this.areaSelecionada = null;
     this.mapa?.definirAreas([]);
     this.mapa?.definirContornos([]);
-    $('botao-areas').setAttribute('aria-pressed', 'false');
+    $<HTMLInputElement>('c-areas').checked = false;
     renderLegendaAreas(null, []);
     renderAreaSelecionada(null, () => {});
     renderEstadoAreas({ tipo: 'oculta' }, () => {});
   }
 
   private async alternarAreas(): Promise<void> {
-    if ($('botao-areas').getAttribute('aria-pressed') !== 'true') {
+    if (marcado('c-areas')) {
       await this.mostrarAreas();
       return;
     }
     // Ocultar: a visão geral fica na memória para a próxima abertura na mesma carga e sessão.
     this.geracaoAreas++;
-    $('botao-areas').setAttribute('aria-pressed', 'false');
     this.mapa?.definirAreas([]);
     renderLegendaAreas(null, []);
     renderEstadoAreas({ tipo: 'oculta' }, () => {});
@@ -1400,8 +1432,8 @@ class Controlador {
   private async mostrarAreas(): Promise<void> {
     const dados = this.dados;
     if (!dados) return;
-    const botao = $('botao-areas');
-    botao.setAttribute('aria-pressed', 'true');
+    const caixa = $<HTMLInputElement>('c-areas');
+    caixa.checked = true;
     const g = this.geracaoSessao;
     const ga = ++this.geracaoAreas;
     const atual = () => g === this.geracaoSessao && ga === this.geracaoAreas;
@@ -1413,7 +1445,7 @@ class Controlador {
         const lido = await lerAreas(fontesAreas(this.sessao.cliente), dados.carga.id, atual, true);
         if (!lido || !atual()) return;
         if (lido.estado === 'sem_camada') {
-          botao.setAttribute('aria-pressed', 'false');
+          caixa.checked = false;
           renderEstadoAreas({ tipo: 'sem_camada' }, tentar);
           return;
         }
@@ -1421,7 +1453,7 @@ class Controlador {
         this.camadaAreas = camada;
       } catch (e) {
         if (!atual() || this.erroDaLente(e, 'geometria') === 'global') return;
-        botao.setAttribute('aria-pressed', 'false');
+        caixa.checked = false;
         renderEstadoAreas(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' }, tentar);
         return;
       }
@@ -1478,12 +1510,17 @@ class Controlador {
     if (!r || !this.mapa) return;
     const alvo = r.filtro.municipio;
     try {
+      estadoLimites(this.todosOsLimites || alvo !== null ? 'carregando' : 'desligado');
       if (this.todosOsLimites) await this.carregarLimites(null, atual);
       else if (alvo !== null) await this.carregarLimites(alvo, atual);
       if (!atual()) return;
       mostrarErroMapa(null);
     } catch (e) {
       if (!atual()) return;
+      estadoLimites('erro');
+      // A camada fica desligada; religá-la tenta de novo.
+      this.todosOsLimites = false;
+      $<HTMLInputElement>('c-limites').checked = false;
       // Falha só nos limites: os pontos e os números seguem válidos.
       if (e instanceof ErroConsulta && (e.tipo === 'acesso_negado' || e.tipo === 'sessao_expirada')) {
         this.tratarErroGlobal(e);
@@ -1513,25 +1550,64 @@ class Controlador {
     this.mapa.definirLimites(visiveis, alvo);
     this.mapa.enquadrar();
     this.mostrarEstadoPontos();
+    if ($('conteudo').dataset['estadoLimites'] !== 'erro') estadoLimites(this.todosOsLimites ? 'completo' : 'desligado');
+  }
+
+  // --- Densidade e mapa ampliado (T8, T17) ------------------------------------------------------------------
+
+  /** Densidade do recorte aplicado, da mesma leitura completa dos pontos (só registros principais do período). */
+  private desenharDensidade(filtro: Filtro): void {
+    const p = this.pontos;
+    if (!Array.isArray(p)) return;
+    const d = densidadePorCelula(p, filtro.inicio, filtro.fim);
+    this.mapa?.definirDensidade(d.celulas.map((c) => ({
+      retangulo: [[Number(c.celula.sul), Number(c.celula.oeste)], [Number(c.celula.norte), Number(c.celula.leste)]], classe: c.classe,
+    })));
+    this.totalDensidade = d.total;
+    renderLegendaDensidade(marcado('c-densidade'), d.total, d.celulas.length);
+  }
+
+  private mostrarDensidade(): void {
+    const ativo = marcado('c-densidade');
+    this.mapa?.mostrarDensidade(ativo);
+    renderLegendaDensidade(ativo, this.totalDensidade, this.mapa?.contagem().densidade ?? 0);
+  }
+
+  /** Mapa ampliado: as colunas laterais saem; o foco vai para o mapa e, ao voltar, para o botão. */
+  private ampliarMapa(ligar: boolean, focar = true): void {
+    const antes = mapaAmpliado();
+    document.body.classList.toggle('mapa-ampliado', ligar);
+    const b = $('botao-ampliar');
+    const rotulo = ligar ? 'Reduzir mapa' : 'Ampliar mapa';
+    b.setAttribute('aria-pressed', String(ligar));
+    b.setAttribute('aria-label', rotulo);
+    b.title = ligar ? `${rotulo} (Esc)` : rotulo;
+    this.mapa?.redimensionar();
+    if (!focar || antes === ligar) return;
+    if (ligar) this.mapa?.focar();
+    else b.focus();
   }
 
   private async alternarLimites(): Promise<void> {
-    const botao = $('botao-limites');
-    const ativar = botao.getAttribute('aria-pressed') !== 'true';
+    const caixa = $<HTMLInputElement>('c-limites');
+    const ativar = caixa.checked;
     const g = this.geracaoSessao;
     const c = this.geracaoConsulta;
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
     this.todosOsLimites = ativar;
-    botao.setAttribute('aria-pressed', String(ativar));
     if (!this.resultado) return;
     try {
-      if (ativar) await this.carregarLimites(null, atual);
+      if (ativar) {
+        estadoLimites('carregando');
+        await this.carregarLimites(null, atual);
+      }
       if (!atual()) return;
       mostrarErroMapa(null);
     } catch (e) {
       if (!atual()) return;
       this.todosOsLimites = false;
-      botao.setAttribute('aria-pressed', 'false');
+      caixa.checked = false;
+      estadoLimites('erro');
       if (e instanceof ErroConsulta && (e.tipo === 'acesso_negado' || e.tipo === 'sessao_expirada')) {
         this.tratarErroGlobal(e);
         return;

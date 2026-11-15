@@ -1,5 +1,5 @@
 ---
-title: "Interface base: leitura completa do recorte, memória de recortes, lente ao escolher e saída da tabela de registros"
+title: "Interface base: leitura completa do recorte, memória de recortes, lente ao escolher, saída da tabela de registros e centro da tela"
 tags:
   - arquitetura
   - interface
@@ -10,11 +10,11 @@ last_updated: "2026-11-14"
 origin_cycle: "007"
 ---
 
-# ADR-009: Interface base — leitura completa do recorte, memória de recortes, lente ao escolher e saída da tabela de registros
+# ADR-009: Interface base — leitura completa do recorte, memória de recortes, lente ao escolher, saída da tabela de registros e centro da tela
 
 ## Status
 
-Proposto. Criado no item 2 do plano `007` v4 (aprovado em 2026-11-14), issue #61, sob a autorização literal "autorizo a implementação da issue #61" de 2026-11-14, com as decisões desse item (T6, T7, T16 e T21, ratificadas na aprovação do plano). O item 3 (issue #62) complementa este ADR com pontos e limites, marca o ADR-007 como parcialmente substituído e o aceita na sua PR. Até lá, o ADR-007 continua valendo em tudo o que este documento não revisa.
+Aceito. Criado no item 2 do plano `007` v4 (aprovado em 2026-11-14), issue #61, sob a autorização literal "autorizo a implementação da issue #61" de 2026-11-14, com as decisões desse item (T6, T7, T16 e T21, ratificadas na aprovação do plano). Completado e aceito no item 3, issue #62, sob a autorização literal "autorizo a implementação da issue #62" de 2026-11-14, com as decisões T8 a T10, T17 e T19 e o desvio de A7 decidido pelo responsável (limites em `intermediaria`). Vigora com a integração da PR da issue #62. Substitui parcialmente o ADR-007, que continua valendo em tudo o que este documento não revisa.
 
 ## Contexto
 
@@ -30,6 +30,14 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 
 **Coluna de resultado (T11, T15).** Abas **Destaques · N** e **Municípios**, no padrão de abas acessível (setas, Home e End). A tela abre em Municípios; escolher uma lente leva a Destaques. Destaques mostra o resumo da lente, a lista (células, ou municípios na concentração, com a ressalva de contagem absoluta junto do resultado), parâmetros e limitações; selecionar um item, na lista ou no mapa, abre a explicação na mesma aba — ficha, critérios (na combinação, quais lentes e o efeito do operador), motivo, evidência, disponibilidade, ressalvas, as detecções que sustentam o destaque (recolhíveis) e metadados — com "← Voltar aos destaques", que devolve a rolagem e o foco ao item. O estado da lente (com "Tentar de novo") fica acima das duas vistas. Municípios mostra a lista estadual ordenável por detecções, destaques da lente e nome (uma célula destacada conta em cada município com detecção nela; com a concentração, os destacados primeiro, na ordem do resultado) ou, com município escolhido, o cartão com focos, dias com foco, células com foco e células destacadas ("—" com "lente calculada em todo Mato Grosso" até o item 4; sem a linha na concentração).
 
+**Limites municipais ligados por padrão (A7, T10), com desvio decidido pelo responsável.** A abertura continua sem geometria: os limites do estado são pedidos depois de `data-estado-painel="pronto"`, uma vez por sessão e carga, sem bloquear a consulta nem a lente; o fim é `data-estado-limites="completo"` (M5). A representação é a `intermediaria`, a única que a carga publicada guarda (`municipios.geometria_exibicao`): o plano previa `minima` para o estado, mas isso exigiria geometria fora do banco ou migração, e o responsável escolheu "Usar a intermediaria" em 2026-11-14. O município escolhido aparece com contorno destacado sobre o conjunto. A camada desliga em "Camadas"; desligada, só o contorno do município escolhido fica. Falha só nos limites desliga a camada, mostra o aviso próprio (`data-estado-limites="erro"`) e não toca pontos nem números; religar tenta de novo.
+
+**Camadas e mapa ampliado (T17).** Os botões de limites e de áreas viram o menu "Camadas" da V13: limites municipais (ligada), áreas protegidas (desligada e sob demanda, como no plano 006), detecções individuais (ligada) e densidade por célula (desligada). O botão de ampliar, no alto à direita, esconde as colunas laterais e leva o foco ao mapa; Esc ou o mesmo botão voltam, com o foco no botão; abrir a explicação de um destaque volta sozinho, para a explicação aparecer.
+
+**Densidade por célula (A9, T8, T19).** Contagem dos registros principais do recorte aplicado por célula T1 (0,05°), calculada da mesma leitura completa dos pontos, em cinco classes fixas (1 · 2–3 · 4–9 · 10–24 · 25 ou mais), iguais em qualquer filtro. Desenhada em painel e canvas próprios, abaixo de limites, destaques e pontos, sem interação. A legenda diz "Detecções por célula: contagem, não gravidade" e escreve o número de cada classe; o atributo `data-total` da legenda é a soma das contagens, igual a `principal.total`. Não entra em lente, ordenação nem explicação.
+
+**Série do período (A6, T9, T19).** Barras diárias de `serie_diaria` em períodos de até 31 dias GMT; acima disso, uma barra por mês tocado, somando só os dias do período. Mês cortado pelo período leva `*`, coluna hachurada e a nota "* mês parcial: só os dias do período."; mês parcial sem detecção mostra "0 no período", e zero nunca é apresentado como lacuna (a disponibilidade fica no cartão próprio). O envelope da sensibilidade nunca entra; `data-total` da série é igual a `principal.total`. A tabela "Ver a série como tabela" continua como alternativa em texto.
+
 **Saída da tabela de registros e "Lista de focos" (A5, T21).** A tabela paginada sai na mesma PR em que chegam todos os pontos. O botão "Lista de focos", no grupo de ferramentas do mapa, abre abaixo do mapa (decisão do responsável), sem cobri-lo, a lista textual dos registros principais do recorte, lida da leitura completa (sem nova consulta): dia e hora GMT, município, latitude, longitude e identificador, na ordem por dia e hora, em páginas locais de 50. Cada linha é um botão: Enter ou Espaço marca o ponto com o anel de seleção e anuncia o registro na região de status; Esc ou "Fechar" devolvem o foco ao botão. Tocar num ponto abre um balão com todos os registros daquela coordenada; o balão traz também a posição na borda, a divergência do INPE e o ID da fonte, que eram colunas da tabela.
 
 ## Consequências
@@ -40,6 +48,7 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 - Trocar de lente no mesmo recorte não relê páginas (só o resumo); com Todo Mato Grosso, nem a primeira lente relê.
 - Os registros crus continuam alcançáveis por teclado e leitor de tela, sem lente, pela "Lista de focos".
 - Cada destaque tem uma explicação única, com o caminho de volta ao mesmo ponto da lista.
+- Os limites aparecem sem pedido, sem atrasar o painel; densidade e série mostram o recorte com somas conferíveis em tela (`data-total`).
 
 ### Trade-offs
 
@@ -47,6 +56,7 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 - Com município escolhido, a primeira lente ainda lê as páginas do estado (até o item 4).
 - A memória guarda até 3 leituras completas na página; sai com a sessão, o acesso ou a versão.
 - Posição na borda, divergência do INPE e ID da fonte passam a aparecer só no balão do ponto.
+- Limites em `intermediaria`: cerca de 984 KB brutos e 5,3 s no perfil de celular do ADR-007, baixados em segundo plano a cada nova sessão (a `minima` custaria 237 KB e 1,6 s). M1 e M5 não foram medidas nesta entrega, por decisão do responsável.
 
 ## Alternativas consideradas
 
@@ -54,10 +64,13 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 - **Tabela fixa abaixo do mapa**: rejeitada em A5; a lista sob demanda (T21) é o painel opcional previsto ali.
 - **Lista de focos em diálogo modal**: rejeitada pelo responsável, porque esconderia o mapa e o anel de seleção.
 - **Memória em armazenamento do navegador**: rejeitada (ADR-007, G3); só variáveis da página.
+- **Limites `minima` por arquivo estático do IBGE**: rejeitada pelo responsável; tiraria a geometria do banco, da carga e da RLS.
+- **Coluna `minima` no banco**: exigiria migração, que o plano não prevê; ficaria para outro ciclo.
+- **Densidade com cor relativa ao máximo do recorte** (como na V13): rejeitada em T8; a mesma cor deve significar o mesmo número em qualquer filtro.
 
 ## Referências
 
-- Plano `_project/drafts/007_interface_base/007_plan.md` (v4): A3 a A5, T6, T7, T11, T14 a T16 e T21; casos CM-1, CM-2, CM-5, CM-6, PG-1 e LF-1.
+- Plano `_project/drafts/007_interface_base/007_plan.md` (v4): A3 a A7, A9, T6 a T11, T14 a T17, T19 e T21; casos CM-1, CM-2, CM-5, CM-6, PG-1, LF-1, DS-1, DS-2 e SR-1 a SR-4.
 - ADR-007 (interface do protótipo), revisado por este ADR nos pontos acima.
-- Task `_project/drafts/007_interface_base/007_task_issue-61.md`.
+- Tasks `_project/drafts/007_interface_base/007_task_issue-61.md` e `007_task_issue-62.md`.
 - `DESIGN.md` (contrato visual).
