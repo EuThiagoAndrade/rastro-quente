@@ -7,7 +7,7 @@
 > **Issue:** `— (encerramento documental, sem issue própria)`
 > **Plano:** `_project/executed/007_interface_base/007_plan.md`
 > **Branch:** `chore/cycle-007-closure`
-> **PR:** —
+> **PR:** [#74](https://github.com/EuThiagoAndrade/rastro-quente/pull/74)
 > **Integração:** `Pendente`
 > **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** encerramento previsto na aprovação humana do plano v4 ("aprovo o plano do ciclo 007", 2026-11-14); "concluí a ação externa da issue #64 e autorizo a verificação em produção do ciclo 007" e "Sim, encerre" em 2026-11-15
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Mover plano e tasks para `_project/executed/007_interface_base/` e aplicar o encerramento prospectivo.
 - [x] Atualizar `cycles.md`, README, KB-003 e os caminhos em ADR-009, ADR-010 e KB-005. A ideação mantém o caminho histórico.
 - [x] Executar o validador de governança e `git diff --check`; revisar diff e privacidade.
-- [x] Publicar a PR de encerramento.
+- [x] Publicar a PR de encerramento ([PR #74](https://github.com/EuThiagoAndrade/rastro-quente/pull/74)).
 
 ## Evidências
 
