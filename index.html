@@ -117,7 +117,7 @@
               <span class="descricao">Quadrados com focos dentro da classe de área escolhida abaixo.</span>
               <fieldset id="lente-sobreposicao" class="sub" hidden>
                 <legend class="so-leitor">Classe de área protegida</legend>
-                <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral</label>
+                <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" checked /> Proteção integral</label>
                 <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável</label>
                 <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
                 <p class="nota">Uma classe por vez; a ordem não indica prioridade. Estar dentro de uma área protegida não indica infração, autoria nem situação fundiária.</p>
@@ -134,8 +134,8 @@
               <div id="lente-combinacao" class="sub" hidden>
                 <fieldset class="sub__grupo">
                   <legend class="so-leitor">Lentes a combinar</legend>
-                  <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" /> Concentração</label>
-                  <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" /> Recorrência</label>
+                  <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" checked /> Concentração</label>
+                  <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" checked /> Recorrência</label>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
                 </fieldset>
                 <fieldset class="sub__grupo">
@@ -147,23 +147,18 @@
               </div>
             </div>
           </details>
-
-          <div class="acoes acoes--lente">
-            <button id="botao-lente" type="button" class="botao botao--primario">Aplicar lente</button>
-          </div>
-          <p id="lente-validacao" class="erro-campo" role="alert" hidden></p>
-          <p id="lente-aviso-config" class="aviso-estado" role="status" hidden>A configuração escolhida mudou; aplique de novo para atualizar.</p>
         </section>
 
         <!-- Centro: onde (mapa). -->
         <section class="mapa-cartao" aria-labelledby="t-mapa">
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
-          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A tabela de registros é a alternativa em texto." tabindex="-1"></div>
+          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
           <div class="flutuante flutuante--ferramentas ferramentas-mapa" role="group" aria-label="Ferramentas do mapa">
             <button id="botao-limites" type="button" aria-pressed="false">Mostrar limites municipais</button>
             <button id="botao-arrastar" type="button" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
             <button id="botao-enquadrar" type="button">Enquadrar os dados</button>
             <button id="botao-areas" type="button" aria-pressed="false">Mostrar áreas protegidas</button>
+            <button id="botao-lista-focos" type="button" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
           </div>
           <details class="flutuante flutuante--legenda legenda-v13">
             <summary><strong>Legenda</strong></summary>
@@ -179,6 +174,13 @@
         <!-- Centro, abaixo do mapa: estado, série e disponibilidade (e, até o item 2, os registros). -->
         <div class="rodape-mapa">
           <div id="estado-consulta" role="status"></div>
+          <section id="lista-focos" class="cartao lista-focos" aria-labelledby="t-lista-focos" hidden>
+            <div class="lista-focos__cabeca">
+              <h2 id="t-lista-focos" class="rotulo-secao" tabindex="-1">Lista de focos</h2>
+              <button id="botao-fechar-focos" type="button" class="botao botao--secundario botao--compacto">Fechar</button>
+            </div>
+            <div id="lista-focos-corpo"></div>
+          </section>
           <section class="cartao" aria-labelledby="t-no-mapa">
             <h2 id="t-no-mapa" class="rotulo-secao">No mapa</h2>
             <p id="mapa-contagem" class="nota" role="status"></p>
@@ -200,22 +202,34 @@
             <h2 id="t-disp" class="rotulo-secao">Disponibilidade dos dados</h2>
             <div id="disp-corpo"></div>
           </section>
-          <section class="cartao" aria-labelledby="t-registros">
-            <h2 id="t-registros" class="rotulo-secao">Registros de detecção</h2>
-            <div id="registros-corpo"></div>
-          </section>
         </div>
 
-        <!-- Direita: a resposta. -->
-        <aside id="resultado" class="coluna coluna--porque porque" aria-labelledby="t-resultado">
-          <h2 id="t-resultado" class="so-leitor">Resultado</h2>
-          <section id="cartao-lentes" class="bloco-resultado" aria-labelledby="t-lentes" data-estado-lente="nenhuma">
-            <h3 id="t-lentes" class="bloco-resultado__titulo">Lente</h3>
+        <!-- Direita: a resposta, em duas abas (Destaques e Municípios). -->
+        <aside id="resultado" class="coluna coluna--porque porque" aria-label="Resultado">
+          <div class="abas" role="tablist" aria-label="Resultado">
+            <button type="button" role="tab" id="aba-destaques" aria-selected="false" aria-controls="cartao-lentes" tabindex="-1">Destaques</button>
+            <button type="button" role="tab" id="aba-municipios" aria-selected="true" aria-controls="painel-municipios">Municípios</button>
+          </div>
+          <section id="cartao-lentes" class="painel-aba" role="tabpanel" aria-labelledby="aba-destaques" data-estado-lente="nenhuma" hidden>
             <div id="lente-estado" role="status"></div>
-            <div id="lente-corpo"></div>
+            <div id="vista-lista" class="vista">
+              <h2 id="t-destaques" tabindex="-1">Destaques</h2>
+              <div id="resumo-lente" class="resumo-lente" hidden></div>
+              <div id="lente-corpo"></div>
+              <div id="lente-vazio" class="vazio">
+                <div class="grande" aria-hidden="true">🛰️</div>
+                <p>Escolha uma lente na coluna da esquerda. Os destaques aparecem aqui e no mapa.</p>
+              </div>
+            </div>
+            <div id="vista-explicacao" class="vista" hidden>
+              <button type="button" class="botao-voltar" id="botao-voltar"><span aria-hidden="true">←</span> Voltar aos destaques</button>
+              <h2 id="t-explicacao">Por que este destaque?</h2>
+              <p class="nota">Motivo, evidência, disponibilidade e ressalvas, juntos.</p>
+              <div id="lente-explicacao"></div>
+            </div>
           </section>
-          <section class="bloco-resultado" aria-labelledby="t-municipios">
-            <h3 id="t-municipios" class="bloco-resultado__titulo">Municípios no período</h3>
+          <section id="painel-municipios" class="painel-aba" role="tabpanel" aria-labelledby="aba-municipios">
+            <h2 id="t-municipios" tabindex="-1">Municípios no período</h2>
             <div id="municipios-corpo"></div>
           </section>
         </aside>
@@ -239,9 +253,9 @@
     <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
       <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
       <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro. As lentes ainda usam todo Mato Grosso no período escolhido. O satélite e as fontes aparecem no topo.</div></div>
-      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Os limites municipais e as áreas protegidas entram pelos botões do mapa.</div></div>
-      <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente e aplique. Os destaques ganham contorno amarelo; selecione um para ver motivo, evidência e ressalvas.</div></div>
-      <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> Os registros, a disponibilidade e a proveniência completa (no ícone de dados do topo) sustentam cada número.</div></div>
+      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro; os limites municipais e as áreas protegidas entram pelos botões do mapa.</div></div>
+      <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
+      <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
     </dialog>

@@ -2,12 +2,11 @@
 // URLs) entra por textContent, nunca como marcação. Sem dados ilustrativos: sem dado, só estado vazio.
 import {
   AVISO_SIMPLIFICACAO, fmtBytes, fmtDataHoraGmt, fmtDiferenca, fmtIntervaloGmt, fmtNumero, humanizar,
-  ROTULO_ALCANCE, ROTULO_CLASSE, ROTULO_DIVERGENCIA,
+  ROTULO_ALCANCE, ROTULO_CLASSE,
 } from './formato.ts';
 import { resumoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
-import type {
-  CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, PaginaDeteccoes, Registro, Resumo,
-} from './tipos.ts';
+import type { RegistroLente } from './lentes/contrato.ts';
+import type { CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, Resumo } from './tipos.ts';
 
 type Filho = Node | string | null | undefined | false;
 
@@ -245,7 +244,7 @@ export function renderResumo(r: Resumo, municipioNome: string | null): void {
       numeroCartao('Total principal — GMT', 'total-principal', fmtNumero(r.principal.total),
         h('span', { id: 'principal-intervalo' }, `Intervalo (GMT): ${fmtIntervaloGmt(r.principal.intervalo.inicio, r.principal.intervalo.fim)}`)),
       sensib),
-    h('p', { class: 'ajuda' }, 'A sensibilidade é um campo separado: registros além do fim do período GMT entram só nela e não aparecem no mapa, na tabela, na série nem no total principal.'),
+    h('p', { class: 'ajuda' }, 'A sensibilidade é um campo separado: registros além do fim do período GMT entram só nela e não aparecem no mapa, na lista de focos, na série nem no total principal.'),
     h('p', { id: 'versao-consultada', class: 'ajuda' },
       `Versão consultada: carga nº ${r.carga.id} · ${r.carga.satelite} · janela ${fmtIntervaloGmt(r.carga.janela_gmt.inicio, r.carga.janela_gmt.fim)} · Última atualização (publicação): ${fmtDataHoraGmt(r.carga.publicada_em)}`),
   );
@@ -287,24 +286,6 @@ export function renderSerie(r: Resumo): void {
   );
 }
 
-export function renderMunicipios(r: Resumo, catalogo: MunicipioItem[], aoEscolher: (codigo: number) => void): void {
-  const corpo = $('municipios-corpo');
-  limpar(corpo);
-  const totais = new Map(r.principal.por_municipio.map((m) => [m.codigo, m.total]));
-  const filtrado = r.municipio !== null;
-  corpo.append(h('p', { class: 'ajuda' }, filtrado
-    ? 'Município selecionado. Escolha "Todo o estado" nos filtros para ver os totais de todos. Lista em ordem alfabética, sem ranking.'
-    : 'Lista em ordem alfabética, sem ranking ambiental. Toque no nome para consultar o município.'));
-  const lista = h('ul', { class: 'municipios', id: 'lista-municipios' });
-  for (const m of catalogo) {
-    const total = totais.get(m.codigo);
-    const b = h('button', { type: 'button', class: 'botao-nome', 'data-codigo': String(m.codigo), 'aria-pressed': String(r.municipio === m.codigo) }, m.nome);
-    b.addEventListener('click', () => aoEscolher(m.codigo));
-    lista.append(h('li', {}, b, h('span', { class: 'etiqueta' }, total === undefined ? 'Detecções no período (GMT): —' : `Detecções no período (GMT): ${fmtNumero(total)}`)));
-  }
-  corpo.append(h('details', { class: 'detalhes', open: !filtrado ? false : undefined }, h('summary', {}, `Ver os ${catalogo.length} municípios`), lista));
-}
-
 // --- Disponibilidade --------------------------------------------------------------------------------
 
 const CLASSES: ClasseDisponibilidade[] = ['lacuna_conhecida', 'incidencia_indeterminada', 'sem_evidencia_de_lacuna'];
@@ -339,80 +320,6 @@ export function renderDisponibilidade(d: Disponibilidade, nomeMunicipio: string 
   }
 }
 
-// --- Registros --------------------------------------------------------------------------------------
-
-export interface ManipuladoresRegistros {
-  pagina(deslocamento: number): void;
-  tamanho(limite: number): void;
-  selecionar(id: string): void;
-}
-
-export interface PainelRegistros {
-  atualizar(p: PaginaDeteccoes | null, nomes: Map<number, string>, selecionado: string | null): void;
-  limite(): number;
-  marcarSelecao(id: string | null): void;
-}
-
-export function criarPainelRegistros(m: ManipuladoresRegistros): PainelRegistros {
-  const corpo = $('registros-corpo');
-  limpar(corpo);
-  const tamanho = h('select', { id: 'f-tamanho' },
-    ...[50, 100, 500, 1000].map((n) => h('option', { value: String(n), selected: n === 100 ? true : undefined }, String(n))));
-  const info = h('p', { id: 'registros-info', class: 'ajuda', role: 'status' });
-  const anterior = h('button', { type: 'button', id: 'pagina-anterior', class: 'botao botao--secundario' }, 'Página anterior');
-  const proxima = h('button', { type: 'button', id: 'pagina-proxima', class: 'botao botao--secundario' }, 'Próxima página');
-  const tab = h('div', { id: 'registros-tabela' });
-  corpo.append(
-    h('div', { class: 'campo campo--curto' }, h('label', { for: 'f-tamanho' }, 'Registros por página'), tamanho),
-    info, tab,
-    h('div', { class: 'acoes' }, anterior, proxima));
-  let atual: PaginaDeteccoes | null = null;
-  tamanho.addEventListener('change', () => m.tamanho(Number(tamanho.value)));
-  anterior.addEventListener('click', () => { if (atual) m.pagina(Math.max(0, atual.deslocamento - atual.limite)); });
-  proxima.addEventListener('click', () => { if (atual) m.pagina(atual.deslocamento + atual.limite); });
-
-  function linha(r: Registro, nomes: Map<number, string>, selecionado: string | null): Filho[] {
-    const b = h('button', { type: 'button', class: 'botao botao--secundario botao--compacto', 'data-id': r.id_tecnico, 'aria-pressed': String(r.id_tecnico === selecionado) },
-      r.id_tecnico === selecionado ? 'Selecionada' : 'Ver no mapa');
-    b.addEventListener('click', () => m.selecionar(r.id_tecnico));
-    return [
-      b, fmtDataHoraGmt(r.data_hora_gmt), nomes.get(r.municipio_codigo) ?? String(r.municipio_codigo),
-      r.latitude.toFixed(5), r.longitude.toFixed(5), r.posicao === 'borda' ? 'Na borda' : 'Interior',
-      r.divergencia_inpe ? (ROTULO_DIVERGENCIA[r.divergencia_inpe] ?? r.divergencia_inpe) : 'Sem divergência',
-      r.id_fonte ?? 'sem id na fonte',
-    ];
-  }
-
-  return {
-    limite: () => Number(tamanho.value),
-    atualizar(p, nomes, selecionado) {
-      atual = p;
-      limpar(tab);
-      anterior.disabled = !p || p.deslocamento === 0;
-      proxima.disabled = !p || p.deslocamento + p.limite >= p.total;
-      if (!p) {
-        info.textContent = '';
-        return;
-      }
-      const de = p.total === 0 ? 0 : p.deslocamento + 1;
-      const ate = p.deslocamento + p.registros.length;
-      info.textContent = `Mostrando ${fmtNumero(de)}–${fmtNumero(ate)} de ${fmtNumero(p.total)} registros (todos os registros do período estão nas páginas; o mapa mostra esta mesma página).`;
-      if (p.registros.length) {
-        tab.append(tabela('Registros de detecção da página', ['Mapa', 'Data e hora (GMT)', 'Município', 'Latitude', 'Longitude', 'Posição', 'Divergência INPE', 'ID da fonte'],
-          p.registros.map((r) => linha(r, nomes, selecionado)), 'Tabela de registros de detecção'));
-      }
-    },
-    marcarSelecao(id) {
-      for (const b of tab.querySelectorAll<HTMLButtonElement>('button[data-id]')) {
-        const ativo = b.dataset['id'] === id;
-        b.setAttribute('aria-pressed', String(ativo));
-        b.textContent = ativo ? 'Selecionada' : 'Ver no mapa';
-        b.closest('tr')?.classList.toggle('selecionada', ativo);
-      }
-    },
-  };
-}
-
 // --- Mapa (textos de apoio) ---------------------------------------------------------------------------
 
 export function renderAvisoMapa(malhas: Malha[]): void {
@@ -423,15 +330,25 @@ export function renderAvisoMapa(malhas: Malha[]): void {
   e.textContent = simplificado ? AVISO_SIMPLIFICACAO : '';
 }
 
-export function renderContagemMapa(mostrados: number, total: number | null, limites: number): void {
-  $('mapa-contagem').textContent = total === null
-    ? 'Sem consulta.'
-    : `Pontos no mapa: ${fmtNumero(mostrados)} de ${fmtNumero(total)} detecções do período${mostrados < total ? ' (visualização parcial: use a paginação ou um recorte menor)' : ''}. Limites municipais carregados: ${fmtNumero(limites)}.`;
+/** Pontos no mapa (T7): todos os do recorte, depois da leitura completa; nunca parcial. */
+export type EstadoPontos =
+  | { tipo: 'nenhum' }
+  | { tipo: 'carregando'; lidos: number; total: number }
+  | { tipo: 'completo'; total: number }
+  | { tipo: 'erro' };
+
+export function renderContagemMapa(e: EstadoPontos, limites: number): void {
+  $('conteudo').dataset['estadoPontos'] = e.tipo;
+  const lim = ` Limites municipais carregados: ${fmtNumero(limites)}.`;
+  $('mapa-contagem').textContent = e.tipo === 'nenhum' ? 'Sem consulta.'
+    : e.tipo === 'carregando' ? `Carregando os pontos do recorte: ${fmtNumero(e.lidos)} de ${fmtNumero(e.total)} detecções…${lim}`
+      : e.tipo === 'erro' ? `Pontos indisponíveis: a leitura dos registros do recorte falhou e nenhum ponto foi desenhado pela metade.${lim}`
+        : `Pontos no mapa: todas as ${fmtNumero(e.total)} detecções do recorte.${lim}`;
 }
 
-export function renderSelecao(r: Registro | null, nome: string | null): void {
+export function renderSelecao(r: RegistroLente | null, nome: string | null): void {
   $('mapa-selecao').textContent = r
-    ? `Selecionada: ${r.id_fonte ?? 'sem id na fonte'} · ${fmtDataHoraGmt(r.data_hora_gmt)} · ${nome ?? r.municipio_codigo} · ${r.latitude.toFixed(5)}, ${r.longitude.toFixed(5)}`
+    ? `Selecionado: ${fmtDataHoraGmt(r.data_hora_gmt)} · ${nome ?? r.municipio_codigo} · ${r.latitude.toFixed(5)}, ${r.longitude.toFixed(5)} · identificador ${r.id_tecnico}`
     : '';
 }
 
@@ -490,11 +407,10 @@ export function renderProveniencia(c: CargaDetalhe, fontes: Fonte[], malhas: Mal
 }
 
 export function limparResultados(): void {
-  for (const id of ['resumo-corpo', 'serie-corpo', 'disp-corpo', 'municipios-corpo', 'estado-consulta', 'registros-tabela']) {
+  for (const id of ['resumo-corpo', 'serie-corpo', 'disp-corpo', 'municipios-corpo', 'estado-consulta', 'lista-focos-corpo']) {
     const e = document.getElementById(id);
     if (e) limpar(e);
   }
-  $('registros-info').textContent = '';
   $('mapa-contagem').textContent = '';
   $('mapa-selecao').textContent = '';
   for (const id of ['f-municipio']) $<HTMLSelectElement>(id).replaceChildren();

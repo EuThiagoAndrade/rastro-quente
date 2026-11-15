@@ -12,6 +12,12 @@
 // Ciclo 007, issue #60 — cenário M1 ("abertura", plano 007, T14): sessão já guardada, contexto novo; da recarga da
 // página até `data-estado-painel="pronto"` (filtros, série e municípios prontos). 5 execuções válidas por passagem,
 // mediana comprimida ≤ 5 s. Só ele: `npm run medir:lentes -- abertura`.
+// Ciclo 007, issue #61 — a lente é calculada ao escolher (sem botão) e a consulta lê o recorte inteiro (T7).
+// M3 (configurações "frias"): contexto novo, rede e CPU limitadas desde o login; a configuração é marcada e a lente
+// escolhida assim que o painel fica pronto, com a leitura completa da consulta ainda em curso (a lente espera por ela,
+// sem ler de novo). Início: escolha da lente; fim: o estado final da lente. M2 (`troca`): mesma página e recorte
+// estadual, depois da leitura completa e da persistência; da escolha da recorrência ao estado final, ≤ 3 s. M4
+// (`pontos`): recarga com a sessão guardada; do painel pronto a `data-estado-pontos="completo"`, ≤ 20 s.
 import { spawn, spawnSync } from 'node:child_process';
 import http from 'node:http';
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -33,6 +39,8 @@ const VALIDAS = 3;
 const MAX_TENTATIVAS = 6;
 const ORCAMENTO = { segundosComprimida: 20.0, bytesBrutos: 10_000_000 };
 const ABERTURA = { validas: 5, segundosComprimida: 5.0 };
+const TROCA = { validas: 5, segundosComprimida: 3.0 };
+const PONTOS = { validas: 5, segundosComprimida: 20.0 };
 const LENTES = ['concentracao', 'recorrencia', 'persistencia'];
 const PARES_E_TRES = [['concentracao', 'recorrencia'], ['concentracao', 'persistencia'], ['recorrencia', 'persistencia'], LENTES];
 const CLASSES = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
@@ -43,6 +51,8 @@ const CLASSES = ['protecao_integral', 'uso_sustentavel', 'terra_indigena'];
  */
 const TODAS = [
   { nome: 'abertura', abertura: true },
+  { nome: 'troca', troca: true },
+  { nome: 'pontos', pontos: true },
   ...LENTES.map((l) => ({ nome: l, lente: l })),
   ...PARES_E_TRES.flatMap((lentes) => ['e', 'ou'].map((operador) => ({ nome: `${lentes.join('+')} (${operador})`, lente: 'combinacao', lentes, operador }))),
   ...CLASSES.map((classe) => ({ nome: `sobreposicao:${classe}`, lente: 'sobreposicao', classe })),
@@ -138,23 +148,26 @@ async function executar(browser, rp, config, indice = 0) {
     await page.goto(BASE);
     await page.locator('#l-email').fill(rp.email);
     await page.locator('#l-senha').fill(rp.senha);
-    await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
-    await page.locator('#total-principal').waitFor({ timeout: PRAZO_MS });
-    // Plano 007: a lente é um rádio dentro de uma seção recolhível (fechada em tela estreita).
-    const radio = page.locator(`input[name="l-lente"][value="${config.lente}"]`);
-    const secao = await radio.evaluate((e) => e.closest('details')?.id);
-    if (secao && (await page.locator(`#${secao}`).getAttribute('open')) === null) await page.locator(`#${secao} > summary`).click();
-    await radio.check();
-    if (config.lente === 'combinacao') {
-      for (const l of LENTES) await page.locator(`input[name="l-comb"][value="${l}"]`).setChecked(config.lentes.includes(l));
-      await page.locator(`input[name="l-operador"][value="${config.operador}"]`).check();
-    }
-    if (config.lente === 'sobreposicao') await page.locator(`input[name="l-classe"][value="${config.classe}"]`).check();
     await cdp.send('Network.emulateNetworkConditions', REDE);
     await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
     c.zerar();
+    await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
+    await page.locator('#conteudo[data-estado-painel="pronto"]').waitFor({ timeout: PRAZO_MS });
+    // Configuração marcada antes de escolher a lente (um cálculo só) e seção aberta, sem cliques intermediários.
+    const radio = page.locator(`input[name="l-lente"][value="${config.lente}"]`);
+    const pontosAntes = await page.evaluate((cfg) => {
+      const marcar = (sel, v) => { const e = document.querySelector(sel); if (e) e.checked = v; };
+      if (cfg.lente === 'combinacao') {
+        for (const l of ['concentracao', 'recorrencia', 'persistencia']) marcar(`input[name="l-comb"][value="${l}"]`, cfg.lentes.includes(l));
+        marcar(`input[name="l-operador"][value="${cfg.operador}"]`, true);
+      }
+      if (cfg.lente === 'sobreposicao') marcar(`input[name="l-classe"][value="${cfg.classe}"]`, true);
+      const secao = document.querySelector(`input[name="l-lente"][value="${cfg.lente}"]`)?.closest('details');
+      if (secao) secao.open = true;
+      return document.getElementById('conteudo')?.dataset.estadoPontos ?? '';
+    }, { lente: config.lente, lentes: config.lentes ?? [], operador: config.operador ?? 'e', classe: config.classe ?? '' });
     const t0 = performance.now();
-    await page.locator('#botao-lente').click();
+    await radio.check();
     let estado = 'prazo';
     try {
       await page.waitForFunction((finais) => finais.includes(document.getElementById('cartao-lentes')?.dataset.estadoLente ?? ''), FINAIS, { timeout: PRAZO_MS, polling: 50 });
@@ -182,7 +195,7 @@ async function executar(browser, rp, config, indice = 0) {
       const estadoContornos = await page.locator('#lente-contornos').getAttribute('data-contornos');
       aberturas.push({ alvo: alvo.tipo, areas: alvo.areas, estado: estadoContornos, ms: Math.round(performance.now() - t1), contornos: c.resumo().contornos });
     }
-    return { valida, estado, segundos, textoApp, celulas: celulas === null ? null : Number(celulas), ...resumo, aberturas };
+    return { valida, estado, segundos, textoApp, pontosAntes, celulas: celulas === null ? null : Number(celulas), ...resumo, aberturas };
   } finally {
     await contexto.close();
   }
@@ -214,6 +227,74 @@ async function executarAbertura(browser, rp) {
     } catch { /* prazo */ }
     const segundos = Math.round((performance.now() - t0) / 100) / 10;
     return { valida: estado === 'pronto', estado, segundos, ...c.resumo() };
+  } finally {
+    await contexto.close();
+  }
+}
+
+/** M2 (T14): na mesma página e recorte estadual, depois da leitura completa e da persistência, troca para a recorrência. */
+async function executarTroca(browser, rp) {
+  const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
+  const page = await contexto.newPage();
+  const cdp = await contexto.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  const c = coletor(cdp);
+  const estadoFinal = async () => {
+    await page.waitForFunction((finais) => finais.includes(document.getElementById('cartao-lentes')?.dataset.estadoLente ?? ''), FINAIS, { timeout: PRAZO_MS, polling: 50 });
+    return page.locator('#cartao-lentes').getAttribute('data-estado-lente');
+  };
+  try {
+    await page.goto(BASE);
+    await page.locator('#l-email').fill(rp.email);
+    await page.locator('#l-senha').fill(rp.senha);
+    await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
+    await page.locator('#conteudo[data-estado-pontos="completo"]').waitFor({ timeout: PRAZO_MS });
+    await page.evaluate(() => { const s = document.getElementById('secao-lente'); if (s) s.open = true; });
+    await page.locator('input[name="l-lente"][value="persistencia"]').check();
+    await estadoFinal();
+    await cdp.send('Network.emulateNetworkConditions', REDE);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
+    c.zerar();
+    const t0 = performance.now();
+    await page.locator('input[name="l-lente"][value="recorrencia"]').check();
+    let estado = 'prazo';
+    try { estado = await estadoFinal(); } catch { /* prazo */ }
+    const segundos = Math.round((performance.now() - t0) / 100) / 10;
+    return { valida: VALIDOS.includes(estado ?? ''), estado, segundos, ...c.resumo() };
+  } finally {
+    await contexto.close();
+  }
+}
+
+/** M4 (T14): recarga com a sessão guardada; do painel pronto até todos os pontos do estado. */
+async function executarPontos(browser, rp) {
+  const contexto = await browser.newContext({ viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true, deviceScaleFactor: 2, locale: 'pt-BR' });
+  const page = await contexto.newPage();
+  const cdp = await contexto.newCDPSession(page);
+  await cdp.send('Network.enable');
+  await cdp.send('Network.setCacheDisabled', { cacheDisabled: true });
+  const c = coletor(cdp);
+  try {
+    await page.goto(BASE);
+    await page.locator('#l-email').fill(rp.email);
+    await page.locator('#l-senha').fill(rp.senha);
+    await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
+    await page.locator('#conteudo[data-estado-pontos="completo"]').waitFor({ timeout: PRAZO_MS });
+    await cdp.send('Network.emulateNetworkConditions', REDE);
+    await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
+    c.zerar();
+    await page.reload();
+    await page.waitForFunction(() => { const e = document.getElementById('conteudo'); return !!e && !e.hidden && e.dataset.estadoPainel === 'pronto'; }, null, { timeout: PRAZO_MS, polling: 50 });
+    const t0 = performance.now();
+    let estado = 'prazo';
+    try {
+      await page.waitForFunction(() => ['completo', 'erro'].includes(document.getElementById('conteudo')?.dataset.estadoPontos ?? ''), null, { timeout: PRAZO_MS, polling: 50 });
+      estado = await page.locator('#conteudo').getAttribute('data-estado-pontos');
+    } catch { /* prazo */ }
+    const segundos = Math.round((performance.now() - t0) / 100) / 10;
+    const texto = (await page.locator('#mapa-contagem').innerText().catch(() => '')).trim();
+    return { valida: estado === 'completo', estado, segundos, texto, ...c.resumo() };
   } finally {
     await contexto.close();
   }
@@ -258,6 +339,34 @@ select la, lo, count(*), sum(b) from v group by la, lo order by ${ordem}, la des
   const browser = await chromium.launch({ channel: 'chrome' });
   relatorio.perfil.versaoChrome = browser.version();
   for (const config of CONFIGURACOES) {
+    if (config.troca || config.pontos) {
+      const regra = config.troca ? TROCA : PONTOS;
+      const rodar = config.troca ? executarTroca : executarPontos;
+      const porPassagem = {};
+      for (const passagem of ['bruta', 'comprimida']) {
+        modo = passagem;
+        const validas = [];
+        const invalidas = [];
+        for (let tentativa = 1; tentativa <= regra.validas + 3 && validas.length < regra.validas; tentativa += 1) {
+          const r = await rodar(browser, rp);
+          if (r.valida) validas.push(r);
+          else invalidas.push({ tentativa, estado: r.estado, segundos: r.segundos });
+        }
+        porPassagem[passagem] = {
+          validas: validas.length, invalidas,
+          medianaSegundos: validas.length >= regra.validas ? mediana(validas.map((v) => v.segundos)) : null,
+          maxSegundos: validas.length ? Math.max(...validas.map((v) => v.segundos)) : null,
+          maxBytes: validas.length ? Math.max(...validas.map((v) => v.total.bytes)) : null,
+          execucoes: validas.map((v) => ({ segundos: v.segundos, texto: v.texto, total: v.total, registros: v.registros, disponibilidade: v.disponibilidade })),
+        };
+      }
+      const cm = porPassagem.comprimida;
+      const dentro = cm.medianaSegundos !== null && cm.medianaSegundos <= regra.segundosComprimida;
+      if (!dentro) excedeu = true;
+      relatorio.configuracoes.push({ configuracao: config.nome, orcamento: regra, dentroDoOrcamento: dentro, ...porPassagem });
+      process.stderr.write(`${config.nome} (${config.troca ? 'M2' : 'M4'}): ${dentro ? 'dentro' : 'FORA'} (comprimida ${cm.medianaSegundos} s; bruta ${porPassagem.bruta.medianaSegundos} s)\n`);
+      continue;
+    }
     if (config.abertura) {
       const porPassagem = {};
       for (const passagem of ['bruta', 'comprimida']) {
@@ -299,7 +408,7 @@ select la, lo, count(*), sum(b) from v group by la, lo order by ${ordem}, la des
         medianaSegundos: validas.length >= VALIDAS ? mediana(validas.map((v) => v.segundos)) : null,
         maxSegundos: validas.length ? Math.max(...validas.map((v) => v.segundos)) : null,
         maxBytes: validas.length ? Math.max(...validas.map((v) => v.total.bytes)) : null,
-        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, celulas: v.celulas, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria, areas: v.areas, aberturas: v.aberturas })),
+        execucoes: validas.map((v) => ({ segundos: v.segundos, textoApp: v.textoApp, pontosAntes: v.pontosAntes, celulas: v.celulas, total: v.total, preflight: v.preflight, registros: v.registros, disponibilidade: v.disponibilidade, geometria: v.geometria, areas: v.areas, aberturas: v.aberturas })),
       };
     }
     const b = porPassagem.bruta;

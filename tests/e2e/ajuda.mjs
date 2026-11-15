@@ -59,3 +59,54 @@ export function observarRest(page) {
   page.on('request', (r) => { if (r.url().includes('/rest/v1/')) chamadas.push(`${r.method()} ${decodeURIComponent(r.url())}`); });
   return chamadas;
 }
+
+/** Abre a "Lista de focos" (T21) pelo botão do mapa, se estiver fechada. */
+export async function abrirListaFocos(page) {
+  const botao = page.locator('#botao-lista-focos');
+  if ((await botao.getAttribute('aria-expanded')) !== 'true') await botao.click();
+  await expect(page.locator('#lista-focos')).toBeVisible();
+}
+
+/** Seleciona um foco na lista (avança as páginas até achá-lo); o mapa centraliza o ponto. */
+export async function selecionarFoco(page, id) {
+  await abrirListaFocos(page);
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
+  await expect(page.locator('#lista-focos-itens')).toBeVisible();
+  const linha = page.locator(`#lista-focos-itens button[data-id="${id}"]`);
+  while (!(await linha.count())) {
+    const proxima = page.locator('#focos-proxima');
+    if (!(await proxima.count()) || (await proxima.isDisabled())) throw new Error(`foco ${id} não está na lista`);
+    await proxima.click();
+  }
+  await linha.click();
+  await expect(linha).toHaveAttribute('aria-pressed', 'true');
+}
+
+/** Abre o balão do ponto de um foco: seleciona-o na lista (o mapa centraliza) e toca o centro do mapa. */
+export async function abrirBalao(page, id) {
+  // Espera o enquadramento dos limites (pedido em paralelo com os pontos) antes de centralizar o foco.
+  await page.waitForTimeout(800);
+  await selecionarFoco(page, id);
+  await page.waitForTimeout(600);
+  const caixa = await page.locator('#mapa').boundingBox();
+  await page.mouse.click(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
+  // O balão anterior some com animação: espera sobrar só o novo.
+  await expect(page.locator('#balao-registros')).toHaveCount(1);
+  await expect(page.locator('#balao-registros')).toBeVisible();
+  return page.locator('#balao-registros');
+}
+
+/**
+ * Abre a explicação do n-ésimo destaque da lista (volta à lista antes, se outra explicação estiver aberta) e abre o
+ * bloco recolhível das detecções que sustentam o destaque, quando houver.
+ */
+export async function abrirDestaque(page, n) {
+  if (await page.locator('#vista-explicacao').isVisible()) await page.locator('#botao-voltar').click();
+  await page.locator('#lente-destaques > li').nth(n).locator('.botao-nome').click();
+  await expect(page.locator('#vista-explicacao')).toBeVisible();
+  const evidencia = page.locator('#lente-evidencia-detalhes');
+  if ((await evidencia.count()) && (await evidencia.getAttribute('open')) === null) {
+    await evidencia.locator(':scope > summary').click();
+    await page.locator('#lente-painel-titulo').focus();
+  }
+}

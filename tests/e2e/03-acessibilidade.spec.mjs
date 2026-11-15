@@ -2,7 +2,7 @@
 // Fixtures fictícias; capturas de trabalho ficam em test-results/ (ignorado pelo Git), nunca versionadas.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirSecao, consultar, entrar } from './ajuda.mjs';
+import { abrirListaFocos, abrirSecao, consultar, entrar, escolherLente, selecionarFoco } from './ajuda.mjs';
 
 test.beforeAll(() => cadastrarRp());
 
@@ -69,7 +69,7 @@ function auditoriaNaPagina() {
     .map(etiqueta);
   return {
     larguraDocumento: document.documentElement.scrollWidth, larguraJanela: largura, fontes, contraste, alvos, transborda, cortados,
-    municipios: [...document.querySelectorAll('.botao-nome')].map((e) => parseFloat(getComputedStyle(e).fontSize)),
+    municipios: [...document.querySelectorAll('.botao-nome, .lista-mun .nome')].filter(visivel).map((e) => parseFloat(getComputedStyle(e).fontSize)),
     etiquetas: [...document.querySelectorAll('.etiqueta')].filter(visivel).map((e) => parseFloat(getComputedStyle(e).fontSize)),
     base: parseFloat(getComputedStyle(document.body).fontSize),
   };
@@ -85,11 +85,10 @@ for (const [w, h, esquema] of VIEWPORTS) {
     // A tela abre no claro (V13); o tema escuro vem pelo botão da lua.
     if (esquema === 'dark') await page.getByRole('button', { name: 'Usar tema escuro' }).click();
     await expect(page.locator('#botao-tema')).toHaveAttribute('aria-pressed', String(esquema === 'dark'));
-    // Abre o que fica recolhido (seções dos filtros, série, municípios) e seleciona um registro.
+    // Abre o que fica recolhido (seções dos filtros, série) e seleciona um foco na "Lista de focos".
     for (const id of ['secao-consulta', 'secao-lente', 'secao-contexto', 'secao-cruzar']) await abrirSecao(page, id);
     await page.locator('#serie-corpo summary').click();
-    await page.locator('#municipios-corpo summary').click();
-    await page.locator('#registros-tabela button[data-id]').first().click();
+    await selecionarFoco(page, 'fx001');
     const a = await page.evaluate(auditoriaNaPagina);
     expect(a.larguraDocumento, 'sem rolagem horizontal global').toBeLessThanOrEqual(a.larguraJanela);
     expect(a.base).toBe(16);
@@ -107,6 +106,17 @@ for (const [w, h, esquema] of VIEWPORTS) {
     expect(d.contraste, 'diálogo: contraste').toEqual([]);
     expect(d.alvos, 'diálogo: alvos').toEqual([]);
     expect(d.transborda, 'diálogo: fora da janela').toEqual([]);
+    await page.keyboard.press('Escape');
+    // A aba Destaques com uma lista e a explicação aberta também passam pela auditoria.
+    await escolherLente(page, 'concentracao');
+    await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'completo');
+    await page.locator('#lente-destaques .botao-nome').first().click();
+    await expect(page.locator('#vista-explicacao')).toBeVisible();
+    const x = await page.evaluate(auditoriaNaPagina);
+    expect(x.contraste, 'explicação: contraste').toEqual([]);
+    expect(x.alvos, 'explicação: alvos').toEqual([]);
+    expect(x.transborda, 'explicação: fora da janela').toEqual([]);
+    expect(x.fontes, 'explicação: texto abaixo de 0.875rem').toEqual([]);
     await page.screenshot({ path: `test-results/ref-${w}x${h}-${esquema}.png`, fullPage: true });
   });
 }
@@ -189,7 +199,7 @@ test('escala de cinza: a ação primária se distingue por preenchimento e a sec
     return { bg: s.backgroundColor, cor: s.color, borda: s.borderTopWidth, bordaCor: s.borderTopColor, peso: s.fontWeight };
   });
   await abrirSecao(page, 'secao-consulta');
-  const primario = await estilo('#botao-lente');
+  const primario = await estilo('#dialogo-como-ler .botao--primario');
   const secundario = await estilo('#botao-sair');
   const cinza = (c) => { const [r, g, b] = c.match(/\d+(\.\d+)?/g).map(Number); return 0.299 * r + 0.587 * g + 0.114 * b; };
   expect(primario.bg).not.toBe('rgba(0, 0, 0, 0)');
@@ -219,6 +229,8 @@ test('foco visível e fluxo só por teclado', async ({ page }) => {
   const vistos = [];
   for (let i = 0; i < 30; i += 1) {
     const f = await foco();
+    // Depois do último controle, o Tab passa pelo documento e volta ao começo.
+    if (f.tag === 'BODY') { await page.keyboard.press('Tab'); continue; }
     expect(f.estilo, `foco do elemento ${f.tag}#${f.id}`).not.toBe('none');
     expect(f.largura).toBeGreaterThanOrEqual(2);
     vistos.push(f.id || f.tag);
@@ -236,10 +248,19 @@ test('foco visível e fluxo só por teclado', async ({ page }) => {
   await page.locator('#secao-lente summary').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#secao-lente')).toHaveAttribute('open', '');
-  // O mapa é focável e a tabela é a alternativa em texto.
+  // O mapa é focável e a "Lista de focos" é a alternativa em texto (T21).
   await page.locator('#mapa').focus();
   expect(await page.evaluate(() => document.activeElement.id)).toBe('mapa');
-  await expect(page.locator('#registros-tabela table')).toBeVisible();
+  await abrirListaFocos(page);
+  await expect(page.locator('#lista-focos-itens button').first()).toBeVisible();
+  // Abas do resultado por teclado: setas trocam a aba e o foco (padrão de abas).
+  await page.locator('#aba-municipios').focus();
+  await page.keyboard.press('ArrowLeft');
+  await expect(page.locator('#aba-destaques')).toBeFocused();
+  await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#cartao-lentes')).toBeVisible();
+  await page.keyboard.press('ArrowRight');
+  await expect(page.locator('#aba-municipios')).toHaveAttribute('aria-selected', 'true');
 });
 
 test.describe('tela de toque', () => {

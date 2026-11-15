@@ -431,18 +431,18 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) (item 1), [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (item 2), [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) (item 3), [#63](https://github.com/EuThiagoAndrade/rastro-quente/issues/63) (item 4), [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) (item 5) |
-| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (squash integrada em 2026-11-14); [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) (item 1, aberta) |
-| Branch(es) | `chore/cycle-007-plan` (documental); `feature/issue-60` (item 1, task [007_task_issue-60.md](007_task_issue-60.md)) |
+| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (squash integrada em 2026-11-14); [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) (item 1, squash integrada em 2026-11-15, `72796c4`); [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66) (item 2, aberta) |
+| Branch(es) | `chore/cycle-007-plan` (documental); `feature/issue-60` (item 1, task [007_task_issue-60.md](007_task_issue-60.md)); `feature/issue-61` (item 2, task [007_task_issue-61.md](007_task_issue-61.md)) |
 | Destino após conclusão | `_project/executed/007_interface_base/007_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 007 (completo)
+Situação: Aguardando merge — ciclo 007 (completo)
 Quem: Responsável
-Conferir: Issue [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) e escopo do item 1 no plano
-Diga: "autorizo a implementação da issue #60"
+Conferir: Checks e diff da [PR #66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66) (item 2)
+Diga: "aprovo o merge da PR #66"
 ```
 
 ## Handoff de saída

@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
-import { abrirSecao, consultar, entrar, escolherLente } from './ajuda.mjs';
+import { abrirDestaque, abrirSecao, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixturePersistencia, sqlFixtureRecorrencia } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -20,9 +20,9 @@ test.beforeAll(() => {
 const cartao = (page) => page.locator('#cartao-lentes');
 const itens = (page) => page.locator('#lente-destaques > li');
 
+/** Escolher a lente já calcula (A3, T16): não há botão "Aplicar lente". */
 async function aplicar(page, lente = 'concentracao') {
   await escolherLente(page, lente);
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
 }
 
 const corpoRpc = (route) => JSON.parse(route.request().postData() ?? '{}');
@@ -57,6 +57,12 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-estado')).toContainText(/Lente concluída em \d+,\d s/);
   await expect(itens(page)).toHaveCount(3);
+  // T15: aba "Destaques · N" com municípios e a ressalva de contagem absoluta junto do resultado.
+  await expect(page.locator('#aba-destaques')).toHaveText('Destaques · 3');
+  await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#t-destaques')).toHaveText('Municípios destacados');
+  await expect(page.locator('#resumo-lente-numero')).toHaveText('3 municípios');
+  await expect(page.locator('#lente-ressalva-contagem')).toHaveText('Contagem absoluta favorece municípios grandes; a ordem não indica prioridade, gravidade nem risco.');
   expect(await itens(page).locator('.botao-nome').allInnerTexts())
     .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
   expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
@@ -72,14 +78,24 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#lente-limitacoes')).toContainText('Contagem absoluta favorece municípios grandes.');
   expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
 
-  // Painel do primeiro destaque: motivo, evidência e os dias que contam contra, com a classe.
-  await itens(page).first().locator('.botao-nome').click();
+  // Explicação do primeiro destaque (RC-12, interface): motivo, evidência e os dias que contam contra, com a classe.
+  await abrirDestaque(page, 0);
+  await expect(page.locator('#vista-lista')).toBeHidden();
+  await expect(page.locator('#lente-painel-titulo')).toBeFocused();
+  await expect(page.locator('#t-explicacao')).toHaveText('Por que este município?');
   await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `concentracao:municipio:${MUNICIPIOS.alfa.codigo}`);
+  await expect(page.locator('#lente-ressalvas')).toContainText('Contagem absoluta favorece municípios grandes');
   await expect(page.locator('#lente-motivo')).toContainText('60 detecções na janela');
   await expect(page.locator('#lente-evidencia')).toContainText('60 detecções');
   await page.getByText('Dias que contam contra (2)').click();
   expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'lacuna_conhecida']);
   await expect(page.locator('#lente-dias')).toContainText('2026-10-01: Lacuna conhecida');
+  // "← Voltar aos destaques": a lista volta e o foco vai ao item aberto.
+  await page.getByRole('button', { name: 'Voltar aos destaques' }).click();
+  await expect(page.locator('#vista-lista')).toBeVisible();
+  await expect(itens(page).first().locator('.botao-nome')).toBeFocused();
+  // Reabre a explicação para consultar o município.
+  await abrirDestaque(page, 0);
 
   // "Consultar este município" aplica o filtro existente; a lente continua (mesma janela).
   await page.getByRole('button', { name: 'Consultar este município' }).click();
@@ -101,14 +117,15 @@ test('R1-1: com filtro municipal ativo (Gama, 10), a lente lê o estado (100) e 
 
 test('concorrência: aplicação antiga retida não aparece depois da nova (duas concentrações)', async ({ page }) => {
   await entrar(page, 'rp');
-  // Primeira aplicação na janela 01–10/10, retida no resumo da lente.
+  // Primeiro cálculo na janela 01–10/10, retido no resumo da lente.
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
+  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-11 00:00 GMT');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
   const r = await reter(page, 'consultar_resumo');
   await aplicar(page);
   await r.chegada;
-  // Segunda aplicação na janela inteira, que termina antes.
+  // Nova janela: a lente é recalculada sozinha depois da consulta (T16) e termina antes.
   await consultar(page, { fim: '2026-10-31' });
-  await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   r.soltar();
   await page.waitForTimeout(500);
@@ -120,7 +137,7 @@ test('concorrência: aplicação antiga retida não aparece depois da nova (duas
 
 test('concorrência: "Nenhuma" durante a leitura cancela; a resposta atrasada não aparece', async ({ page }) => {
   await entrar(page, 'rp');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  const r = await reter(page, 'consultar_resumo');
   await aplicar(page);
   await r.chegada;
   await escolherLente(page, 'nenhuma');
@@ -133,7 +150,7 @@ test('concorrência: "Nenhuma" durante a leitura cancela; a resposta atrasada n�
 
 test('concorrência: logout durante a leitura limpa tudo; novo login não traz a lente antiga', async ({ page }) => {
   await entrar(page, 'rp');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  const r = await reter(page, 'consultar_resumo');
   await aplicar(page);
   await r.chegada;
   await page.locator('#botao-sair').click();
@@ -147,8 +164,7 @@ test('concorrência: logout durante a leitura limpa tudo; novo login não traz a
   await expect(itens(page)).toHaveCount(0);
 });
 
-test('página com registro duplicado é leitura inconsistente, sem destaque parcial', async ({ page }) => {
-  await entrar(page, 'rp');
+test('página com registro duplicado é leitura inconsistente: nem mapa parcial nem destaque parcial', async ({ page }) => {
   await page.route('**/rest/v1/rpc/consultar_deteccoes', async (route) => {
     if (corpoRpc(route).p_limite !== 1000) return route.continue();
     const resp = await route.fetch();
@@ -156,6 +172,11 @@ test('página com registro duplicado é leitura inconsistente, sem destaque parc
     json.registros[json.registros.length - 1] = json.registros[0];
     await route.fulfill({ response: resp, json });
   });
+  await entrar(page, 'rp', { esperar: false });
+  // A leitura completa da consulta (T7) é recusada: nenhum ponto é desenhado pela metade.
+  await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'inconsistente');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
+  await expect(page.locator('#mapa-contagem')).toContainText('nenhum ponto foi desenhado pela metade');
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'leitura_inconsistente');
   await expect(page.locator('#lente-estado')).toContainText('id_tecnico repetido');
@@ -212,39 +233,35 @@ test('R2-1: carga indisponível no resumo de uma segunda aplicação limpa lente
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await page.route('**/rest/v1/rpc/consultar_resumo', (route) => route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } }));
-  await aplicar(page);
+  await aplicar(page, 'recorrencia');
   await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'versao_substituida');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
   await expect(itens(page)).toHaveCount(0);
-  await expect(page.locator('#registros-tabela')).toBeEmpty();
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
-  await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  // A memória saiu junto: a versão vigente é lida de novo, página por página.
   const paginas = [];
   page.on('request', (q) => { if (q.url().includes('/rpc/consultar_deteccoes') && JSON.parse(q.postData() ?? '{}').p_limite === 1000) paginas.push(q); });
+  await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
+  await expect(page.locator('#total-principal')).toHaveText('100');
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(paginas.length).toBeGreaterThan(0);
 });
 
-test('R3-1: página antiga liberada depois de "versão substituída" não repovoa tabela nem mapa', async ({ page }) => {
+test('R3-1: página antiga liberada depois de "versão substituída" não repovoa o mapa nem a lista de focos', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.locator('#f-tamanho').selectOption('50');
-  await expect(page.locator('#registros-info')).toContainText('Mostrando 1–50 de 100 registros');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_deslocamento === 50);
-  await page.getByRole('button', { name: 'Próxima página' }).click();
+  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_municipio === MUNICIPIOS.alfa.codigo);
+  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
   await r.chegada;
-  // Outra página da mesma consulta recebe "carga indisponível".
-  await page.route('**/rest/v1/rpc/consultar_deteccoes', async (route) => {
-    if (corpoRpc(route).p_limite !== 1000) return route.fallback();
-    await route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } });
-  });
-  await page.locator('#f-tamanho').selectOption('1000');
+  // A consulta seguinte recebe "carga indisponível".
+  await page.route('**/rest/v1/rpc/consultar_resumo', (route) => route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } }));
+  await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
   await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'versao_substituida');
   r.soltar();
   await page.waitForTimeout(500);
-  await expect(page.locator('#registros-tabela')).toBeEmpty();
-  await expect(page.locator('#mapa-contagem')).not.toContainText('Pontos no mapa: 50');
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
+  await expect(page.locator('#mapa-contagem')).not.toContainText('todas as 60');
 });
 
 test('lente acessível: teclado e 360 px sem rolagem horizontal da página', async ({ page }) => {
@@ -254,16 +271,19 @@ test('lente acessível: teclado e 360 px sem rolagem horizontal da página', asy
   await page.locator('input[name="l-lente"][value="concentracao"]').focus();
   await page.keyboard.press('Space');
   await expect(page.locator('input[name="l-lente"][value="concentracao"]')).toBeChecked();
-  await page.locator('#botao-lente').focus();
-  await page.keyboard.press('Enter');
+  // Escolher já calcula; a aba Destaques abre sozinha.
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
+  const alvo = await itens(page).first().locator('.botao-nome').boundingBox();
+  expect(alvo.height).toBeGreaterThanOrEqual(44);
   await itens(page).first().locator('.botao-nome').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#lente-painel-titulo')).toBeFocused();
   const largura = await page.evaluate(() => [document.documentElement.scrollWidth, window.innerWidth]);
   expect(largura[0]).toBeLessThanOrEqual(largura[1]);
-  const alvo = await page.locator('#botao-lente').boundingBox();
-  expect(alvo.height).toBeGreaterThanOrEqual(44);
+  await page.locator('#botao-voltar').focus();
+  await page.keyboard.press('Enter');
+  await expect(itens(page).first().locator('.botao-nome')).toBeFocused();
 });
 
 // --- Issue #34: recorrência por célula de 0,05° -------------------------------------------------------
@@ -304,7 +324,9 @@ test.describe('recorrência', () => {
     expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
 
     // Célula na divisa: municípios usados na cobertura (D13) e os dois dias que contam contra, com a classe.
-    await itens(page).first().locator('.botao-nome').click();
+    await abrirDestaque(page, 0);
+    await expect(page.locator('#t-explicacao')).toHaveText('Por que esta célula?');
+    await expect(page.locator('#lente-ficha')).toContainText('c-230_-1120');
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'recorrencia:celula_005:c-230_-1120');
     await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.');
     await expect(page.locator('#lente-municipios')).toContainText('Município Alfa (9900001); Município Beta (9900002)');
@@ -314,7 +336,7 @@ test.describe('recorrência', () => {
     await expect(page.locator('#lente-evidencia-tabela tbody tr')).toHaveCount(3);
 
     // Evidência paginada na célula com 23 detecções.
-    await itens(page).nth(1).locator('.botao-nome').click();
+    await abrirDestaque(page, 1);
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–20 de 23 detecções da evidência.');
     await page.getByRole('button', { name: 'Próximas detecções' }).click();
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 21–23 de 23 detecções da evidência.');
@@ -336,7 +358,7 @@ test.describe('recorrência', () => {
       '61 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
     ]);
     await expect(page.locator('#lente-corpo')).toContainText('A janela toca 3 meses GMT: ago/2026 (parcial), set/2026 e out/2026 (parcial).');
-    await itens(page).first().locator('.botao-nome').click();
+    await abrirDestaque(page, 0);
     expect(await page.locator('#lente-ressalvas > li').allInnerTexts()).toEqual([
       'inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)',
       'inclui mês parcial: out/2026 (janela de 01/10 a 14/10)',
@@ -353,9 +375,9 @@ test.describe('recorrência', () => {
     await expect(page.locator('#lente-limitacoes')).toBeVisible();
   });
 
-  test('concorrência: recorrência aplicada com a concentração ainda em leitura; só a recorrência aparece', async ({ page }) => {
+  test('concorrência: recorrência escolhida com a concentração ainda em leitura; só a recorrência aparece', async ({ page }) => {
     await entrar(page, 'rp');
-    const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+    const r = await reter(page, 'consultar_resumo');
     await aplicar(page, 'concentracao');
     await r.chegada;
     await aplicar(page, 'recorrencia');
@@ -411,12 +433,12 @@ test.describe('persistência', () => {
     expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
 
     // Primeira sequência: toca o início da janela (T4).
-    await itens(page).first().locator('.botao-nome').click();
+    await abrirDestaque(page, 0);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-01');
     expect(await textosRessalvas(page)).toEqual(['sequência no limite da janela; pode ser mais longa']);
 
     // Célula na divisa: a classe da célula no dia 11 é lacuna conhecida, com a classe e os motivos de cada município.
-    await itens(page).nth(1).locator('.botao-nome').click();
+    await abrirDestaque(page, 1);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-230_-1120:2026-10-10');
     await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 dias GMT consecutivos na célula, de 10/10/2026 a 12/10/2026.');
     await expect(page.locator('#lente-evidencia')).toContainText('dias GMT: 10/10/2026, 11/10/2026, 12/10/2026');
@@ -433,13 +455,13 @@ test.describe('persistência', () => {
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
 
     // Segunda sequência da mesma célula de 01–03 (T6): destaque próprio, sem ressalva.
-    await itens(page).nth(2).locator('.botao-nome').click();
+    await abrirDestaque(page, 2);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-20');
     await expect(page.locator('#lente-ressalvas')).toHaveCount(0);
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–5 de 5 detecções da evidência.');
 
     // Última sequência: toca o fim da janela e inclui um dia indeterminado.
-    await itens(page).nth(3).locator('.botao-nome').click();
+    await abrirDestaque(page, 3);
     expect(await textosRessalvas(page)).toEqual([
       'sequência no limite da janela; pode ser mais longa',
       'inclui dia indeterminado (30/10)',
@@ -456,7 +478,7 @@ test.describe('persistência', () => {
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
     await expect(itens(page).nth(3).locator('.etiqueta')).toHaveText('cobertura não verificada: fonte indisponível');
-    await itens(page).nth(3).locator('.botao-nome').click();
+    await abrirDestaque(page, 3);
     expect(await textosRessalvas(page)).toEqual([
       'sequência no limite da janela; pode ser mais longa',
       'ressalvas de disponibilidade ainda não verificadas',
@@ -464,9 +486,9 @@ test.describe('persistência', () => {
     await expect(page.locator('#lente-cobertura')).not.toContainText(/\d+ de \d+/);
   });
 
-  test('concorrência: persistência aplicada com a recorrência ainda em leitura; só a persistência aparece', async ({ page }) => {
+  test('concorrência: persistência escolhida com a recorrência ainda em leitura; só a persistência aparece', async ({ page }) => {
     await entrar(page, 'rp');
-    const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+    const r = await reter(page, 'consultar_resumo');
     await aplicar(page, 'recorrencia');
     await r.chegada;
     await aplicar(page, 'persistencia');

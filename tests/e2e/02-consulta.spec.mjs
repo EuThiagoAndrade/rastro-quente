@@ -1,8 +1,8 @@
-// Consulta do RP: GMT, sensibilidade Cuiabá (100/102), município, zero, paginação, disponibilidade D1,
-// texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
+// Consulta do RP: GMT, sensibilidade Cuiabá (100/102), município, zero, todos os pontos (T7) e "Lista de focos" (T21),
+// disponibilidade D1, texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar, escolherLente, numero, observarRest } from './ajuda.mjs';
+import { abrirBalao, abrirListaFocos, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
 import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -36,11 +36,14 @@ test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', 
   await expect(cartaoSerie.locator('#serie-corpo svg')).toBeVisible();
   await expect(page.locator('#versao-consultada')).toContainText('Última atualização (publicação)');
 
-  // Nenhum registro do envelope aparece na tabela (todas as páginas em uma só, 1.000 por página).
-  await page.locator('#f-tamanho').selectOption('1000');
-  await expect(page.locator('#registros-info')).toContainText('de 100 registros');
-  const datas = await page.locator('#registros-tabela tbody tr td:nth-child(2)').allInnerTexts();
+  // Nenhum registro do envelope aparece na "Lista de focos" (duas páginas locais de 50).
+  await abrirListaFocos(page);
+  await expect(page.locator('#lista-focos-info')).toContainText('de 100');
+  const datas = await page.locator('#lista-focos-itens .botao-foco__hora').allInnerTexts();
+  await page.locator('#focos-proxima').click();
+  datas.push(...await page.locator('#lista-focos-itens .botao-foco__hora').allInnerTexts());
   expect(datas).toHaveLength(100);
+  expect([...datas].sort()).toEqual(datas);
   expect(datas.filter((d) => d.startsWith('2026-11'))).toEqual([]);
   expect(datas.every((d) => d.endsWith('GMT'))).toBe(true);
   // A série soma o total principal.
@@ -60,13 +63,25 @@ test('por município: total, sensibilidade e diferença independentes', async ({
     expect(await numero(page, 'sens-total')).toBe(sens);
     expect(await numero(page, 'sens-diferenca')).toBe(dif);
   }
-  // Todo o estado volta a somar 100 nos municípios, em ordem alfabética, sem ranking.
+  // Todo o estado volta a somar 100 nos municípios (aba Municípios, T11): por detecções e por nome.
   await consultar(page, { municipio: null });
   await expect(page.locator('#total-principal')).toHaveText('100');
-  await page.getByText(/Ver os 3 municípios/).click();
-  const nomes = await page.locator('#lista-municipios .botao-nome').allInnerTexts();
-  expect(nomes.map((n) => n.replace('✓ ', ''))).toEqual(['Município Alfa', 'Município Beta', 'Município Gama']);
-  await expect(page.locator('#lista-municipios li').first().locator('.etiqueta')).toHaveText('Detecções no período (GMT): 60');
+  await expect(page.locator('#aba-municipios')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('[data-ordem="deteccoes"]')).toHaveAttribute('aria-pressed', 'true');
+  expect(await page.locator('#lista-municipios .nome').evaluateAll((l) => l.map((x) => x.firstChild.textContent)))
+    .toEqual(['Município Alfa', 'Município Beta', 'Município Gama']);
+  expect(await page.locator('#lista-municipios .num').allInnerTexts()).toEqual(['60', '30', '10']);
+  await expect(page.locator('#mun-explica')).toContainText('não indica prioridade, gravidade nem risco');
+  await page.locator('[data-ordem="nome"]').click();
+  await expect(page.locator('[data-ordem="nome"]')).toBeFocused();
+  // Tocar num município filtra a tela e mostra o cartão (T11).
+  await page.locator('#lista-municipios button[data-codigo="9900003"]').click();
+  await expect(page.locator('#total-principal')).toHaveText('10');
+  await expect(page.locator('#cartao-focos')).toHaveText('10');
+  await expect(page.locator('#cartao-celulas')).toHaveAttribute('data-estado', 'completo');
+  await expect(page.locator('#cartao-destacadas')).toHaveText('—');
+  await page.getByRole('button', { name: 'Ver todo Mato Grosso' }).click();
+  await expect(page.locator('#total-principal')).toHaveText('100');
 });
 
 test('zero detecções é um estado próprio, sem afirmar ausência de fogo', async ({ page }) => {
@@ -75,27 +90,36 @@ test('zero detecções é um estado próprio, sem afirmar ausência de fogo', as
   await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'zero');
   await expect(page.locator('#estado-consulta')).toContainText('não comprova ausência de fogo');
   await expect(page.locator('#total-principal')).toHaveText('0');
-  await expect(page.locator('#registros-info')).toContainText('0–0 de 0 registros');
+  await expect(page.locator('#mapa-contagem')).toContainText('todas as 0 detecções');
+  await abrirListaFocos(page);
+  await expect(page.locator('#lista-focos-info')).toHaveText('Nenhum foco neste recorte.');
 });
 
-test('paginação não muda os totais e a visualização parcial é declarada', async ({ page }) => {
+test('T7: todos os pontos do recorte no mapa e a "Lista de focos" paginada, por teclado, sem nova consulta', async ({ page }) => {
+  const rest = observarRest(page);
   await entrar(page, 'rp');
-  await page.locator('#f-tamanho').selectOption('50');
-  await expect(page.locator('#registros-info')).toContainText('Mostrando 1–50 de 100 registros');
-  await expect(page.locator('#mapa-contagem')).toContainText('Pontos no mapa: 50 de 100');
-  await expect(page.locator('#mapa-contagem')).toContainText('visualização parcial');
-  await expect(page.locator('#pagina-anterior')).toBeDisabled();
-  await expect(page.locator('#registros-tabela tbody tr')).toHaveCount(50);
-  await page.locator('#pagina-proxima').click();
-  await expect(page.locator('#registros-info')).toContainText('Mostrando 51–100 de 100 registros');
-  await expect(page.locator('#mapa-contagem')).toContainText('Pontos no mapa: 50 de 100');
-  await expect(page.locator('#pagina-proxima')).toBeDisabled();
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
+  await expect(page.locator('#mapa-contagem')).toContainText('Pontos no mapa: todas as 100 detecções do recorte.');
+  await expect(page.locator('#mapa canvas').first()).toBeVisible();
+  expect(rest.filter((r) => r.includes('consultar_deteccoes'))).toHaveLength(1);
+  const antes = rest.length;
+  await page.locator('#botao-lista-focos').focus();
+  await page.keyboard.press('Enter');
+  await expect(page.locator('#lista-focos')).toBeVisible();
+  await expect(page.locator('#botao-lista-focos')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#t-lista-focos')).toBeFocused();
+  await expect(page.locator('#lista-focos-info')).toHaveText('Focos 1 a 50 de 100, por dia e hora GMT. Selecione um para marcá-lo no mapa.');
+  await expect(page.locator('#lista-focos-itens li')).toHaveCount(50);
+  await expect(page.locator('#focos-anterior')).toBeDisabled();
+  await page.locator('#focos-proxima').click();
+  await expect(page.locator('#lista-focos-info')).toContainText('Focos 51 a 100 de 100');
+  await expect(page.locator('#lista-focos-info')).toBeFocused();
+  await expect(page.locator('#focos-proxima')).toBeDisabled();
+  expect(rest.length, 'a lista usa a leitura completa, sem nova consulta').toBe(antes);
   expect(await numero(page, 'total-principal')).toBe('100');
-  expect(await numero(page, 'sens-total')).toBe('102');
-  await page.locator('#f-tamanho').selectOption('500');
-  await expect(page.locator('#mapa-contagem')).toContainText('Pontos no mapa: 100 de 100');
-  await expect(page.locator('#mapa-contagem')).not.toContainText('visualização parcial');
-  await expect(page.locator('#mapa canvas')).toBeVisible();
+  await page.keyboard.press('Escape');
+  await expect(page.locator('#lista-focos')).toBeHidden();
+  await expect(page.locator('#botao-lista-focos')).toBeFocused();
 });
 
 test('disponibilidade D1: três classes com motivo, histórico e "cobertura não comprovada"', async ({ page }) => {
@@ -140,27 +164,27 @@ test('disponibilidade D1: três classes com motivo, histórico e "cobertura não
 
 test('valores da fonte são texto: nenhuma marcação é executada', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.locator('#f-tamanho').selectOption('1000');
-  await expect(page.locator('#registros-tabela')).toContainText(XSS_ID);
-  expect(await page.locator('#registros-tabela img').count()).toBe(0);
+  // O ID da fonte (fx008) aparece no balão do ponto, como texto.
+  const balao = await abrirBalao(page, 'fx008');
+  await expect(balao).toContainText(XSS_ID);
+  expect(await balao.locator('img').count()).toBe(0);
   await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
   await expect(page.locator('#disp-corpo')).toContainText(XSS_AVISO);
   expect(await page.locator('#disp-corpo script').count()).toBe(0);
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   // Registros sem id na fonte são declarados, não inventados.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await page.locator('#f-tamanho').selectOption('1000');
-  await expect(page.locator('#registros-tabela')).toContainText('sem id na fonte');
+  await expect(await abrirBalao(page, 'fx009')).toContainText('sem id na fonte');
 });
 
 test('divergência do INPE é exibida como texto distinto', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await page.locator('#f-tamanho').selectOption('1000');
-  const tabela = page.locator('#registros-tabela');
-  await expect(tabela).toContainText('INPE atribui outro município');
-  await expect(tabela).toContainText('INPE atribui outra UF');
-  await expect(tabela).toContainText('Na borda');
+  // Antes na tabela, agora no balão de cada ponto: fx010 (outro município), fx011 (outra UF e na borda).
+  await expect(await abrirBalao(page, 'fx010')).toContainText('INPE atribui outro município');
+  const balao = await abrirBalao(page, 'fx011');
+  await expect(balao.locator('li[data-id="fx011"]')).toContainText('INPE atribui outra UF');
+  await expect(balao.locator('li[data-id="fx011"]')).toContainText('na borda do município');
 });
 
 test('respostas fora de ordem: a última consulta vence', async ({ page }) => {
@@ -207,13 +231,13 @@ test('geometria só sob demanda: um município por vez e o conjunto por pedido',
   await expect(page.locator('#mapa-aviso')).toHaveText(AVISO_SIMPLIFICACAO);
 });
 
-test('seleção no mapa e na tabela, com indicador textual', async ({ page }) => {
+test('seleção na "Lista de focos" e no mapa, com indicador textual', async ({ page }) => {
   await entrar(page, 'rp');
-  await page.locator('#registros-tabela button[data-id]').first().click();
-  await expect(page.locator('#mapa-selecao')).toContainText('Selecionada:');
-  await expect(page.locator('#registros-tabela button[data-id]').first()).toHaveAttribute('aria-pressed', 'true');
-  await expect(page.locator('#registros-tabela button[data-id]').first()).toHaveText('Selecionada');
-  await expect(page.locator('#registros-tabela tr.selecionada')).toHaveCount(1);
+  await selecionarFoco(page, 'fx001');
+  await expect(page.locator('#mapa-selecao')).toHaveText('Selecionado: 2026-10-01 01:00 GMT · Município Alfa · -11.58000, -56.60000 · identificador fx001');
+  await expect(page.locator('#lista-focos-itens button[aria-pressed="true"]')).toHaveCount(1);
+  const balao = await abrirBalao(page, 'fx001');
+  await expect(balao.locator('li[data-id="fx001"]')).toContainText('2026-10-01 01:00 GMT');
 });
 
 test('proveniência: versão, fontes, método e limitações', async ({ page }) => {
