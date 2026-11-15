@@ -21,6 +21,7 @@ import {
   abrirAba, balaoRegistros, explicacaoAberta, ligarAbas, marcarFoco, renderListaFocos, renderMunicipios,
 } from './apresentacao-resultado.ts';
 import { lerConfiguracao } from './config.ts';
+import { AVISO_FALHA, AVISO_SEM_CHAVE, fundoInicial, lerChaveEsri, type Fundo } from './fundo.ts';
 import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
 import {
   CLASSES_AREA, municipiosDaSobreposicao, qualificarSobreposicao, ROTULO_CLASSE as ROTULO_AREA, sobreposicao,
@@ -188,6 +189,9 @@ class Controlador {
   private paginaFocos = 0;
   private ordemMunicipios: OrdemMunicipios = 'deteccoes';
   private mapa: Mapa | null = null;
+  /** Mapa-base (T12): chave pública do build e fundo escolhido; sem chave, só "Sem fundo". */
+  private readonly chaveEsri = lerChaveEsri(import.meta.env);
+  private fundo: Fundo = fundoInicial(this.chaveEsri);
   private limites = new Map<number, Limite>();
   /** Camada "Limites municipais" (T10): ligada por padrão; desligada, só o contorno do município escolhido fica. */
   private todosOsLimites = true;
@@ -269,6 +273,15 @@ class Controlador {
       if (ev.key === 'Escape' && mapaAmpliado() && !document.querySelector('dialog[open]')) this.ampliarMapa(false);
     });
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
+    // Mapa-base (T12): "Satélite" só com chave; "Sem fundo" sempre disponível.
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-fundo]')) {
+      b.addEventListener('click', () => {
+        const fundo = b.dataset.fundo as Fundo;
+        if (fundo === 'satelite' && !this.chaveEsri) return;
+        this.escolherFundo(fundo, this.chaveEsri ? null : AVISO_SEM_CHAVE);
+      });
+    }
+    this.escolherFundo(this.fundo, this.chaveEsri ? null : AVISO_SEM_CHAVE);
     $('botao-lista-focos').addEventListener('click', () => this.alternarListaFocos());
     $('botao-fechar-focos').addEventListener('click', () => this.fecharListaFocos());
     $('lista-focos').addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.stopPropagation(); this.fecharListaFocos(); } });
@@ -447,11 +460,27 @@ class Controlador {
     this.mapa.aoSelecionarArea((chave) => this.selecionarAreaDaCamada(chave));
     this.mapa.mostrarPontos(marcado('c-pontos'));
     this.mapa.mostrarDensidade(marcado('c-densidade'));
+    this.escolherFundo(this.fundo, this.chaveEsri ? null : AVISO_SEM_CHAVE);
     if (window.matchMedia('(pointer: coarse)').matches) {
       // Em tela de toque, um dedo rola a página; o mapa só arrasta quando o usuário ativa.
       this.mapa.permitirArrastar(false);
       $('botao-arrastar').hidden = false;
     }
+  }
+
+  /** Troca o mapa-base (T12) e atualiza os botões e o aviso; falha seguida dos tiles volta para "Sem fundo". */
+  private escolherFundo(fundo: Fundo, aviso: string | null): void {
+    this.fundo = fundo;
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-fundo]')) {
+      b.setAttribute('aria-pressed', String(b.dataset.fundo === fundo));
+    }
+    const satelite = $('fundo-satelite');
+    if (this.chaveEsri) satelite.removeAttribute('aria-disabled');
+    else satelite.setAttribute('aria-disabled', 'true');
+    const caixa = $('aviso-fundo');
+    caixa.textContent = aviso ?? '';
+    caixa.hidden = !aviso;
+    this.mapa?.definirFundo(fundo, this.chaveEsri, () => this.escolherFundo('nenhum', AVISO_FALHA));
   }
 
   /** Período digitado, validado; inválido mostra o erro junto dos campos e devolve `null` (o recorte aplicado fica). */

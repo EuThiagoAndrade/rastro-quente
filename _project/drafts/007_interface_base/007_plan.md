@@ -441,8 +441,8 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 007 (completo)
 Quem: Responsável
-Conferir: Checks e diff da [PR #68](https://github.com/EuThiagoAndrade/rastro-quente/pull/68) (item 4)
-Diga: "aprovo o merge da PR #68"
+Conferir: Checks e diff da [PR #69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69) (item 5)
+Diga: "aprovo o merge da PR #69"
 ```
 
 ## Handoff de saída

@@ -18,6 +18,8 @@ Aceito. Decisão técnica do item 4 do plano `003` v4 (aprovado em 2026-11-05), 
 
 **Parcialmente substituído pelo ADR-009** (ciclo `007`, itens 2 e 3): o mapa com a página corrente da tabela de registros, a lente por botão, a memória de lente única e os limites do estado só por pedido deixam de valer. Continuam valendo a pilha estática, a sessão e a consulta sob RLS, as gerações e os estados, a abertura sem geometria e a representação `intermediaria` da carga.
 
+**Revisado pelo ADR-010** (ciclo `007`, item 5): o mapa pode ter fundo de satélite e nomes da Esri, só com chave no build e com "Sem fundo" sempre disponível; `img-src` da CSP ganha só os dois hosts de tiles.
+
 ## Contexto
 
 O plano pede uma interface estática (Vite + TypeScript, `@supabase/supabase-js`, Leaflet estável, sem framework de interface, servidor intermediário, tiles de terceiros, fonte web ou analytics), mobile first, com tipografia legível, ação primária distinta, sessão e consulta sob RLS, estados distintos e geometria carregada por demanda. O item 3 deixou para este item a escolha da representação de exibição (`minima`, `intermediaria` ou `maxima`), com a conferência em celular.

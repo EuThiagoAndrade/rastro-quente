@@ -11,7 +11,7 @@
 2. **O que está à esquerda vale para tudo.** O recorte aplicado (período e município) é o único que o mapa, a série e os municípios usam. Enquanto as lentes forem estaduais (até o item 4 do ciclo 007), a tela diz isso.
 3. **Domínio antes de estética.** Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração; uma lente indica onde olhar, não ranking nem prova; densidade é contagem, não gravidade. As três frases ficam no rodapé fixo.
 4. **Cor nunca é o único sinal.** Toda distinção por cor tem também texto, símbolo, traço ou preenchimento.
-5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (fundo de satélite: item 5 do ciclo 007; abas e ordenação chegaram no item 2; série mensal, "Camadas" e ampliar, no item 3).
+5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (abas e ordenação chegaram no item 2; série mensal, "Camadas" e ampliar, no item 3; o fundo de satélite, no item 5, e só com a chave da Esri no build).
 6. **Nada gravado no navegador.** Nem dados de consulta nem preferências: o tema vale só enquanto a página estiver aberta (ADR-007).
 
 ## Tokens de cor
@@ -70,6 +70,7 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Campo:** seletor e data com borda de 1 px `--contorno`; o período usa um seletor ("Janela inteira", "Últimos 6 meses", "Últimos 3 meses", "Último mês", "Intervalo personalizado…") e o resumo "dd/mm/aaaa a dd/mm/aaaa · N dias GMT".
 - **Opção de lente:** cartão com o nome, a pergunta que responde e a descrição; marcada com fundo `--escolha-suave` e barra à esquerda; a combinação tem borda tracejada; classes e lentes a combinar aparecem dentro do cartão marcado.
 - **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (ferramentas no alto à esquerda, "Camadas" recolhível e o botão de ampliar no alto à direita, "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita). No celular, as ferramentas descem para a linha abaixo de "Camadas". O painel "Camadas" aberto fica por cima da legenda.
+- **Mapa-base (ADR-010):** no início das ferramentas, separado por uma linha, os botões de alternância "Satélite" e "Sem fundo" da V13 (o marcado em `--escolha`); "Ruas" não existe. Com chave, "Satélite" é o padrão; sem chave, fica `aria-disabled`, riscado, com o aviso "Satélite indisponível: mapa-base não configurado neste ambiente." numa caixa de aviso logo abaixo do mapa, e "Sem fundo" é o padrão. Falha dos tiles volta a "Sem fundo" com "Fundo de satélite indisponível agora.". A atribuição da Esri fica no controle do Leaflet enquanto o fundo estiver ligado.
 - **Camadas:** caixas "Limites municipais (IBGE)" (ligada), "Áreas protegidas", "Detecções individuais" (ligada) e "Densidade por célula"; alvo de 44 px por linha.
 - **Mapa ampliado:** ícone de setas (ampliar/reduzir) com `aria-pressed` e rótulo "Ampliar mapa"/"Reduzir mapa"; as colunas laterais saem e mapa e cartões do centro ocupam a largura toda.
 - **Série:** barras da V13 (valor na mensal, coluna `--barra` e rótulo em dia ou mês GMT); mês parcial com `*` e coluna hachurada; nota da unidade acima e legenda com o total e a nota de mês parcial abaixo; tabela recolhível como alternativa.

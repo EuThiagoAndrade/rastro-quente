@@ -156,6 +156,10 @@
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
           <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
           <div class="flutuante flutuante--ferramentas ferramentas-mapa" role="group" aria-label="Ferramentas do mapa">
+            <span class="fundo-mapa" role="group" aria-label="Mapa-base">
+              <button id="fundo-satelite" type="button" data-fundo="satelite" aria-pressed="false" aria-describedby="aviso-fundo">Satélite</button>
+              <button id="fundo-nenhum" type="button" data-fundo="nenhum" aria-pressed="true">Sem fundo</button>
+            </span>
             <button id="botao-arrastar" type="button" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
             <button id="botao-enquadrar" type="button">Enquadrar os dados</button>
             <button id="botao-lista-focos" type="button" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
@@ -200,6 +204,7 @@
         <!-- Centro, abaixo do mapa: estado, série e disponibilidade (e, até o item 2, os registros). -->
         <div class="rodape-mapa">
           <div id="estado-consulta" role="status"></div>
+          <p id="aviso-fundo" class="aviso-fundo" role="status" hidden></p>
           <section id="lista-focos" class="cartao lista-focos" aria-labelledby="t-lista-focos" hidden>
             <div class="lista-focos__cabeca">
               <h2 id="t-lista-focos" class="rotulo-secao" tabindex="-1">Lista de focos</h2>
@@ -279,7 +284,7 @@
     <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
       <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
       <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro. As lentes ainda usam todo Mato Grosso no período escolhido. O satélite e as fontes aparecem no topo.</div></div>
-      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
+      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"); com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>

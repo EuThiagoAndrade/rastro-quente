@@ -21,10 +21,19 @@ export default defineConfig({
     trace: 'off',
     actionTimeout: 15_000,
   },
-  webServer: {
-    command: 'node scripts/interface/servir-e2e.mjs',
-    url: 'http://127.0.0.1:5173',
-    reuseExistingServer: false,
-    timeout: 120_000,
-  },
+  webServer: [
+    {
+      command: 'node scripts/interface/servir-e2e.mjs',
+      url: 'http://127.0.0.1:5173',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+    // Issue #64: build com valor fictício em VITE_ESRI_CHAVE (só para 10-mapa-base, com os tiles interceptados).
+    {
+      command: 'node scripts/interface/servir-e2e.mjs --esri',
+      url: 'http://127.0.0.1:5174',
+      reuseExistingServer: false,
+      timeout: 120_000,
+    },
+  ],
 });

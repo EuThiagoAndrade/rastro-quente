@@ -2,13 +2,13 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#62`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-62`
 > **PR:** [#67](https://github.com/EuThiagoAndrade/rastro-quente/pull/67)
-> **Integração:** `Pendente`
+> **Integração:** squash `604333e` em `main` (2026-11-15)
 > **Autorização inicial:** "autorizo a implementação da issue #62" em 2026-11-14
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-14
@@ -72,7 +72,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes na PR #67 (governança, banco e RLS, interface com E2E) |
 
 ## Revisão da correção
 

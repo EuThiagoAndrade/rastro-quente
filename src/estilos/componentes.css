@@ -872,6 +872,33 @@ tr.selecionada td {
   font-weight: 600;
 }
 
+/* Mapa-base (V13): "Satélite" e "Sem fundo" no início da barra, separados das ferramentas por uma linha. */
+.fundo-mapa {
+  display: inline-flex;
+  flex-wrap: wrap;
+  max-width: 100%;
+  gap: 0.25rem;
+  padding-right: 0.25rem;
+  border-right: 1px solid var(--contorno-suave);
+}
+
+.flutuante--ferramentas button[aria-disabled="true"] {
+  color: var(--texto-suave);
+  text-decoration: line-through;
+  cursor: not-allowed;
+}
+
+/* Aviso do mapa-base, abaixo do mapa (fora dele, para não cobrir pontos nem cortar o cartão em 320 px). */
+.aviso-fundo {
+  margin: 0;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--aviso-borda);
+  border-radius: 7px;
+  background: var(--aviso-fundo);
+  color: var(--aviso-texto);
+  font-size: var(--t-pequeno);
+}
+
 .flutuante--legenda {
   bottom: 1.6rem;
   left: 0.75rem;
