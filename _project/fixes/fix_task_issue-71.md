@@ -7,7 +7,7 @@
 > **Issue:** `#71`
 > **Plano:** `—`
 > **Branch:** `fix/issue-71`
-> **PR:** —
+> **PR:** [#72](https://github.com/EuThiagoAndrade/rastro-quente/pull/72)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "confirmo a trilha curta e autorizo abrir e corrigir a issue [FIX] Pacote de correções do mapa, filtros, acesso e municípios (BL-010 a BL-016)" em 2026-11-15
 > **Modo contínuo:** `—`
@@ -123,18 +123,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — correção da issue #71
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue a correção da issue #71"
+Situação: Aguardando merge — correção da issue #71
+Quem: Responsável
+Conferir: Checks e diff da [PR #72](https://github.com/EuThiagoAndrade/rastro-quente/pull/72)
+Diga: "aprovo o merge da PR #72"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + fix + revisar_plano + issue-71/rodada-2 + diff local 05421f16e741bb6348c1ee5b9f5c2a8d829d100a sobre 5236251`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: Aguardando revisão (rodada 2) / Pronto para continuar
+- `logical_key`: `rastro-quente + fix + corrigir_trilha_curta + 71 + 5236251`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: correção apta na rodada 2, sem commit / branch `fix/issue-71` publicada e PR #72 aberta
 - `result`: `executed`
-- `evidence`: parecer, veredito e validações em `## Revisão da correção`, rodada 2.
-- `blockers`: nenhum.
+- `evidence`: PR #72; validações em "Evidências"; revisão em "Revisão da correção"
+- `blockers`: checks remotos e aprovação do merge
