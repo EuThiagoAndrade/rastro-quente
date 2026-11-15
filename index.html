@@ -52,10 +52,6 @@
 
       <section class="acesso" id="acesso" aria-labelledby="t-acesso" hidden>
         <h2 id="t-acesso" class="acesso__titulo" tabindex="-1">Acesso</h2>
-        <p class="acesso__aviso">
-          Consulta de <strong>detecções de calor</strong> do satélite AQUA_M-T (INPE) em Mato Grosso. Detecções e sobreposições
-          <strong>não comprovam incêndio, dano, autoria ou infração</strong>. Sem sessão autorizada, nenhum dado é carregado.
-        </p>
         <div id="acesso-corpo"></div>
       </section>
 
@@ -70,7 +66,7 @@
           </div>
 
           <details id="secao-consulta" class="secao" open>
-            <summary><span>Consulta</span> <span id="consulta-aplicada" class="secao__resumo"></span></summary>
+            <summary><span>Consulta</span></summary>
             <form id="form-consulta" novalidate>
               <label class="rotulo-secao" for="f-periodo">Período (dia GMT)</label>
               <select id="f-periodo" class="campo-periodo">
@@ -90,7 +86,7 @@
               <p id="f-mostrando" class="aviso-estado" role="status" hidden></p>
               <label class="rotulo-secao rotulo-secao--campo" for="f-municipio">Município</label>
               <select id="f-municipio" class="campo-periodo"></select>
-              <p class="nota">Vale para o mapa, a série e os municípios. As lentes ainda usam todo Mato Grosso.</p>
+              <p class="nota">Vale para o mapa, a série, os municípios e as lentes.</p>
             </form>
           </details>
 
@@ -155,14 +151,30 @@
         <section class="mapa-cartao" aria-labelledby="t-mapa">
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
           <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
-          <div class="flutuante flutuante--ferramentas ferramentas-mapa" role="group" aria-label="Ferramentas do mapa">
-            <span class="fundo-mapa" role="group" aria-label="Mapa-base">
-              <button id="fundo-satelite" type="button" data-fundo="satelite" aria-pressed="false" aria-describedby="aviso-fundo">Satélite</button>
-              <button id="fundo-nenhum" type="button" data-fundo="nenhum" aria-pressed="true">Sem fundo</button>
-            </span>
-            <button id="botao-arrastar" type="button" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
-            <button id="botao-enquadrar" type="button">Enquadrar os dados</button>
-            <button id="botao-lista-focos" type="button" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
+          <!-- "Mapa" e "Camadas" (issue #71): painéis recolhíveis lado a lado, no alto à direita. -->
+          <div class="controles-mapa">
+            <details id="opcoes-mapa" class="flutuante flutuante--painel flutuante--opcoes">
+              <summary>Mapa</summary>
+              <div class="painel-mapa" role="group" aria-label="Opções do mapa">
+                <span class="fundo-mapa" role="group" aria-label="Mapa-base">
+                  <button id="fundo-satelite" type="button" class="opcao-mapa opcao-mapa--radio" data-fundo="satelite" aria-pressed="false" aria-describedby="aviso-fundo">Satélite</button>
+                  <button id="fundo-nenhum" type="button" class="opcao-mapa opcao-mapa--radio" data-fundo="nenhum" aria-pressed="true">Sem fundo</button>
+                </span>
+                <button id="botao-lista-focos" type="button" class="opcao-mapa opcao-mapa--caixa" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
+                <button id="botao-arrastar" type="button" class="opcao-mapa opcao-mapa--caixa" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
+                <button id="botao-enquadrar" type="button" class="opcao-mapa opcao-mapa--acao">Enquadrar os dados</button>
+              </div>
+            </details>
+            <details id="camadas" class="flutuante flutuante--painel flutuante--camadas">
+              <summary>Camadas</summary>
+              <fieldset>
+                <legend class="so-leitor">Camadas do mapa</legend>
+                <label class="opcao"><input type="checkbox" id="c-limites" checked /> Limites municipais (IBGE)</label>
+                <label class="opcao"><input type="checkbox" id="c-areas" /> Áreas protegidas</label>
+                <label class="opcao"><input type="checkbox" id="c-pontos" checked /> Detecções individuais</label>
+                <label class="opcao"><input type="checkbox" id="c-densidade" /> Densidade por célula</label>
+              </fieldset>
+            </details>
           </div>
           <div class="flutuante flutuante--ampliar">
             <button id="botao-ampliar" type="button" aria-pressed="false" aria-label="Ampliar mapa" title="Ampliar mapa">
@@ -170,16 +182,6 @@
               <svg class="ic-reduzir" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /></svg>
             </button>
           </div>
-          <details id="camadas" class="flutuante flutuante--camadas">
-            <summary>Camadas</summary>
-            <fieldset>
-              <legend class="so-leitor">Camadas do mapa</legend>
-              <label class="opcao"><input type="checkbox" id="c-limites" checked /> Limites municipais (IBGE)</label>
-              <label class="opcao"><input type="checkbox" id="c-areas" /> Áreas protegidas</label>
-              <label class="opcao"><input type="checkbox" id="c-pontos" checked /> Detecções individuais</label>
-              <label class="opcao"><input type="checkbox" id="c-densidade" /> Densidade por célula</label>
-            </fieldset>
-          </details>
           <details class="flutuante flutuante--legenda legenda-v13">
             <summary><strong>Legenda</strong></summary>
             <ul class="legenda" aria-label="Legenda do mapa">
@@ -187,6 +189,14 @@
               <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
               <li><span class="legenda__amostra legenda__amostra--destaque" aria-hidden="true"></span> Destacada pela lente (contorno amarelo claro; a lista da lente é a alternativa em texto)</li>
               <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Selecionada (tracejado azul claro)</li>
+              <li id="legenda-areas" class="legenda-densidade" hidden>
+                <span>Áreas protegidas (contexto territorial)</span>
+                <span class="escala-densidade">
+                  <span data-classe-mapa="protecao_integral"><span class="legenda__amostra legenda__amostra--protecao_integral" aria-hidden="true"></span>Proteção integral (contínuo verde)</span>
+                  <span data-classe-mapa="uso_sustentavel"><span class="legenda__amostra legenda__amostra--uso_sustentavel" aria-hidden="true"></span>Uso sustentável (tracejado lilás)</span>
+                  <span data-classe-mapa="terra_indigena"><span class="legenda__amostra legenda__amostra--terra_indigena" aria-hidden="true"></span>Terra indígena (pontilhado rosa)</span>
+                </span>
+              </li>
               <li id="legenda-densidade" class="legenda-densidade" hidden>
                 <span>Detecções por célula: contagem, não gravidade</span>
                 <span class="escala-densidade">
@@ -283,8 +293,8 @@
 
     <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
       <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
-      <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro. As lentes ainda usam todo Mato Grosso no período escolhido. O satélite e as fontes aparecem no topo.</div></div>
-      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"); com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
+      <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro, e as lentes também. O satélite e as fontes aparecem no topo.</div></div>
+      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Mapa", escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"), abra a "Lista de focos" ou enquadre os dados; com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>

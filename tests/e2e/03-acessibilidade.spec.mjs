@@ -2,7 +2,7 @@
 // Fixtures fictícias; capturas de trabalho ficam em test-results/ (ignorado pelo Git), nunca versionadas.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirListaFocos, abrirSecao, consultar, entrar, escolherLente, selecionarFoco } from './ajuda.mjs';
+import { abrirListaFocos, abrirOpcoesMapa, abrirSecao, consultar, entrar, escolherLente, selecionarFoco } from './ajuda.mjs';
 
 test.beforeAll(() => cadastrarRp());
 
@@ -148,9 +148,9 @@ test('layout (V13): uma coluna no celular (filtros, mapa, série, resultado); tr
   const caixa = (sel) => page.locator(sel).evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y + scrollY, w: r.width, h: r.height }; });
   await page.setViewportSize({ width: 390, height: 844 });
   await entrar(page, 'rp');
-  // T17: em tela estreita as seções começam fechadas e a Consulta mostra o recorte aplicado no título.
+  // T17: em tela estreita as seções começam fechadas; recolhida, a Consulta não mostra resumo (issue #71).
   await expect(page.locator('#secao-consulta')).not.toHaveAttribute('open', '');
-  await expect(page.locator('#secao-consulta summary')).toContainText('Todo Mato Grosso · 2026-10-01 a 2026-10-31');
+  await expect(page.locator('#secao-consulta summary')).toHaveText('Consulta');
   const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
   expect(mapa.w).toBeGreaterThan(390 * 0.9);
   expect(filtros.y).toBeLessThan(mapa.y);
@@ -268,6 +268,7 @@ test.describe('tela de toque', () => {
 
   test('um dedo rola a página; o mapa só arrasta quando o usuário ativa', async ({ page }) => {
     await entrar(page, 'rp');
+    await abrirOpcoesMapa(page, true);
     const botao = page.locator('#botao-arrastar');
     await expect(botao).toBeVisible();
     await expect(botao).toHaveAttribute('aria-pressed', 'false');

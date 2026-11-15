@@ -15,11 +15,14 @@ test('AN: sem sessão só há a tela de entrada, sem chamadas de dados', async (
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();
   await expect(page.locator('#conteudo')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Entrar com o Google' })).toBeVisible();
-  // Tela de acesso própria (T13): aviso de domínio, sem chips nem diálogos de dados no topo.
-  await expect(page.locator('#acesso')).toContainText('não comprovam incêndio, dano, autoria ou infração');
+  // Tela de acesso enxuta (issue #71): sem o aviso nem o rodapé de ressalvas, sem chips nem diálogos de dados no topo.
+  await expect(page.locator('#acesso')).not.toContainText('não comprovam incêndio');
+  await expect(page.locator('.rodape')).toBeHidden();
+  const cartao = await page.locator('#acesso').boundingBox();
+  const botao = await page.locator('#botao-google').boundingBox();
+  expect(Math.abs((botao.x + botao.width / 2) - (cartao.x + cartao.width / 2))).toBeLessThan(2);
   for (const id of ['#topo-chips', '#botao-sobre', '#botao-como-ler']) await expect(page.locator(id)).toBeHidden();
   await expect(page.locator('#botao-tema')).toBeVisible();
-  await expect(page.locator('.rodape')).toContainText('Uma lente indica onde olhar; não é ranking nem prova.');
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
   expect(rest, 'nenhuma chamada de dados sem sessão').toEqual([]);
 

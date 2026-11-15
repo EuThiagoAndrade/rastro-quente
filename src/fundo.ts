@@ -23,6 +23,10 @@ export const ATRIBUICAO_SEM_FUNDO = 'sem mapa-base de terceiros';
 
 export const AVISO_SEM_CHAVE = 'Satélite indisponível: mapa-base não configurado neste ambiente.';
 export const AVISO_FALHA = 'Fundo de satélite indisponível agora.';
+export const AVISO_FALHA_NOMES = 'Nomes sobre o satélite indisponíveis agora; a imagem continua.';
+
+/** Camada do fundo de satélite: a imagem ou os nomes por cima dela. */
+export type ParteFundo = 'imagem' | 'nomes';
 
 /** Erros de tile seguidos, na mesma vista, que trocam o fundo para "Sem fundo" (chave rejeitada, cota, rede). */
 export const LIMITE_ERROS_SEGUIDOS = 4;

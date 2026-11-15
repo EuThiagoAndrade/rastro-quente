@@ -71,8 +71,19 @@ export function observarRest(page) {
   return chamadas;
 }
 
-/** Abre a "Lista de focos" (T21) pelo botão do mapa, se estiver fechada. */
+/** Abre o painel "Mapa" (fundo, "Lista de focos", enquadrar; issue #71), se estiver fechado. */
+export async function abrirOpcoesMapa(page, toque = false) {
+  const painel = page.locator('#opcoes-mapa');
+  if ((await painel.getAttribute('open')) === null) {
+    const resumo = painel.locator(':scope > summary');
+    if (toque) await resumo.tap(); else await resumo.click();
+  }
+  await expect(painel).toHaveAttribute('open', '');
+}
+
+/** Abre a "Lista de focos" (T21) pelo painel "Mapa", se estiver fechada. */
 export async function abrirListaFocos(page) {
+  await abrirOpcoesMapa(page);
   const botao = page.locator('#botao-lista-focos');
   if ((await botao.getAttribute('aria-expanded')) !== 'true') await botao.click();
   await expect(page.locator('#lista-focos')).toBeVisible();
@@ -99,6 +110,9 @@ export async function abrirBalao(page, id) {
   await page.waitForTimeout(800);
   await selecionarFoco(page, id);
   await page.waitForTimeout(600);
+  // O painel "Mapa" aberto (usado para abrir a lista) cobriria o centro do mapa: fecha antes de tocar o ponto.
+  const painel = page.locator('#opcoes-mapa');
+  if ((await painel.getAttribute('open')) !== null) await painel.locator(':scope > summary').click();
   const caixa = await page.locator('#mapa').boundingBox();
   await page.mouse.click(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2);
   // O balão anterior some com animação: espera sobrar só o novo.

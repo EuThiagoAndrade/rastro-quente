@@ -110,6 +110,8 @@ test('camada sob demanda: nada na abertura; legenda em texto, atribuição, áre
     'Uso sustentável (contorno tracejado lilás, hachura inclinada para a esquerda): 1 área',
     'Terra indígena (contorno pontilhado rosa, hachura vertical): 2 áreas',
   ]);
+  await expect(page.locator('#legenda-areas')).not.toHaveAttribute('hidden', '');
+  await expect(page.locator('#legenda-areas [data-classe-mapa]')).toHaveText(['Proteção integral (contínuo verde)', 'Uso sustentável (tracejado lilás)', 'Terra indígena (pontilhado rosa)']);
   await expect(page.locator('#areas-aviso')).toContainText('Áreas de outros estados que entram em Mato Grosso só aparecem quando contêm detecção desta carga.');
   await expect(page.locator('#areas-atribuicao')).toContainText('FUNAI: retrato funai-ficticio, obtido em 2026-11-12 12:00 GMT; fonte fictícia de terras indígenas, reprodução com citação');
   await expect(areasNoMapa(page)).toHaveCount(4);
@@ -138,6 +140,7 @@ test('camada sob demanda: nada na abertura; legenda em texto, atribuição, áre
   await alternarCamada(page, 'c-areas');
   await expect(botao).not.toBeChecked();
   await expect(page.locator('#areas-legenda')).toBeHidden();
+  await expect(page.locator('#legenda-areas')).toHaveAttribute('hidden', '');
   await expect(areasNoMapa(page)).toHaveCount(0);
   await expect(page.locator('#areas-selecao')).toBeHidden();
   await alternarCamada(page, 'c-areas');
@@ -432,7 +435,7 @@ test('versão substituída (linha da carga oculta e outra vigente): estado próp
 /** Controles visíveis menores que 44×44, elementos fora da janela e rolagem horizontal global. */
 const auditar = () => {
   const visivel = (e) => { const r = e.getBoundingClientRect(); return r.width >= 2 && r.height >= 2 && !e.closest('[hidden]'); };
-  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros'), document.getElementById('mapa-areas'), document.querySelector('.ferramentas-mapa')];
+  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros'), document.getElementById('mapa-areas'), document.querySelector('.controles-mapa')];
   const alvos = raizes.flatMap((raiz) => [...raiz.querySelectorAll('button, select, summary, .opcao')])
     .filter((e) => visivel(e) && !e.matches(':disabled'))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })

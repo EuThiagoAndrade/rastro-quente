@@ -5,7 +5,7 @@
 // Nenhuma chave real e nenhum pedido sai para a Esri: toda rota dos dois hosts é atendida localmente.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { entrar } from './ajuda.mjs';
+import { abrirOpcoesMapa, entrar } from './ajuda.mjs';
 
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(() => cadastrarRp());
@@ -47,6 +47,7 @@ test.describe('sem chave', () => {
     await expect(satelite).toHaveAttribute('aria-disabled', 'true');
     await expect(page.locator('#aviso-fundo')).toHaveText('Satélite indisponível: mapa-base não configurado neste ambiente.');
     await expect(satelite).toHaveAccessibleDescription(/Satélite indisponível/);
+    await abrirOpcoesMapa(page);
     await satelite.click({ force: true }); // aria-disabled: o clique não liga nada
     await expect(page.locator('#fundo-nenhum')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'nenhum');
@@ -82,11 +83,13 @@ test.describe('com valor fictício e tiles interceptados', () => {
     await expect(atribuicao).not.toContainText('sem mapa-base de terceiros');
 
     // Desligar o fundo: as camadas saem e nenhum pedido novo vai à Esri, mesmo movendo e aproximando o mapa.
+    await abrirOpcoesMapa(page);
     await page.locator('#fundo-nenhum').click();
     await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'nenhum');
     await expect(tiles).toHaveCount(0);
     const antes = pedidos.length;
     await page.locator('.leaflet-control-zoom-in').click();
+    await abrirOpcoesMapa(page);
     await page.locator('#botao-enquadrar').click();
     await page.waitForTimeout(800);
     expect(pedidos.length).toBe(antes);
@@ -123,6 +126,7 @@ test.describe('com valor fictício e tiles interceptados', () => {
     await expect(page.locator('.fundo-mapa-camada img.leaflet-tile')).toHaveCount(0);
     const antes = pedidos.length;
     expect(antes).toBeGreaterThan(0);
+    await abrirOpcoesMapa(page);
     await page.locator('#botao-enquadrar').click();
     await page.waitForTimeout(800);
     expect(pedidos.length).toBe(antes);
@@ -130,8 +134,64 @@ test.describe('com valor fictício e tiles interceptados', () => {
     // Religar é possível (o fundo continua disponível); com tiles bons, volta a carregar.
     await page.unrouteAll();
     await tilesSimulados(page);
+    await abrirOpcoesMapa(page);
     await page.locator('#fundo-satelite').click();
     await expect(page.locator('#aviso-fundo')).toBeHidden();
     await expect.poll(() => page.locator('.fundo-mapa-camada img.leaflet-tile').count()).toBeGreaterThan(0);
   });
+
+  // Issue #71 (BL-010, BL-011): reproduções dos defeitos vistos em produção depois da issue #64.
+  test('"Sem fundo" depois do satélite: o mapa continua respondendo e a atribuição da Esri sai', async ({ page }) => {
+    const erros = [];
+    page.on('pageerror', (e) => erros.push(e.message));
+    await tilesSimulados(page);
+    await entrar(page, 'rp');
+    await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
+    await expect.poll(() => page.locator('.fundo-mapa-camada img.leaflet-tile').count()).toBeGreaterThan(0);
+    await abrirOpcoesMapa(page);
+    await page.locator('#fundo-nenhum').click();
+    await page.locator('.leaflet-control-zoom-in').click();
+    await page.waitForTimeout(500);
+    const caixa = await page.locator('#mapa').boundingBox();
+    await page.mouse.move(caixa.x + caixa.width / 2, caixa.y + caixa.height / 2 + 40);
+    await page.mouse.down();
+    await page.mouse.move(caixa.x + caixa.width / 2 + 80, caixa.y + caixa.height / 2 + 60, { steps: 6 });
+    await page.mouse.up();
+    await page.locator('.leaflet-control-zoom-out').click();
+    await page.waitForTimeout(800);
+    expect(erros).toEqual([]);
+    const atribuicao = page.locator('.leaflet-control-attribution');
+    await expect(atribuicao).toContainText('sem mapa-base de terceiros');
+    await expect(atribuicao).not.toContainText('Esri');
+  });
+
+  test('só os nomes falham: a imagem continua, com aviso', async ({ page }) => {
+    await page.route(IMAGEM, (rota) => rota.fulfill({ status: 200, contentType: 'image/png', body: PNG }));
+    await page.route(NOMES, (rota) => rota.fulfill({ status: 403, contentType: 'application/json', body: '{}' }));
+    await entrar(page, 'rp');
+    await expect(page.locator('#aviso-fundo')).toHaveText('Nomes sobre o satélite indisponíveis agora; a imagem continua.');
+    await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'satelite');
+    await expect(page.locator('#fundo-satelite')).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator('.fundo-mapa-camada')).toHaveCount(1);
+    await expect(page.locator('.leaflet-control-attribution')).not.toContainText('Nomes: Esri');
+  });
+
+  for (const [largura, altura] of [[1280, 720], [390, 844]]) {
+    test(`com o satélite a ${largura} px, a atribuição e a "Legenda", fechada ou aberta, não se cobrem`, async ({ page }) => {
+      await page.setViewportSize({ width: largura, height: altura });
+      await tilesSimulados(page);
+      await entrar(page, 'rp');
+      await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'satelite');
+      const cruzam = async (seletor) => {
+        const a = await page.locator(seletor).boundingBox();
+        const b = await page.locator('.leaflet-control-attribution').boundingBox();
+        return a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+      };
+      expect(await cruzam('.flutuante--legenda summary')).toBe(false);
+      await page.locator('.flutuante--legenda summary').click();
+      await expect(page.locator('.flutuante--legenda')).toHaveAttribute('open', '');
+      expect(await cruzam('.flutuante--legenda')).toBe(false);
+      await expect(page.locator('.leaflet-control-attribution')).toContainText('Powered by Esri');
+    });
+  }
 });

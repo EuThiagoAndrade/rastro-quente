@@ -4,7 +4,7 @@
 import * as L from 'leaflet';
 import {
   ATRIBUICAO_IMAGEM, ATRIBUICAO_NOMES, ATRIBUICAO_SEM_FUNDO, ContadorFalhas, POLITICA_REFERENCIA, URL_IMAGEM, URL_NOMES,
-  type Fundo,
+  type Fundo, type ParteFundo,
 } from './fundo.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
@@ -86,10 +86,11 @@ export interface Mapa {
   mostrarPontos(ativo: boolean): void;
   /**
    * Mapa-base (T12): "satelite" liga imagem e nomes com a chave; "nenhum" remove as duas camadas (os tiles em voo
-   * são cancelados pelo Leaflet) e nenhum pedido novo vai à Esri. `aoFalhar` é chamado uma vez quando os erros
-   * seguidos na mesma vista atingem o limite; quem chama decide trocar para "nenhum".
+   * são cancelados pelo Leaflet) e nenhum pedido novo vai à Esri. `aoFalhar` é chamado uma vez por camada quando
+   * os erros seguidos na mesma vista atingem o limite: com "nomes", a camada de nomes já saiu e a imagem continua;
+   * com "imagem", quem chama decide trocar para "nenhum".
    */
-  definirFundo(fundo: Fundo, chave: string | null, aoFalhar: () => void): void;
+  definirFundo(fundo: Fundo, chave: string | null, aoFalhar: (parte: ParteFundo) => void): void;
   /** Recalcula o tamanho depois de ampliar ou reduzir o mapa. */
   redimensionar(): void;
   focar(): void;
@@ -105,6 +106,25 @@ export function criarMapa(elemento: HTMLElement): Mapa {
   mapa.attributionControl.setPrefix('Leaflet 1.9.4');
   mapa.attributionControl.addAttribution(ATRIBUICAO_SEM_FUNDO);
   mapa.setView([-13, -56], 5);
+  // A legenda aberta fica acima da atribuição, que é sempre visível (ADR-010; issue #71, R1-1): a altura real da
+  // atribuição vai para `--altura-atribuicao` no cartão do mapa (CSSOM, permitido pela CSP).
+  const cartao = elemento.closest<HTMLElement>('.mapa-cartao');
+  const atribuicao = mapa.attributionControl.getContainer();
+  if (cartao && atribuicao && typeof ResizeObserver !== 'undefined') {
+    new ResizeObserver(() => cartao.style.setProperty('--altura-atribuicao', `${atribuicao.offsetHeight}px`)).observe(atribuicao);
+    // Altura livre abaixo das pílulas "Mapa" e "Camadas" (que quebram linha com texto grande), para os menus caberem
+    // no cartão e rolarem por dentro (issue #71, R3-1).
+    const controles = cartao.querySelector<HTMLElement>('.controles-mapa');
+    if (controles) {
+      const medir = () => {
+        const livre = cartao.clientHeight - (controles.offsetTop + controles.offsetHeight) - 16;
+        cartao.style.setProperty('--altura-menu', `${Math.max(livre, 96)}px`);
+      };
+      const observador = new ResizeObserver(medir);
+      observador.observe(cartao);
+      observador.observe(controles);
+    }
+  }
 
   // Áreas protegidas em painel próprio, abaixo dos destaques e dos pontos, desenhadas em SVG para permitir a
   // hachura por padrão (o canvas não a tem). Os contornos reais ficam no mesmo painel, por cima da visão geral.
@@ -183,38 +203,49 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     : { color: COR_DESTAQUE, weight: 2, fillColor: COR_DESTAQUE, fillOpacity: 0.08 };
 
   // Mapa-base no painel de tiles (abaixo de todas as camadas vetoriais), criado só quando ligado.
+  // Uma contagem de falhas por camada: se só os nomes falham, a imagem continua (issue #71, BL-010).
   let fundoCamadas: L.TileLayer[] = [];
-  const falhas = new ContadorFalhas();
-  let aoFalharFundo: () => void = () => {};
-  mapa.on('moveend', () => falhas.zerar());
+  const falhas: Record<ParteFundo, ContadorFalhas> = { imagem: new ContadorFalhas(), nomes: new ContadorFalhas() };
+  let aoFalharFundo: (parte: ParteFundo) => void = () => {};
+  mapa.on('moveend', () => { falhas.imagem.zerar(); falhas.nomes.zerar(); });
 
   function removerFundo(): void {
-    for (const c of fundoCamadas) {
-      c.off();
-      mapa.removeLayer(c);
-    }
+    // Sem `off()`: o Leaflet usa ouvintes de 'remove' na própria camada para desligar os eventos dela no mapa e a
+    // atribuição; removê-los deixava a camada presa ao mapa e quebrava o redesenho dos pontos ao arrastar.
+    const antigas = fundoCamadas;
     fundoCamadas = [];
+    for (const c of antigas) mapa.removeLayer(c);
   }
 
-  function criarCamadaFundo(url: string, chave: string, extra: L.TileLayerOptions): L.TileLayer {
+  function criarCamadaFundo(parte: ParteFundo, url: string, chave: string, extra: L.TileLayerOptions): L.TileLayer {
     const camada = L.tileLayer(url, {
       token: chave, maxZoom: MAX_ZOOM, referrerPolicy: POLITICA_REFERENCIA, className: 'fundo-mapa-camada', ...extra,
     } as L.TileLayerOptions);
-    camada.on('tileload', () => falhas.carregou());
-    camada.on('tileerror', () => { if (falhas.erro()) aoFalharFundo(); });
+    // Eventos tardios de uma camada já removida não contam.
+    camada.on('tileload', () => { if (fundoCamadas.includes(camada)) falhas[parte].carregou(); });
+    camada.on('tileerror', () => {
+      if (!fundoCamadas.includes(camada) || !falhas[parte].erro()) return;
+      if (parte === 'nomes') {
+        // Só os nomes saem; a imagem fica.
+        fundoCamadas = fundoCamadas.filter((c) => c !== camada);
+        mapa.removeLayer(camada);
+      }
+      aoFalharFundo(parte);
+    });
     return camada;
   }
 
   return {
     definirFundo(fundo, chave, aoFalhar) {
       removerFundo();
-      falhas.zerar();
+      falhas.imagem.zerar();
+      falhas.nomes.zerar();
       aoFalharFundo = aoFalhar;
       if (fundo === 'satelite' && chave) {
         mapa.attributionControl.removeAttribution(ATRIBUICAO_SEM_FUNDO);
         fundoCamadas = [
-          criarCamadaFundo(URL_IMAGEM, chave, { attribution: ATRIBUICAO_IMAGEM }),
-          criarCamadaFundo(URL_NOMES, chave, { attribution: ATRIBUICAO_NOMES, tileSize: 512, zoomOffset: -1 }),
+          criarCamadaFundo('imagem', URL_IMAGEM, chave, { attribution: ATRIBUICAO_IMAGEM }),
+          criarCamadaFundo('nomes', URL_NOMES, chave, { attribution: ATRIBUICAO_NOMES, tileSize: 512, zoomOffset: -1 }),
         ];
         for (const c of fundoCamadas) c.addTo(mapa);
         elemento.dataset.fundo = 'satelite';

@@ -89,12 +89,14 @@ main {
   font-size: 1.125rem;
 }
 
-.acesso__aviso {
-  padding: 0.7rem 0.8rem;
-  border: 1px solid var(--aviso-borda);
-  border-radius: 10px;
-  background: var(--aviso-fundo);
-  color: var(--aviso-texto);
+/* Tela de acesso enxuta (issue #71, BL-014): botão do Google no centro do cartão e sem o rodapé de ressalvas,
+   que continua na tela de análise. */
+.acesso .acoes--centro {
+  justify-content: center;
+}
+
+body:has(#acesso:not([hidden])) .rodape {
+  display: none;
 }
 
 /* Grade */
@@ -143,6 +145,9 @@ main {
 }
 
 .rodape-mapa {
+  /* Bloco de contenção dos textos só para leitor de tela (.so-leitor, absolutos) da série: sem ele, eles escapam
+     da rolagem interna e alongam a página depois do rodapé. */
+  position: relative;
   grid-column: 2;
   grid-row: 2;
   display: grid;
@@ -239,6 +244,20 @@ main {
   .mapa-ampliado .mapa-cartao {
     height: auto;
   }
+
+  /* Ampliado (issue #71, BL-013): o mapa ocupa a altura da tela; abaixo dele ficam só o aviso do fundo e a
+     "Lista de focos", quando abertos. */
+  .mapa-ampliado .grade {
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+
+  .mapa-ampliado .rodape-mapa > :not(#aviso-fundo, #lista-focos) {
+    display: none;
+  }
+
+  .mapa-ampliado .rodape-mapa {
+    max-height: 30dvh;
+  }
 }
 
 /* Celular: uma coluna, na ordem do percurso. */
@@ -290,12 +309,6 @@ main {
   .mapa-cartao {
     order: 1;
     height: 440px;
-  }
-
-  /* Ferramentas abaixo da linha de "Camadas" e do botão de ampliar, sem sobrepor. */
-  .flutuante--ferramentas {
-    top: calc(0.75rem + var(--alvo) + 0.5rem);
-    max-width: calc(100% - 1.5rem);
   }
 
   .mapa-ampliado .mapa-cartao {

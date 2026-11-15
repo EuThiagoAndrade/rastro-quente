@@ -2,7 +2,7 @@
 // disponibilidade D1, texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirBalao, abrirListaFocos, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
+import { abrirBalao, abrirListaFocos, abrirOpcoesMapa, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
 import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -104,6 +104,7 @@ test('T7: todos os pontos do recorte no mapa e a "Lista de focos" paginada, por 
   await expect(page.locator('#mapa canvas').first()).toBeVisible();
   expect(rest.filter((r) => r.includes('consultar_deteccoes'))).toHaveLength(1);
   const antes = rest.length;
+  await abrirOpcoesMapa(page);
   await page.locator('#botao-lista-focos').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#lista-focos')).toBeVisible();
@@ -293,7 +294,7 @@ test('proveniência: versão, fontes, método e limitações', async ({ page }) 
 test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a linha "Mostrando"', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { inicio: '2026-10-20' });
-  await expect(page.locator('#consulta-aplicada')).toHaveText('Todo Mato Grosso · 2026-10-20 a 2026-10-31');
+  await expect(page.locator('#filtros-escopo')).toContainText('Todo Mato Grosso');
   await expect(page.locator('#principal-intervalo')).toContainText('2026-10-20 00:00 GMT');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'pronto');
   const total = await numero(page, 'total-principal');
@@ -311,7 +312,7 @@ test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a l
   expect(rest.filter((r) => r.includes('/rpc/')), 'período inválido não consulta').toEqual([]);
   // Com o período inválido, o município ainda se aplica, no período aplicado.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await expect(page.locator('#consulta-aplicada')).toHaveText('Município Alfa · 2026-10-20 a 2026-10-31');
+  await expect(page.locator('#filtros-escopo')).toContainText('Município Alfa');
   await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-31' });
   await expect(page.locator('#f-erro')).toBeHidden();
@@ -340,7 +341,7 @@ test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tud
   await page.waitForTimeout(2500);
   await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
   await expect(page.locator('#periodo-resumo')).toHaveText('02/10/2026 a 31/10/2026 · 30 dias GMT');
-  await expect(page.locator('#consulta-aplicada')).toHaveText('Todo Mato Grosso · 2026-10-02 a 2026-10-31');
+  await expect(page.locator('#filtros-escopo')).toContainText('Todo Mato Grosso');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   // Atalho: "Último mês" volta ao mês inteiro do fim da janela (aqui, a janela inteira da fixture).
   await page.locator('#f-periodo').selectOption('u1');

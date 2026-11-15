@@ -21,7 +21,7 @@ import {
   abrirAba, balaoRegistros, explicacaoAberta, ligarAbas, marcarFoco, renderListaFocos, renderMunicipios,
 } from './apresentacao-resultado.ts';
 import { lerConfiguracao } from './config.ts';
-import { AVISO_FALHA, AVISO_SEM_CHAVE, fundoInicial, lerChaveEsri, type Fundo } from './fundo.ts';
+import { AVISO_FALHA, AVISO_FALHA_NOMES, AVISO_SEM_CHAVE, fundoInicial, lerChaveEsri, type Fundo } from './fundo.ts';
 import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
 import {
   CLASSES_AREA, municipiosDaSobreposicao, qualificarSobreposicao, ROTULO_CLASSE as ROTULO_AREA, sobreposicao,
@@ -273,6 +273,11 @@ class Controlador {
       if (ev.key === 'Escape' && mapaAmpliado() && !document.querySelector('dialog[open]')) this.ampliarMapa(false);
     });
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
+    // "Mapa" e "Camadas" (issue #71): um painel aberto por vez, para os menus não se sobreporem.
+    const paineis = [$<HTMLDetailsElement>('opcoes-mapa'), $<HTMLDetailsElement>('camadas')];
+    for (const p of paineis) {
+      p.addEventListener('toggle', () => { if (p.open) for (const outro of paineis) if (outro !== p) outro.open = false; });
+    }
     // Mapa-base (T12): "Satélite" só com chave; "Sem fundo" sempre disponível.
     for (const b of document.querySelectorAll<HTMLButtonElement>('[data-fundo]')) {
       b.addEventListener('click', () => {
@@ -468,7 +473,7 @@ class Controlador {
     }
   }
 
-  /** Troca o mapa-base (T12) e atualiza os botões e o aviso; falha seguida dos tiles volta para "Sem fundo". */
+  /** Troca o mapa-base (T12) e atualiza os botões e o aviso; falha da imagem volta para "Sem fundo", falha só dos nomes mantém a imagem. */
   private escolherFundo(fundo: Fundo, aviso: string | null): void {
     this.fundo = fundo;
     for (const b of document.querySelectorAll<HTMLButtonElement>('[data-fundo]')) {
@@ -480,7 +485,14 @@ class Controlador {
     const caixa = $('aviso-fundo');
     caixa.textContent = aviso ?? '';
     caixa.hidden = !aviso;
-    this.mapa?.definirFundo(fundo, this.chaveEsri, () => this.escolherFundo('nenhum', AVISO_FALHA));
+    this.mapa?.definirFundo(fundo, this.chaveEsri, (parte) => {
+      if (parte === 'imagem') {
+        this.escolherFundo('nenhum', AVISO_FALHA);
+        return;
+      }
+      caixa.textContent = AVISO_FALHA_NOMES;
+      caixa.hidden = false;
+    });
   }
 
   /** Período digitado, validado; inválido mostra o erro junto dos campos e devolve `null` (o recorte aplicado fica). */

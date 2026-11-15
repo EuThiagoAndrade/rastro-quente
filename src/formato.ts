@@ -5,6 +5,15 @@ const numero = new Intl.NumberFormat('pt-BR');
 
 export const fmtNumero = (n: number): string => numero.format(n);
 
+/**
+ * Largura da barra da aba Municípios, em % do maior valor exibido (DESIGN.md: "barra proporcional"). Exata, sem
+ * largura mínima: 1 e 27 com máximo 901 ficam diferentes. Zero (ou máximo zero) não tem barra (`null`).
+ */
+export function larguraProporcional(valor: number, maximo: number): number | null {
+  if (!(valor > 0) || !(maximo > 0)) return null;
+  return Math.min(100, (valor / maximo) * 100);
+}
+
 /** "+2", "−3" ou "0": diferença com sinal explícito. */
 export function fmtDiferenca(n: number): string {
   if (n > 0) return `+${numero.format(n)}`;

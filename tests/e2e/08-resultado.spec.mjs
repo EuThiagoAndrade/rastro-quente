@@ -4,7 +4,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp, revogarRp } from './contas.mjs';
-import { abrirBalao, consultar, entrar, escolherLente } from './ajuda.mjs';
+import { abrirBalao, abrirOpcoesMapa, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { MUNICIPIOS, SQL_LIMPEZA, sqlFixture, sqlFixturePaginas } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -121,6 +121,7 @@ test.describe('carga de 1.001 detecções', () => {
     await entrar(page, 'rp');
     await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'nenhuma');
     await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
+    await abrirOpcoesMapa(page);
     await page.locator('#botao-lista-focos').focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('#t-lista-focos')).toBeFocused();

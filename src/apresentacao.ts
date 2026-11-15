@@ -96,7 +96,7 @@ export function renderAcesso(a: Acesso, m: ManipuladoresAcesso): void {
       if (a.erro) corpo.append(h('p', { class: 'erro', role: 'alert' }, a.erro));
       corpo.append(
         h('p', {}, 'Entre com sua conta Google para consultar. Contas sem autorização não recebem dados.'),
-        h('div', { class: 'acoes' }, ((): HTMLElement => {
+        h('div', { class: 'acoes acoes--centro' }, ((): HTMLElement => {
           const b = h('button', { type: 'button', id: 'botao-google', class: 'botao botao--primario' }, 'Entrar com o Google');
           b.addEventListener('click', () => { b.disabled = true; b.textContent = 'Abrindo o Google…'; m.google(); });
           return b;
@@ -161,11 +161,10 @@ export function renderTopo(carga: CargaDetalhe, fontes: Fonte[]): void {
 }
 
 /**
- * Recorte aplicado (T16) no título da seção Consulta, no escopo da coluna de filtros e nos atalhos. Com o período
+ * Recorte aplicado (T16) no escopo da coluna de filtros e nos atalhos. Com o período
  * digitado inválido, a linha "Mostrando" diz qual recorte a tela continua mostrando.
  */
 export function renderRecorte(aplicado: Janela, municipio: string | null, invalido: boolean): void {
-  $('consulta-aplicada').textContent = textoRecorte(aplicado, municipio);
   $('periodo-resumo').textContent = resumoPeriodo(aplicado);
   // As lentes usam o recorte aplicado (plano 007, T5).
   $('filtros-escopo').textContent = `Uma lente por vez · ${municipio ?? 'Todo Mato Grosso'} · ${textoPeriodo(aplicado)}`;
@@ -456,6 +455,6 @@ export function limparResultados(): void {
   for (const id of ['f-municipio']) $<HTMLSelectElement>(id).replaceChildren();
   limpar($('proveniencia-corpo'));
   limpar($('topo-chips'));
-  for (const id of ['consulta-aplicada', 'filtros-escopo', 'f-mostrando', 'periodo-resumo']) $(id).textContent = '';
+  for (const id of ['filtros-escopo', 'f-mostrando', 'periodo-resumo']) $(id).textContent = '';
   $('f-mostrando').hidden = true;
 }

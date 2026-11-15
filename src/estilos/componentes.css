@@ -275,7 +275,7 @@ td code {
 
 tr.selecionada td {
   background: var(--linha-selecionada);
-  box-shadow: inset 0.25rem 0 0 var(--selecao-amostra);
+  box-shadow: inset 0.25rem 0 0 var(--selecao-linha);
 }
 
 .municipios {
@@ -616,17 +616,6 @@ tr.selecionada td {
 }
 
 /* Recorte aplicado no título da Consulta, só com a seção fechada (T17). */
-.secao__resumo {
-  display: none;
-  font-size: var(--t-pequeno);
-  font-weight: 400;
-  color: var(--texto-suave);
-}
-
-.secao:not([open]) .secao__resumo {
-  display: inline;
-}
-
 .marca-ativa {
   display: none;
   padding: 0.05rem 0.5rem;
@@ -842,47 +831,122 @@ tr.selecionada td {
   font-size: var(--t-pequeno);
 }
 
-.flutuante--ferramentas {
+/* "Mapa" e "Camadas" (issue #71): dois painéis recolhíveis lado a lado, no alto à direita, à esquerda do botão de
+   ampliar. Fechados, são só duas pílulas; abertos, listam as opções uma por linha. */
+.controles-mapa {
+  position: absolute;
+  z-index: 510;
   top: 0.75rem;
-  left: 0.75rem;
+  right: calc(0.75rem + var(--alvo) + 0.5rem);
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
-  /* Espaço à direita para "Camadas" e o botão de ampliar. */
-  max-width: calc(100% - 15rem);
-  padding: 0.25rem;
+  justify-content: flex-end;
+  align-items: flex-start;
+  gap: 0.4rem;
+  max-width: calc(100% - 1.5rem - var(--alvo) - 0.5rem);
 }
 
-.flutuante--ferramentas button {
+.controles-mapa .flutuante--painel {
+  position: static;
+  min-width: 0;
+  max-width: 100%;
+  padding: 0 0.65rem;
+  /* Sem backdrop-filter na pílula: ele criaria um bloco de contenção e o menu se ancoraria nela, saindo da tela à
+     esquerda no celular. */
+  backdrop-filter: none;
+}
+
+/* Aberto, o conteúdo desce como menu, ancorado à direita do grupo: as pílulas não mudam de tamanho nem de linha. */
+.controles-mapa .flutuante--painel > :not(summary) {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 0.3rem);
+  right: 0;
+  width: max-content;
+  /* fieldset tem min-width: min-content por padrão; zerado, as linhas quebram em vez de sair da tela. */
+  min-width: 0;
+  max-width: calc(100vw - 4rem - var(--alvo));
+  /* Cabe no cartão do mapa (que corta o excesso): abaixo da pílula e acima da borda, com rolagem interna. */
+  max-height: var(--altura-menu, 60vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  margin: 0;
+  padding: 0.3rem 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--superficie) 96%, transparent);
+  backdrop-filter: blur(6px);
+}
+
+/* Fechado, o menu não tem caixa nenhuma (o navegador ainda mediria o conteúdo absoluto de um <details> fechado). */
+.controles-mapa .flutuante--painel:not([open]) > :not(summary) {
+  display: none;
+}
+
+.painel-mapa {
+  display: flex;
+  flex-direction: column;
+}
+
+.fundo-mapa {
+  display: flex;
+  flex-direction: column;
+  padding-bottom: 0.2rem;
+  margin-bottom: 0.2rem;
+  border-bottom: 1px solid var(--contorno-suave);
+}
+
+/* Opções do painel "Mapa": linhas como as caixas de "Camadas"; o fundo é escolha única (○/●), "Lista de focos" e
+   "Mover o mapa com um dedo" ligam e desligam (☐/☑), "Enquadrar os dados" é uma ação (⛶). */
+.opcao-mapa {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   min-height: var(--alvo);
-  padding: 0.25rem 0.65rem;
+  padding: 0;
   border: 0;
-  border-radius: 7px;
-  background: transparent;
+  background: none;
   color: var(--texto);
   font: inherit;
-  font-size: 0.875rem;
+  text-align: left;
   cursor: pointer;
   user-select: none;
 }
 
-.flutuante--ferramentas button[aria-pressed="true"] {
-  background: var(--escolha);
-  color: var(--sobre-escolha);
+.opcao-mapa::before {
+  width: 1.1rem;
+  font-size: 1.05rem;
+  text-align: center;
+  color: var(--escolha);
+}
+
+.opcao-mapa--radio::before {
+  content: "○";
+}
+
+.opcao-mapa--radio[aria-pressed="true"]::before {
+  content: "●";
+}
+
+.opcao-mapa--caixa::before {
+  content: "☐";
+}
+
+.opcao-mapa--caixa[aria-pressed="true"]::before,
+.opcao-mapa--caixa[aria-expanded="true"]::before {
+  content: "☑";
+}
+
+.opcao-mapa--acao::before {
+  content: "⛶";
+}
+
+.opcao-mapa[aria-pressed="true"],
+.opcao-mapa[aria-expanded="true"] {
   font-weight: 600;
 }
 
-/* Mapa-base (V13): "Satélite" e "Sem fundo" no início da barra, separados das ferramentas por uma linha. */
-.fundo-mapa {
-  display: inline-flex;
-  flex-wrap: wrap;
-  max-width: 100%;
-  gap: 0.25rem;
-  padding-right: 0.25rem;
-  border-right: 1px solid var(--contorno-suave);
-}
-
-.flutuante--ferramentas button[aria-disabled="true"] {
+.opcao-mapa[aria-disabled="true"] {
   color: var(--texto-suave);
   text-decoration: line-through;
   cursor: not-allowed;
@@ -903,6 +967,27 @@ tr.selecionada td {
   bottom: 1.6rem;
   left: 0.75rem;
   max-width: calc(100% - 4rem);
+}
+
+/* Aberta, a legenda fica por cima dos controles do Leaflet (z-index 1000), mas começa acima da atribuição, que
+   continua visível (ADR-010); a altura vem de `--altura-atribuicao` (src/mapa.ts). "Camadas" aberto continua por
+   cima da legenda (DESIGN.md). */
+.flutuante--legenda[open] {
+  --base-legenda: max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem));
+  z-index: 1001;
+  bottom: var(--base-legenda);
+  max-height: calc(100% - var(--base-legenda) - 0.75rem);
+  overflow: auto;
+}
+
+.controles-mapa:has(.flutuante--painel[open]) {
+  z-index: 1002;
+}
+
+/* A atribuição do mapa-base (ADR-010) é longa: fica à direita, sem passar por baixo do botão "Legenda". O canto
+   inferior direito ganha largura definida (a porcentagem do controle sobre um canto sem largura o espremia). */
+.mapa-cartao .leaflet-bottom.leaflet-right {
+  left: 7.5rem;
 }
 
 .flutuante--legenda summary {
@@ -947,16 +1032,7 @@ tr.selecionada td {
   display: block;
 }
 
-.flutuante--camadas {
-  /* Aberto, fica por cima da legenda quando o mapa é baixo. */
-  z-index: 510;
-  top: 0.75rem;
-  right: calc(0.75rem + var(--alvo) + 0.5rem);
-  max-width: calc(100% - 1.5rem - var(--alvo) - 0.5rem);
-  padding: 0 0.65rem;
-}
-
-.flutuante--camadas summary {
+.flutuante--painel summary {
   display: flex;
   align-items: center;
   gap: 0.55rem;
@@ -967,29 +1043,34 @@ tr.selecionada td {
   user-select: none;
 }
 
-.flutuante--camadas summary::-webkit-details-marker {
+.flutuante--painel summary::-webkit-details-marker {
   display: none;
+}
+
+.flutuante--camadas summary::before,
+.flutuante--opcoes summary::before {
+  font-size: 1.1rem;
 }
 
 .flutuante--camadas summary::before {
   content: "☷";
+}
+
+.flutuante--opcoes summary::before {
+  content: "⚙";
   font-size: 1.1rem;
 }
 
-.flutuante--camadas summary::after {
+.flutuante--painel summary::after {
   content: "+";
   margin-left: 0.35rem;
 }
 
-.flutuante--camadas[open] summary::after {
+.flutuante--painel[open] summary::after {
   content: "−";
 }
 
-.flutuante--camadas fieldset {
-  margin: 0 0 0.4rem;
-  padding: 0;
-  border: 0;
-}
+
 
 .flutuante--camadas label {
   display: flex;
@@ -1298,7 +1379,7 @@ tr.selecionada td {
 }
 
 .lista-mun button:hover {
-  background: color-mix(in srgb, var(--selecao-amostra) 12%, transparent);
+  background: color-mix(in srgb, var(--selecao-linha) 12%, transparent);
 }
 
 .lista-mun .pos {
@@ -1408,7 +1489,7 @@ tr.selecionada td {
 
 .botao-foco[aria-pressed='true'] {
   background: var(--linha-selecionada);
-  box-shadow: inset 3px 0 var(--selecao-amostra);
+  box-shadow: inset 3px 0 var(--selecao-linha);
 }
 
 .botao-foco__hora {
