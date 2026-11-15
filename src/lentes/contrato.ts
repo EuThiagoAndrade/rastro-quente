@@ -5,7 +5,7 @@
 import type { ClasseDisponibilidade } from '../tipos.ts';
 
 /** Muda junto com qualquer parâmetro ou regra (nova decisão de G1 e novo plano). */
-export const VERSAO_METODO = 'lentes-004-v1';
+export const VERSAO_METODO = 'lentes-007-v1';
 
 export type TipoLente = 'concentracao' | 'recorrencia' | 'persistencia';
 
@@ -32,6 +32,18 @@ export interface Janela {
   inicio: string;
   fim: string;
 }
+
+/**
+ * Recorte da entrada (plano 007, T1): o estado inteiro ou um município (código IBGE). No recorte municipal, a lente
+ * usa só as detecções do município no período; nenhum cálculo muda, só o conjunto de entrada.
+ */
+export type Recorte = { tipo: 'estado'; municipio: null } | { tipo: 'municipio'; municipio: number };
+
+export const RECORTE_ESTADUAL: Recorte = { tipo: 'estado', municipio: null };
+
+/** Recorte de um código de município (`null` é o estado inteiro). */
+export const recorteDe = (municipio: number | null | undefined): Recorte =>
+  municipio == null ? { tipo: 'estado', municipio: null } : { tipo: 'municipio', municipio };
 
 export interface CargaLente {
   id: number;
@@ -90,7 +102,7 @@ export interface ResultadoLente {
   carga: CargaLente;
   /** Na recorrência, `meses` traz os meses GMT tocados, com a marca de parcial (D14). */
   janela: Janela & { referencia: 'dias GMT inclusivos'; meses?: MesJanela[] };
-  recorte: { tipo: 'estado'; municipio: null };
+  recorte: Recorte;
   parametros: Parametro[];
   estado: 'com_destaques' | 'sem_destaques' | 'janela_insuficiente';
   ordenacao: null | { criterio: string; rotulo: string };
@@ -108,6 +120,8 @@ export interface EntradaLente {
   registros: RegistroLente[];
   totalResumo: number;
   nomes: Map<number, string>;
+  /** Ausente é o estado inteiro (T1). */
+  recorte?: Recorte;
 }
 
 /** Leitura inconsistente: a lente não é exibida (sem destaques parciais). */
@@ -129,5 +143,16 @@ export const LIMITACOES_CELULA = [
   'Focos vizinhos em células diferentes não são lidos como o mesmo local; a célula não segue divisas.',
   'A cobertura da célula usa os municípios das detecções, não a área da célula.',
 ];
+
+/** Limitação do resultado no recorte municipal (T5). */
+export const limitacaoRecorte = (nomeMunicipio: string): string =>
+  `Células na divisa podem perder destaque, porque só contam os focos de ${nomeMunicipio}.`;
+
+/** Limitações extras do recorte: nenhuma no estado; a da divisa no município (T5). */
+export function limitacoesDoRecorte(e: EntradaLente): string[] {
+  const r = e.recorte ?? RECORTE_ESTADUAL;
+  if (r.tipo === 'estado') return [];
+  return [limitacaoRecorte(e.nomes.get(r.municipio) ?? `município ${r.municipio}`)];
+}
 
 export const ROTULO_ORDENACAO = 'ordenado por contagem de detecções, não por prioridade, gravidade ou risco';

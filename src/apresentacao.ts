@@ -167,11 +167,26 @@ export function renderTopo(carga: CargaDetalhe, fontes: Fonte[]): void {
 export function renderRecorte(aplicado: Janela, municipio: string | null, invalido: boolean): void {
   $('consulta-aplicada').textContent = textoRecorte(aplicado, municipio);
   $('periodo-resumo').textContent = resumoPeriodo(aplicado);
-  // Antes do item 4 as lentes são estaduais: a coluna diz isso, sem atribuir ao município resultados do estado.
-  $('filtros-escopo').textContent = `Uma lente por vez · todo Mato Grosso · ${textoPeriodo(aplicado)}`;
+  // As lentes usam o recorte aplicado (plano 007, T5).
+  $('filtros-escopo').textContent = `Uma lente por vez · ${municipio ?? 'Todo Mato Grosso'} · ${textoPeriodo(aplicado)}`;
   const mostrando = $('f-mostrando');
   mostrando.hidden = !invalido;
   mostrando.textContent = invalido ? `Mostrando ${textoRecorte(aplicado, municipio)}: o período digitado ainda não foi aplicado.` : '';
+}
+
+/** Texto de A2: a concentração compara municípios e só existe com Todo Mato Grosso (plano 007, T4). */
+export const TEXTO_CONCENTRACAO_INDISPONIVEL = 'Compara municípios: disponível só com Todo Mato Grosso';
+
+/** Concentração (avulsa e na combinação) desabilitada com município, com o texto de A2 (T4). */
+export function renderConcentracaoDisponivel(disponivel: boolean): void {
+  for (const seletor of ['input[name="l-lente"][value="concentracao"]', 'input[name="l-comb"][value="concentracao"]']) {
+    const e = document.querySelector<HTMLInputElement>(seletor);
+    if (e) e.disabled = !disponivel;
+  }
+  for (const id of ['concentracao-indisponivel', 'comb-concentracao-indisponivel']) {
+    const e = document.getElementById(id);
+    if (e) e.hidden = disponivel;
+  }
 }
 
 export function mostrarErroFiltro(texto: string | null): void {

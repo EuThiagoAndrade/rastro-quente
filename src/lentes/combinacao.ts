@@ -9,16 +9,16 @@
 import { qualificarCobertura, ressalvasDeClasse } from './cobertura.ts';
 import { concentracao, LIMITACOES_CONCENTRACAO, N_PADRAO } from './concentracao.ts';
 import {
-  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, VERSAO_METODO,
+  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, limitacoesDoRecorte, RECORTE_ESTADUAL, VERSAO_METODO,
   type CargaLente, type Cobertura, type DisponibilidadeMunicipio, type EntradaLente, type Janela,
-  type ResultadoLente, type TipoLente,
+  type Recorte, type ResultadoLente, type TipoLente,
 } from './contrato.ts';
 import { celulaDe, ErroCoordenada, indiceGrade, type Celula } from './grade.ts';
 import { persistencia } from './persistencia.ts';
 import { recorrencia } from './recorrencia.ts';
 
 /** Muda junto com qualquer regra da combinação (nova decisão de G1 e novo plano), T14. */
-export const VERSAO_COMBINACAO = 'combinacao-005-v1';
+export const VERSAO_COMBINACAO = 'combinacao-007-v1';
 
 export type Operador = 'e' | 'ou';
 
@@ -97,7 +97,7 @@ export interface ResultadoCombinacao {
   lentes: TipoLente[];
   carga: CargaLente;
   janela: Janela & { referencia: 'dias GMT inclusivos' };
-  recorte: { tipo: 'estado'; municipio: null };
+  recorte: Recorte;
   conferencia: ResultadoLente['conferencia'];
   parametros: ParametroCombinacao[];
   estado: 'com_celulas' | 'sem_celulas' | 'indisponivel';
@@ -228,6 +228,10 @@ export function calcularCombinacao(
   n: number,
 ): ResultadoCombinacao {
   const { lentes, operador } = validarEscolha(escolha, operadorEscolhido);
+  // Plano 007, T4 (RC-8): no recorte municipal, a concentração não entra na combinação.
+  if (e.recorte?.tipo === 'municipio' && lentes.includes('concentracao')) {
+    throw new ErroCombinacao('concentração exige recorte estadual; com município, escolha outra lente');
+  }
   // T8: as lentes escolhidas são calculadas aqui, sobre a mesma entrada; cada uma confere a entrada (C-3, C-4).
   const resultados = new Map(lentes.map((l) => [l, CALCULO[l](e, n)]));
   const conferencia = resultados.get(lentes[0] as TipoLente)?.conferencia as ResultadoLente['conferencia'];
@@ -243,6 +247,7 @@ export function calcularCombinacao(
     LIMITACAO_OPERADOR[operador],
     ...(lentes.includes('concentracao') ? [LIMITACAO_PROJECAO] : []),
     ...(operador === 'e' ? [LIMITACAO_INTERSECAO] : []),
+    ...limitacoesDoRecorte(e),
   ];
   const base = {
     tipo: 'combinacao' as const,
@@ -252,7 +257,7 @@ export function calcularCombinacao(
     lentes,
     carga: e.carga,
     janela: { ...e.janela, referencia: 'dias GMT inclusivos' as const },
-    recorte: { tipo: 'estado' as const, municipio: null },
+    recorte: e.recorte ?? RECORTE_ESTADUAL,
     conferencia,
     parametros,
     limitacoes,

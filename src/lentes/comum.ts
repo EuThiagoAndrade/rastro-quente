@@ -1,17 +1,24 @@
 // Partes comuns a todas as lentes: conferência da entrada e aplicação do qualificador de cobertura.
 import { qualificarCobertura, ressalvasDeClasse } from './cobertura.ts';
-import { ErroLente, type DisponibilidadeMunicipio, type EntradaLente, type ResultadoLente } from './contrato.ts';
+import { ErroLente, RECORTE_ESTADUAL, type DisponibilidadeMunicipio, type EntradaLente, type ResultadoLente } from './contrato.ts';
 
 /** Fim exclusivo (00:00Z do dia seguinte ao último dia GMT da janela). */
 export const fimExclusivo = (fim: string): string =>
   new Date(Date.parse(`${fim}T00:00:00Z`) + 86_400_000).toISOString().replace('.000Z', 'Z');
 
-/** Confere a entrada (C-3, C-4): toda detecção na janela, ids únicos e total igual ao do resumo. */
+/**
+ * Confere a entrada (C-3, C-4): toda detecção na janela, ids únicos e total igual ao do resumo. No recorte municipal
+ * (plano 007, T1), toda detecção é do município do recorte.
+ */
 export function conferirEntrada(e: EntradaLente): ResultadoLente['conferencia'] {
   const inicio = `${e.janela.inicio}T00:00:00Z`;
   const fim = fimExclusivo(e.janela.fim);
+  const recorte = e.recorte ?? RECORTE_ESTADUAL;
   for (const r of e.registros) {
     if (!(r.data_hora_gmt >= inicio && r.data_hora_gmt < fim)) throw new ErroLente(`registro fora da janela: ${r.id_tecnico}`);
+    if (recorte.tipo === 'municipio' && r.municipio_codigo !== recorte.municipio) {
+      throw new ErroLente(`registro de outro município no recorte: ${r.id_tecnico}`);
+    }
   }
   const ids = new Set(e.registros.map((r) => r.id_tecnico)).size;
   if (ids !== e.registros.length || e.registros.length !== e.totalResumo) {

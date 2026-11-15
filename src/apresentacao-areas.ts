@@ -6,7 +6,7 @@ import { $, h, tabela, textoAtribuicaoArea } from './apresentacao.ts';
 import { CELULAS_POR_PAGINA, paginaValida } from './apresentacao-combinacao.ts';
 import { EVIDENCIA_POR_PAGINA, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, renderResumoLente, rotularAbaDestaques,
+  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import { textoCobertura } from './lentes/cobertura.ts';
@@ -259,11 +259,11 @@ export function renderResultadoSobreposicao(
   const corpo = $('lente-corpo');
   corpo.replaceChildren();
   rotularAbaDestaques(r.destaques.length);
-  renderResumoLente({ nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking' });
+  renderResumoLente({ nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
     h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · recorte: todo o estado de Mato Grosso (o filtro de município não se aplica às lentes) · método ${r.versao_metodo}.`),
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
     h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
   );
   if (r.estado === 'sem_camada') {

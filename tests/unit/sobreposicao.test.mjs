@@ -46,8 +46,8 @@ test('SB-1: proteção integral — P destacada com evidência 1 (p1) e motivo p
   const p = destaque(r, 'P');
   assert.equal(r.estado, 'com_destaques');
   assert.equal(r.lente, 'sobreposicao');
-  assert.equal(r.versao_metodo, 'sobreposicao-006-v1');
-  assert.equal(VERSAO_SOBREPOSICAO, 'sobreposicao-006-v1');
+  assert.equal(r.versao_metodo, 'sobreposicao-007-v1');
+  assert.equal(VERSAO_SOBREPOSICAO, 'sobreposicao-007-v1');
   assert.equal(p.id_destaque, 'sobreposicao:protecao_integral:celula_005:c-200_-1200');
   assert.deepEqual(p.evidencia, { deteccoes: ['p1'], valor: 1, datas: [] });
   assert.equal(p.motivo, '1 de 7 detecções desta célula dentro de A1 (proteção integral, parque, estadual)');
@@ -172,7 +172,7 @@ test('SB-12: determinismo — registros, vínculos e áreas embaralhados dão o 
 test('SB-13: combinação intacta — sobreposição é lente desconhecida e C1 não muda', () => {
   assert.throws(() => validarEscolha(['sobreposicao', 'recorrencia'], 'e'), (x) => x instanceof ErroCombinacao && /lente desconhecida/.test(x.message));
   assert.deepEqual(LENTES_CANONICAS, ['concentracao', 'recorrencia', 'persistencia']);
-  assert.equal(VERSAO_METODO, 'lentes-004-v1');
+  assert.equal(VERSAO_METODO, 'lentes-007-v1');
 });
 
 // --- Leitor T25 ------------------------------------------------------------------------------------

@@ -7,7 +7,7 @@ import type { Resumo } from './tipos.ts';
 
 /** Destaques da lente ativa reduzidos ao que a aba usa: células distintas, ou municípios na ordem D16. */
 export type DestaquesAtivos =
-  | { unidade: 'celula'; celulas: string[]; recorte: 'estado' }
+  | { unidade: 'celula'; celulas: string[]; recorte: 'estado' | 'municipio' }
   | { unidade: 'municipio'; municipios: number[] };
 
 export type OrdemMunicipios = 'deteccoes' | 'destaques' | 'nome';
@@ -44,12 +44,14 @@ export function numerosMunicipio(
 }
 
 /**
- * Linha "Células destacadas" do cartão (CM-2, CM-6). Sem lente: "—". Concentração: a linha não aparece (`null`).
- * Lente ainda estadual (itens 2 e 3): "—" com a nota, para não atribuir ao município resultados de fora do recorte.
+ * Linha "Células destacadas" do cartão (CM-2 a CM-4, CM-6). Sem lente: "—". Concentração: a linha não aparece (`null`).
+ * Lente no recorte do município (item 4): células distintas destacadas. Lente estadual (só se o recorte não bater):
+ * "—" com a nota, para não atribuir ao município resultados de fora do recorte.
  */
 export function linhaCelulasDestacadas(ativos: DestaquesAtivos | null): { valor: string; nota: string | null } | null {
   if (ativos === null) return { valor: '—', nota: null };
   if (ativos.unidade === 'municipio') return null;
+  if (ativos.recorte === 'municipio') return { valor: String(celulasDistintas(ativos.celulas).length), nota: null };
   return { valor: '—', nota: 'lente calculada em todo Mato Grosso' };
 }
 

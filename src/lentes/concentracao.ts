@@ -3,7 +3,7 @@
 // incluindo todos os empatados no corte. Única lente que ordena, com o rótulo de contagem.
 import { conferirEntrada } from './comum.ts';
 import {
-  LIMITACOES_COMUNS, ROTULO_ORDENACAO, VERSAO_METODO, type Destaque, type EntradaLente, type ResultadoLente,
+  ErroLente, LIMITACOES_COMUNS, ROTULO_ORDENACAO, VERSAO_METODO, type Destaque, type EntradaLente, type ResultadoLente,
 } from './contrato.ts';
 
 export const N_PADRAO = 10;
@@ -12,7 +12,12 @@ export const LIMITACOES_CONCENTRACAO = ['Contagem absoluta favorece municípios 
 
 const comparadorNome = new Intl.Collator('pt-BR');
 
+/** Recusa da concentração fora do recorte estadual (plano 007, T4, RC-7). */
+export const ERRO_CONCENTRACAO_MUNICIPAL = 'concentração exige recorte estadual';
+
 export function concentracao(e: EntradaLente, n: number = N_PADRAO): ResultadoLente {
+  // T4: a concentração compara municípios; com um só município no recorte, não se aplica.
+  if (e.recorte?.tipo === 'municipio') throw new ErroLente(ERRO_CONCENTRACAO_MUNICIPAL);
   const conferencia = conferirEntrada(e);
   const porMunicipio = new Map<number, string[]>();
   for (const r of e.registros) {

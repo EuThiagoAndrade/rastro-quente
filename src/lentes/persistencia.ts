@@ -8,7 +8,7 @@
 import { somarDia } from './cobertura.ts';
 import { conferirEntrada } from './comum.ts';
 import {
-  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, VERSAO_METODO,
+  ErroLente, LIMITACOES_CELULA, LIMITACOES_COMUNS, limitacoesDoRecorte, RECORTE_ESTADUAL, VERSAO_METODO,
   type Destaque, type EntradaLente, type ResultadoLente,
 } from './contrato.ts';
 import { celulaDe, ErroCoordenada, indiceGrade } from './grade.ts';
@@ -103,7 +103,7 @@ export function persistencia(e: EntradaLente): ResultadoLente {
     versao_metodo: VERSAO_METODO,
     carga: e.carga,
     janela: { ...e.janela, referencia: 'dias GMT inclusivos' },
-    recorte: { tipo: 'estado', municipio: null },
+    recorte: e.recorte ?? RECORTE_ESTADUAL,
     parametros: [
       { nome: 'Unidade', valor: 'célula de 0,05° de lado, ancorada em 0° de latitude e longitude (bordas sul e oeste incluídas)' },
       { nome: 'Medida', valor: 'dias GMT consecutivos com detecção principal na célula, dentro da janela' },
@@ -115,6 +115,6 @@ export function persistencia(e: EntradaLente): ResultadoLente {
     observacoes: [],
     destaques,
     conferencia,
-    limitacoes: [...LIMITACOES_COMUNS, ...LIMITACOES_CELULA],
+    limitacoes: [...LIMITACOES_COMUNS, ...LIMITACOES_CELULA, ...limitacoesDoRecorte(e)],
   };
 }

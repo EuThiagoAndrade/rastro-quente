@@ -6,6 +6,9 @@ import assert from 'node:assert/strict';
 import { chaveRecorte, MAX_RECORTES, MemoriaRecortes } from '../../src/memoria.ts';
 import { celulasDistintas, linhaCelulasDestacadas, listaMunicipios, numerosMunicipio } from '../../src/municipios.ts';
 import { lerRegistros, LIMITE_PAGINA } from '../../src/lentes/carregar.ts';
+import { recorrencia } from '../../src/lentes/recorrencia.ts';
+import { persistencia } from '../../src/lentes/persistencia.ts';
+import { combinar } from '../../src/lentes/combinacao.ts';
 
 const A = 9100001;
 const B = 9100002;
@@ -34,6 +37,49 @@ test('CM-2 (itens 2 e 3): com município e lente por célula, "—" e "lente cal
   const recorrencia = { unidade: 'celula', recorte: 'estado', celulas: ['c-231_-1130', 'c-230_-1130', 'c-229_-1130'] };
   assert.deepEqual(linhaCelulasDestacadas(recorrencia), { valor: '—', nota: 'lente calculada em todo Mato Grosso' });
   assert.deepEqual(linhaCelulasDestacadas(null), { valor: '—', nota: null });
+});
+
+// Item 4 (plano 007): a lente usa o recorte do município, e a linha passa a contar células distintas destacadas.
+const JANELA_M = { inicio: '2026-01-01', fim: '2026-08-31' };
+const entradaMunicipal = (registros) => ({
+  carga: { id: 7, identidade: 'm'.repeat(64) }, janela: JANELA_M, registros, totalResumo: registros.length,
+  nomes: new Map([[A, 'Alfa']]), recorte: { tipo: 'municipio', municipio: A },
+});
+const ativosDe = (r) => ({
+  unidade: 'celula', recorte: r.recorte.tipo,
+  celulas: celulasDistintas((r.destaques ?? r.celulas).map((d) => d.unidade.id)),
+});
+
+test('CM-2 (item 4): recorrência no recorte municipal com 3 células destacadas — "Células destacadas: 3"; sem lente, "—"', () => {
+  const registros = [-11.52, -11.48, -11.42].flatMap((lat, i) => ['01', '03', '05'].map((mes) =>
+    reg(`r${i}-${mes}`, A, `2026-${mes}-1${i}T12:00:00Z`, lat, -56.48)));
+  registros.sort((x, y) => x.data_hora_gmt.localeCompare(y.data_hora_gmt));
+  const r = recorrencia(entradaMunicipal(registros));
+  assert.equal(r.destaques.length, 3);
+  assert.deepEqual(linhaCelulasDestacadas(ativosDe(r)), { valor: '3', nota: null });
+  assert.deepEqual(linhaCelulasDestacadas(null), { valor: '—', nota: null });
+});
+
+test('CM-3 (item 4): persistência com duas sequências na mesma célula e uma em outra — "Células destacadas: 2"', () => {
+  const dias = (prefixo, lat, lista) => lista.map((d) => reg(`${prefixo}${d}`, A, `2026-08-${d}T12:00:00Z`, lat, -56.48));
+  const registros = [...dias('x', -11.52, ['01', '02', '03', '10', '11', '12']), ...dias('y', -11.42, ['20', '21', '22'])];
+  registros.sort((x, y) => x.data_hora_gmt.localeCompare(y.data_hora_gmt));
+  const r = persistencia(entradaMunicipal(registros));
+  assert.equal(r.destaques.length, 3, 'três sequências');
+  assert.deepEqual(linhaCelulasDestacadas(ativosDe(r)), { valor: '2', nota: null });
+});
+
+test('CM-4 (item 4): combinação recorrência e persistência, "ou", com 3 células — "Células destacadas: 3"', () => {
+  const registros = [
+    // Célula 1: recorrência (jan, mar, mai).
+    ...['01', '03', '05'].map((m) => reg(`a${m}`, A, `2026-${m}-15T12:00:00Z`, -11.52, -56.48)),
+    // Células 2 e 3: persistência (3 dias seguidos cada).
+    ...['10', '11', '12'].map((d) => reg(`b${d}`, A, `2026-08-${d}T12:00:00Z`, -11.42, -56.48)),
+    ...['20', '21', '22'].map((d) => reg(`c${d}`, A, `2026-08-${d}T12:00:00Z`, -11.32, -56.48)),
+  ].sort((x, y) => x.data_hora_gmt.localeCompare(y.data_hora_gmt));
+  const r = combinar(entradaMunicipal(registros), ['recorrencia', 'persistencia'], 'ou');
+  assert.equal(r.celulas.length, 3);
+  assert.deepEqual(linhaCelulasDestacadas(ativosDe(r)), { valor: '3', nota: null });
 });
 
 test('CM-6: concentração ativa — o cartão não mostra a linha; a ordenação traz os destacados primeiro, na ordem D16', () => {
