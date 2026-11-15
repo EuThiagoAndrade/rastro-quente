@@ -270,7 +270,7 @@ flowchart TD
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -285,7 +285,7 @@ Depois de escolher "Sem fundo", ou depois de o satélite falhar e a tela trocar 
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral
 
 ### Restante
 
@@ -294,12 +294,13 @@ Depois de escolher "Sem fundo", ou depois de o satélite falhar e a tela trocar 
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-011 — Layout do mapa e da página: legenda coberta e espaço depois do rodapé
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -312,7 +313,7 @@ Com o satélite ligado, a atribuição longa do mapa-base ocupa a parte de baixo
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral
 
 ### Restante
 
@@ -321,12 +322,13 @@ Com o satélite ligado, a atribuição longa do mapa-base ocupa a parte de baixo
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-012 — Legenda do mapa com tudo o que aparece no mapa
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -338,7 +340,7 @@ A referência visual V13 traz as áreas na legenda do mapa. Cada classe já tem 
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral (áreas protegidas)
 
 ### Restante
 
@@ -347,12 +349,13 @@ A referência visual V13 traz as áreas na legenda do mapa. Cada classe já tem 
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-013 — Controles do mapa: mapa ampliado na altura da tela e botões no estilo de "Camadas"
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -364,7 +367,7 @@ Muda o contrato visual (`DESIGN.md`). Os botões devem manter a área de toque e
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral
 
 ### Restante
 
@@ -373,12 +376,13 @@ Muda o contrato visual (`DESIGN.md`). Os botões devem manter a área de toque e
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-014 — Tela de acesso mais enxuta
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -390,7 +394,7 @@ As ressalvas continuam na tela de análise, depois de entrar.
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral
 
 ### Restante
 
@@ -399,12 +403,13 @@ As ressalvas continuam na tela de análise, depois de entrar.
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog ajustes da tela de acesso; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-015 — Painel de filtros: resumo do filtro recolhido, cor de seleção e aviso desatualizado
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -420,7 +425,7 @@ O azul claro também marca a seleção no mapa (tracejado azul claro); essa marc
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral (cor só na interface)
 
 ### Restante
 
@@ -429,12 +434,13 @@ O azul claro também marca a seleção no mapa (tracejado azul claro); essa marc
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog ajustes do painel de filtros e o aviso desatualizado observado após a issue #63; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
 
 ## BL-016 — Barras proporcionais na lista de municípios
 
 > **Criado em:** `2026-11-15`
 > **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -446,7 +452,7 @@ A ordem e o tamanho da faixa não indicam prioridade, gravidade nem risco, como 
 
 ### Encaminhamentos
 
-—
+- issue #71 — 2026-11-15 — Integral
 
 ### Restante
 
@@ -455,3 +461,4 @@ A ordem e o tamanho da faixa não indicam prioridade, gravidade nem risco, como 
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar no backlog o ajuste da lista de municípios; captura local.
+- 2026-11-15 — Retorno da seleção na issue #71 após integração da PR #72 em main (commit ebede5e); item integral encaminhado.
