@@ -265,3 +265,193 @@ flowchart TD
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
 - 2026-11-14 — Pedido explícito de registrar na fila a proposta de explicação das lentes selecionadas no mapa. O item foi detalhado com o caso de comparação entre períodos, as funções dos subagentes e o diagrama da interação.
+
+## BL-010 — Mapa-base: travamento ao trocar de fundo e falha parcial do satélite
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+Depois de escolher "Sem fundo", ou depois de o satélite falhar e a tela trocar sozinha para "Sem fundo", o mapa deixa de responder: os pontos e os limites somem ao arrastar ou ao aproximar, e voltar ao "Satélite" não resolve. A atribuição da Esri também continua no mapa sem fundo. Além disso, quando só os nomes falham, o satélite inteiro é desligado, inclusive a imagem que estava carregando. Benefício: trocar de fundo com segurança e manter a imagem sempre que ela estiver disponível.
+
+### Contexto
+
+- Origem: uso em produção logo após a integração da issue #64 (ADR-010).
+- O diagnóstico local apontou a remoção das camadas de fundo, que desligava também os ouvintes internos do Leaflet usados na própria remoção. Restam eventos de camadas já removidas, que geram erro no zoom. Uma correção pequena em `src/mapa.ts` foi esboçada e testada localmente, sem versionar.
+- Manter a imagem quando só os nomes falham muda a regra de falhas do ADR-010 e exige decisão.
+- A falha do satélite observada em produção vinha de um redirecionamento do login para outro domínio, fora da restrição da chave, e foi resolvida na configuração da autenticação. Não faz parte deste item.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+
+## BL-011 — Layout do mapa e da página: legenda coberta e espaço depois do rodapé
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+Com o satélite ligado, a atribuição longa do mapa-base ocupa a parte de baixo do mapa e cobre o botão e o painel da "Legenda". Em toda a tela de análise, com ou sem satélite, a página ganha um espaço vazio depois do rodapé. Benefício: legenda sempre legível e página com a altura da tela.
+
+### Contexto
+
+- O espaço extra vem dos textos só para leitor de tela da série "Detecções no período" (desde a issue #62). Eles escapam da área com rolagem embaixo do mapa.
+- Correções de CSS foram esboçadas e testadas localmente, sem versionar: atribuição só do lado direito, legenda aberta por cima dela e área com rolagem como bloco de contenção. A largura da atribuição ainda precisa de ajuste em mapas estreitos.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+
+## BL-012 — Legenda do mapa com tudo o que aparece no mapa
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+A legenda do mapa não inclui as classes de áreas protegidas (proteção integral, uso sustentável e terra indígena) quando a camada de contexto territorial está ligada; a legenda dessas classes aparece separada, abaixo do mapa. Regra pedida: todo elemento ou análise desenhado no mapa deve constar na legenda do mapa. Benefício: leitura do mapa sem procurar explicações fora dele.
+
+### Contexto
+
+A referência visual V13 traz as áreas na legenda do mapa. Cada classe já tem cor, traço e hachura próprios, então a amostra na legenda não depende só da cor.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+
+## BL-013 — Controles do mapa: mapa ampliado na altura da tela e botões no estilo de "Camadas"
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+O mapa ampliado ocupa a largura da tela, mas não a altura. "Enquadrar os dados" e "Lista de focos" destoam do botão "Camadas", que é compacto e discreto. Benefício: mais área útil de mapa e controles com aparência coerente.
+
+### Contexto
+
+Muda o contrato visual (`DESIGN.md`). Os botões devem manter a área de toque e o funcionamento em telas estreitas, que já são conferidos pelos testes de acessibilidade.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog o pacote de correções do mapa discutido após a issue #64; captura local.
+
+## BL-014 — Tela de acesso mais enxuta
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+A tela de acesso mostra textos que não ajudam a entrar: o aviso em destaque sobre a consulta de detecções do satélite AQUA_M-T/INPE em Mato Grosso, com a ressalva sobre detecções e sobreposições, e o rodapé de ressalvas. O botão "Entrar com o Google" não está centralizado na caixa de acesso. Pedido: retirar o aviso e o rodapé dessa tela e centralizar o botão. Benefício: entrada mais limpa e direta.
+
+### Contexto
+
+As ressalvas continuam na tela de análise, depois de entrar.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog ajustes da tela de acesso; captura local.
+
+## BL-015 — Painel de filtros: resumo do filtro recolhido, cor de seleção e aviso desatualizado
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+- Ao recolher o filtro "Consulta", aparecem o município e o período. Os demais filtros recolhidos não mostram nada; pedido: seguir o mesmo padrão.
+- Clicar em qualquer parte do painel de filtros mostra um preenchimento azul que chama atenção e foge do padrão visual. Pedido: trocar por uma cor coerente com a interface, por exemplo o verde já usado, em todo o painel de filtros e em todos os lugares onde esse azul aparece com a mesma função.
+- Abaixo do filtro de município continua o aviso "As lentes ainda usam todo Mato Grosso", desatualizado desde que as lentes passaram a usar o recorte da consulta (issue #63).
+
+Benefício: painel discreto, consistente e sem informação errada.
+
+### Contexto
+
+O azul claro também marca a seleção no mapa (tracejado azul claro); essa marca faz parte do contrato visual (`DESIGN.md`) e da legenda. Falta decidir se a troca de cor alcança a seleção no mapa ou só os controles da interface. A troca deve manter o contraste e o indicador de foco visível.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog ajustes do painel de filtros e o aviso desatualizado observado após a issue #63; captura local.
+
+## BL-016 — Barras proporcionais na lista de municípios
+
+> **Criado em:** `2026-11-15`
+> **Atualizado em:** `2026-11-15`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+Na aba "Municípios" do painel de resultado, cada município tem uma faixa laranja do mesmo tamanho, seja qual for o número: um município com 1 detecção e outro com 901 ficam iguais, e a faixa não diferencia nada. Pedido: a faixa deve ser proporcional ao valor mostrado, tanto na ordenação por detecções quanto na ordenação por destaques da lente. Benefício: comparação visual imediata entre municípios.
+
+### Contexto
+
+A ordem e o tamanho da faixa não indicam prioridade, gravidade nem risco, como a própria lista já avisa. A faixa continua acompanhada do número.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-15 — Pedido explícito de guardar no backlog o ajuste da lista de municípios; captura local.
