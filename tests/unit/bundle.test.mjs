@@ -21,7 +21,7 @@ let lista;
 before(() => {
   const r = spawnSync(process.execPath, [path.join(RAIZ, 'node_modules/vite/bin/vite.js'), 'build', '--outDir', SAIDA, '--emptyOutDir'], {
     cwd: RAIZ, encoding: 'utf8',
-    env: { ...process.env, RQ_OUT_DIR: SAIDA, VITE_SUPABASE_URL: 'https://projeto-exemplo.supabase.co', VITE_SUPABASE_CHAVE_PUBLICAVEL: ANON, VITE_AUTH_SENHA_LOCAL: '' },
+    env: { ...process.env, RQ_OUT_DIR: SAIDA, VITE_SUPABASE_URL: 'https://projeto-exemplo.supabase.co', VITE_SUPABASE_CHAVE_PUBLICAVEL: ANON, VITE_AUTH_SENHA_LOCAL: '', VITE_ESRI_CHAVE: '' },
   });
   assert.equal(r.status, 0, r.stderr);
   lista = arquivos(SAIDA);
@@ -55,12 +55,28 @@ test('build de produção não traz o login por senha de teste', () => {
   assert.ok(texto.includes('Entrar com o Google'));
 });
 
-test('sem fonte web, analytics, tiles de terceiros ou outro serviço', () => {
+test('sem fonte web, analytics ou outro serviço; tiles só dos dois hosts da Esri', () => {
   const texto = lista.filter((f) => /\.(html|js|css)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
   for (const proibido of ['fonts.googleapis', 'fonts.gstatic', 'google-analytics', 'googletagmanager', 'tile.openstreetmap', 'tiles.', 'unpkg.com', 'cdn.jsdelivr']) {
     assert.ok(!texto.includes(proibido), `não deve conter "${proibido}"`);
   }
   assert.ok(!/<link[^>]+href="https?:/.test(readFileSync(path.join(SAIDA, 'index.html'), 'utf8')), 'sem CSS externo');
+  const hosts = new Set([...texto.matchAll(/[\w.-]+\.arcgis\.com/g)].map((m) => m[0]));
+  assert.deepEqual([...hosts].sort(), ['ibasemaps-api.arcgis.com', 'static-map-tiles-api.arcgis.com']);
+});
+
+test('nenhuma chave da Esri versionada; build sem VITE_ESRI_CHAVE não embute chave', () => {
+  const r = spawnSync('git', ['ls-files'], { cwd: RAIZ, encoding: 'utf8' });
+  assert.equal(r.status, 0);
+  for (const f of r.stdout.split(/\r?\n/).filter((x) => x && !x.startsWith('local/'))) {
+    let conteudo;
+    try { conteudo = readFileSync(path.join(RAIZ, f), 'utf8'); } catch { continue; }
+    assert.ok(!/^\s*VITE_ESRI_CHAVE\s*=\s*\S/m.test(conteudo), `valor de VITE_ESRI_CHAVE em ${f}`);
+    // Chaves de API da Esri (Location Platform) começam por AAPK ou AAPT.
+    assert.ok(!/AAP[KT][\w-]{20,}/.test(conteudo), `chave da Esri em ${f}`);
+  }
+  const js = lista.filter((f) => f.endsWith('.js')).map((f) => readFileSync(f, 'utf8')).join('\n');
+  assert.ok(!/AAP[KT][\w-]{20,}/.test(js));
 });
 
 test('o upload (.vercelignore) exclui local/ e o Git ignora o build', () => {
@@ -70,7 +86,7 @@ test('o upload (.vercelignore) exclui local/ e o Git ignora o build', () => {
   assert.ok(git.includes('dist/') && git.includes('dist-e2e/') && git.includes('/local/'));
 });
 
-test('vercel.json: build estático, CSP restrita ao Supabase, sem segredo e sem previews fora de main', () => {
+test('vercel.json: build estático, CSP restrita ao Supabase e aos tiles da Esri, sem segredo e sem previews fora de main', () => {
   const texto = readFileSync(path.join(RAIZ, 'vercel.json'), 'utf8');
   const v = JSON.parse(texto);
   assert.equal(v.outputDirectory, 'dist');
@@ -85,6 +101,8 @@ test('vercel.json: build estático, CSP restrita ao Supabase, sem segredo e sem 
   assert.deepEqual(csp['default-src'], ["'none'"]);
   assert.deepEqual(csp['script-src'], ["'self'"]);
   assert.deepEqual(csp['connect-src'], ["'self'", 'https://*.supabase.co']);
+  // Mapa-base (issue #64, ADR-010): `img-src` só ganha os dois hosts de tiles da Esri, sem curinga.
+  assert.deepEqual(csp['img-src'], ["'self'", 'data:', 'https://ibasemaps-api.arcgis.com', 'https://static-map-tiles-api.arcgis.com']);
   assert.ok(!JSON.stringify(csp).includes('unsafe-'), 'sem unsafe-inline/unsafe-eval');
   assert.deepEqual(csp['frame-ancestors'], ["'none'"]);
   assert.equal(gerais['X-Content-Type-Options'], 'nosniff');

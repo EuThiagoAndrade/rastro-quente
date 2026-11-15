@@ -1,10 +1,17 @@
-// Mapa vetorial (Leaflet 1.9.4), sem tiles de terceiros: fundo escuro próprio, limites municipais
-// discretos, detecções em laranja e seleção com contorno azul claro tracejado. A representação de
+// Mapa vetorial (Leaflet 1.9.4): fundo escuro próprio ou, com chave, imagem de satélite e nomes da Esri
+// (plano 007, item 5; ADR-010), sempre por baixo de tudo; limites municipais discretos, detecções em laranja e seleção com contorno azul claro tracejado. A representação de
 // exibição não define pertencimento: as contagens vêm do banco, calculadas com a malha integral.
 import * as L from 'leaflet';
+import {
+  ATRIBUICAO_IMAGEM, ATRIBUICAO_NOMES, ATRIBUICAO_SEM_FUNDO, ContadorFalhas, POLITICA_REFERENCIA, URL_IMAGEM, URL_NOMES,
+  type Fundo,
+} from './fundo.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
 import type { Limite } from './tipos.ts';
+
+/** Zoom máximo do mapa: abaixo do último nível dos dois serviços da Esri (imagem até 23; nomes até 22 em 512 px). */
+export const MAX_ZOOM = 14;
 
 const COR_DETECCAO = '#f97316';
 const COR_BORDA_PONTO = '#fff7ed';
@@ -77,6 +84,12 @@ export interface Mapa {
   mostrarDensidade(ativo: boolean): void;
   /** Camada "Detecções individuais" (pontos e anel de seleção). */
   mostrarPontos(ativo: boolean): void;
+  /**
+   * Mapa-base (T12): "satelite" liga imagem e nomes com a chave; "nenhum" remove as duas camadas (os tiles em voo
+   * são cancelados pelo Leaflet) e nenhum pedido novo vai à Esri. `aoFalhar` é chamado uma vez quando os erros
+   * seguidos na mesma vista atingem o limite; quem chama decide trocar para "nenhum".
+   */
+  definirFundo(fundo: Fundo, chave: string | null, aoFalhar: () => void): void;
   /** Recalcula o tamanho depois de ampliar ou reduzir o mapa. */
   redimensionar(): void;
   focar(): void;
@@ -85,12 +98,12 @@ export interface Mapa {
 
 export function criarMapa(elemento: HTMLElement): Mapa {
   const mapa = L.map(elemento, {
-    preferCanvas: true, minZoom: 3, maxZoom: 14, zoomSnap: 0.5, attributionControl: true, zoomControl: false,
+    preferCanvas: true, minZoom: 3, maxZoom: MAX_ZOOM, zoomSnap: 0.5, attributionControl: true, zoomControl: false,
   });
   // Zoom no canto inferior direito, como na referência V13; o topo do mapa fica para as ferramentas.
   L.control.zoom({ position: 'bottomright' }).addTo(mapa);
-  mapa.attributionControl.setPrefix(false);
-  mapa.attributionControl.addAttribution('Leaflet 1.9.4 · sem mapa-base de terceiros');
+  mapa.attributionControl.setPrefix('Leaflet 1.9.4');
+  mapa.attributionControl.addAttribution(ATRIBUICAO_SEM_FUNDO);
   mapa.setView([-13, -56], 5);
 
   // Áreas protegidas em painel próprio, abaixo dos destaques e dos pontos, desenhadas em SVG para permitir a
@@ -169,7 +182,48 @@ export function criarMapa(elemento: HTMLElement): Mapa {
     ? { color: COR_SELECAO, weight: 4, dashArray: '8 5', fillColor: COR_SELECAO, fillOpacity: 0.2 }
     : { color: COR_DESTAQUE, weight: 2, fillColor: COR_DESTAQUE, fillOpacity: 0.08 };
 
+  // Mapa-base no painel de tiles (abaixo de todas as camadas vetoriais), criado só quando ligado.
+  let fundoCamadas: L.TileLayer[] = [];
+  const falhas = new ContadorFalhas();
+  let aoFalharFundo: () => void = () => {};
+  mapa.on('moveend', () => falhas.zerar());
+
+  function removerFundo(): void {
+    for (const c of fundoCamadas) {
+      c.off();
+      mapa.removeLayer(c);
+    }
+    fundoCamadas = [];
+  }
+
+  function criarCamadaFundo(url: string, chave: string, extra: L.TileLayerOptions): L.TileLayer {
+    const camada = L.tileLayer(url, {
+      token: chave, maxZoom: MAX_ZOOM, referrerPolicy: POLITICA_REFERENCIA, className: 'fundo-mapa-camada', ...extra,
+    } as L.TileLayerOptions);
+    camada.on('tileload', () => falhas.carregou());
+    camada.on('tileerror', () => { if (falhas.erro()) aoFalharFundo(); });
+    return camada;
+  }
+
   return {
+    definirFundo(fundo, chave, aoFalhar) {
+      removerFundo();
+      falhas.zerar();
+      aoFalharFundo = aoFalhar;
+      if (fundo === 'satelite' && chave) {
+        mapa.attributionControl.removeAttribution(ATRIBUICAO_SEM_FUNDO);
+        fundoCamadas = [
+          criarCamadaFundo(URL_IMAGEM, chave, { attribution: ATRIBUICAO_IMAGEM }),
+          criarCamadaFundo(URL_NOMES, chave, { attribution: ATRIBUICAO_NOMES, tileSize: 512, zoomOffset: -1 }),
+        ];
+        for (const c of fundoCamadas) c.addTo(mapa);
+        elemento.dataset.fundo = 'satelite';
+      } else {
+        mapa.attributionControl.removeAttribution(ATRIBUICAO_SEM_FUNDO);
+        mapa.attributionControl.addAttribution(ATRIBUICAO_SEM_FUNDO);
+        elemento.dataset.fundo = 'nenhum';
+      }
+    },
     definirDestaques(itens) {
       camadaDestaques.clearLayers();
       destaques.clear();

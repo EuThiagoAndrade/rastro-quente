@@ -22,3 +22,4 @@ playwright-report/
 # Build da interface (ciclo 003, issue #23).
 dist/
 dist-e2e/
+dist-e2e-esri/

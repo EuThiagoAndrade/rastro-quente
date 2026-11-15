@@ -7,5 +7,6 @@ local/
 node_modules/
 dist/
 dist-e2e/
+dist-e2e-esri/
 test-results/
 playwright-report/

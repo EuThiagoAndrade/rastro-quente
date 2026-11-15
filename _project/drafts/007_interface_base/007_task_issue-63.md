@@ -2,13 +2,13 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#63`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-63`
 > **PR:** [#68](https://github.com/EuThiagoAndrade/rastro-quente/pull/68)
-> **Integração:** `Pendente`
+> **Integração:** squash `602d5d3` em `main` (2026-11-15)
 > **Autorização inicial:** "autorizo a implementação da issue #63" em 2026-11-15
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-15
@@ -66,7 +66,7 @@ Não se aplica.
 | M3 e M6 (T14) | Não executadas (decisão do responsável) |
 | `conferir:lentes` / `conferir:combinacao` / `conferir:sobreposicao` (estadual e municipal) | Não executadas e não estendidas ao recorte municipal (decisão do responsável) |
 | `node --test scripts/validate-governance.test.mjs` / `node scripts/validate-governance.mjs` / `git diff --check` | 55/55; 0 erros; sem achados |
-| Checks remotos | Pendente (PR #68) |
+| Checks remotos | Verdes na PR #68 (governança, banco e RLS, interface com E2E) |
 
 ## Revisão da correção
 
