@@ -2,12 +2,12 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#60`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-60`
-> **PR:** —
+> **PR:** [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #60" em 2026-11-14
 > **Modo contínuo:** `—`
@@ -55,7 +55,7 @@ Não se aplica.
 - [x] Estrutura, estilos, temas, tela de acesso, diálogos, consulta aplicada ao mudar.
 - [x] Testes unitários e E2E.
 - [x] Medição M1 e conferências das lentes com a carga real.
-- [ ] PR e checks.
+- [x] PR [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) aberta; checks remotos e merge pendentes.
 
 ## Evidências
 
@@ -95,18 +95,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 007 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 007"
+Situação: Aguardando merge — ciclo 007 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65)
+Diga: "aprovo o merge da PR #65"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 007 + implementar_issue + 60 + 2a0d3f5`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #60 aberta, plano `Aprovado`, ciclo `Planejamento` / branch `feature/issue-60` com a implementação local; plano `Em Execução`, ciclo `Em execução`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #60 aberta, plano `Aprovado`, ciclo `Planejamento` / branch `feature/issue-60` publicada e PR #65 aberta; plano `Em Execução`, ciclo `Em execução`
 - `result`: `executed`
-- `evidence`: diff local da branch; validações em "Evidências"
+- `evidence`: PR #65 (branch `feature/issue-60`); validações em "Evidências"
 - `blockers`: checks remotos e aprovação do merge
