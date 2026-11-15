@@ -420,7 +420,7 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
+| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), integração pendente |
 | Branch(es) | chore/cycle-008-plan |
 | Destino após conclusão | `_project/executed/008_comparacao_periodos_agentes/008_plan.md` |
 
@@ -429,15 +429,25 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 008 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 008"
+Situação: Aguardando merge — ciclo 008 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/76
+Diga: "aprovo o merge da PR #76"
 ```
 
 ## Handoff de saída
 
-### Aprovação da v3 — 2026-11-15 (vigente)
+### Publicação documental — 2026-11-15 (vigente)
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + publicar_plano + 008_plan + v3`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: plano v3 Aprovado, publicação autorizada / PR documental #76 aberta, Aguardando merge
+- `result`: `executed`
+- `evidence`: [PR #76](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), commit documental 1d8569b, branch chore/cycle-008-plan; 55/55 testes de governança, validador com 0 erros e 0 avisos, whitespace e staging conferidos; G3 sem segredos ou dados privados nos três documentos
+- `blockers`: integração depende dos checks remotos e da aprovação específica do merge; nenhuma issue ou implementação iniciada
+
+### Histórico — aprovação da v3, 2026-11-15
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + aprovar_plano + 008_plan + v3`
