@@ -3,7 +3,8 @@
 // exibição não define pertencimento: as contagens vêm do banco, calculadas com a malha integral.
 import * as L from 'leaflet';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
-import type { Limite, Registro } from './tipos.ts';
+import type { RegistroLente } from './lentes/contrato.ts';
+import type { Limite } from './tipos.ts';
 
 const COR_DETECCAO = '#f97316';
 const COR_BORDA_PONTO = '#fff7ed';
@@ -42,7 +43,11 @@ export interface Mapa {
   limparDestaques(): void;
   enquadrarDestaques(): void;
   aoSelecionarDestaque(f: (id: string) => void): void;
-  definirPontos(registros: Registro[]): void;
+  /** Todos os pontos do recorte (T7), em canvas. */
+  definirPontos(registros: readonly RegistroLente[]): void;
+  /** Balão no ponto, com conteúdo montado por quem chama (textContent). */
+  abrirBalao(latitude: number, longitude: number, conteudo: HTMLElement): void;
+  fecharBalao(): void;
   definirLimites(limites: Limite[], selecionado: number | null): void;
   limparLimites(): void;
   limparTudo(): void;
@@ -118,7 +123,7 @@ export function criarMapa(elemento: HTMLElement): Mapa {
 
   const estiloPonto = (selecionado: boolean): L.CircleMarkerOptions => selecionado
     ? { radius: 10, color: COR_SELECAO, weight: 4, fillColor: COR_DETECCAO, fillOpacity: 1 }
-    : { radius: 5, color: COR_BORDA_PONTO, weight: 1, fillColor: COR_DETECCAO, fillOpacity: 0.9 };
+    : { radius: 4, color: COR_BORDA_PONTO, weight: 0.8, fillColor: COR_DETECCAO, fillOpacity: 0.9 };
 
   function aplicarSelecao(id: string | null): boolean {
     camadaSelecao.clearLayers();
@@ -191,6 +196,7 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       marcadores.clear();
       selecionadoId = null;
       const pontos: L.LatLngTuple[] = [];
+      mapa.closePopup();
       for (const r of registros) {
         const m = L.circleMarker([r.latitude, r.longitude], estiloPonto(false));
         m.on('click', () => aoSelecionarF(r.id_tecnico));
@@ -199,6 +205,12 @@ export function criarMapa(elemento: HTMLElement): Mapa {
         pontos.push([r.latitude, r.longitude]);
       }
       pontosBounds = pontos.length ? L.latLngBounds(pontos) : null;
+    },
+    abrirBalao(latitude, longitude, conteudo) {
+      L.popup({ maxWidth: 320, autoPanPadding: [24, 24] }).setLatLng([latitude, longitude]).setContent(conteudo).openOn(mapa);
+    },
+    fecharBalao() {
+      mapa.closePopup();
     },
     definirLimites(limites, selecionado) {
       camadaLimites.clearLayers();
@@ -220,6 +232,7 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       limitesBounds = null;
     },
     limparTudo() {
+      mapa.closePopup();
       camadaLimites.clearLayers();
       camadaPontos.clearLayers();
       camadaSelecao.clearLayers();

@@ -7,7 +7,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp, revogarRp } from './contas.mjs';
-import { consultar, entrar, escolherLente } from './ajuda.mjs';
+import { abrirDestaque, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { SQL_LIMPEZA, sqlFixture, sqlFixtureAreas } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -37,10 +37,15 @@ const rotulos = (page) => itens(page).locator('.botao-nome').allInnerTexts();
 const areasNoMapa = (page) => page.locator('#mapa path[data-chave]');
 const contornosNoMapa = (page) => page.locator('#mapa .leaflet-areas-pane path:not([data-chave])');
 
+/**
+ * Calcula a sobreposição de uma classe com um cálculo só: a classe fica marcada antes de escolher a lente, como quando o
+ * usuário a escolheu numa visita anterior à seção (o rádio guarda a escolha). Com a sobreposição já escolhida, passa
+ * por outra lente para que a nova escolha recalcule, mesmo com a mesma classe.
+ */
 async function aplicar(page, classe) {
+  if (await page.locator('input[name="l-lente"][value="sobreposicao"]').isChecked()) await escolherLente(page, 'concentracao');
+  await page.locator(`input[name="l-classe"][value="${classe}"]`).evaluate((e) => { e.checked = true; });
   await escolherLente(page, 'sobreposicao');
-  await page.locator(`input[name="l-classe"][value="${classe}"]`).check();
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
 }
 
 /** Requisições às tabelas de áreas (URL decodificada), separadas por tipo. */
@@ -169,7 +174,7 @@ test('terra indígena: 53 células em 2 páginas; célula com duas áreas baixa 
   await page.getByRole('button', { name: 'Células anteriores' }).click();
 
   // Abertura da célula M: motivo por área, evidência agregada sem duplicação e dois contornos reais.
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `sobreposicao:terra_indigena:celula_005:${M}`);
   await expect(page.locator('#lente-painel-titulo')).toBeFocused();
   await expect(page.locator('#lente-motivo')).toHaveText(MOTIVO_M);
@@ -191,10 +196,10 @@ test('terra indígena: 53 células em 2 páginas; célula com duas áreas baixa 
   expect(req.real.some((u) => u.includes('codigo=eq.9002'))).toBe(true);
 
   // Outra célula (só T1, já em memória) e de novo M: nenhuma requisição nova de contorno.
-  await itens(page).nth(1).locator('.botao-nome').click();
+  await abrirDestaque(page, 1);
   await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'exibido');
   await expect(contornosNoMapa(page)).toHaveCount(1);
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'exibido');
   await expect(contornosNoMapa(page)).toHaveCount(2);
   expect(req.real).toHaveLength(2);
@@ -225,7 +230,7 @@ test('proteção integral: motivo, ressalvas de polígono estimado e de borda, c
   await expect(limitacoes).toContainText('Áreas de outros estados que entram em Mato Grosso só aparecem quando contêm detecção desta carga.');
   await expect(limitacoes).toContainText('A lista não é ranking: a classe ou o número de detecções não indica gravidade nem prioridade.');
 
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-motivo')).toHaveText('Motivo: 2 de 3 detecções desta célula dentro de Parque Fictício Um (proteção integral, Parque, Estadual)');
   await expect(page.locator('#lente-areas .ressalvas-area > li')).toHaveText([
     'limite estimado pelo órgão gestor; a posição exata pode diferir', '1 detecção exatamente sobre o limite da área']);
@@ -243,7 +248,7 @@ test('uso sustentável: destaque na janela inteira e "sem destaques" de 01 a 03/
   await aplicar(page, 'uso_sustentavel');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(await rotulos(page)).toEqual([ROTULO_L]);
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-motivo')).toHaveText('Motivo: 1 de 2 detecções desta célula dentro de Reserva Fictícia Dois (uso sustentável, Reserva Extrativista, Federal)');
   await expect(page.locator('#lente-areas .ressalvas-area')).toHaveCount(0);
 
@@ -256,15 +261,17 @@ test('uso sustentável: destaque na janela inteira e "sem destaques" de 01 a 03/
   await expect(page.locator('#lente-limitacoes')).toContainText('não comprovam incêndio, dano, autoria ou infração');
 });
 
-test('sem classe escolhida: só o aviso, sem aplicação', async ({ page }) => {
+test('a sobreposição abre com "Proteção integral" marcada (V13), calcula ao escolher e recalcula ao trocar a classe', async ({ page }) => {
   await entrar(page, 'rp');
   await escolherLente(page, 'sobreposicao');
   await expect(page.locator('#lente-sobreposicao')).toBeVisible();
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
-  await expect(page.locator('#lente-validacao')).toHaveText('Escolha a classe de área protegida.');
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  await expect(page.locator('input[name="l-classe"][value="protecao_integral"]')).toBeChecked();
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  await expect(page.locator('#lente-classe')).toHaveText('Classe aplicada: proteção integral.');
   await page.locator('input[name="l-classe"][value="uso_sustentavel"]').check();
-  await expect(page.locator('#lente-validacao')).toBeHidden();
+  await expect(page.locator('#lente-classe')).toHaveText('Classe aplicada: uso sustentável.');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
+  expect(await rotulos(page)).toEqual([ROTULO_L]);
 });
 
 test('leitura inconsistente (contagem divergente nos vínculos), falha da fonte e contorno indisponível: estados próprios', async ({ page }) => {
@@ -297,12 +304,12 @@ test('leitura inconsistente (contagem divergente nos vínculos), falha da fonte 
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await page.route((u) => u.pathname.endsWith('/rest/v1/areas') && u.searchParams.get('select') === 'geometria_real',
     (route) => route.fulfill({ status: 503, json: { message: 'indisponivel' } }));
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'falha');
   await expect(page.locator('#lente-contornos')).toContainText('a célula, o motivo e a evidência continuam válidos');
   await expect(page.locator('#lente-motivo')).toBeVisible();
   await page.unrouteAll({ behavior: 'ignoreErrors' });
-  await itens(page).first().locator('.botao-nome').click();
+  await abrirDestaque(page, 0);
   await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'exibido');
 });
 
@@ -328,12 +335,12 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
   await aplicar(page, 'terra_indigena');
   await r.chegada;
   await expect(page.locator('#lente-estado')).toContainText('Carregando: áreas protegidas e vínculos da carga');
+  // Nova janela: a lente é recalculada na janela nova (T16); a resposta antiga não aparece.
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-15' });
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
+  await expect(page.locator('#lente-escopo')).toContainText('2026-10-01 a 2026-10-15');
   r.soltar();
   await page.waitForTimeout(500);
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
-  await expect(itens(page)).toHaveCount(0);
+  await expect(page.locator('#lente-escopo')).toContainText('2026-10-01 a 2026-10-15');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
 
   r = await reter(page, '**/rest/v1/deteccoes_areas*');
@@ -352,7 +359,6 @@ test('cancelada (nova janela), "Nenhuma" e outra lente durante a leitura: a resp
   await aplicar(page, 'terra_indigena');
   await r.chegada;
   await escolherLente(page, 'concentracao');
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   r.soltar();
   await page.waitForTimeout(500);
@@ -451,21 +457,23 @@ for (const largura of [360, 390]) {
       await page.keyboard.press('ArrowDown');
       await page.keyboard.press('ArrowDown');
       await expect(page.locator('input[name="l-classe"][value="terra_indigena"]')).toBeChecked();
-      await page.locator('#botao-lente').focus();
-      await page.keyboard.press('Enter');
+      // Cada troca de classe recalcula (T16).
+      await expect(page.locator('#lente-classe')).toHaveText('Classe aplicada: terra indígena.');
       await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
       await itens(page).first().locator('.botao-nome').focus();
       await page.keyboard.press('Enter');
       await expect(page.locator('#lente-painel-titulo')).toBeFocused();
       await expect(page.locator('#lente-contornos')).toHaveAttribute('data-contornos', 'exibido');
-      // Toque: o rótulo inteiro marca a classe; a camada abre pelo botão.
-      await page.locator('.opcao', { hasText: 'Uso sustentável' }).tap();
-      await expect(page.locator('input[name="l-classe"][value="uso_sustentavel"]')).toBeChecked();
+      // A camada abre pelo botão; a citação da área leva aos dados dela.
       await page.getByRole('button', { name: 'Mostrar áreas protegidas' }).tap();
       await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'visivel');
       await page.getByRole('button', { name: 'Ver dados e contorno de Terra Indígena Fictícia Alfa' }).focus();
       await page.keyboard.press('Enter');
       await expect(page.locator('#areas-selecao-titulo')).toBeFocused();
+      // Toque: o rótulo inteiro marca a classe.
+      await page.locator('.opcao', { hasText: 'Uso sustentável' }).tap();
+      await expect(page.locator('input[name="l-classe"][value="uso_sustentavel"]')).toBeChecked();
+      await expect(page.locator('#lente-classe')).toHaveText('Classe aplicada: uso sustentável.');
 
       const a = await page.evaluate(auditar);
       expect(a.alvos, 'controles menores que 44×44 CSS px').toEqual([]);

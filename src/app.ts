@@ -1,13 +1,14 @@
-// Controlador: sessão, versão fixada, consulta, paginação, mapa e estados. Duas gerações descartam
-// respostas obsoletas: a da sessão (login, logout, expiração, negação) e a da consulta (a última vence).
-// Nenhum dado de consulta é gravado em armazenamento; sair, expirar ou perder o acesso limpa a tela.
+// Controlador: sessão, versão fixada, consulta, leitura completa do recorte, mapa, lentes e estados. Gerações
+// descartam respostas obsoletas: a da sessão (login, logout, expiração, negação), a da consulta (a última vence) e a
+// da lente. Nenhum dado de consulta é gravado em armazenamento; a memória de recortes (T6) vive só em variáveis
+// desta página e sai junto com a sessão, o acesso ou a versão.
 import {
-  $, criarPainelRegistros, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
-  renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderMunicipios, renderProveniencia, renderRecorte, renderResumo,
-  renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type PainelRegistros,
+  $, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
+  renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderProveniencia, renderRecorte, renderResumo,
+  renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
 } from './apresentacao.ts';
 import {
-  limparCorpoLente, renderEstadoLente, renderResultadoLente, type EstadoLente, type ManipuladoresLente,
+  limparCorpoLente, renderEstadoLente, renderResultadoLente, TITULO_LENTE, type EstadoLente, type ManipuladoresLente,
 } from './apresentacao-lentes.ts';
 import {
   CELULAS_POR_PAGINA, paginaValida, renderResultadoCombinacao, type ManipuladoresCombinacao,
@@ -16,11 +17,14 @@ import {
   atualizarContornoArea, atualizarContornosPainel, renderAreaSelecionada, renderEstadoAreas, renderLegendaAreas,
   renderResultadoSobreposicao, type AreaExibida, type EstadoContorno, type ManipuladoresSobreposicao,
 } from './apresentacao-areas.ts';
+import {
+  abrirAba, balaoRegistros, explicacaoAberta, ligarAbas, marcarFoco, renderListaFocos, renderMunicipios,
+} from './apresentacao-resultado.ts';
 import { lerConfiguracao } from './config.ts';
 import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
 import {
-  CLASSES_AREA, municipiosDaSobreposicao, qualificarSobreposicao, sobreposicao, type AreaSobreposicao,
-  type DestaqueSobreposicao, type ResultadoSobreposicao,
+  CLASSES_AREA, municipiosDaSobreposicao, qualificarSobreposicao, ROTULO_CLASSE as ROTULO_AREA, sobreposicao,
+  type AreaSobreposicao, type DestaqueSobreposicao, type ResultadoSobreposicao,
 } from './lentes/sobreposicao.ts';
 import { estadoQualificacao, municipiosNecessarios, qualificar } from './lentes/comum.ts';
 import {
@@ -31,12 +35,14 @@ import { concentracao } from './lentes/concentracao.ts';
 import { persistencia } from './lentes/persistencia.ts';
 import { recorrencia } from './lentes/recorrencia.ts';
 import {
-  CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerRegistros, validarDisponibilidade,
+  CONCORRENCIA_DISPONIBILIDADE, destinoErro, emParalelo, lerPaginas, lerRegistros, validarDisponibilidade, validarResumo,
   type FontesLente, type OrigemChamada, type PedidoLente,
 } from './lentes/carregar.ts';
 import {
   ErroLente, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
 } from './lentes/contrato.ts';
+import { chaveRecorte, MemoriaRecortes, type LeituraRecorte } from './memoria.ts';
+import { celulasDistintas, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import {
   consultarDeteccoes, consultarDisponibilidade, consultarResumo, fontesAreas, lerCargaVigente, lerContornoReal, lerLimites,
   lerMunicipios, lerProveniencia, sondarAcesso, type Filtro,
@@ -47,9 +53,7 @@ import { periodoDoAtalho, validarPeriodo, type Atalho, type Janela } from './rec
 import { fecharDialogos, iniciarTema, ligarDialogo } from './topo.ts';
 import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
-import type {
-  CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, PaginaDeteccoes, Resumo,
-} from './tipos.ts';
+import type { CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, Registro, Resumo } from './tipos.ts';
 
 interface Dados {
   carga: CargaDetalhe;
@@ -63,9 +67,11 @@ interface Dados {
 interface Resultado {
   filtro: Filtro;
   resumo: Resumo;
-  pagina: PaginaDeteccoes;
   disponibilidade: Disponibilidade;
 }
+
+/** Leitura completa do recorte aplicado (T7): registros conferidos, em leitura ou com erro. */
+type Pontos = Registro[] | 'carregando' | 'erro';
 
 /** Lente aplicada: pedido (carga e janela), resultado e disponibilidade lida para qualificá-lo. */
 interface LenteAplicada {
@@ -78,7 +84,7 @@ interface LenteAplicada {
   porId: Map<string, RegistroLente>;
 }
 
-/** Configuração da combinação, lida do formulário uma única vez, no clique em "Aplicar lente" (R1-7). */
+/** Configuração da combinação, lida do formulário a cada mudança (T16). */
 interface ConfigCombinacao {
   lentes: TipoLente[];
   operador: Operador;
@@ -113,21 +119,37 @@ interface CamadaAreas {
   areas: AreaLida[];
 }
 
+/** Intervalo mínimo entre redesenhos da lista enquanto a disponibilidade chega (CPU lenta no celular, T14). */
+const INTERVALO_QUALIFICACAO_MS = 750;
+
+/** Devolve verdadeiro no máximo uma vez por intervalo; o redesenho final, depois do laço, mostra o estado completo. */
+function limitador(intervaloMs: number): () => boolean {
+  let ultimo = performance.now();
+  return () => {
+    const agora = performance.now();
+    if (agora - ultimo < intervaloMs) return false;
+    ultimo = agora;
+    return true;
+  };
+}
+
 /** Lentes disponíveis no seletor; cada uma é função pura da mesma entrada. */
 const LENTES = { concentracao, recorrencia, persistencia } as const;
 
-/** Memória reaproveitável entre lentes, enquanto sessão, carga, janela e recorte forem os mesmos. */
-interface MemoriaLente {
-  chave: string;
-  registros: RegistroLente[];
-  totalResumo: number;
-  disponibilidade: Map<number, DisponibilidadeMunicipio>;
-}
-
-const chaveLente = (p: PedidoLente): string => `${p.carga}|${p.janela.inicio}|${p.janela.fim}|estado`;
-
 /** Lente marcada nos rádios das seções de lente (Lente de seleção, Contexto territorial, Cruzar critérios). */
 const lenteEscolhida = (): string => document.querySelector<HTMLInputElement>('input[name="l-lente"]:checked')?.value ?? 'nenhuma';
+
+/** Configuração inicial das lentes, como na V13 (decisão do responsável na issue #61). */
+function configuracaoPadrao(): void {
+  const marcar = (seletor: string, valor: boolean) => {
+    const e = document.querySelector<HTMLInputElement>(seletor);
+    if (e) e.checked = valor;
+  };
+  marcar('input[name="l-lente"][value="nenhuma"]', true);
+  marcar('input[name="l-classe"][value="protecao_integral"]', true);
+  for (const l of LENTES_CANONICAS) marcar(`input[name="l-comb"][value="${l}"]`, l !== 'persistencia');
+  marcar('input[name="l-operador"][value="e"]', true);
+}
 
 export function iniciar(): void {
   iniciarTema();
@@ -150,22 +172,24 @@ class Controlador {
   private resultado: Resultado | null = null;
   /** Recorte aplicado (T16): a última combinação válida de período e município; a única que a tela usa. */
   private aplicado: Filtro | null = null;
+  private pontos: Pontos = 'carregando';
   private selecionado: string | null = null;
+  private paginaFocos = 0;
+  private ordemMunicipios: OrdemMunicipios = 'deteccoes';
   private mapa: Mapa | null = null;
-  private painel: PainelRegistros;
   private limites = new Map<number, Limite>();
   private todosOsLimites = false;
   private geracaoSessao = 0;
   private geracaoConsulta = 0;
-  // Terceira geração (plano 004, R1-4): cada aplicação de lente, `Nenhuma`, nova janela, troca de versão
-  // ou mudança de sessão a incrementa; respostas de uma aplicação antiga são descartadas.
+  // Terceira geração (plano 004, R1-4): cada cálculo de lente, nova janela, troca de versão ou mudança de sessão a
+  // incrementa; respostas de um cálculo antigo são descartadas.
   private geracaoLente = 0;
   private lente: LenteAplicada | null = null;
   private combinacao: CombinacaoAplicada | null = null;
-  // Configuração da combinação em aplicação ou exibida; base do aviso de formulário alterado (R1-7).
+  // Configuração da combinação em cálculo ou exibida; base do "tentar de novo".
   private configCombinacao: ConfigCombinacao | null = null;
   private pedidoLente: PedidoLente | null = null;
-  // Sobreposição (plano 006): resultado exibido e classe em aplicação ou exibida (base do "tentar de novo").
+  // Sobreposição (plano 006): resultado exibido e classe em cálculo ou exibida (base do "tentar de novo").
   private sobreposicao: SobreposicaoAplicada | null = null;
   private classeSobreposicao: ClasseArea | null = null;
   // Camada de áreas: visão geral em memória, geração própria (mostrar/ocultar) e área selecionada.
@@ -174,19 +198,19 @@ class Controlador {
   private areaSelecionada: AreaExibida | null = null;
   // Contornos reais por `carga|chave`, em voo ou lidos; limpos como os limites municipais (ADR-007).
   private contornos = new Map<string, Promise<unknown>>();
-  private memoriaLente: MemoriaLente | null = null;
+  /** Memória de recortes (T6): até 3 leituras completas, só nesta página. */
+  private memoria = new MemoriaRecortes();
+  /** Leituras completas em curso por chave (T7: cada recorte é lido uma vez; a lente espera a da consulta). */
+  private leiturasEmVoo = new Map<string, Promise<LeituraRecorte | null>>();
+  /** A janela mudou com uma lente escolhida: recalcular depois da leitura da consulta (sobrevive a consultas seguidas). */
+  private lentePendente = false;
+  /** Posição da rolagem da coluna de resultado antes de abrir uma explicação (voltar ao mesmo ponto). */
+  private rolagemLista = 0;
   private usuarioAutorizado = false;
   private motivoPendente: 'saiu' | 'expirada' | undefined;
   private erroCallback: string | undefined;
-  private tamanho = 100;
 
-  constructor(private readonly senhaLocal: boolean, private readonly sessao: Sessao) {
-    this.painel = criarPainelRegistros({
-      pagina: (d) => void this.mudarPagina(d),
-      tamanho: (n) => { this.tamanho = n; void this.mudarPagina(0); },
-      selecionar: (id) => this.selecionar(id),
-    });
-  }
+  constructor(private readonly senhaLocal: boolean, private readonly sessao: Sessao) {}
 
   iniciar(): void {
     this.erroCallback = this.lerErroDoCallback();
@@ -198,27 +222,31 @@ class Controlador {
     for (const id of ['f-inicio', 'f-fim', 'f-municipio']) $(id).addEventListener('change', () => this.aplicarFormulario());
     $('f-periodo').addEventListener('change', () => this.aoMudarPeriodo());
     $('botao-limpar').addEventListener('click', () => this.limparFiltros());
-    $('botao-lente').addEventListener('click', () => void this.aplicarLente());
-    // Escolher "Nenhuma lente" cancela a lente na hora, inclusive durante a leitura.
+    // Lente calculada ao escolher (A3, T16): sem botão "Aplicar lente".
     for (const r of document.querySelectorAll<HTMLInputElement>('input[name="l-lente"]')) {
       r.addEventListener('change', () => {
-        const valor = lenteEscolhida();
         this.mostrarEscolhaLente();
         this.atualizarLimpar();
-        this.mostrarValidacaoLente(null);
-        if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
-        else this.atualizarAvisoConfig();
+        if (lenteEscolhida() === 'nenhuma') {
+          this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+          abrirAba('municipios');
+          return;
+        }
+        abrirAba('destaques');
+        void this.aplicarLente();
       });
     }
-    // Editar as lentes ou o operador não cancela nem muda a combinação aplicada; só avisa (R1-7).
-    $('lente-combinacao').addEventListener('change', () => {
-      this.mostrarValidacaoLente(null);
-      this.atualizarAvisoConfig();
-    });
-    $('lente-sobreposicao').addEventListener('change', () => this.mostrarValidacaoLente(null));
+    // Configuração da lente (classe, critérios, operador) vale ao mudar e recalcula no mesmo recorte (T16).
+    $('lente-combinacao').addEventListener('change', () => { if (lenteEscolhida() === 'combinacao') void this.aplicarLente(); });
+    $('lente-sobreposicao').addEventListener('change', () => { if (lenteEscolhida() === 'sobreposicao') void this.aplicarLente(); });
     $('botao-limites').addEventListener('click', () => void this.alternarLimites());
     $('botao-areas').addEventListener('click', () => void this.alternarAreas());
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
+    $('botao-lista-focos').addEventListener('click', () => this.alternarListaFocos());
+    $('botao-fechar-focos').addEventListener('click', () => this.fecharListaFocos());
+    $('lista-focos').addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.stopPropagation(); this.fecharListaFocos(); } });
+    $('botao-voltar').addEventListener('click', () => this.voltarAosDestaques());
+    ligarAbas();
     const arrastar = $('botao-arrastar');
     arrastar.addEventListener('click', () => {
       const ativo = arrastar.getAttribute('aria-pressed') !== 'true';
@@ -318,6 +346,9 @@ class Controlador {
       $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
       $<HTMLSelectElement>('f-periodo').value = 'ano';
       $('intervalo').hidden = true;
+      configuracaoPadrao();
+      this.mostrarEscolhaLente();
+      abrirAba('municipios');
       this.aplicado = { carga: carga.id, inicio: this.dados.janela.inicio, fim: this.dados.janela.fim, municipio: null };
       this.mostrarRecorte(false);
       this.garantirMapa();
@@ -352,21 +383,24 @@ class Controlador {
     this.dados = null;
     this.resultado = null;
     this.aplicado = null;
+    this.pontos = 'carregando';
     fecharDialogos();
     $('conteudo').dataset['estadoPainel'] = 'carregando';
     this.selecionado = null;
     this.limites.clear();
     this.todosOsLimites = false;
     this.mapa?.limparTudo();
-    this.painel.atualizar(null, new Map(), null);
     limparResultados();
+    renderContagemMapa({ tipo: 'nenhum' }, 0);
+    this.fecharListaFocos(false);
     renderAvisoMapa([]);
     mostrarErroMapa(null);
     mostrarErroFiltro(null);
     $('botao-limites').setAttribute('aria-pressed', 'false');
-    // Sessão, acesso ou publicação mudaram: a lente e toda a memória reaproveitável saem junto (R2-1).
+    // Sessão, acesso ou publicação mudaram: a lente e toda a memória de recortes saem junto (R2-1, T6).
     this.limparLente({ memoria: true, estado: { tipo: 'nenhuma' } });
     this.limparAreas();
+    abrirAba('municipios');
   }
 
   // --- Consulta --------------------------------------------------------------------------------------
@@ -374,7 +408,7 @@ class Controlador {
   private garantirMapa(): void {
     if (this.mapa) return;
     this.mapa = criarMapa($('mapa'));
-    this.mapa.aoSelecionar((id) => this.selecionar(id));
+    this.mapa.aoSelecionar((id) => this.selecionarPonto(id));
     this.mapa.aoSelecionarDestaque((id) => this.selecionarDestaque(id));
     this.mapa.aoSelecionarArea((chave) => this.selecionarAreaDaCamada(chave));
     if (window.matchMedia('(pointer: coarse)').matches) {
@@ -454,7 +488,7 @@ class Controlador {
     this.aplicarFormulario();
   }
 
-  /** "Limpar tudo": período, município e lente voltam ao padrão (janela inteira, todo o estado, nenhuma lente). */
+  /** "Limpar tudo": período, município e lente voltam ao padrão da V13; a coluna volta à aba Municípios. */
   private limparFiltros(): void {
     if (!this.dados) return;
     $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
@@ -462,15 +496,15 @@ class Controlador {
     $<HTMLSelectElement>('f-periodo').value = 'ano';
     $('intervalo').hidden = true;
     $<HTMLSelectElement>('f-municipio').value = '';
-    const nenhuma = document.querySelector<HTMLInputElement>('input[name="l-lente"][value="nenhuma"]');
-    if (nenhuma) nenhuma.checked = true;
+    configuracaoPadrao();
     this.mostrarEscolhaLente();
-    this.mostrarValidacaoLente(null);
     this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+    abrirAba('municipios');
     this.aplicarFormulario();
+    this.mostrarMunicipios();
   }
 
-  /** Grupos da combinação e da sobreposição só com a lente deles marcada; etiqueta "ativa" na seção da lente. */
+  /** Grupos da combinação e da sobreposição só com a lente deles marcada. */
   private mostrarEscolhaLente(): void {
     const valor = lenteEscolhida();
     $('lente-combinacao').hidden = valor !== 'combinacao';
@@ -486,52 +520,97 @@ class Controlador {
     const dados = this.dados;
     const filtro = this.aplicado;
     if (!dados || !filtro) return;
+    // Nova janela: a lente (estadual até o item 4) é recalculada depois da leitura da consulta (T16).
     const p = this.pedidoLente;
-    if (p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim)) {
-      this.limparLente({ memoria: false, estado: { tipo: 'cancelada', motivo: 'a janela da consulta mudou; aplique a lente de novo.' } });
+    const recalcularLente = !!p && (p.carga !== filtro.carga || p.janela.inicio !== filtro.inicio || p.janela.fim !== filtro.fim);
+    if (recalcularLente) {
+      this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
+      this.lentePendente = true;
     }
     const g = this.geracaoSessao;
     const c = ++this.geracaoConsulta;
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
     this.resultado = null;
+    this.pontos = 'carregando';
     this.selecionado = null;
+    this.paginaFocos = 0;
     this.mapa?.limparTudo();
-    this.painel.atualizar(null, dados.nomes, null);
     renderSelecao(null, null);
     mostrarErroMapa(null);
+    renderContagemMapa({ tipo: 'carregando', lidos: 0, total: 0 }, 0);
+    this.mostrarListaFocos();
     this.estado({ tipo: 'carregando' });
     try {
       const cliente = this.sessao.cliente;
-      const [resumo, pagina, disponibilidade] = await Promise.all([
+      const [resumo, disponibilidade] = await Promise.all([
         consultarResumo(cliente, filtro),
-        consultarDeteccoes(cliente, filtro, this.tamanho, 0),
         consultarDisponibilidade(cliente, filtro),
       ]);
       if (!atual()) return;
-      const mesmaVersao = [resumo.carga.id, pagina.carga.id, disponibilidade.carga.id].every((id) => id === filtro.carga);
-      if (!mesmaVersao || pagina.total !== resumo.principal.total) {
+      if (![resumo.carga.id, disponibilidade.carga.id].every((id) => id === filtro.carga)) {
         this.estado({ tipo: 'inconsistente' });
         return;
       }
-      this.resultado = { filtro, resumo, pagina, disponibilidade };
-      const nome = filtro.municipio === null ? null : (dados.nomes.get(filtro.municipio) ?? String(filtro.municipio));
+      this.resultado = { filtro, resumo, disponibilidade };
+      const nome = this.nomeMunicipio(filtro.municipio);
       this.estado(resumo.principal.total === 0 ? { tipo: 'zero' } : { tipo: 'ocioso' });
       renderResumo(resumo, nome);
       renderSerie(resumo);
-      renderMunicipios(resumo, dados.municipios, (codigo) => this.escolherMunicipio(codigo));
       renderDisponibilidade(disponibilidade, nome);
-      this.mostrarPagina(pagina);
-      // M1 (T14): filtros, cartão da série e municípios prontos, independentemente de limites e geometria.
+      this.mostrarMunicipios();
+      // M1 (T14): filtros, cartão da série e municípios prontos, independentemente de pontos, limites e geometria.
       $('conteudo').dataset['estadoPainel'] = 'pronto';
-      await this.atualizarLimites(atual);
+      await Promise.all([this.lerPontos(filtro, resumo, atual), this.atualizarLimites(atual)]);
     } catch (e) {
       if (!atual()) return;
       this.aoFalharConsulta(e);
+      return;
     }
+    if (atual() && this.lentePendente && lenteEscolhida() !== 'nenhuma') void this.aplicarLente();
+  }
+
+  /**
+   * Leitura completa do recorte (T7), com a memória T6: o resumo já foi lido nesta consulta; páginas já lidas e
+   * conferidas no mesmo recorte e com o mesmo total são reaproveitadas. Leitura inconsistente nunca vira mapa parcial.
+   */
+  private async lerPontos(filtro: Filtro, resumo: Resumo, atual: () => boolean): Promise<void> {
+    const pedido: PedidoLente = { carga: filtro.carga, janela: { inicio: filtro.inicio, fim: filtro.fim }, municipio: filtro.municipio };
+    const total = validarResumo(pedido, resumo);
+    const chave = chaveRecorte(this.geracaoSessao, filtro);
+    let leitura = this.memoria.obter(chave);
+    if (!leitura || leitura.totalResumo !== total || leitura.registros.length !== total) {
+      const guardada = leitura;
+      const emVoo = (async () => {
+        const registros = await lerPaginas(this.fontesLente(), pedido, total, atual,
+          (lidos, t) => { if (atual()) renderContagemMapa({ tipo: 'carregando', lidos, total: t }, this.mapa?.contagem().limites ?? 0); });
+        if (!registros || !atual()) return null;
+        return this.memoria.guardar({ chave, registros, totalResumo: total, disponibilidade: guardada?.disponibilidade ?? new Map() });
+      })();
+      this.leiturasEmVoo.set(chave, emVoo);
+      try {
+        leitura = await emVoo;
+      } finally {
+        if (this.leiturasEmVoo.get(chave) === emVoo) this.leiturasEmVoo.delete(chave);
+      }
+      if (!leitura || !atual()) return;
+    }
+    this.pontos = leitura.registros;
+    this.mapa?.definirPontos(leitura.registros);
+    if (!this.limites.size || !this.mapa?.contagem().limites) this.mapa?.enquadrar();
+    this.mostrarEstadoPontos();
+    this.mostrarListaFocos();
+    this.mostrarMunicipios();
+  }
+
+  private mostrarEstadoPontos(): void {
+    const p = this.pontos;
+    const e: EstadoPontos = p === 'erro' ? { tipo: 'erro' } : p === 'carregando' ? { tipo: 'carregando', lidos: 0, total: this.resultado?.resumo.principal.total ?? 0 }
+      : { tipo: 'completo', total: p.length };
+    renderContagemMapa(e, this.mapa?.contagem().limites ?? 0);
   }
 
   private aoFalharConsulta(e: unknown): void {
-    const tipo: TipoErro = e instanceof ErroConsulta ? e.tipo : 'fonte_indisponivel';
+    const tipo: TipoErro | 'inconsistente' = e instanceof ErroLente ? 'inconsistente' : e instanceof ErroConsulta ? e.tipo : 'fonte_indisponivel';
     if (tipo === 'acesso_negado' || tipo === 'sessao_expirada' || tipo === 'sem_publicacao') {
       this.tratarErroGlobal(e);
       return;
@@ -545,69 +624,126 @@ class Controlador {
           ? { tipo: 'versao_substituida' }
           : this.classeSobreposicao
             ? { tipo: 'versao_substituida', lente: true }
-            : { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e aplique a lente de novo.' },
+            : { tipo: 'cancelada', motivo: 'a versão de dados foi substituída; recarregue a versão vigente e escolha a lente de novo.' },
       });
       // A camada e os contornos eram da versão substituída.
       this.limparAreas();
     }
     this.resultado = null;
+    this.pontos = 'erro';
     this.mapa?.limparTudo();
-    this.painel.atualizar(null, new Map(), null);
     for (const id of ['resumo-corpo', 'serie-corpo', 'disp-corpo', 'municipios-corpo']) $(id).replaceChildren();
-    renderContagemMapa(0, null, 0);
-    this.estado({ tipo: tipo === 'versao_substituida' ? 'versao_substituida' : tipo === 'entrada_invalida' ? 'entrada_invalida' : 'fonte_indisponivel' });
+    renderContagemMapa({ tipo: 'erro' }, 0);
+    this.mostrarListaFocos();
+    this.estado({
+      tipo: tipo === 'versao_substituida' ? 'versao_substituida' : tipo === 'entrada_invalida' ? 'entrada_invalida'
+        : tipo === 'inconsistente' ? 'inconsistente' : 'fonte_indisponivel',
+    });
   }
 
-  private mostrarPagina(pagina: PaginaDeteccoes): void {
-    const dados = this.dados;
-    if (!dados) return;
-    this.painel.atualizar(pagina, dados.nomes, this.selecionado);
-    this.mapa?.definirPontos(pagina.registros);
-    renderContagemMapa(pagina.registros.length, pagina.total, this.mapa?.contagem().limites ?? 0);
-  }
-
-  private async mudarPagina(deslocamento: number): Promise<void> {
-    const r = this.resultado;
-    if (!r || !this.dados) return;
-    const g = this.geracaoSessao;
-    const c = this.geracaoConsulta;
-    const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
-    try {
-      const pagina = await consultarDeteccoes(this.sessao.cliente, r.filtro, this.tamanho, deslocamento);
-      if (!atual()) return;
-      if (pagina.carga.id !== r.filtro.carga || pagina.total !== r.resumo.principal.total) {
-        this.estado({ tipo: 'inconsistente' });
-        return;
-      }
-      this.selecionado = null;
-      renderSelecao(null, null);
-      this.resultado = { ...r, pagina };
-      this.mostrarPagina(pagina);
-      this.mapa?.enquadrar();
-    } catch (e) {
-      if (!atual()) return;
-      this.aoFalharConsulta(e);
-    }
-  }
-
-  private escolherMunicipio(codigo: number): void {
-    $<HTMLSelectElement>('f-municipio').value = String(codigo);
+  private escolherMunicipio(codigo: number | null): void {
+    $<HTMLSelectElement>('f-municipio').value = codigo === null ? '' : String(codigo);
     this.aplicarFormulario();
-    const titulo = $('t-resumo');
-    titulo.tabIndex = -1;
-    titulo.scrollIntoView({ block: 'start' });
+    const titulo = $('t-municipios');
+    abrirAba('municipios');
+    titulo.scrollIntoView({ block: 'nearest' });
     titulo.focus();
   }
 
-  private selecionar(id: string): void {
-    const r = this.resultado;
-    if (!r || !this.dados) return;
-    const registro = r.pagina.registros.find((x) => x.id_tecnico === id);
+  // --- Pontos, balão e "Lista de focos" (T7, T21) ------------------------------------------------------
+
+  /** Toque num ponto: balão com todos os registros da mesma coordenada e o anel de seleção. */
+  private selecionarPonto(id: string): void {
+    const p = this.pontos;
+    if (!Array.isArray(p) || !this.dados) return;
+    const registro = p.find((x) => x.id_tecnico === id);
+    if (!registro) return;
+    const mesmos = p.filter((x) => x.latitude === registro.latitude && x.longitude === registro.longitude);
+    this.selecionarRegistro(id);
+    this.mapa?.abrirBalao(registro.latitude, registro.longitude, balaoRegistros(mesmos, this.dados.nomes));
+  }
+
+  /** Seleção de um registro (ponto ou linha da lista): anel no mapa, linha marcada e anúncio do registro. */
+  private selecionarRegistro(id: string): void {
+    const p = this.pontos;
+    if (!Array.isArray(p) || !this.dados) return;
+    const registro = p.find((x) => x.id_tecnico === id);
     if (!registro) return;
     this.selecionado = id;
     this.mapa?.selecionarRegistro(id);
-    this.painel.marcarSelecao(id);
+    marcarFoco(id);
     renderSelecao(registro, this.dados.nomes.get(registro.municipio_codigo) ?? null);
+  }
+
+  private alternarListaFocos(): void {
+    if ($('lista-focos').hidden) this.abrirListaFocos();
+    else this.fecharListaFocos();
+  }
+
+  private abrirListaFocos(): void {
+    $('lista-focos').hidden = false;
+    $('botao-lista-focos').setAttribute('aria-expanded', 'true');
+    this.mostrarListaFocos();
+    $('t-lista-focos').focus();
+  }
+
+  private fecharListaFocos(focar = true): void {
+    const aberta = !$('lista-focos').hidden;
+    $('lista-focos').hidden = true;
+    $('botao-lista-focos').setAttribute('aria-expanded', 'false');
+    if (aberta && focar) $('botao-lista-focos').focus();
+  }
+
+  private mostrarListaFocos(): void {
+    if ($('lista-focos').hidden || !this.dados) return;
+    renderListaFocos(this.pontos, this.paginaFocos, this.selecionado, this.dados.nomes, {
+      selecionar: (id) => this.selecionarRegistro(id),
+      pagina: (pagina) => {
+        this.paginaFocos = pagina;
+        this.mostrarListaFocos();
+        document.getElementById('lista-focos-info')?.focus();
+      },
+    });
+  }
+
+  // --- Aba Municípios (T11) -----------------------------------------------------------------------------
+
+  /** Destaques da lente ativa no formato da aba (células distintas ou municípios na ordem D16). */
+  private destaquesAtivos(): { ativos: DestaquesAtivos; nome: string; registros: RegistroLente[] } | null {
+    if (this.lente) {
+      const r = this.lente.resultado;
+      const registros = [...this.lente.porId.values()];
+      if (r.lente === 'concentracao') {
+        return { ativos: { unidade: 'municipio', municipios: r.destaques.flatMap((d) => (d.unidade.tipo === 'municipio' ? [d.unidade.codigo] : [])) }, nome: TITULO_LENTE[r.lente], registros };
+      }
+      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: TITULO_LENTE[r.lente], registros };
+    }
+    if (this.combinacao) {
+      const r = this.combinacao.resultado;
+      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.celulas.map((c) => c.unidade.id)) }, nome: 'Combinação', registros: [...this.combinacao.porId.values()] };
+    }
+    if (this.sobreposicao) {
+      const r = this.sobreposicao.resultado;
+      return { ativos: { unidade: 'celula', recorte: 'estado', celulas: celulasDistintas(r.destaques.flatMap((d) => (d.unidade.tipo === 'celula_005' ? [d.unidade.id] : []))) }, nome: `Sobreposição · ${ROTULO_AREA[r.classe]}`, registros: [...this.sobreposicao.porId.values()] };
+    }
+    return null;
+  }
+
+  private mostrarMunicipios(): void {
+    const r = this.resultado;
+    if (!r || !this.dados) return;
+    const ativos = this.destaquesAtivos();
+    renderMunicipios({
+      resumo: r.resumo, nomeMunicipio: this.nomeMunicipio(r.filtro.municipio), ordem: this.ordemMunicipios,
+      ativos: ativos?.ativos ?? null, nomeLente: ativos?.nome ?? null, registrosLente: ativos?.registros ?? [], leitura: this.pontos,
+    }, {
+      escolher: (codigo) => this.escolherMunicipio(codigo),
+      ordenar: (ordem) => {
+        this.ordemMunicipios = ordem;
+        this.mostrarMunicipios();
+        document.querySelector<HTMLElement>(`[data-ordem="${ordem}"]`)?.focus();
+      },
+    });
   }
 
   // --- Lentes de seleção (plano 004) -----------------------------------------------------------------
@@ -615,7 +751,6 @@ class Controlador {
   private manipuladoresLente(): ManipuladoresLente {
     return {
       tentarDeNovo: () => {
-        // A combinação repete a configuração aplicada, não a do formulário (R1-7).
         if (this.configCombinacao) void this.aplicarCombinacao(this.configCombinacao);
         else if (this.classeSobreposicao) void this.aplicarSobreposicao(this.classeSobreposicao);
         else void this.aplicarLente();
@@ -635,7 +770,7 @@ class Controlador {
     renderEstadoLente(e, this.manipuladoresLente());
   }
 
-  /** Invalida a aplicação em curso e limpa lista, camada, painel e (se pedido) a memória reaproveitável. */
+  /** Invalida o cálculo em curso e limpa lista, camada, explicação e (se pedido) a memória de recortes. */
   private limparLente(o: { memoria: boolean; estado: EstadoLente }): void {
     this.geracaoLente++;
     this.lente = null;
@@ -644,7 +779,11 @@ class Controlador {
     this.sobreposicao = null;
     this.classeSobreposicao = null;
     this.pedidoLente = null;
-    if (o.memoria) this.memoriaLente = null;
+    if (o.estado.tipo !== 'carregando') this.lentePendente = false;
+    if (o.memoria) {
+      this.memoria.limpar();
+      this.leiturasEmVoo.clear();
+    }
     this.mapa?.limparDestaques();
     // Contornos reais e área selecionada exibidos pela lente saem com ela.
     this.mapa?.definirContornos([]);
@@ -652,7 +791,7 @@ class Controlador {
     renderAreaSelecionada(null, () => {});
     limparCorpoLente();
     this.estadoLente(o.estado);
-    this.atualizarAvisoConfig();
+    this.mostrarMunicipios();
   }
 
   private fontesLente(): FontesLente {
@@ -662,6 +801,29 @@ class Controlador {
       pagina: (f, limite, deslocamento) => consultarDeteccoes(c, f, limite, deslocamento),
       disponibilidade: (f) => consultarDisponibilidade(c, f),
     };
+  }
+
+  /**
+   * Leitura de uma lente (estadual até o item 4) com a memória T6: o resumo é sempre relido; páginas já lidas e
+   * conferidas no mesmo recorte e com o mesmo total são reaproveitadas, sem nova requisição.
+   */
+  private async lerParaLente(pedido: PedidoLente, atual: () => boolean): Promise<LeituraRecorte | null> {
+    const chave = chaveRecorte(this.geracaoSessao, { carga: pedido.carga, inicio: pedido.janela.inicio, fim: pedido.janela.fim, municipio: null });
+    // Leitura do mesmo recorte ainda em curso na consulta: espera por ela em vez de ler as páginas de novo. Uma falha
+    // nela não é desta lente, que então lê por conta própria; o resumo é relido de todo jeito (T6).
+    const emVoo = this.memoria.obter(chave) ? undefined : this.leiturasEmVoo.get(chave);
+    if (emVoo) {
+      this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 });
+      await emVoo.catch(() => null);
+      if (!atual()) return null;
+    }
+    const anterior = this.memoria.obter(chave);
+    const lido = await lerRegistros(this.fontesLente(), pedido, atual,
+      (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
+      anterior);
+    if (!lido || !atual()) return null;
+    if (lido.reaproveitado && anterior) return anterior;
+    return this.memoria.guardar({ chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() });
   }
 
   /** Erro numa chamada da lente (R2-1): sessão, acesso e versão nunca ficam locais. */
@@ -686,6 +848,12 @@ class Controlador {
       { nomes: this.dados.nomes, registros: l.porId, paginaEvidencia: l.paginaEvidencia }, this.manipuladoresLente());
   }
 
+  /** Antes de abrir uma explicação: guarda a rolagem da lista e mostra a aba Destaques. */
+  private prepararExplicacao(): void {
+    if (!explicacaoAberta()) this.rolagemLista = $('resultado').scrollTop;
+    abrirAba('destaques');
+  }
+
   private selecionarDestaque(id: string): void {
     if (this.sobreposicao) {
       this.selecionarCelulaSobreposicao(id);
@@ -697,6 +865,7 @@ class Controlador {
     }
     const l = this.lente;
     if (!l || !l.resultado.destaques.some((d) => d.id_destaque === id)) return;
+    this.prepararExplicacao();
     l.selecionado = id;
     l.paginaEvidencia = 0;
     this.mostrarLente();
@@ -704,15 +873,32 @@ class Controlador {
     document.getElementById('lente-painel-titulo')?.focus();
   }
 
+  /** "← Voltar aos destaques": a lista volta no mesmo ponto, com o foco no item que estava aberto. */
+  private voltarAosDestaques(): void {
+    let id: string | null = null;
+    if (this.lente) { id = this.lente.selecionado; this.lente.selecionado = null; this.mostrarLente(); }
+    else if (this.combinacao) { id = this.combinacao.selecionado; this.combinacao.selecionado = null; this.mostrarCombinacao(); }
+    else if (this.sobreposicao) {
+      id = this.sobreposicao.selecionado;
+      this.sobreposicao.selecionado = null;
+      this.mapa?.definirContornos([]);
+      this.mostrarSobreposicao();
+    }
+    this.mapa?.selecionarDestaque(null);
+    $('resultado').scrollTop = this.rolagemLista;
+    const alvo = id ? document.querySelector<HTMLElement>(`#lente-destaques button[data-id="${CSS.escape(id)}"]`) : null;
+    (alvo ?? $('t-destaques')).focus({ preventScroll: true });
+  }
+
+  /** Configuração atual do formulário da lente; incompleta devolve o texto do que falta (T16). */
   private async aplicarLente(): Promise<void> {
+    this.lentePendente = false;
     const dados = this.dados;
     const escolhida = lenteEscolhida();
-    this.mostrarValidacaoLente(null);
     if (escolhida === 'combinacao') {
       const config = this.lerConfigCombinacao();
-      // Menos de 2 lentes: só o aviso; não incrementa `geracaoLente` nem toca a aplicação em curso (R1-7).
       if (!config) {
-        this.mostrarValidacaoLente('Escolha pelo menos 2 lentes para combinar.');
+        this.limparLente({ memoria: false, estado: { tipo: 'incompleta', texto: 'Escolha pelo menos 2 lentes para combinar.' } });
         return;
       }
       await this.aplicarCombinacao(config);
@@ -721,9 +907,8 @@ class Controlador {
     if (escolhida === 'sobreposicao') {
       const marcada = document.querySelector<HTMLInputElement>('input[name="l-classe"]:checked')?.value;
       const classe = CLASSES_AREA.find((c) => c === marcada);
-      // Sem classe escolhida: só o aviso; a aplicação em curso não muda.
       if (!classe) {
-        this.mostrarValidacaoLente('Escolha a classe de área protegida.');
+        this.limparLente({ memoria: false, estado: { tipo: 'incompleta', texto: 'Escolha a classe de área protegida.' } });
         return;
       }
       await this.aplicarSobreposicao(classe);
@@ -744,18 +929,12 @@ class Controlador {
     const gl = this.geracaoLente;
     const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
     const inicio = performance.now();
-    const chave = chaveLente(pedido);
-    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
     let resultado: ResultadoLente;
-    let mem: MemoriaLente;
+    let mem: LeituraRecorte;
     try {
-      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
-        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
-        anterior);
-      if (!lido || !atual()) return;
-      mem = lido.reaproveitado && anterior ? anterior
-        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
-      this.memoriaLente = mem;
+      const lido = await this.lerParaLente(pedido, atual);
+      if (!lido) return;
+      mem = lido;
       resultado = calcular({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
         registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
@@ -768,13 +947,14 @@ class Controlador {
       return;
     }
 
-    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
+    // Disponibilidade já validada nesta memória + a deste cálculo (falhas não são guardadas).
     const disponibilidade = new Map(mem.disponibilidade);
     this.lente = {
       pedido, resultado: qualificar(resultado, disponibilidade), selecionado: null, paginaEvidencia: 0,
       porId: new Map(mem.registros.map((x) => [x.id_tecnico, x])),
     };
     this.mostrarLente();
+    this.mostrarMunicipios();
 
     let contornoFalhou = false;
     const contornos = this.desenharDestaques(resultado, atual).catch((e: unknown) => {
@@ -782,6 +962,7 @@ class Controlador {
     });
     const faltam = municipiosNecessarios(resultado).filter((c) => !disponibilidade.has(c));
     let feitos = 0;
+    const redesenhar = limitador(INTERVALO_QUALIFICACAO_MS);
     if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
       let d: DisponibilidadeMunicipio;
@@ -798,8 +979,11 @@ class Controlador {
       disponibilidade.set(codigo, d);
       feitos += 1;
       if (!this.lente) return;
-      this.lente.resultado = qualificar(resultado, disponibilidade);
-      this.mostrarLente();
+      // Redesenho da qualificação no máximo a cada INTERVALO_QUALIFICACAO_MS ms; o progresso segue por resposta.
+      if (redesenhar()) {
+        this.lente.resultado = qualificar(resultado, disponibilidade);
+        this.mostrarLente();
+      }
       this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     });
     await contornos;
@@ -843,12 +1027,6 @@ class Controlador {
 
   // --- Combinação de lentes (plano 005, item 2) -----------------------------------------------------
 
-  private mostrarValidacaoLente(texto: string | null): void {
-    const p = $('lente-validacao');
-    p.textContent = texto ?? '';
-    p.hidden = texto === null;
-  }
-
   /** Lentes marcadas (na ordem canônica) e operador escolhido no formulário. */
   private lerFormularioCombinacao(): { lentes: TipoLente[]; operador: string } {
     const marcadas = new Set([...document.querySelectorAll<HTMLInputElement>('input[name="l-comb"]:checked')].map((x) => x.value));
@@ -860,17 +1038,6 @@ class Controlador {
     const f = this.lerFormularioCombinacao();
     if (f.lentes.length < 2) return null;
     return validarEscolha(f.lentes, f.operador);
-  }
-
-  /** Aviso enquanto o formulário diferir da combinação em aplicação ou exibida (R1-7). */
-  private atualizarAvisoConfig(): void {
-    const c = this.configCombinacao;
-    let difere = false;
-    if (c) {
-      const f = this.lerFormularioCombinacao();
-      difere = lenteEscolhida() !== 'combinacao' || f.operador !== c.operador || f.lentes.join('+') !== c.lentes.join('+');
-    }
-    $('lente-aviso-config').hidden = !difere;
   }
 
   private manipuladoresCombinacao(): ManipuladoresCombinacao {
@@ -908,6 +1075,7 @@ class Controlador {
     if (!c) return;
     const i = c.resultado.celulas.findIndex((x) => x.id_combinado === id);
     if (i < 0) return;
+    this.prepararExplicacao();
     c.selecionado = id;
     c.pagina = Math.floor(i / CELULAS_POR_PAGINA);
     c.paginaEvidencia = 0;
@@ -917,8 +1085,8 @@ class Controlador {
   }
 
   /**
-   * Uma leitura (com o reaproveitamento da memória), `combinar` sobre a entrada conferida (T8), que calcula as
-   * lentes escolhidas, e a disponibilidade dos municípios das células. A configuração fica gravada no resultado.
+   * Uma leitura (com a memória T6), `combinar` sobre a entrada conferida (T8), que calcula as lentes escolhidas, e a
+   * disponibilidade dos municípios das células. A configuração fica gravada no resultado.
    */
   private async aplicarCombinacao(config: ConfigCombinacao): Promise<void> {
     const dados = this.dados;
@@ -926,25 +1094,18 @@ class Controlador {
     if (!dados || !filtro) return;
     this.limparLente({ memoria: false, estado: { tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 } });
     this.configCombinacao = config;
-    this.atualizarAvisoConfig();
     const pedido: PedidoLente = { carga: dados.carga.id, janela: { inicio: filtro.inicio, fim: filtro.fim } };
     this.pedidoLente = pedido;
     const g = this.geracaoSessao;
     const gl = this.geracaoLente;
     const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
     const inicio = performance.now();
-    const chave = chaveLente(pedido);
-    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
     let resultado: ResultadoCombinacao;
-    let mem: MemoriaLente;
+    let mem: LeituraRecorte;
     try {
-      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
-        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
-        anterior);
-      if (!lido || !atual()) return;
-      mem = lido.reaproveitado && anterior ? anterior
-        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
-      this.memoriaLente = mem;
+      const lido = await this.lerParaLente(pedido, atual);
+      if (!lido) return;
+      mem = lido;
       resultado = combinar({
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
         registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes,
@@ -957,7 +1118,6 @@ class Controlador {
       return;
     }
 
-    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
     const disponibilidade = new Map(mem.disponibilidade);
     this.combinacao = {
       pedido, resultado: qualificarCombinacao(resultado, disponibilidade), selecionado: null, pagina: 0, paginaEvidencia: 0,
@@ -971,9 +1131,11 @@ class Controlador {
       this.mapa.enquadrarDestaques();
     }
     this.mostrarCombinacao();
+    this.mostrarMunicipios();
 
     const faltam = municipiosDaCombinacao(resultado).filter((c) => !disponibilidade.has(c));
     let feitos = 0;
+    const redesenhar = limitador(INTERVALO_QUALIFICACAO_MS);
     if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
       let d: DisponibilidadeMunicipio;
@@ -990,8 +1152,11 @@ class Controlador {
       disponibilidade.set(codigo, d);
       feitos += 1;
       if (!this.combinacao) return;
-      this.combinacao.resultado = qualificarCombinacao(resultado, disponibilidade);
-      this.mostrarCombinacao();
+      // Redesenho da qualificação no máximo a cada INTERVALO_QUALIFICACAO_MS ms; o progresso segue por resposta.
+      if (redesenhar()) {
+        this.combinacao.resultado = qualificarCombinacao(resultado, disponibilidade);
+        this.mostrarCombinacao();
+      }
       this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     });
     if (!atual() || !this.combinacao) return;
@@ -1045,6 +1210,7 @@ class Controlador {
     const i = s.resultado.destaques.findIndex((d) => d.id_destaque === id);
     const d = s.resultado.destaques[i];
     if (!d) return;
+    this.prepararExplicacao();
     s.selecionado = id;
     s.pagina = Math.floor(i / CELULAS_POR_PAGINA);
     s.paginaEvidencia = 0;
@@ -1107,8 +1273,8 @@ class Controlador {
   }
 
   /**
-   * Leitura dos registros (com a memória), da camada da carga por T25 (sem geometria), a lente (T22) sobre a
-   * entrada conferida e a disponibilidade dos municípios das células (D13). Uma classe por aplicação.
+   * Leitura dos registros (com a memória T6), da camada da carga por T25 (sem geometria), a lente (T22) sobre a
+   * entrada conferida e a disponibilidade dos municípios das células (D13). Uma classe por cálculo.
    */
   private async aplicarSobreposicao(classe: ClasseArea): Promise<void> {
     const dados = this.dados;
@@ -1122,18 +1288,12 @@ class Controlador {
     const gl = this.geracaoLente;
     const atual = () => g === this.geracaoSessao && gl === this.geracaoLente;
     const inicio = performance.now();
-    const chave = chaveLente(pedido);
-    const anterior = this.memoriaLente?.chave === chave ? this.memoriaLente : null;
     let resultado: ResultadoSobreposicao;
-    let mem: MemoriaLente;
+    let mem: LeituraRecorte;
     try {
-      const lido = await lerRegistros(this.fontesLente(), pedido, atual,
-        (feitos, total) => { if (atual()) this.estadoLente({ tipo: 'carregando', etapa: 'registros', feitos, total }); },
-        anterior);
-      if (!lido || !atual()) return;
-      mem = lido.reaproveitado && anterior ? anterior
-        : { chave, registros: lido.registros, totalResumo: lido.totalResumo, disponibilidade: new Map() };
-      this.memoriaLente = mem;
+      const lido = await this.lerParaLente(pedido, atual);
+      if (!lido) return;
+      mem = lido;
       this.estadoLente({ tipo: 'carregando', etapa: 'areas', feitos: 0, total: 0 });
       const camada = await lerAreas(fontesAreas(this.sessao.cliente), pedido.carga, atual);
       if (!camada || !atual()) return;
@@ -1149,7 +1309,6 @@ class Controlador {
       return;
     }
 
-    // Disponibilidade já validada nesta memória + a desta aplicação (falhas não são guardadas).
     const disponibilidade = new Map(mem.disponibilidade);
     this.sobreposicao = {
       pedido, resultado: qualificarSobreposicao(resultado, disponibilidade), selecionado: null, pagina: 0, paginaEvidencia: 0,
@@ -1162,6 +1321,7 @@ class Controlador {
       this.mapa.enquadrarDestaques();
     }
     this.mostrarSobreposicao();
+    this.mostrarMunicipios();
     if (resultado.estado === 'sem_camada') {
       this.estadoLente({ tipo: 'sem_camada', segundos: (performance.now() - inicio) / 1000 });
       return;
@@ -1169,6 +1329,7 @@ class Controlador {
 
     const faltam = municipiosDaSobreposicao(resultado).filter((c) => !disponibilidade.has(c));
     let feitos = 0;
+    const redesenhar = limitador(INTERVALO_QUALIFICACAO_MS);
     if (faltam.length) this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
       let d: DisponibilidadeMunicipio;
@@ -1185,8 +1346,11 @@ class Controlador {
       disponibilidade.set(codigo, d);
       feitos += 1;
       if (!this.sobreposicao) return;
-      this.sobreposicao.resultado = qualificarSobreposicao(resultado, disponibilidade);
-      this.mostrarSobreposicao();
+      // Redesenho da qualificação no máximo a cada INTERVALO_QUALIFICACAO_MS ms; o progresso segue por resposta.
+      if (redesenhar()) {
+        this.sobreposicao.resultado = qualificarSobreposicao(resultado, disponibilidade);
+        this.mostrarSobreposicao();
+      }
       this.estadoLente({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: faltam.length });
     });
     if (!atual() || !this.sobreposicao) return;
@@ -1348,7 +1512,7 @@ class Controlador {
       : alvo !== null ? [this.limites.get(alvo)].filter((l): l is Limite => !!l) : [];
     this.mapa.definirLimites(visiveis, alvo);
     this.mapa.enquadrar();
-    renderContagemMapa(r.pagina.registros.length, r.pagina.total, this.mapa.contagem().limites);
+    this.mostrarEstadoPontos();
   }
 
   private async alternarLimites(): Promise<void> {

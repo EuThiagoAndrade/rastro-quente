@@ -431,8 +431,8 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#60](https://github.com/EuThiagoAndrade/rastro-quente/issues/60) (item 1), [#61](https://github.com/EuThiagoAndrade/rastro-quente/issues/61) (item 2), [#62](https://github.com/EuThiagoAndrade/rastro-quente/issues/62) (item 3), [#63](https://github.com/EuThiagoAndrade/rastro-quente/issues/63) (item 4), [#64](https://github.com/EuThiagoAndrade/rastro-quente/issues/64) (item 5) |
-| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (squash integrada em 2026-11-14); [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) (item 1, aberta) |
-| Branch(es) | `chore/cycle-007-plan` (documental); `feature/issue-60` (item 1, task [007_task_issue-60.md](007_task_issue-60.md)) |
+| PR(s) | [#59](https://github.com/EuThiagoAndrade/rastro-quente/pull/59) (squash integrada em 2026-11-14); [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) (item 1, squash integrada em 2026-11-15, `72796c4`); PR do item 2 a abrir na branch `feature/issue-61` |
+| Branch(es) | `chore/cycle-007-plan` (documental); `feature/issue-60` (item 1, task [007_task_issue-60.md](007_task_issue-60.md)); `feature/issue-61` (item 2, task [007_task_issue-61.md](007_task_issue-61.md)) |
 | Destino após conclusão | `_project/executed/007_interface_base/007_plan.md` |
 
 ## Próximo passo

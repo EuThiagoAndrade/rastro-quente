@@ -1,10 +1,11 @@
 // Carregador das lentes (plano 004, R1-1, R1-4, R2-1, T3): lê o resumo e todas as páginas de registros
 // no recorte M1-a (estado inteiro, p_municipio null), com a carga fixada, e a disponibilidade por
-// município. Cada resposta é conferida antes de entrar; qualquer divergência é "leitura inconsistente",
+// município. Desde o plano 007 (T7) lê também o recorte de um município, para o mapa e o cartão; as lentes
+// continuam pedindo só o estado inteiro até o item 4. Cada resposta é conferida antes de entrar; qualquer divergência é "leitura inconsistente",
 // sem destaques parciais. Erros que afetam sessão ou versão nunca ficam locais (destinoErro).
 import type { Filtro } from '../consulta.ts';
 import type { TipoErro } from '../erros.ts';
-import type { Disponibilidade, PaginaDeteccoes, Resumo } from '../tipos.ts';
+import type { Disponibilidade, PaginaDeteccoes, Registro, Resumo } from '../tipos.ts';
 import { diasDaJanela } from './cobertura.ts';
 import { ErroLente, type DiaLente, type Janela, type RegistroLente } from './contrato.ts';
 
@@ -20,11 +21,16 @@ export interface FontesLente {
 export interface PedidoLente {
   carga: number;
   janela: Janela;
+  /**
+   * Recorte da leitura (plano 007, T7): ausente ou `null` é o estado inteiro (M1-a, o único que as lentes usam até o
+   * item 4); um código IBGE é a leitura do mapa e do cartão com município escolhido.
+   */
+  municipio?: number | null;
 }
 
-/** Filtro do recorte M1-a: estado inteiro, mesma carga e janela. */
-export const filtroEstadual = (p: PedidoLente): Filtro =>
-  ({ carga: p.carga, inicio: p.janela.inicio, fim: p.janela.fim, municipio: null });
+/** Filtro do recorte do pedido: sem município, o recorte M1-a (estado inteiro, mesma carga e janela). */
+export const filtroDoPedido = (p: PedidoLente): Filtro =>
+  ({ carga: p.carga, inicio: p.janela.inicio, fim: p.janela.fim, municipio: p.municipio ?? null });
 
 function exigir(condicao: boolean, motivo: string): void {
   if (!condicao) throw new ErroLente(motivo);
@@ -34,7 +40,7 @@ function exigir(condicao: boolean, motivo: string): void {
 export function validarResumo(p: PedidoLente, r: Resumo): number {
   exigir(r.carga.id === p.carga, 'resumo de outra carga');
   exigir(r.periodo.inicio === p.janela.inicio && r.periodo.fim === p.janela.fim, 'resumo de outro período');
-  exigir(r.municipio === null, 'resumo de outro recorte (município)');
+  exigir(r.municipio === (p.municipio ?? null), 'resumo de outro recorte (município)');
   return r.principal.total;
 }
 
@@ -50,7 +56,8 @@ const naoDepois = (a: RegistroLente, b: RegistroLente): boolean => a.data_hora_g
  * Exemplo do revisor: duas páginas com os mesmos 1.000 registros não somam 2.000.
  */
 export class AcumuladorPaginas {
-  readonly registros: RegistroLente[] = [];
+  /** Registros completos como a RPC os devolve (o mapa e o balão usam todos os campos; as lentes, só os de RegistroLente). */
+  readonly registros: Registro[] = [];
   private readonly ids = new Set<string>();
   private readonly pedido: PedidoLente;
   private readonly totalResumo: number;
@@ -64,7 +71,7 @@ export class AcumuladorPaginas {
     const p = this.pedido;
     exigir(pg.carga.id === p.carga, 'página de outra carga');
     exigir(pg.periodo.inicio === p.janela.inicio && pg.periodo.fim === p.janela.fim, 'página de outro período');
-    exigir(pg.municipio === null, 'página de outro recorte (município)');
+    exigir(pg.municipio === (p.municipio ?? null), 'página de outro recorte (município)');
     exigir(pg.limite === LIMITE_PAGINA && pg.deslocamento === deslocamento, 'página com limite ou deslocamento diferente do pedido');
     exigir(pg.total === this.totalResumo, 'total da página diferente do resumo');
     exigir(pg.registros.length === Math.min(LIMITE_PAGINA, Math.max(0, pg.total - deslocamento)), 'página com número de registros inesperado');
@@ -73,16 +80,38 @@ export class AcumuladorPaginas {
       const anterior = this.registros.at(-1);
       exigir(!anterior || naoDepois(anterior, r), 'ordem dos registros não crescente');
       this.ids.add(r.id_tecnico);
-      this.registros.push({
-        id_tecnico: r.id_tecnico, data_hora_gmt: r.data_hora_gmt, latitude: r.latitude, longitude: r.longitude,
-        municipio_codigo: r.municipio_codigo,
-      });
+      this.registros.push({ ...r });
     }
   }
 
   completo(): boolean {
     return this.registros.length === this.totalResumo;
   }
+}
+
+/**
+ * Lê todas as páginas de um recorte cujo resumo já foi lido e conferido (`total` = `principal.total`). Devolve `null`
+ * se a leitura foi invalidada no meio (geração mudou). Divergências viram ErroLente; nada parcial sai daqui.
+ */
+export async function lerPaginas(
+  fontes: FontesLente,
+  pedido: PedidoLente,
+  total: number,
+  atual: () => boolean,
+  progresso: (lidos: number, total: number) => void = () => {},
+): Promise<Registro[] | null> {
+  const filtro = filtroDoPedido(pedido);
+  const acc = new AcumuladorPaginas(pedido, total);
+  progresso(0, total);
+  for (let desloc = 0; desloc < total || desloc === 0; desloc += LIMITE_PAGINA) {
+    const pg = await fontes.pagina(filtro, LIMITE_PAGINA, desloc);
+    if (!atual()) return null;
+    acc.adicionar(pg, desloc);
+    progresso(acc.registros.length, total);
+    if (total === 0) break;
+  }
+  exigir(acc.completo(), 'leitura incompleta dos registros');
+  return acc.registros;
 }
 
 /**
@@ -96,26 +125,17 @@ export async function lerRegistros(
   pedido: PedidoLente,
   atual: () => boolean,
   progresso: (lidos: number, total: number) => void = () => {},
-  reaproveitar: { registros: RegistroLente[]; totalResumo: number } | null = null,
-): Promise<{ registros: RegistroLente[]; totalResumo: number; reaproveitado: boolean } | null> {
-  const filtro = filtroEstadual(pedido);
-  const resumo = await fontes.resumo(filtro);
+  reaproveitar: { registros: Registro[]; totalResumo: number } | null = null,
+): Promise<{ registros: Registro[]; totalResumo: number; reaproveitado: boolean } | null> {
+  const resumo = await fontes.resumo(filtroDoPedido(pedido));
   if (!atual()) return null;
   const total = validarResumo(pedido, resumo);
   if (reaproveitar && reaproveitar.totalResumo === total && reaproveitar.registros.length === total) {
     return { ...reaproveitar, reaproveitado: true };
   }
-  const acc = new AcumuladorPaginas(pedido, total);
-  progresso(0, total);
-  for (let desloc = 0; desloc < total || desloc === 0; desloc += LIMITE_PAGINA) {
-    const pg = await fontes.pagina(filtro, LIMITE_PAGINA, desloc);
-    if (!atual()) return null;
-    acc.adicionar(pg, desloc);
-    progresso(acc.registros.length, total);
-    if (total === 0) break;
-  }
-  exigir(acc.completo(), 'leitura incompleta dos registros');
-  return { registros: acc.registros, totalResumo: total, reaproveitado: false };
+  const registros = await lerPaginas(fontes, pedido, total, atual, progresso);
+  if (!registros) return null;
+  return { registros, totalResumo: total, reaproveitado: false };
 }
 
 /** Integridade T3: exatamente um dia por dia GMT da janela, no satélite da carga, sem repetição. */

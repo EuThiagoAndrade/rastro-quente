@@ -11,7 +11,7 @@
 2. **O que está à esquerda vale para tudo.** O recorte aplicado (período e município) é o único que o mapa, a série e os municípios usam. Enquanto as lentes forem estaduais (até o item 4 do ciclo 007), a tela diz isso.
 3. **Domínio antes de estética.** Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração; uma lente indica onde olhar, não ranking nem prova; densidade é contagem, não gravidade. As três frases ficam no rodapé fixo.
 4. **Cor nunca é o único sinal.** Toda distinção por cor tem também texto, símbolo, traço ou preenchimento.
-5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (abas, ordenação, série mensal, "Camadas", ampliar, fundo de satélite: itens 2, 3 e 5 do ciclo 007).
+5. **Nenhum controle sem função.** Uma parte da V13 só aparece quando a função dela estiver entregue (série mensal, "Camadas", ampliar, fundo de satélite: itens 3 e 5 do ciclo 007; abas e ordenação chegaram no item 2).
 6. **Nada gravado no navegador.** Nem dados de consulta nem preferências: o tema vale só enquanto a página estiver aberta (ADR-007).
 
 ## Tokens de cor
@@ -33,7 +33,7 @@ A tela abre sempre no tema claro (`:root`); o botão da lua define `data-tema="e
 | `--link` | `#3f6b55` | `#a9d2bc` | Texto de ação (nomes de municípios, "ativa") |
 | `--foco` | `#1d4ed8` | `#93c5fd` | Contorno de foco (3 px) |
 | `--selecao-amostra` | `#1d4ed8` | `#93c5fd` | Seleção na legenda e na linha da tabela |
-| `--linha-selecionada` | `#dbeafe` | `#1e3a5f` | Linha selecionada da tabela de registros |
+| `--linha-selecionada` | `#dbeafe` | `#1e3a5f` | Linha selecionada da "Lista de focos" |
 | `--erro` | `#9b1c1c` | `#fca5a5` | Erro de campo |
 | `--aviso-fundo` / `--aviso-borda` / `--aviso-texto` | `#fff6df` / `#8f6400` / `#4a3400` | `#3a2c0c` / `#d9a43a` / `#fde8b3` | Estados e frase destacada do rodapé |
 | `--classe-lacuna` | `#8a1c1c` | `#fca5a5` | Disponibilidade: lacuna conhecida (borda contínua) |
@@ -63,13 +63,19 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Marca:** ícone de chama em quadrado verde arredondado (48 px; 36 px no celular), "Rastro Quente" e "Um território. Muitos sinais.".
 - **Chips do topo:** "Satélite **AQUA_M-T** · INPE" e "Fontes: …"; só com acesso autorizado; escondidos no celular.
 - **Botões de ícone (44 px):** dados (abre "Sobre os dados"), "Como ler esta tela" (?) e tema (lua/sol), com `aria-label` e `title`.
-- **Botão:** superfície suave com borda de 2 px; **principal** preenchido em `--escolha` ("Aplicar lente", "Entendi").
+- **Botão:** superfície suave com borda de 2 px; **principal** preenchido em `--escolha` ("Entendi").
 - **"Limpar tudo":** pílula com ícone de voltar no cabeçalho dos filtros; desativado quando período, município e lente já estão no padrão.
 - **Seção recolhível:** `<details>` com título clicável sem seleção de texto e "+"/"−" à direita; a etiqueta "ativa" aparece na seção da lente marcada; a Consulta fechada mostra o recorte aplicado no título.
 - **Campo:** seletor e data com borda de 1 px `--contorno`; o período usa um seletor ("Janela inteira", "Últimos 6 meses", "Últimos 3 meses", "Último mês", "Intervalo personalizado…") e o resumo "dd/mm/aaaa a dd/mm/aaaa · N dias GMT".
 - **Opção de lente:** cartão com o nome, a pergunta que responde e a descrição; marcada com fundo `--escolha-suave` e barra à esquerda; a combinação tem borda tracejada; classes e lentes a combinar aparecem dentro do cartão marcado.
 - **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (ferramentas no alto à esquerda, "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita).
 - **Cartão:** superfície com borda `--contorno-suave`, título em rótulo de caixa alta.
+- **Abas do resultado (V13):** "Destaques · N" e "Municípios", texto `0.875rem` peso 600; a aba aberta tem fundo `--superficie-suave` e sublinhado de 3 px em `--barra`; as abas quebram de linha em vez de transbordar.
+- **Lista de destaques:** resumo da lente (bloco com barra `--escolha` à esquerda, nome, quantidade em número grande e o recorte), itens como botões de linha inteira (alvo ≥ 44 px), o aberto marcado com barra `--escolha`; a concentração traz a ressalva de contagem absoluta em caixa de aviso. Sem lente, estado vazio com o ícone de satélite.
+- **Explicação:** "← Voltar aos destaques" (botão de texto em `--link`), título "Por que esta célula?" ou "Por que este município?", ficha em duas colunas (uma no celular), um bloco por critério com barra `--escolha` (lilás-rosa `--area-indigena` na sobreposição), caixa "Ressalvas" nas cores de aviso, as detecções que sustentam o destaque num bloco recolhível e metadados ao fim, separados por linha.
+- **Aba Municípios:** pílulas de ordenação ("Detecções", "Destaques da lente", "Nome"; a marcada em `--texto` sobre `--fundo`), lista com posição, nome, detalhe, barra `--barra` proporcional e número; com município escolhido, cartão com barra `--escolha` à esquerda e "Ver todo Mato Grosso".
+- **Lista de focos:** cartão abaixo do mapa, aberto pelo botão "Lista de focos" das ferramentas do mapa; cada linha é um botão com dia e hora GMT, município, coordenadas e identificador; a linha selecionada usa `--linha-selecionada` e barra `--selecao-amostra`.
+- **Balão do ponto:** balão do Leaflet com todos os registros da mesma coordenada e a frase de domínio.
 - **Diálogo:** `<dialog>` modal nativo, raio de 14 px; "Como ler esta tela" em quatro passos numerados com "Entendi"; "Sobre os dados" com a proveniência completa e "Fechar".
 - **Rodapé de domínio:** fixo no fim da tela, com a primeira frase em destaque (`--aviso-borda`); no celular, só a primeira frase.
 - **Barra de rolagem:** nas colunas e abaixo do mapa, só aparece ao passar o mouse ou com o foco dentro.
@@ -78,7 +84,7 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 
 - **Topo:** marca à esquerda; chips; botões de ícone; estado da sessão e "Sair".
 - **Tela de acesso:** sem sessão autorizada, só o topo (marca, tema, sessão), o cartão de acesso com o aviso de domínio e o rodapé. Nenhum dado nem geometria é pedido.
-- **Computador (≥ 1.180 px de largura e ≥ 700 px de altura):** a tela inteira, sem rolagem da página; três colunas de 280 px, flexível e 336 px (304/360 px a partir de 1.600 px). O centro tem o mapa em cima e, embaixo, os cartões "No mapa", "Detecções no período", disponibilidade e registros, com rolagem própria. Filtros e resultado rolam por dentro.
+- **Computador (≥ 1.180 px de largura e ≥ 700 px de altura):** a tela inteira, sem rolagem da página; três colunas de 280 px, flexível e 336 px (304/360 px a partir de 1.600 px). O centro tem o mapa em cima e, embaixo, a "Lista de focos" (quando aberta) e os cartões "No mapa", "Detecções no período" e disponibilidade, com rolagem própria. Filtros e resultado rolam por dentro.
 - **Notebook (761 px a 1.179 px, ou altura menor que 700 px):** filtros à esquerda (280 px), mapa (520 px) e cartões à direita; o resultado desce para baixo, na largura toda.
 - **Celular (≤ 760 px):** uma coluna na ordem filtros, mapa (440 px), cartões do centro, resultado; seções fechadas; chips escondidos.
 - Nenhuma largura produz rolagem horizontal da página; tabelas rolam dentro da própria região.
@@ -88,8 +94,9 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Sessão e versão (ADR-007):** sem configuração, verificando, sem sessão (com "Você saiu" ou "Sua sessão expirou"), negado, sem publicação, fonte indisponível, autorizado e versão substituída — cada um com texto e `data-estado` próprios.
 - **Consulta:** carregando, zero (nunca "ausência de fogo"), fonte indisponível e inconsistente (com "Tentar novamente"), entrada recusada e versão substituída (com "Carregar a versão vigente").
 - **Painel:** `data-estado-painel` em `#conteudo`: `carregando`, `pronto` (filtros, série e municípios prontos) ou `erro`.
+- **Pontos (ADR-009):** `data-estado-pontos` em `#conteudo`: `nenhum`, `carregando` (com "N de M detecções"), `completo` (todos os pontos do recorte) ou `erro` (nenhum ponto pela metade).
 - **Recorte aplicado:** período personalizado inválido mostra o erro junto do campo e a linha "Mostrando <recorte>"; a tela não muda.
-- **Lente, combinação, sobreposição e áreas:** estados de `data-estado-lente` e `data-estado-areas`, com os textos das KBs e dos ciclos `004` a `006`. Como na V13, não há "Nenhuma lente" visível: a lente sai por "Limpar tudo".
+- **Lente, combinação, sobreposição e áreas:** estados de `data-estado-lente` e `data-estado-areas`, com os textos das KBs e dos ciclos `004` a `006`, mais `incompleta` (combinação com menos de 2 lentes). A lente é calculada ao escolher, sem botão; o estado fica acima da lista e da explicação. Como na V13, não há "Nenhuma lente" visível: a lente sai por "Limpar tudo".
 - Zero, pendente e indisponível nunca são apresentados como valor numérico parcial.
 
 ## Acessibilidade
@@ -99,5 +106,5 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - Todo controle tem rótulo (os botões de ícone por `aria-label`); grupos usam `fieldset`/`legend`; estados dinâmicos usam `role="status"` ou `role="alert"`.
 - Texto ampliado a 200% e largura de 320 px sem corte nem rolagem horizontal da página.
 - Toque: um dedo rola a página; o mapa só arrasta com "Mover o mapa com um dedo".
-- O mapa tem alternativa em texto (tabela de registros e listas da lente).
+- O mapa tem alternativa em texto ("Lista de focos" e lista da aba Destaques); as abas seguem o padrão de abas (setas, Home e End); voltar da explicação devolve o foco ao item aberto.
 - `prefers-reduced-motion` desliga animações e transições.

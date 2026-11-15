@@ -514,3 +514,42 @@ update public.cargas set estado = 'publicada' where identidade = '${id}';
 insert into public.publicacao_vigente (carga_id) select id from public.cargas where identidade = '${id}';
 commit;`;
 }
+
+// Ciclo 007, issue #61 — carga fictícia de outubro/2026 com 1.001 detecções principais em Alfa, para PG-1 (leitura em
+// duas páginas de 1.000) e LF-1 (dois registros na mesma coordenada). Valores esperados derivados à mão (grade T1:
+// índice = piso de coordenada × 20):
+// - 998 detecções numa grade fina dentro da célula [−11,55; −11,50) × [−56,50; −56,45), cada uma numa coordenada própria;
+// - lf1 às 03:10 e lf2 às 15:40 GMT de 15/10, ambas em (−11,53; −56,47), na mesma célula;
+// - pg-ultimo, a última na ordem do tempo (31/10 23:00 GMT), sozinha na célula [−11,65; −11,60) × [−56,40; −56,35).
+// Total 1.001 em Alfa; células com foco em Alfa: 2. Disponibilidade sem lacuna em todos os dias.
+export const IDENTIDADE_PAGINAS = `${PREFIXO}7`;
+
+function deteccoesPaginas() {
+  const linhas = [];
+  const add = (id, instante, lat, lon) => linhas.push({ id, m: 'alfa', instante, lat, lon, linha: linhas.length + 1 });
+  for (let i = 0; i < 998; i += 1) {
+    const dia = String(1 + (i % 30)).padStart(2, '0');
+    const minuto = String(Math.floor(i / 30) % 60).padStart(2, '0');
+    const hora = String(Math.floor(i / 30 / 60) + 1).padStart(2, '0');
+    const lat = Number((-11.501 - Math.floor(i / 100) * 0.001).toFixed(4));
+    const lon = Number((-56.499 + (i % 100) * 0.0001).toFixed(4));
+    add(`pg${String(i).padStart(4, '0')}`, `2026-10-${dia}T${hora}:${minuto}:00Z`, lat, lon);
+  }
+  add('lf1', '2026-10-15T03:10:00Z', -11.53, -56.47);
+  add('lf2', '2026-10-15T15:40:00Z', -11.53, -56.47);
+  add('pg-ultimo', '2026-10-31T23:00:00Z', -11.62, -56.38);
+  return linhas;
+}
+
+function disponibilidadePaginas() {
+  const linhas = [];
+  for (let dia = 1; dia <= 31; dia += 1) {
+    for (const m of ['alfa', 'beta', 'gama']) linhas.push({ m, d: `2026-10-${String(dia).padStart(2, '0')}`, classe: 'sem_evidencia_de_lacuna', motivos: ['sem_aviso_incidente'] });
+  }
+  return linhas;
+}
+
+/** Publica a carga de PG-1 e LF-1 no lugar da vigente (a limpeza e a restauração ficam com quem chama). */
+export function sqlFixturePaginas() {
+  return sqlCargaCelulas(IDENTIDADE_PAGINAS, '2026-10-01T00:00Z', '2026-11-01T00:00Z', deteccoesPaginas(), disponibilidadePaginas());
+}

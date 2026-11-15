@@ -19,7 +19,8 @@ test('versão substituída: resultados antigos saem e a vigente é carregada sem
   await expect(estado).toHaveAttribute('data-estado', 'versao_substituida');
   await expect(estado).toContainText('foi substituída');
   await expect(page.locator('#total-principal')).toHaveCount(0);
-  await expect(page.locator('#registros-tabela table')).toHaveCount(0);
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
+  await expect(page.locator('#lista-focos-itens')).toHaveCount(0);
   await expect(page.locator('#disp-corpo table')).toHaveCount(0);
   expect(await page.locator('body').innerText()).not.toMatch(/INPE-/);
 

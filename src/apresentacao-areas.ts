@@ -5,6 +5,9 @@
 import { $, h, tabela, textoAtribuicaoArea } from './apresentacao.ts';
 import { CELULAS_POR_PAGINA, paginaValida } from './apresentacao-combinacao.ts';
 import { EVIDENCIA_POR_PAGINA, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
+import {
+  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, renderResumoLente, rotularAbaDestaques,
+} from './apresentacao-resultado.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import { textoCobertura } from './lentes/cobertura.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
@@ -222,9 +225,13 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
   const c = d.cobertura;
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': d.id_destaque },
     h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, `Célula ${idCelula(d)} (${bordas(d)})`),
-    h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
-    h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '),
-      `${deteccoes(d.evidencia.valor)} da janela dentro de ${ROTULO_CLASSE[r.classe]} (registros principais; pertencimento calculado com o polígono integral).`),
+    ficha([['Célula 0,05°', idCelula(d)], ['Detecções da evidência', fmtNumero(d.evidencia.valor)],
+      ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(d)]]),
+    h('section', { class: 'criterio', 'data-tipo': 'sobreposicao', 'aria-label': 'Critério: sobreposição com áreas protegidas' },
+      h('h4', {}, `Sobreposição · ${ROTULO_CLASSE[r.classe]}`),
+      h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
+      h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '),
+        `${deteccoes(d.evidencia.valor)} da janela dentro de ${ROTULO_CLASSE[r.classe]} (registros principais; pertencimento calculado com o polígono integral).`)),
     h('ul', { class: 'lista-simples areas-citadas', id: 'lente-areas', 'aria-label': 'Áreas da classe com detecção nesta célula' }, ...d.areas.map((a) => itemArea(a, m))),
     h('p', { id: 'lente-contornos', class: 'ajuda', role: 'status', 'data-contornos': ctx.contornos }, TEXTO_CONTORNOS[ctx.contornos]),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
@@ -237,7 +244,9 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
         `${dia.dia}: ${ROTULO_DISPONIBILIDADE[dia.classe].rotulo}`,
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
-  corpo.append(h('p', { id: 'lente-aviso-dominio', class: 'aviso-estado' }, LIMITACOES_SOBREPOSICAO[0] ?? ''), tabelaEvidencia(d, ctx, m));
+  corpo.append(caixaRessalvas(h('p', { id: 'lente-aviso-dominio' }, LIMITACOES_SOBREPOSICAO[0] ?? '')),
+    detalhesEvidencia(d.id_destaque, d.evidencia.deteccoes.length, tabelaEvidencia(d, ctx, m)),
+    metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
   return corpo;
 }
 
@@ -249,6 +258,8 @@ export function renderResultadoSobreposicao(
 ): void {
   const corpo = $('lente-corpo');
   corpo.replaceChildren();
+  rotularAbaDestaques(r.destaques.length);
+  renderResumoLente({ nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking' });
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
     h('p', { id: 'lente-escopo', class: 'ajuda' },
@@ -268,7 +279,7 @@ export function renderResultadoSobreposicao(
     const paginas = Math.ceil(total / CELULAS_POR_PAGINA);
     corpo.append(h('p', { id: 'lente-celulas-info', class: 'ajuda', tabindex: '-1' },
       `Células ${fmtNumero(de + 1)} a ${fmtNumero(de + visiveis.length)} de ${fmtNumero(total)}.`));
-    const lista = h('ol', { class: 'destaques', id: 'lente-destaques', start: String(de + 1) });
+    const lista = h('ol', { class: 'destaques lista-celulas', id: 'lente-destaques', start: String(de + 1), 'aria-label': 'Células da sobreposição (alternativa em texto ao mapa)' });
     for (const d of visiveis) {
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloCelula(d));
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
@@ -284,8 +295,8 @@ export function renderResultadoSobreposicao(
       proxima.addEventListener('click', () => m.pagina(pagina + 1));
       corpo.append(h('div', { class: 'acoes' }, anterior, proxima));
     }
-    const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
-    if (escolhido) corpo.append(painel(r, escolhido, ctx, m));
   }
-  corpo.append(h('h3', {}, 'Limitações da lente'), h('ul', { class: 'lista-simples', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
+  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que esta célula?');
 }

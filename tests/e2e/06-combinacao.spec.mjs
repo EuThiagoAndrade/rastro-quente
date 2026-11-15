@@ -6,7 +6,7 @@
 import { test, expect } from '@playwright/test';
 import { sqlAdmin } from '../../scripts/banco/local.mjs';
 import { cadastrarRp } from './contas.mjs';
-import { consultar, entrar, escolherLente } from './ajuda.mjs';
+import { abrirDestaque, consultar, entrar, escolherLente } from './ajuda.mjs';
 import { SQL_LIMPEZA, sqlFixture, sqlFixtureCombinacao } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -42,9 +42,9 @@ async function escolher(page, lentes, operador = 'e') {
   await page.locator(`input[name="l-operador"][value="${operador}"]`).check();
 }
 
+/** A combinação calcula a cada mudança da configuração (T16); vale a última. */
 async function combinar(page, lentes, operador = 'e') {
   await escolher(page, lentes, operador);
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
 }
 
 async function janela(page, inicio, fim) {
@@ -84,8 +84,12 @@ async function semRanking(page) {
 test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa e painel por critério com a união', async ({ page }) => {
   await entrar(page, 'rp');
   await expect(page.locator('#total-principal')).toHaveText('161');
-  // O grupo de escolha só aparece com a opção "Combinação de lentes".
+  // O grupo de escolha só aparece com a opção "Combinação de lentes"; abre com Concentração, Recorrência e "e" (V13).
   await expect(page.locator('#lente-combinacao')).toBeHidden();
+  await expect(page.locator('input[name="l-comb"][value="concentracao"]')).toBeChecked();
+  await expect(page.locator('input[name="l-comb"][value="recorrencia"]')).toBeChecked();
+  await expect(page.locator('input[name="l-comb"][value="persistencia"]')).not.toBeChecked();
+  await expect(page.locator('input[name="l-operador"][value="e"]')).toBeChecked();
   await combinar(page, TRES, 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-estado')).toContainText(/Combinação concluída em \d+,\d s\./);
@@ -111,8 +115,10 @@ test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa 
   await expect(limitacoes).toContainText('Contagem absoluta favorece municípios grandes.');
   await semRanking(page);
 
-  // Painel: um bloco por critério, na ordem canônica, com o destaque original, motivo, evidência e ressalvas.
-  await itens(page).first().locator('.botao-nome').click();
+  // Explicação: um bloco por critério, na ordem canônica, com o destaque original, motivo, evidência e ressalvas.
+  await expect(page.locator('#aba-destaques')).toHaveText('Destaques · 1');
+  await abrirDestaque(page, 0);
+  await expect(page.locator('#lente-operador')).toContainText('Operador "e": a célula entrou porque todas as lentes escolhidas');
   await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:e:concentracao+recorrencia+persistencia:celula_005:${X}`);
   await expect(page.locator('#lente-painel-titulo')).toBeFocused();
   expect(await page.locator('#lente-painel .criterio').evaluateAll((l) => l.map((x) => x.dataset.lente))).toEqual(TRES);
@@ -175,7 +181,8 @@ test('"as três, ou": 147 células em 3 páginas, sequências da persistência e
   await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 147.');
 
   // Célula Y: concentração e duas sequências, cada uma com a sua ressalva (R1-1).
-  await itens(page).nth(1).locator('.botao-nome').click();
+  await abrirDestaque(page, 1);
+  await expect(page.locator('#lente-operador')).toContainText('Operador "ou": basta uma das lentes escolhidas');
   await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:ou:concentracao+recorrencia+persistencia:celula_005:${Y}`);
   expect(await page.locator('#lente-painel .criterio').evaluateAll((l) => l.map((x) => x.dataset.lente))).toEqual(['concentracao', 'persistencia']);
   await expect(page.locator('#lente-painel .ressalvas-criterio')).toHaveCount(0);
@@ -190,48 +197,43 @@ test('"as três, ou": 147 células em 3 páginas, sequências da persistência e
   await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–6 de 6 detecções da evidência em união.');
 });
 
-test('R1-7: configuração alterada durante a aplicação não muda o resultado; menos de 2 lentes só avisa', async ({ page }) => {
+test('T16: a configuração vale ao mudar e recalcula; resposta antiga não aparece; menos de 2 lentes não calcula nada', async ({ page }) => {
   await entrar(page, 'rp');
-  // Uma lente marcada: só o aviso; nenhuma aplicação começa.
+  // Uma lente marcada: nada é calculado e a aba diz o que falta.
   await escolher(page, ['concentracao'], 'e');
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
-  await expect(page.locator('#lente-validacao')).toHaveText('Escolha pelo menos 2 lentes para combinar.');
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'incompleta');
+  await expect(page.locator('#lente-estado')).toHaveText('Escolha pelo menos 2 lentes para combinar.');
+  await expect(itens(page)).toHaveCount(0);
 
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
-  await combinar(page, ['concentracao', 'recorrencia'], 'e');
-  await expect(page.locator('#lente-validacao')).toBeHidden();
+  const r = await reter(page, 'consultar_resumo');
+  await page.locator('input[name="l-comb"][value="recorrencia"]').check();
   await r.chegada;
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'carregando');
-  await expect(page.locator('#lente-estado')).toContainText('Carregando: registros');
-  // Antes de a resposta chegar: troca o operador e marca a persistência.
+  // Antes de a resposta chegar: troca o operador e marca a persistência; cada mudança recalcula (T16).
   await page.locator('input[name="l-operador"][value="ou"]').check();
   await page.locator('input[name="l-comb"][value="persistencia"]').check();
-  await expect(page.locator('#lente-aviso-config')).toHaveText('A configuração escolhida mudou; aplique de novo para atualizar.');
-  r.soltar();
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-  await expect(page.locator('#lente-configuracao')).toContainText('concentração e recorrência (operador e:');
+  await expect(page.locator('#lente-configuracao')).toContainText('concentração ou recorrência ou persistência (operador ou:');
+  r.soltar();
+  await page.waitForTimeout(500);
+  await expect(page.locator('#lente-configuracao')).toContainText('concentração ou recorrência ou persistência (operador ou:');
+  await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 147.');
+  await abrirDestaque(page, 0);
+  await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:ou:concentracao+recorrencia+persistencia:celula_005:${X}`);
+
+  // Ficando 1 lente marcada, nenhum resultado antigo fica visível como se fosse atual.
+  await escolher(page, ['recorrencia'], 'ou');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'incompleta');
+  await expect(itens(page)).toHaveCount(0);
+  await expect(page.locator('#lente-painel')).toHaveCount(0);
+  await expect(page.locator('#aba-destaques')).toHaveText('Destaques');
+  await escolher(page, ['recorrencia', 'concentracao'], 'e');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(await rotulos(page)).toEqual([
     'Célula c-221_-1140 (-11.05 a -11.00 · -57.00 a -56.95) — lentes: concentração, recorrência',
     ROTULO_Z,
   ]);
   await expect(page.locator('#lente-mapa-info')).toContainText('Mapa: 2 células desenhadas');
-  await expect(page.locator('#lente-aviso-config')).toBeVisible();
-  await itens(page).first().locator('.botao-nome').click();
-  await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:e:concentracao+recorrencia:celula_005:${X}`);
-
-  // "Aplicar lente" com 1 lente marcada sobre o resultado exibido: só o aviso; o resultado continua.
-  await escolher(page, ['recorrencia'], 'ou');
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
-  await expect(page.locator('#lente-validacao')).toHaveText('Escolha pelo menos 2 lentes para combinar.');
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-  await expect(itens(page)).toHaveCount(2);
-  await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:e:concentracao+recorrencia:celula_005:${X}`);
-  await expect(page.locator('#lente-configuracao')).toContainText('concentração e recorrência (operador e:');
-
-  // Formulário igual ao resultado: o aviso some.
-  await escolher(page, ['recorrencia', 'concentracao'], 'e');
-  await expect(page.locator('#lente-aviso-config')).toBeHidden();
 });
 
 test('T11: sem célula em comum ("e"), sem células destacadas ("ou") e indisponível, cada um com o seu texto', async ({ page }) => {
@@ -274,7 +276,7 @@ test('cobertura não verificada: falha na disponibilidade de um município, sele
   await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 147.');
   await expect(itens(page).nth(0).locator('.etiqueta')).toHaveText(COBERTURA_151);
   await expect(itens(page).nth(1).locator('.etiqueta')).toHaveText('cobertura não verificada: fonte indisponível');
-  await itens(page).nth(1).locator('.botao-nome').click();
+  await abrirDestaque(page, 1);
   const ressalvas = await page.locator('#lente-painel .ressalvas-destaque > li').allInnerTexts();
   expect(ressalvas).toEqual(['ressalvas de disponibilidade ainda não verificadas', 'ressalvas de disponibilidade ainda não verificadas']);
   await expect(page.locator('#lente-cobertura')).not.toContainText(/\d+ de \d+/);
@@ -285,7 +287,7 @@ test('cobertura não verificada: falha na disponibilidade de um município, sele
 });
 
 test('leitura inconsistente e falha da fonte: estados próprios, sem célula parcial', async ({ page }) => {
-  await entrar(page, 'rp');
+  // A leitura da consulta também é recusada; sem memória preenchida, a combinação lê as páginas e recusa igual.
   await page.route('**/rest/v1/rpc/consultar_deteccoes', async (route) => {
     if (corpoRpc(route).p_limite !== 1000) return route.continue();
     const resp = await route.fetch();
@@ -293,6 +295,8 @@ test('leitura inconsistente e falha da fonte: estados próprios, sem célula par
     json.registros[json.registros.length - 1] = json.registros[0];
     await route.fulfill({ response: resp, json });
   });
+  await entrar(page, 'rp', { esperar: false });
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
   await combinar(page, TRES, 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'leitura_inconsistente');
   await expect(page.locator('#lente-estado')).toContainText('id_tecnico repetido');
@@ -303,32 +307,31 @@ test('leitura inconsistente e falha da fonte: estados próprios, sem célula par
     if (corpoRpc(route).p_limite !== 1000) return route.continue();
     await route.fulfill({ status: 503, json: { message: 'indisponivel' } });
   });
-  await combinar(page, TRES, 'e');
+  await combinar(page, TRES, 'ou');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'falha');
   await expect(page.locator('#lente-estado')).toContainText('Fonte de dados indisponível');
   await expect(itens(page)).toHaveCount(0);
 });
 
-test('cancelada: nova janela durante a leitura cancela; a resposta atrasada não aparece', async ({ page }) => {
+test('nova janela durante a leitura: a combinação é recalculada na janela nova; a resposta atrasada não aparece', async ({ page }) => {
   await entrar(page, 'rp');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  const r = await reter(page, 'consultar_resumo');
   await combinar(page, TRES, 'e');
   await r.chegada;
   await consultar(page, { inicio: '2026-08-01', fim: '2026-09-30' });
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
-  await expect(page.locator('#lente-estado')).toContainText('a janela da consulta mudou');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'indisponivel');
+  await expect(page.locator('#lente-escopo')).toContainText('2026-08-01 a 2026-09-30');
   r.soltar();
   await page.waitForTimeout(500);
-  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cancelada');
+  await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'indisponivel');
+  await expect(page.locator('#lente-escopo')).toContainText('2026-08-01 a 2026-09-30');
   await expect(itens(page)).toHaveCount(0);
-  await expect(page.locator('#lente-configuracao')).toHaveCount(0);
 });
 
 test('concorrência: lente individual retida e combinação aplicada antes; só a combinação aparece', async ({ page }) => {
   await entrar(page, 'rp');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  const r = await reter(page, 'consultar_resumo');
   await escolherLente(page, 'concentracao');
-  await page.getByRole('button', { name: 'Aplicar lente' }).click();
   await r.chegada;
   await combinar(page, TRES, 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
@@ -341,7 +344,7 @@ test('concorrência: lente individual retida e combinação aplicada antes; só 
 
 test('concorrência: combinação retida e "Nenhuma"; nada aparece depois', async ({ page }) => {
   await entrar(page, 'rp');
-  const r = await reter(page, 'consultar_deteccoes', (b) => b.p_limite === 1000);
+  const r = await reter(page, 'consultar_resumo');
   await combinar(page, TRES, 'ou');
   await r.chegada;
   await escolherLente(page, 'nenhuma');
@@ -351,16 +354,16 @@ test('concorrência: combinação retida e "Nenhuma"; nada aparece depois', asyn
   await page.waitForTimeout(500);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
   await expect(itens(page)).toHaveCount(0);
-  await expect(page.locator('#lente-aviso-config')).toBeHidden();
 });
 
 test('acesso negado na disponibilidade, depois de a lista aparecer, limpa tela, combinação e memória', async ({ page }) => {
   await entrar(page, 'rp');
   const negado = { status: 403, json: { code: '42501', message: 'acesso_negado' } };
   const r = await reter(page, 'consultar_disponibilidade', (b) => b.p_municipio !== null, negado);
-  await combinar(page, TRES, 'e');
+  // A configuração inicial (Concentração e Recorrência, "e") calcula uma vez só, ao escolher a combinação.
+  await combinar(page, ['concentracao', 'recorrencia'], 'e');
   await r.chegada;
-  await expect(itens(page)).toHaveCount(1);
+  await expect(itens(page)).toHaveCount(2);
   r.soltar();
   await expect(page.locator('#acesso')).toHaveAttribute('data-estado', 'negado');
   await expect(page.locator('#conteudo')).toBeHidden();
@@ -373,7 +376,8 @@ test('sessão expirada na disponibilidade limpa tudo; após novo login, nenhuma 
   await page.route('**/rest/v1/rpc/consultar_disponibilidade', (route) => (corpoRpc(route).p_municipio === null
     ? route.continue()
     : route.fulfill({ status: 401, json: { code: 'PGRST301', message: 'JWT expired' } })));
-  await combinar(page, TRES, 'e');
+  // A configuração inicial calcula ao escolher a combinação; a primeira disponibilidade já expira a sessão.
+  await combinar(page, ['concentracao', 'recorrencia'], 'e');
   await expect(page.locator('#acesso')).toHaveAttribute('data-estado', 'anonimo');
   await expect(page.locator('#acesso-corpo')).toContainText('Sua sessão expirou');
   await expect(itens(page)).toHaveCount(0);
@@ -388,16 +392,16 @@ test('versão substituída (carga indisponível) na disponibilidade: estado pró
   await page.route('**/rest/v1/rpc/consultar_disponibilidade', (route) => (corpoRpc(route).p_municipio === null
     ? route.continue()
     : route.fulfill({ status: 500, json: { code: 'P0002', message: 'carga_indisponivel' } })));
-  await combinar(page, TRES, 'ou');
+  await combinar(page, ['concentracao', 'recorrencia'], 'e');
   await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'versao_substituida');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'versao_substituida');
   await expect(page.locator('#lente-estado')).toContainText('Combinação cancelada: a versão de dados foi substituída');
   await expect(itens(page)).toHaveCount(0);
   await page.unrouteAll({ behavior: 'ignoreErrors' });
-  await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('161');
   const paginas = [];
   page.on('request', (q) => { if (q.url().includes('/rpc/consultar_deteccoes') && JSON.parse(q.postData() ?? '{}').p_limite === 1000) paginas.push(q); });
+  await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
+  await expect(page.locator('#total-principal')).toHaveText('161');
   await combinar(page, TRES, 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(paginas.length).toBeGreaterThan(0);
@@ -425,14 +429,14 @@ for (const largura of [360, 390]) {
     test('teclado, foco, alvos de 44 px e sem rolagem horizontal; 200% e reflow a 320 px', async ({ page }) => {
       await entrar(page, 'rp');
       await escolherLente(page, 'combinacao');
-      // Teclado: Tab chega às caixas e ao operador; Espaço marca.
+      // Teclado: Espaço desmarca e marca; cada mudança recalcula (T16).
       await page.locator('input[name="l-comb"][value="concentracao"]').focus();
       await page.keyboard.press('Space');
-      await page.keyboard.press('Tab');
+      await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'incompleta');
       await page.keyboard.press('Space');
-      await expect(page.locator('input[name="l-comb"][value="recorrencia"]')).toBeChecked();
-      await page.locator('#botao-lente').focus();
-      await page.keyboard.press('Enter');
+      await expect(page.locator('input[name="l-comb"][value="concentracao"]')).toBeChecked();
+      await page.keyboard.press('Tab');
+      await expect(page.locator('input[name="l-comb"][value="recorrencia"]')).toBeFocused();
       await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
       await itens(page).first().locator('.botao-nome').focus();
       await page.keyboard.press('Enter');
@@ -440,7 +444,7 @@ for (const largura of [360, 390]) {
       // Toque: o rótulo inteiro marca a caixa.
       await page.locator('#lente-combinacao .opcao', { hasText: 'Persistência' }).tap();
       await expect(page.locator('input[name="l-comb"][value="persistencia"]')).toBeChecked();
-      await expect(page.locator('#lente-aviso-config')).toBeVisible();
+      await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
 
       const a = await page.evaluate(auditarCartao);
       expect(a.alvos, 'controles menores que 44×44 CSS px').toEqual([]);

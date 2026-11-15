@@ -95,6 +95,7 @@ test('RP: primeiro login sem cadastro é negado; depois do cadastro lê os dados
 test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   await entrar(page, 'rp');
   await expect(page.locator('#lista-municipios')).toBeAttached();
+  await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
   await page.getByRole('button', { name: 'Sair' }).click();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toContainText('Você saiu');
   await expect(page.locator('#total-principal')).toHaveCount(0);
@@ -103,6 +104,16 @@ test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   await expect(page.locator('#topo-chips li')).toHaveCount(0);
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((k) => k.includes('auth-token')))).toEqual([]);
+  // Depois do logout, nada da consulta nem da memória de recortes (T6) fica no navegador.
+  const resto = await page.evaluate(async () => ({
+    local: Object.keys(localStorage), sessao: Object.keys(sessionStorage),
+    caches_: 'caches' in self ? await caches.keys() : [],
+    bancos: indexedDB.databases ? (await indexedDB.databases()).map((b) => b.name) : [],
+  }));
+  expect(resto.local.filter((k) => !k.includes('code-verifier'))).toEqual([]);
+  expect(resto.sessao).toEqual([]);
+  expect(resto.caches_).toEqual([]);
+  expect(resto.bancos).toEqual([]);
   // Recarregar não restaura nada.
   await page.reload();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();

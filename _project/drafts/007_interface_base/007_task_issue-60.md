@@ -2,17 +2,17 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#60`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-60`
 > **PR:** [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65)
-> **Integração:** `Pendente`
+> **Integração:** squash `72796c4` em `main` (2026-11-15)
 > **Autorização inicial:** "autorizo a implementação da issue #60" em 2026-11-14
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-14
-> **Última atualização:** 2026-11-14
+> **Última atualização:** 2026-11-14 (reconciliada na issue #61)
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -55,7 +55,7 @@ Não se aplica.
 - [x] Estrutura, estilos, temas, tela de acesso, diálogos, consulta aplicada ao mudar.
 - [x] Testes unitários e E2E.
 - [x] Medição M1 e conferências das lentes com a carga real.
-- [x] PR [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) aberta; checks remotos e merge pendentes.
+- [x] PR [#65](https://github.com/EuThiagoAndrade/rastro-quente/pull/65) aberta, checks verdes e integrada por squash (`72796c4`), conferido no GitHub em 2026-11-14 durante a issue #61.
 
 ## Evidências
 
