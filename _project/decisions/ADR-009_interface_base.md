@@ -70,7 +70,7 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 
 ## Referências
 
-- Plano `_project/drafts/007_interface_base/007_plan.md` (v4): A3 a A7, A9, T6 a T11, T14 a T17, T19 e T21; casos CM-1, CM-2, CM-5, CM-6, PG-1, LF-1, DS-1, DS-2 e SR-1 a SR-4.
+- Plano `_project/executed/007_interface_base/007_plan.md` (v4): A3 a A7, A9, T6 a T11, T14 a T17, T19 e T21; casos CM-1, CM-2, CM-5, CM-6, PG-1, LF-1, DS-1, DS-2 e SR-1 a SR-4.
 - ADR-007 (interface do protótipo), revisado por este ADR nos pontos acima.
-- Tasks `_project/drafts/007_interface_base/007_task_issue-61.md` e `007_task_issue-62.md`.
+- Tasks `_project/executed/007_interface_base/007_task_issue-61.md` e `007_task_issue-62.md`.
 - `DESIGN.md` (contrato visual).

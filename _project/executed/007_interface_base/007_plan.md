@@ -1,10 +1,10 @@
 # Plano de Implementação — Interface base
 
 > **Ciclo:** `007`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v4`
 > **Data de criação:** 2026-11-14
-> **Última atualização:** 2026-11-14
+> **Última atualização:** 2026-11-15
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `completo`
@@ -377,7 +377,7 @@ Toda cadeia autorizada para em "Parado" quando: um caso RC, DS, SR ou CM falhar;
 
 ## Arquivos afetados
 
-- Novos: `DESIGN.md`, `_project/decisions/ADR-009_interface_base.md`, `_project/decisions/ADR-010_mapa_base_terceiros.md`, `_project/drafts/007_interface_base/007_task_issue-N.md` (uma por issue).
+- Novos: `DESIGN.md`, `_project/decisions/ADR-009_interface_base.md`, `_project/decisions/ADR-010_mapa_base_terceiros.md`, `_project/executed/007_interface_base/007_task_issue-N.md` (uma por issue).
 - Governança: `.agent/ai_behavior.md`, `_project/README.md`, `scripts/validate-governance.mjs`, `scripts/validate-governance.test.mjs`.
 - Interface: `index.html`, `src/app.ts`, `src/apresentacao*.ts`, `src/mapa.ts`, `src/formato.ts`, `src/estilos/*.css`, módulos novos de série, densidade e reaproveitamento.
 - Lentes: `src/lentes/carregar.ts`, `carregar-areas.ts`, `contrato.ts`, `comum.ts`, `concentracao.ts`, `recorrencia.ts`, `persistencia.ts`, `combinacao.ts`, `sobreposicao.ts`.
@@ -439,10 +439,10 @@ Uma branch e uma PR por issue (`feature/issue-N`), squash. A ordem é fixa: 1 �
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 007 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69) (item 5)
-Diga: "aprovo o merge da PR #69"
+Situação: Concluído — ciclo 007 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -693,8 +693,10 @@ Fontes da conferência da Esri (2026-11-14): [tiles estáticos](https://develope
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
+- **Data de conclusão:** 2026-11-15 (prospectiva; efetiva após a integração da PR de encerramento).
+- **Ação humana externa (item 5):** concluída pelo responsável ("concluí a ação externa da issue #64", 2026-11-15): conta na Esri, pagamento por uso desligado, chave restrita ao domínio, `VITE_ESRI_CHAVE` na Vercel e reimplantação. Na mesma data, o responsável ajustou a URL do site na autenticação, porque o login voltava para o domínio da Vercel, fora da restrição da chave.
+- **Verificação em produção:** autorizada ("autorizo a verificação em produção do ciclo 007", 2026-11-15) e executada pelo agente no ambiente hospedado, com o login feito pelo responsável. Todos os itens do roteiro foram aprovados: imagem e nomes carregaram (24/24 e 8/8; ao religar, 20/20 e 6/6), com `referrerpolicy` `strict-origin-when-cross-origin` em todos os tiles e a chave restrita aceitando os pedidos. O cabeçalho `Referer` não pôde ser lido diretamente. "Sem fundo" removeu as camadas: nenhum pedido novo à Esri ao arrastar e aproximar, mapa respondendo e atribuição "sem mapa-base de terceiros". O município Alta Floresta (61 detecções) e a lente Recorrência (1 destaque) funcionaram, e a explicação da célula abriu. Nenhuma violação de CSP em `img-src` ou `connect-src`.
+- **Desvios:** sem medições de desempenho nas issues #61 a #64, por decisão do responsável. Defeitos e ajustes de interface achados depois da issue #64 (BL-010 a BL-016) foram corrigidos pela trilha curta da issue #71 (PR #72), fora deste plano.
 - **Lições comprovadas:** —
 
 ## Referência do bootstrap

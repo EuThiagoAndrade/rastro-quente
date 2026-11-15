@@ -73,7 +73,7 @@ Fatos conferidos em 2026-11-14 (plano, T12 e R2-4) e de novo em 2026-11-15, na d
 
 ## Referências
 
-- Plano `_project/drafts/007_interface_base/007_plan.md` (v4): A8, T12, item 5, pontos de aprovação e verificação em produção.
+- Plano `_project/executed/007_interface_base/007_plan.md` (v4): A8, T12, item 5, pontos de aprovação e verificação em produção.
 - ADR-007 (interface do protótipo) e ADR-009 (interface base).
 - Esri, documentação consultada em 2026-11-14 e 2026-11-15: [serviços de dados dos mapas-base](https://developers.arcgis.com/rest/basemap-styles/service-data/), [nomes sobre imagem](https://developers.arcgis.com/rest/static-basemap-tiles/arcgis-imagery-labels-tile-get/), [privilégios](https://developers.arcgis.com/documentation/security-and-authentication/reference/privileges/location-platform/), [chaves e referenciadores](https://developers.arcgis.com/documentation/security-and-authentication/api-key-authentication/api-key-credentials/location-platform/), [preços](https://location.arcgis.com/pricing/), metadados públicos do World Imagery (`services.arcgisonline.com/.../World_Imagery/MapServer?f=json`).
 - [Leaflet 1.9.4, `TileLayer`](https://github.com/Leaflet/Leaflet/blob/v1.9.4/src/layer/tile/TileLayer.js).

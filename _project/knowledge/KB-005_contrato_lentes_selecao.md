@@ -216,7 +216,7 @@ A sobreposição (ciclo `006`, item 4, T24) é a opção "Sobreposição com ár
 | KB-004 | Disponibilidade D1, H3 e "cobertura não comprovada" | `_project/knowledge/KB-004_metodo_recorte_focos_mt.md` | Ciclo `003` | Método da carga; não trata seleção |
 | ADR-007 | Interface, gerações, versão fixada e perfil de medição | `_project/decisions/ADR-007_interface_consulta_prototipo.md` | Aceito no ciclo `003` | Decisão técnica da interface |
 | Plano `006` | Regras da sobreposição (T22, T23 e T25) e casos SB | `_project/executed/006_areas_protegidas_reais/006_plan.md` | v5 aprovado em 2026-11-12 | Autoridade das regras da sobreposição; esta KB não a substitui |
-| Plano `007` | Recorte das lentes (A1, A2, T1 a T5) e casos RC | `_project/drafts/007_interface_base/007_plan.md` | v4 aprovado em 2026-11-14 | Autoridade do recorte; esta KB não a substitui |
+| Plano `007` | Recorte das lentes (A1, A2, T1 a T5) e casos RC | `_project/executed/007_interface_base/007_plan.md` | v4 aprovado em 2026-11-14 | Autoridade do recorte; esta KB não a substitui |
 | Relatório `006` | Conferência independente da sobreposição | `_project/executed/006_areas_protegidas_reais/006_research_conferencia_areas.md` | Seção da issue #51, 2026-11-14 | Evidência local; não comprova comportamento hospedado |
 
 ## Histórico

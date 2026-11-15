@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-14"
+last_updated: "2026-11-15"
 origin_cycle: "000"
 ---
 
@@ -81,6 +81,16 @@ O protótipo incorporou o contexto territorial de unidades de conservação (CNU
 - **Persistência e isolamento (ADR-008):** tabelas `areas` e `deteccoes_areas` em `public` sob RLS, com integridade garantida pelo protocolo transacional de publicação da carga.
 - **Conferência e medição:** conferência independente por SQL célula a célula na carga real local (`conferir:sobreposicao`), sem divergências. Medição local de terra indígena excedeu o orçamento de tempo (42,3 s para 20,0 s) devido às 51 consultas de disponibilidade municipal; desvio aceito pelo responsável com progresso visível. A verificação em produção foi dispensada pelo responsável no encerramento, sem resultados hospedados observados; este registro não atesta o comportamento em produção.
 
+### Interface base do ciclo 007
+
+A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.md`:
+
+- **Tela:** três colunas no computador (filtros, mapa com série e cartões, resultado com as abas "Destaques" e "Municípios"); uma coluna no celular; temas claro e escuro (preto).
+- **Recorte único:** período e município valem para o mapa, a série, os municípios e as lentes.
+- **Mapa:** todos os pontos do recorte, limites municipais por padrão, densidade por célula (contagem, não gravidade), áreas protegidas na legenda, "Lista de focos" como alternativa em texto e mapa ampliado.
+- **Mapa-base (ADR-010):** satélite e nomes da Esri com a chave restrita ao domínio, "Sem fundo" sempre disponível e troca automática em falha. A Esri recebe só a região vista e a origem do site; nenhum número depende do fundo.
+- **Verificação em produção:** executada em 2026-11-15 com todos os itens aprovados (satélite, "Sem fundo" sem novos pedidos, município, lente, célula e CSP). A leitura direta do cabeçalho `Referer` não foi possível; a política de referência e a aceitação da chave restrita foram conferidas.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -92,6 +102,7 @@ O protótipo incorporou o contexto territorial de unidades de conservação (CNU
 - Ciclo `004`: [plano](../executed/004_contrato_lentes_selecao/004_plan.md), [conferência e medição](../executed/004_contrato_lentes_selecao/004_research_conferencia_lentes.md) e [encerramento](../executed/004_contrato_lentes_selecao/004_task_closure.md). As entregas foram integradas nas PRs #36 a #38.
 - Ciclo `005`: [plano](../executed/005_combinacao_criterios_selecao/005_plan.md), [conferência e medição](../executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md) e [encerramento](../executed/005_combinacao_criterios_selecao/005_task_closure.md). As entregas foram integradas nas PRs #44 e #45; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 - Ciclo `006`: [plano](../executed/006_areas_protegidas_reais/006_plan.md), [conferência](../executed/006_areas_protegidas_reais/006_research_conferencia_areas.md), [encerramento](../executed/006_areas_protegidas_reais/006_task_closure.md), [KB-006](KB-006_areas_protegidas.md) e [ADR-008](../decisions/ADR-008_persistencia_areas_protegidas.md). As entregas foram integradas nas PRs #53 a #56; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
+- Ciclo `007`: [plano](../executed/007_interface_base/007_plan.md), [encerramento](../executed/007_interface_base/007_task_closure.md), `DESIGN.md`, [ADR-009](../decisions/ADR-009_interface_base.md) e [ADR-010](../decisions/ADR-010_mapa_base_terceiros.md). As entregas foram integradas nas PRs #65 a #69, com as correções da issue #71 (PR #72); verificação hospedada aprovada em 2026-11-15.
 
 ## Histórico
 
@@ -104,3 +115,4 @@ O protótipo incorporou o contexto territorial de unidades de conservação (CNU
 | 2026-11-11 | `004` | Lentes de seleção (concentração, recorrência e persistência), limites e verificação hospedada parcial |
 | 2026-11-12 | `005` | Combinação explicável por interseção ou união; desvio de desempenho local aceito; verificação hospedada dispensada, sem resultados de produção |
 | 2026-11-14 | `006` | Contexto de áreas protegidas reais (CNUC/FUNAI), camada territorial, lente de sobreposição e persistência sob RLS; verificação hospedada dispensada |
+| 2026-11-15 | `007` | Interface base da V13 com `DESIGN.md`, lentes no recorte, densidade, série, "Lista de focos", painéis do mapa e mapa-base de satélite da Esri; verificação hospedada aprovada |
