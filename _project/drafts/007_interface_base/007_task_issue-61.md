@@ -7,7 +7,7 @@
 > **Issue:** `#61`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-61`
-> **PR:** —
+> **PR:** [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #61" em 2026-11-14
 > **Modo contínuo:** `—`
@@ -59,7 +59,7 @@ Não se aplica.
 - [x] Testes unitários e E2E.
 - [x] ADR-009 (proposto; aceito no item 3), `DESIGN.md`, runbook e KB-005 atualizados; task da issue #60 reconciliada.
 - [x] Medições M1 e M2; M3, M4 e conferências não executadas por decisão do responsável.
-- [ ] PR.
+- [x] PR [#66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66) aberta; checks remotos e merge pendentes.
 
 ## Evidências
 
@@ -103,16 +103,16 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 007 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR do item 2
-Diga: "aprovo o merge da PR #N"
+Conferir: Checks e diff da [PR #66](https://github.com/EuThiagoAndrade/rastro-quente/pull/66)
+Diga: "aprovo o merge da PR #66"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 007 + implementar_issue + 61 + 72796c4`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #61 aberta, item 1 integrado / branch `feature/issue-61` com esta task; implementação em andamento
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #61 aberta, item 1 integrado / branch `feature/issue-61` publicada e PR #66 aberta
 - `result`: `executed`
-- `evidence`: esta task
-- `blockers`: nenhum
+- `evidence`: PR #66; validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge
