@@ -69,6 +69,8 @@ export function renderEstadoAreas(e: EstadoAreas, tentarDeNovo: () => void): voi
 /** Legenda em texto das três classes, com a contagem exibida, a atribuição e o aviso de T19. */
 export function renderLegendaAreas(porClasse: Record<ClasseArea, number> | null, fontes: Fonte[]): void {
   const alvo = $('areas-legenda');
+  // As classes também entram na "Legenda" do mapa enquanto a camada está ligada (issue #71, BL-012).
+  $('legenda-areas').hidden = !porClasse;
   if (!porClasse) {
     alvo.replaceChildren();
     alvo.hidden = true;

@@ -2,7 +2,7 @@
 // explicação com "Voltar aos destaques", resumo da lente, cartão do município, lista estadual ordenável e a
 // "Lista de focos" (T21). Todo valor da fonte entra por textContent.
 import { $, h } from './apresentacao.ts';
-import { fmtDataHoraGmt, fmtNumero, ROTULO_DIVERGENCIA } from './formato.ts';
+import { fmtDataHoraGmt, fmtNumero, larguraProporcional, ROTULO_DIVERGENCIA } from './formato.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
 import { linhaCelulasDestacadas, listaMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import type { Registro, Resumo } from './tipos.ts';
@@ -189,7 +189,7 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
     const b = h('button', { type: 'button', class: 'botao-municipio', 'data-codigo': String(l.codigo), 'aria-pressed': 'false' },
       h('span', { class: 'pos' }, ctx.ordem === 'nome' ? '' : `${i + 1}.`),
       h('span', { class: 'nome' }, l.nome, detalhe ? h('span', { class: 'sub-nome' }, detalhe) : null,
-        ctx.ordem !== 'nome' ? h('span', { class: 'barra', style: `width:${Math.max(3, (valor(l) / max) * 100)}%` }) : null),
+        ctx.ordem !== 'nome' ? barraProporcional(larguraProporcional(valor(l), max)) : null),
       h('span', { class: 'num' }, porCelula ? `${fmtNumero(l.celulas ?? 0)} ${(l.celulas ?? 0) === 1 ? 'célula' : 'células'}` : fmtNumero(l.total)));
     b.addEventListener('click', () => m.escolher(l.codigo));
     return h('li', {}, b);
@@ -315,4 +315,15 @@ export function metadados(r: { carga: { id: number; identidade: string }; janela
     ...item('Versão', `carga nº ${r.carga.id} · identidade ${r.carga.identidade.slice(0, 4)}…${r.carga.identidade.slice(-4)}`),
     ...item('Período', `${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} (dias GMT)`),
     ...item('Método', r.versao));
+}
+
+/**
+ * Barra proporcional ao valor (DESIGN.md, aba Municípios), sem barra para zero. A largura vai pelo CSSOM: a CSP (`style-src 'self'`)
+ * bloqueia o atributo `style` em linha, o que deixava todas as barras do mesmo tamanho (issue #71, BL-016).
+ */
+function barraProporcional(largura: number | null): HTMLElement | null {
+  if (largura === null) return null;
+  const barra = h('span', { class: 'barra' });
+  barra.style.width = `${largura}%`;
+  return barra;
 }

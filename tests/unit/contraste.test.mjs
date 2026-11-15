@@ -21,7 +21,7 @@ const lum = (hex) => {
 const razao = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
 
 const TEXTO = [
-  ['texto', 'superficie'], ['texto', 'fundo'], ['texto', 'superficie-suave'], ['texto', 'escolha-suave'], ['texto', 'linha-selecionada'],
+  ['texto', 'superficie'], ['texto', 'fundo'], ['texto', 'superficie-suave'], ['texto', 'escolha-suave'], ['texto', 'linha-selecionada'], ['texto-suave', 'linha-selecionada'],
   ['texto-suave', 'superficie'], ['texto-suave', 'fundo'], ['texto-suave', 'superficie-suave'],
   ['sobre-escolha', 'escolha'], ['identidade', 'superficie'], ['link', 'superficie'], ['link', 'superficie-suave'], ['link', 'escolha-suave'],
   ['aviso-borda', 'superficie'],
@@ -30,7 +30,7 @@ const TEXTO = [
 ];
 const PISTAS = [
   ['contorno', 'superficie'], ['contorno', 'fundo'], ['escolha', 'superficie'], ['escolha', 'escolha-suave'],
-  ['foco', 'superficie'], ['foco', 'fundo'], ['selecao-amostra', 'superficie'],
+  ['foco', 'superficie'], ['foco', 'fundo'], ['foco', 'superficie-suave'], ['selecao-amostra', 'superficie'], ['selecao-linha', 'linha-selecionada'],
   ['selecao-mapa', 'mapa-fundo'], ['deteccao', 'mapa-fundo'], ['limite', 'mapa-fundo'], ['destaque', 'mapa-fundo'],
   ['deteccao-escura', 'superficie'], ['classe-lacuna', 'superficie'],
   ['classe-indeterminada', 'superficie'], ['classe-sem-evidencia', 'superficie'], ['aviso-borda', 'aviso-fundo'],

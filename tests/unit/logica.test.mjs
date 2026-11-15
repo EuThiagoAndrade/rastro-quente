@@ -2,7 +2,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { classificarErro } from '../../src/erros.ts';
-import { fmtDataHoraGmt, fmtDiferenca, humanizar, primeiroDiaGmt, ultimoDiaGmt } from '../../src/formato.ts';
+import { fmtDataHoraGmt, fmtDiferenca, humanizar, larguraProporcional, primeiroDiaGmt, ultimoDiaGmt } from '../../src/formato.ts';
 import { lerConfiguracao } from '../../src/config.ts';
 
 test('classificarErro: o contrato vale mais que o status HTTP', () => {
@@ -71,4 +71,14 @@ test('T16: atalho reconhecido, resumo do período e texto do recorte aplicado', 
   assert.equal(resumoPeriodo({ inicio: '2026-10-31', fim: '2026-10-31' }), '31/10/2026 a 31/10/2026 · 1 dia GMT');
   assert.equal(textoRecorte({ inicio: '2026-10-01', fim: '2026-10-31' }, null), 'Todo Mato Grosso · 2026-10-01 a 2026-10-31');
   assert.equal(textoRecorte({ inicio: '2026-10-01', fim: '2026-10-31' }, 'Município Alfa'), 'Município Alfa · 2026-10-01 a 2026-10-31');
+});
+
+test('barra da aba Municípios: proporção exata, sem mínimo, e zero sem barra (issue #71, R1-2)', () => {
+  assert.equal(larguraProporcional(901, 901), 100);
+  assert.ok(Math.abs(larguraProporcional(1, 901) - 100 / 901) < 1e-9);
+  assert.ok(Math.abs(larguraProporcional(27, 901) - 2700 / 901) < 1e-9);
+  assert.notEqual(larguraProporcional(1, 901), larguraProporcional(27, 901));
+  assert.equal(larguraProporcional(0, 901), null);
+  assert.equal(larguraProporcional(0, 0), null);
+  assert.equal(larguraProporcional(30, 60), 50);
 });

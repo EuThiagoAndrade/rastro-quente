@@ -20,12 +20,14 @@
   --sobre-escolha: #ffffff;
   --escolha-suave: #edf2f0;
   --link: #3f6b55;
-  --foco: #1d4ed8;
+  /* Foco e seleção da interface em verde (issue #71, BL-015, decisão do responsável). */
+  --foco: #3f6b55;
+  --selecao-linha: #3f6b55;
+  --linha-selecionada: #e3efe8;
 
-  /* Seleção (azul): traço no mapa, amostra da legenda, linha selecionada. */
+  /* Seleção no mapa (azul): traço no mapa e a amostra correspondente na legenda. */
   --selecao-mapa: #93c5fd;
   --selecao-amostra: #1d4ed8;
-  --linha-selecionada: #dbeafe;
 
   /* Avisos, erros e classes de disponibilidade. */
   --erro: #9b1c1c;
@@ -80,9 +82,11 @@
   --sobre-escolha: #10241a;
   --escolha-suave: #22382c;
   --link: #a9d2bc;
-  --foco: #93c5fd;
+  /* Verde-menta claro: contrasta com as superfícies verdes escuras do tema. */
+  --foco: #6ee7b7;
+  --selecao-linha: #6ee7b7;
   --selecao-amostra: #93c5fd;
-  --linha-selecionada: #1e3a5f;
+  --linha-selecionada: #244a33;
   --erro: #fca5a5;
   --aviso-fundo: #3a2c0c;
   --aviso-borda: #d9a43a;

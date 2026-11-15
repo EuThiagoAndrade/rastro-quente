@@ -15,7 +15,7 @@ origin_cycle: "007"
 
 ## Status
 
-Aceito. Criado no item 5 do plano `007` v4 (aprovado em 2026-11-14), issue #64, sob a autorização literal "autorizo a implementação da issue #64" de 2026-11-15, com a decisão A8 e os detalhes de T12 ratificados na aprovação do plano. Vigora com a integração da PR da issue #64. Revisa o ADR-007 só no ponto "sem tiles de terceiros"; o resto do ADR-007 e o ADR-009 continuam valendo.
+Aceito. Criado no item 5 do plano `007` v4 (aprovado em 2026-11-14), issue #64, sob a autorização literal "autorizo a implementação da issue #64" de 2026-11-15, com a decisão A8 e os detalhes de T12 ratificados na aprovação do plano. Vigora com a integração da PR da issue #64. Revisa o ADR-007 só no ponto "sem tiles de terceiros"; o resto do ADR-007 e o ADR-009 continuam valendo. Revisado pela issue #71 (trilha curta, decisão do responsável em 2026-11-15) no item "Falhas": a falha só dos nomes mantém a imagem.
 
 ## Contexto
 
@@ -43,7 +43,7 @@ Fatos conferidos em 2026-11-14 (plano, T12 e R2-4) e de novo em 2026-11-15, na d
 
 **CSP.** `img-src` ganha só `https://ibasemaps-api.arcgis.com` e `https://static-map-tiles-api.arcgis.com`, sem curinga. Nenhuma outra diretiva muda; os metadados do serviço não são lidos em tempo de execução (a atribuição é fixa no código), para não abrir `connect-src`.
 
-**Falhas.** Chave rejeitada ou expirada, cota esgotada ou rede: 4 erros de tile seguidos na mesma vista (um tile carregado ou uma nova vista zeram a contagem) trocam para "Sem fundo" e mostram "Fundo de satélite indisponível agora."; "Satélite" continua disponível para tentar de novo.
+**Falhas.** Chave rejeitada ou expirada, cota esgotada ou rede: 4 erros de tile seguidos na mesma vista, contados por camada (um tile carregado ou uma nova vista zeram a contagem). Se a imagem falha, a tela troca para "Sem fundo" e mostra "Fundo de satélite indisponível agora."; "Satélite" continua disponível para tentar de novo. Se só os nomes falham, sai apenas a camada de nomes e a imagem continua, com "Nomes sobre o satélite indisponíveis agora; a imagem continua." (revisão da issue #71). Remover as camadas nunca desliga os ouvintes internos do Leaflet (`off()`), que ele usa para soltar a camada do mapa e tirar a atribuição; eventos tardios de uma camada removida são ignorados.
 
 **Atribuição.** Sempre visível no controle do Leaflet enquanto o fundo estiver ligado: "Powered by Esri · Imagem: Esri, Vantor, Earthstar Geographics e GIS User Community" e "Nomes: Esri, TomTom, Garmin, FAO, NOAA, USGS, © OpenStreetMap contributors e GIS User Community". Sem fundo, "sem mapa-base de terceiros".
 

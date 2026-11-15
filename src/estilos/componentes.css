@@ -275,7 +275,7 @@ td code {
 
 tr.selecionada td {
   background: var(--linha-selecionada);
-  box-shadow: inset 0.25rem 0 0 var(--selecao-amostra);
+  box-shadow: inset 0.25rem 0 0 var(--selecao-linha);
 }
 
 .municipios {
@@ -616,17 +616,6 @@ tr.selecionada td {
 }
 
 /* Recorte aplicado no título da Consulta, só com a seção fechada (T17). */
-.secao__resumo {
-  display: none;
-  font-size: var(--t-pequeno);
-  font-weight: 400;
-  color: var(--texto-suave);
-}
-
-.secao:not([open]) .secao__resumo {
-  display: inline;
-}
-
 .marca-ativa {
   display: none;
   padding: 0.05rem 0.5rem;
@@ -847,10 +836,48 @@ tr.selecionada td {
   left: 0.75rem;
   display: flex;
   flex-wrap: wrap;
-  gap: 0.25rem;
+  align-items: flex-start;
+  gap: 0.4rem;
   /* Espaço à direita para "Camadas" e o botão de ampliar. */
   max-width: calc(100% - 15rem);
-  padding: 0.25rem;
+  padding: 0;
+  /* Cada controle é uma pílula própria, como "Camadas" (issue #71, BL-013); a barra em si não tem fundo. */
+  border: 0;
+  background: none;
+  backdrop-filter: none;
+}
+
+.flutuante.flutuante--ferramentas > button,
+.fundo-mapa {
+  border: 1px solid var(--contorno-suave);
+  border-radius: 10px;
+  backdrop-filter: blur(6px);
+}
+
+.flutuante.flutuante--ferramentas > button:not([aria-pressed="true"]),
+.fundo-mapa {
+  background: color-mix(in srgb, var(--superficie) 92%, transparent);
+}
+
+.flutuante.flutuante--ferramentas > button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-weight: 600;
+}
+
+#botao-enquadrar::before,
+#botao-lista-focos::before {
+  font-size: 1.1rem;
+  font-weight: 400;
+}
+
+#botao-enquadrar::before {
+  content: "⛶";
+}
+
+#botao-lista-focos::before {
+  content: "☰";
 }
 
 .flutuante--ferramentas button {
@@ -878,8 +905,7 @@ tr.selecionada td {
   flex-wrap: wrap;
   max-width: 100%;
   gap: 0.25rem;
-  padding-right: 0.25rem;
-  border-right: 1px solid var(--contorno-suave);
+  padding: 0.25rem;
 }
 
 .flutuante--ferramentas button[aria-disabled="true"] {
@@ -903,6 +929,27 @@ tr.selecionada td {
   bottom: 1.6rem;
   left: 0.75rem;
   max-width: calc(100% - 4rem);
+}
+
+/* Aberta, a legenda fica por cima dos controles do Leaflet (z-index 1000), mas começa acima da atribuição, que
+   continua visível (ADR-010); a altura vem de `--altura-atribuicao` (src/mapa.ts). "Camadas" aberto continua por
+   cima da legenda (DESIGN.md). */
+.flutuante--legenda[open] {
+  --base-legenda: max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem));
+  z-index: 1001;
+  bottom: var(--base-legenda);
+  max-height: calc(100% - var(--base-legenda) - 0.75rem);
+  overflow: auto;
+}
+
+.flutuante--camadas[open] {
+  z-index: 1002;
+}
+
+/* A atribuição do mapa-base (ADR-010) é longa: fica à direita, sem passar por baixo do botão "Legenda". O canto
+   inferior direito ganha largura definida (a porcentagem do controle sobre um canto sem largura o espremia). */
+.mapa-cartao .leaflet-bottom.leaflet-right {
+  left: 7.5rem;
 }
 
 .flutuante--legenda summary {
@@ -1298,7 +1345,7 @@ tr.selecionada td {
 }
 
 .lista-mun button:hover {
-  background: color-mix(in srgb, var(--selecao-amostra) 12%, transparent);
+  background: color-mix(in srgb, var(--selecao-linha) 12%, transparent);
 }
 
 .lista-mun .pos {
@@ -1408,7 +1455,7 @@ tr.selecionada td {
 
 .botao-foco[aria-pressed='true'] {
   background: var(--linha-selecionada);
-  box-shadow: inset 3px 0 var(--selecao-amostra);
+  box-shadow: inset 3px 0 var(--selecao-linha);
 }
 
 .botao-foco__hora {
