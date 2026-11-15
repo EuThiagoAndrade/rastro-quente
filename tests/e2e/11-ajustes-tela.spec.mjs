@@ -33,16 +33,20 @@ test('mapa ampliado ocupa a altura da tela', async ({ page }) => {
   expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(900);
 });
 
-test('"Enquadrar os dados" e "Lista de focos" são pílulas como "Camadas"', async ({ page }) => {
+test('painel "Mapa" ao lado de "Camadas": fechado, só duas pílulas; aberto, fundo, lista e enquadrar', async ({ page }) => {
   await entrar(page, 'rp');
-  for (const id of ['#botao-enquadrar', '#botao-lista-focos']) {
-    const estilo = await page.locator(id).evaluate((b) => {
-      const c = getComputedStyle(b);
-      return { raio: c.borderTopLeftRadius, borda: c.borderTopStyle, peso: c.fontWeight, icone: getComputedStyle(b, '::before').content };
-    });
-    expect(estilo).toEqual(expect.objectContaining({ raio: '10px', borda: 'solid', peso: '600' }));
-    expect(estilo.icone).not.toBe('none');
-  }
+  const painel = page.locator('#opcoes-mapa');
+  await expect(painel.locator(':scope > summary')).toHaveText('Mapa');
+  for (const id of ['#fundo-satelite', '#fundo-nenhum', '#botao-lista-focos', '#botao-enquadrar']) await expect(page.locator(id)).toBeHidden();
+  const mapa = await painel.boundingBox();
+  const camadas = await page.locator('#camadas').boundingBox();
+  expect(Math.abs(mapa.y - camadas.y)).toBeLessThan(2);
+  expect(mapa.x + mapa.width).toBeLessThanOrEqual(camadas.x);
+  await painel.locator(':scope > summary').click();
+  for (const id of ['#fundo-nenhum', '#botao-lista-focos', '#botao-enquadrar']) await expect(page.locator(id)).toBeVisible();
+  await page.locator('#botao-lista-focos').click();
+  await expect(page.locator('#botao-lista-focos')).toHaveAttribute('aria-expanded', 'true');
+  await expect(page.locator('#lista-focos')).toBeVisible();
 });
 
 test('"Consulta" recolhida não mostra resumo e o foco da interface é verde', async ({ page }) => {

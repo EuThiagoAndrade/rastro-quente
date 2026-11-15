@@ -311,12 +311,6 @@ body:has(#acesso:not([hidden])) .rodape {
     height: 440px;
   }
 
-  /* Ferramentas abaixo da linha de "Camadas" e do botão de ampliar, sem sobrepor. */
-  .flutuante--ferramentas {
-    top: calc(0.75rem + var(--alvo) + 0.5rem);
-    max-width: calc(100% - 1.5rem);
-  }
-
   .mapa-ampliado .mapa-cartao {
     height: calc(100dvh - 7rem);
   }

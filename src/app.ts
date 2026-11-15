@@ -273,6 +273,11 @@ class Controlador {
       if (ev.key === 'Escape' && mapaAmpliado() && !document.querySelector('dialog[open]')) this.ampliarMapa(false);
     });
     $('botao-enquadrar').addEventListener('click', () => this.mapa?.enquadrar());
+    // "Mapa" e "Camadas" (issue #71): um painel aberto por vez, para os menus não se sobreporem.
+    const paineis = [$<HTMLDetailsElement>('opcoes-mapa'), $<HTMLDetailsElement>('camadas')];
+    for (const p of paineis) {
+      p.addEventListener('toggle', () => { if (p.open) for (const outro of paineis) if (outro !== p) outro.open = false; });
+    }
     // Mapa-base (T12): "Satélite" só com chave; "Sem fundo" sempre disponível.
     for (const b of document.querySelectorAll<HTMLButtonElement>('[data-fundo]')) {
       b.addEventListener('click', () => {

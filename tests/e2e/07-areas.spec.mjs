@@ -435,7 +435,7 @@ test('versão substituída (linha da carga oculta e outra vigente): estado próp
 /** Controles visíveis menores que 44×44, elementos fora da janela e rolagem horizontal global. */
 const auditar = () => {
   const visivel = (e) => { const r = e.getBoundingClientRect(); return r.width >= 2 && r.height >= 2 && !e.closest('[hidden]'); };
-  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros'), document.getElementById('mapa-areas'), document.querySelector('.ferramentas-mapa')];
+  const raizes = [document.getElementById('cartao-lentes'), document.getElementById('filtros'), document.getElementById('mapa-areas'), document.querySelector('.controles-mapa')];
   const alvos = raizes.flatMap((raiz) => [...raiz.querySelectorAll('button, select, summary, .opcao')])
     .filter((e) => visivel(e) && !e.matches(':disabled'))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })

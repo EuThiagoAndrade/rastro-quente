@@ -5,7 +5,7 @@
 // Nenhuma chave real e nenhum pedido sai para a Esri: toda rota dos dois hosts é atendida localmente.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { entrar } from './ajuda.mjs';
+import { abrirOpcoesMapa, entrar } from './ajuda.mjs';
 
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(() => cadastrarRp());
@@ -47,6 +47,7 @@ test.describe('sem chave', () => {
     await expect(satelite).toHaveAttribute('aria-disabled', 'true');
     await expect(page.locator('#aviso-fundo')).toHaveText('Satélite indisponível: mapa-base não configurado neste ambiente.');
     await expect(satelite).toHaveAccessibleDescription(/Satélite indisponível/);
+    await abrirOpcoesMapa(page);
     await satelite.click({ force: true }); // aria-disabled: o clique não liga nada
     await expect(page.locator('#fundo-nenhum')).toHaveAttribute('aria-pressed', 'true');
     await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'nenhum');
@@ -82,11 +83,13 @@ test.describe('com valor fictício e tiles interceptados', () => {
     await expect(atribuicao).not.toContainText('sem mapa-base de terceiros');
 
     // Desligar o fundo: as camadas saem e nenhum pedido novo vai à Esri, mesmo movendo e aproximando o mapa.
+    await abrirOpcoesMapa(page);
     await page.locator('#fundo-nenhum').click();
     await expect(page.locator('#mapa')).toHaveAttribute('data-fundo', 'nenhum');
     await expect(tiles).toHaveCount(0);
     const antes = pedidos.length;
     await page.locator('.leaflet-control-zoom-in').click();
+    await abrirOpcoesMapa(page);
     await page.locator('#botao-enquadrar').click();
     await page.waitForTimeout(800);
     expect(pedidos.length).toBe(antes);
@@ -123,6 +126,7 @@ test.describe('com valor fictício e tiles interceptados', () => {
     await expect(page.locator('.fundo-mapa-camada img.leaflet-tile')).toHaveCount(0);
     const antes = pedidos.length;
     expect(antes).toBeGreaterThan(0);
+    await abrirOpcoesMapa(page);
     await page.locator('#botao-enquadrar').click();
     await page.waitForTimeout(800);
     expect(pedidos.length).toBe(antes);
@@ -130,6 +134,7 @@ test.describe('com valor fictício e tiles interceptados', () => {
     // Religar é possível (o fundo continua disponível); com tiles bons, volta a carregar.
     await page.unrouteAll();
     await tilesSimulados(page);
+    await abrirOpcoesMapa(page);
     await page.locator('#fundo-satelite').click();
     await expect(page.locator('#aviso-fundo')).toBeHidden();
     await expect.poll(() => page.locator('.fundo-mapa-camada img.leaflet-tile').count()).toBeGreaterThan(0);
@@ -143,6 +148,7 @@ test.describe('com valor fictício e tiles interceptados', () => {
     await entrar(page, 'rp');
     await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
     await expect.poll(() => page.locator('.fundo-mapa-camada img.leaflet-tile').count()).toBeGreaterThan(0);
+    await abrirOpcoesMapa(page);
     await page.locator('#fundo-nenhum').click();
     await page.locator('.leaflet-control-zoom-in').click();
     await page.waitForTimeout(500);

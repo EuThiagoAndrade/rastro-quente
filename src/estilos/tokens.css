@@ -67,26 +67,27 @@
   --espaco: 1rem;
 }
 
-/* Tema escuro (V13 base). */
+/* Tema escuro em preto (issue #71, decisão do responsável): superfícies neutras de preto a cinza-escuro, com as
+   mesmas cores de escolha, foco, avisos, mapa e camadas. */
 :root[data-tema='escuro'] {
   color-scheme: dark;
-  --fundo: #0f1f1a;
-  --superficie: #16291f;
-  --superficie-suave: #1d3428;
-  --texto: #e7efe6;
-  --texto-suave: #a9bcae;
-  --identidade: #e7efe6;
-  --contorno: #6c8578;
-  --contorno-suave: #2c463a;
+  --fundo: #000000;
+  --superficie: #121212;
+  --superficie-suave: #1e1e1e;
+  --texto: #f1f1f1;
+  --texto-suave: #a8a8a8;
+  --identidade: #f1f1f1;
+  --contorno: #6e6e6e;
+  --contorno-suave: #2c2c2c;
   --escolha: #8dbba3;
   --sobre-escolha: #10241a;
-  --escolha-suave: #22382c;
+  --escolha-suave: #1b2620;
   --link: #a9d2bc;
   /* Verde-menta claro: contrasta com as superfícies verdes escuras do tema. */
   --foco: #6ee7b7;
   --selecao-linha: #6ee7b7;
   --selecao-amostra: #93c5fd;
-  --linha-selecionada: #244a33;
+  --linha-selecionada: #1f3a2b;
   --erro: #fca5a5;
   --aviso-fundo: #3a2c0c;
   --aviso-borda: #d9a43a;

@@ -16,13 +16,6 @@
   outline-offset: -3px;
 }
 
-.ferramentas-mapa {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.75rem;
-  margin-bottom: 0.75rem;
-}
-
 .leaflet-bar a,
 .leaflet-touch .leaflet-bar a {
   width: var(--alvo);

@@ -20,21 +20,21 @@ A tela abre sempre no tema claro (`:root`); o botão da lua define `data-tema="e
 
 | Token | Claro | Escuro | Uso |
 | :-- | :-- | :-- | :-- |
-| `--fundo` | `#f4f6f2` | `#0f1f1a` | Fundo da página |
-| `--superficie` | `#ffffff` | `#16291f` | Topo, colunas, cartões, diálogos, rodapé |
-| `--superficie-suave` | `#f1f4ee` | `#1d3428` | Chips, botões, números do resumo, painéis |
-| `--texto` | `#1f3529` | `#e7efe6` | Texto principal |
-| `--texto-suave` | `#4c6155` | `#a9bcae` | Rótulos em caixa alta, notas, perguntas das lentes |
-| `--contorno-suave` | `#d9e0d5` | `#2c463a` | Bordas de cartões, colunas, botões e divisórias |
-| `--contorno` | `#7f9086` | `#6c8578` | Borda dos campos (período, município, datas) |
+| `--fundo` | `#f4f6f2` | `#000000` | Fundo da página |
+| `--superficie` | `#ffffff` | `#121212` | Topo, colunas, cartões, diálogos, rodapé |
+| `--superficie-suave` | `#f1f4ee` | `#1e1e1e` | Chips, botões, números do resumo, painéis |
+| `--texto` | `#1f3529` | `#f1f1f1` | Texto principal |
+| `--texto-suave` | `#4c6155` | `#a8a8a8` | Rótulos em caixa alta, notas, perguntas das lentes |
+| `--contorno-suave` | `#d9e0d5` | `#2c2c2c` | Bordas de cartões, colunas, botões e divisórias |
+| `--contorno` | `#7f9086` | `#6e6e6e` | Borda dos campos (período, município, datas) |
 | `--escolha` | `#4f7c65` | `#8dbba3` | Verde-sálvia: botão principal, ferramenta ligada, lente marcada |
 | `--sobre-escolha` | `#ffffff` | `#10241a` | Texto sobre `--escolha` |
-| `--escolha-suave` | `#edf2f0` | `#22382c` | Fundo da lente marcada e da etiqueta "ativa" |
+| `--escolha-suave` | `#edf2f0` | `#1b2620` | Fundo da lente marcada e da etiqueta "ativa" |
 | `--link` | `#3f6b55` | `#a9d2bc` | Texto de ação (nomes de municípios, "ativa") |
 | `--foco` | `#3f6b55` | `#6ee7b7` | Contorno de foco (3 px), verde da interface; no escuro, verde-menta para contrastar com as superfícies verdes (issue #71) |
 | `--selecao-linha` | `#3f6b55` | `#6ee7b7` | Barra da linha selecionada e realce de passagem nas listas (issue #71) |
 | `--selecao-amostra` | `#1d4ed8` | `#93c5fd` | Amostra da seleção do mapa na legenda (o mapa continua azul) |
-| `--linha-selecionada` | `#e3efe8` | `#244a33` | Linha selecionada da "Lista de focos" e da tabela |
+| `--linha-selecionada` | `#e3efe8` | `#1f3a2b` | Linha selecionada da "Lista de focos" e da tabela |
 | `--erro` | `#9b1c1c` | `#fca5a5` | Erro de campo |
 | `--aviso-fundo` / `--aviso-borda` / `--aviso-texto` | `#fff6df` / `#8f6400` / `#4a3400` | `#3a2c0c` / `#d9a43a` / `#fde8b3` | Estados e frase destacada do rodapé |
 | `--classe-lacuna` | `#8a1c1c` | `#fca5a5` | Disponibilidade: lacuna conhecida (borda contínua) |
@@ -46,7 +46,7 @@ A tela abre sempre no tema claro (`:root`); o botão da lua define `data-tema="e
 
 Iguais nos dois temas, porque o mapa tem fundo próprio escuro: `--mapa-fundo` `#152e27`, `--deteccao` `#f97316`, `--selecao-mapa` `#93c5fd`, `--limite` `#6f9a88`, `--destaque` `#fde68a` e as áreas protegidas `--area-integral` `#86efac`, `--area-sustentavel` `#c4b5fd`, `--area-indigena` `#f9a8d4` (as mesmas constantes de `src/mapa.ts`; cada classe também tem traço e hachura próprios).
 
-**Ajustes em relação à V13** (decididos pelo responsável, só para cumprir o contraste mínimo): no tema claro, `--escolha` `#5a8a71` → `#4f7c65` (texto branco 3,96 → 4,77:1), `--aviso-borda` `#a0700d` → `#8f6400` (4,36 → 5,26:1) e a borda dos campos `#d9e0d5` → `--contorno` `#7f9086` (1,35 → 3,37:1); no escuro, a borda dos campos usa `#6c8578`.
+**Ajustes em relação à V13** (decididos pelo responsável, só para cumprir o contraste mínimo): no tema claro, `--escolha` `#5a8a71` → `#4f7c65` (texto branco 3,96 → 4,77:1), `--aviso-borda` `#a0700d` → `#8f6400` (4,36 → 5,26:1) e a borda dos campos `#d9e0d5` → `--contorno` `#7f9086` (1,35 → 3,37:1); no escuro, a borda dos campos usa `#6e6e6e`. **Tema escuro em preto** (issue #71, decisão do responsável): fundo, superfícies, textos e bordas neutros, de preto a cinza; escolha, link, foco, avisos, mapa e camadas mantêm as cores do sistema.
 
 Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície em que aparece; pistas de controles, foco, estados, gráficos e camadas do mapa ≥ 3:1.
 
@@ -70,8 +70,8 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Seção recolhível:** `<details>` com título clicável sem seleção de texto e "+"/"−" à direita; a etiqueta "ativa" aparece na seção da lente marcada; fechada, nenhuma seção mostra resumo no título (issue #71).
 - **Campo:** seletor e data com borda de 1 px `--contorno`; o período usa um seletor ("Janela inteira", "Últimos 6 meses", "Últimos 3 meses", "Último mês", "Intervalo personalizado…") e o resumo "dd/mm/aaaa a dd/mm/aaaa · N dias GMT".
 - **Opção de lente:** cartão com o nome, a pergunta que responde e a descrição; marcada com fundo `--escolha-suave` e barra à esquerda; a combinação tem borda tracejada; classes e lentes a combinar aparecem dentro do cartão marcado.
-- **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (ferramentas no alto à esquerda, cada uma em pílula própria com ícone e texto em peso 600, como "Camadas": "⛶ Enquadrar os dados" e "☰ Lista de focos"; "Camadas" recolhível e o botão de ampliar no alto à direita, "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita). No celular, as ferramentas descem para a linha abaixo de "Camadas". O painel "Camadas" aberto fica por cima da legenda, e a legenda aberta, por cima da atribuição. A "Legenda" lista tudo o que está desenhado no mapa: com a camada de áreas protegidas ligada, as três classes com a amostra de traço e hachura (issue #71). A atribuição fica à direita, sem passar por baixo do botão "Legenda".
-- **Mapa-base (ADR-010):** no início das ferramentas, numa pílula própria, os botões de alternância "Satélite" e "Sem fundo" da V13 (o marcado em `--escolha`); "Ruas" não existe. Com chave, "Satélite" é o padrão; sem chave, fica `aria-disabled`, riscado, com o aviso "Satélite indisponível: mapa-base não configurado neste ambiente." numa caixa de aviso logo abaixo do mapa, e "Sem fundo" é o padrão. Falha da imagem volta a "Sem fundo" com "Fundo de satélite indisponível agora."; falha só dos nomes tira os nomes e mantém a imagem, com "Nomes sobre o satélite indisponíveis agora; a imagem continua.". A atribuição da Esri fica no controle do Leaflet enquanto o fundo estiver ligado.
+- **Mapa:** cartão sem moldura extra, com controles flutuantes translúcidos (no alto à direita, lado a lado, os painéis recolhíveis "⚙ Mapa" e "☷ Camadas" e o botão de ampliar; aberto, cada painel desce como menu ancorado à direita, um por vez. "Mapa" reúne o fundo — "Satélite" e "Sem fundo", escolha única com ○/● —, "Lista de focos" e, em tela de toque, "Mover o mapa com um dedo", que ligam e desligam com ☐/☑, e a ação "⛶ Enquadrar os dados" (issue #71); "Legenda" recolhível embaixo à esquerda, zoom embaixo à direita). O painel "Camadas" aberto fica por cima da legenda, e a legenda aberta, por cima da atribuição. A "Legenda" lista tudo o que está desenhado no mapa: com a camada de áreas protegidas ligada, as três classes com a amostra de traço e hachura (issue #71). A atribuição fica à direita, sem passar por baixo do botão "Legenda".
+- **Mapa-base (ADR-010):** no painel "Mapa", as opções "Satélite" e "Sem fundo" (a marcada com ● em `--escolha` e peso 600); "Ruas" não existe. Com chave, "Satélite" é o padrão; sem chave, fica `aria-disabled`, riscado, com o aviso "Satélite indisponível: mapa-base não configurado neste ambiente." numa caixa de aviso logo abaixo do mapa, e "Sem fundo" é o padrão. Falha da imagem volta a "Sem fundo" com "Fundo de satélite indisponível agora."; falha só dos nomes tira os nomes e mantém a imagem, com "Nomes sobre o satélite indisponíveis agora; a imagem continua.". A atribuição da Esri fica no controle do Leaflet enquanto o fundo estiver ligado.
 - **Camadas:** caixas "Limites municipais (IBGE)" (ligada), "Áreas protegidas", "Detecções individuais" (ligada) e "Densidade por célula"; alvo de 44 px por linha.
 - **Mapa ampliado:** ícone de setas (ampliar/reduzir) com `aria-pressed` e rótulo "Ampliar mapa"/"Reduzir mapa"; as colunas laterais saem; no computador, o mapa ocupa a largura e a altura da área de conteúdo, e abaixo dele ficam só o aviso do fundo e a "Lista de focos", quando abertos (issue #71).
 - **Série:** barras da V13 (valor na mensal, coluna `--barra` e rótulo em dia ou mês GMT); mês parcial com `*` e coluna hachurada; nota da unidade acima e legenda com o total e a nota de mês parcial abaixo; tabela recolhível como alternativa.
@@ -80,7 +80,7 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Lista de destaques:** resumo da lente (bloco com barra `--escolha` à esquerda, nome, quantidade em número grande e o recorte), itens como botões de linha inteira (alvo ≥ 44 px), o aberto marcado com barra `--escolha`; a concentração traz a ressalva de contagem absoluta em caixa de aviso. Sem lente, estado vazio com o ícone de satélite.
 - **Explicação:** "← Voltar aos destaques" (botão de texto em `--link`), título "Por que esta célula?" ou "Por que este município?", ficha em duas colunas (uma no celular), um bloco por critério com barra `--escolha` (lilás-rosa `--area-indigena` na sobreposição), caixa "Ressalvas" nas cores de aviso, as detecções que sustentam o destaque num bloco recolhível e metadados ao fim, separados por linha.
 - **Aba Municípios:** pílulas de ordenação ("Detecções", "Destaques da lente", "Nome"; a marcada em `--texto` sobre `--fundo`), lista com posição, nome, detalhe, barra `--barra` proporcional e número; com município escolhido, cartão com barra `--escolha` à esquerda e "Ver todo Mato Grosso".
-- **Lista de focos:** cartão abaixo do mapa, aberto pelo botão "Lista de focos" das ferramentas do mapa; cada linha é um botão com dia e hora GMT, município, coordenadas e identificador; a linha selecionada usa `--linha-selecionada` e barra `--selecao-linha`.
+- **Lista de focos:** cartão abaixo do mapa, aberto pela opção "Lista de focos" do painel "Mapa"; cada linha é um botão com dia e hora GMT, município, coordenadas e identificador; a linha selecionada usa `--linha-selecionada` e barra `--selecao-linha`.
 - **Balão do ponto:** balão do Leaflet com todos os registros da mesma coordenada e a frase de domínio.
 - **Diálogo:** `<dialog>` modal nativo, raio de 14 px; "Como ler esta tela" em quatro passos numerados com "Entendi"; "Sobre os dados" com a proveniência completa e "Fechar".
 - **Rodapé de domínio:** fixo no fim da tela, com a primeira frase em destaque (`--aviso-borda`); no celular, só a primeira frase.

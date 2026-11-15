@@ -2,7 +2,7 @@
 
 > **Ciclo:** `—`
 > **Trilha:** `curta`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Em andamento`
 > **Tipo:** `fix`
 > **Issue:** `#71`
 > **Plano:** `—`
@@ -108,6 +108,14 @@ Referência: `_project/backlog.md` no commit `5236251` (main, publicado pela PR 
 - **Itens conferidos:** diff da rodada, cobertura dos bloqueadores e escopo autorizado. Typecheck, 193 testes de interface, 55 testes de governança e `git diff --check` passaram. A reexecução do E2E ficou impedida pela porta 5173 ocupada. Os 110 testes E2E aprovados são evidência registrada pelo autor.
 - **Veredito:** `APTO PARA APROVAÇÃO`. Nenhum achado novo.
 
+#### Ajustes pedidos pelo responsável depois da rodada 2
+
+O responsável testou localmente e pediu dois ajustes (2026-11-15):
+
+- **Painel "Mapa":** as quatro pílulas no alto do mapa ocupavam espaço demais, sobretudo no celular. Satélite, Sem fundo, Lista de focos, Enquadrar os dados e, no toque, Mover o mapa com um dedo foram para um painel recolhível "⚙ Mapa", ao lado de "Camadas" e no mesmo estilo. Os painéis abrem como menu, um por vez, sem sair da tela a 320 px com texto a 200%. Nome escolhido: "Mapa", o que o usuário faz com o mapa em si, ao lado do que aparece nele ("Camadas").
+- **Tema escuro em preto:** fundo `#000000`, superfícies `#121212` e `#1e1e1e`, textos e bordas neutros. As cores de escolha, link, foco, aviso, mapa e camadas foram mantidas. Contraste conferido em `contraste.test.mjs`.
+- **Validação:** typecheck e build sem erros; `test:interface` 193/193; `test:e2e` 110/110; validador com 0 erros; `git diff --check` sem achados. Esses ajustes mudam o diff depois do veredito apto e precisam de uma nova rodada de revisão.
+
 ## Decisões incidentais e desvios
 
 - **Sem testes de carga**, por decisão anterior do responsável.
@@ -123,10 +131,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — correção da issue #71
-Quem: Responsável
-Conferir: Checks e diff da [PR #72](https://github.com/EuThiagoAndrade/rastro-quente/pull/72)
-Diga: "aprovo o merge da PR #72"
+Situação: Aguardando revisão (rodada 3) — correção da issue #71
+Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
+Conferir: —
+Diga: "revise a correção da issue #71"
 ```
 
 ## Handoff de saída
@@ -137,4 +145,4 @@ Diga: "aprovo o merge da PR #72"
 - `state_before` / `state_after`: correção apta na rodada 2, sem commit / branch `fix/issue-71` publicada e PR #72 aberta
 - `result`: `executed`
 - `evidence`: PR #72; validações em "Evidências"; revisão em "Revisão da correção"
-- `blockers`: checks remotos e aprovação do merge
+- `blockers`: revisão da rodada 3 (ajustes do painel "Mapa" e do tema escuro), checks remotos e aprovação do merge

@@ -2,7 +2,7 @@
 // Fixtures fictícias; capturas de trabalho ficam em test-results/ (ignorado pelo Git), nunca versionadas.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirListaFocos, abrirSecao, consultar, entrar, escolherLente, selecionarFoco } from './ajuda.mjs';
+import { abrirListaFocos, abrirOpcoesMapa, abrirSecao, consultar, entrar, escolherLente, selecionarFoco } from './ajuda.mjs';
 
 test.beforeAll(() => cadastrarRp());
 
@@ -268,6 +268,7 @@ test.describe('tela de toque', () => {
 
   test('um dedo rola a página; o mapa só arrasta quando o usuário ativa', async ({ page }) => {
     await entrar(page, 'rp');
+    await abrirOpcoesMapa(page, true);
     const botao = page.locator('#botao-arrastar');
     await expect(botao).toBeVisible();
     await expect(botao).toHaveAttribute('aria-pressed', 'false');

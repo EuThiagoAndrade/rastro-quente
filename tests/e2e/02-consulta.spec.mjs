@@ -2,7 +2,7 @@
 // disponibilidade D1, texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirBalao, abrirListaFocos, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
+import { abrirBalao, abrirListaFocos, abrirOpcoesMapa, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
 import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
@@ -104,6 +104,7 @@ test('T7: todos os pontos do recorte no mapa e a "Lista de focos" paginada, por 
   await expect(page.locator('#mapa canvas').first()).toBeVisible();
   expect(rest.filter((r) => r.includes('consultar_deteccoes'))).toHaveLength(1);
   const antes = rest.length;
+  await abrirOpcoesMapa(page);
   await page.locator('#botao-lista-focos').focus();
   await page.keyboard.press('Enter');
   await expect(page.locator('#lista-focos')).toBeVisible();
