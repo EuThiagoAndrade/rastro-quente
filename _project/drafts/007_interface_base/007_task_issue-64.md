@@ -2,12 +2,12 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#64`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-64`
-> **PR:** —
+> **PR:** [#69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #64" em 2026-11-15
 > **Modo contínuo:** `—`
@@ -64,7 +64,7 @@ Não se aplica.
 | `npm run test:interface` | 186/186 (inclui `fundo.test.mjs` e o bundle com a CSP de dois hosts e a varredura de chave) |
 | `npm run test:e2e` | 101/101, com `10-mapa-base` (sem chave; valor fictício com tiles simulados, erro 403, `referrerpolicy`, atribuição, interrupção ao desligar e `maxZoom` 14/13). Na primeira rodada, o aviso dentro da barra do mapa cortava o cartão em 320 px a 200% e cobria o ponto tocado em dois testes do balão; o aviso foi para baixo do mapa e o seletor passou a quebrar linha |
 | `node --test scripts/validate-governance.test.mjs` / `node scripts/validate-governance.mjs` / `git diff --check` | 55/55; 0 erros; sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Pendente (PR #69) |
 | Verificação em produção | Pendente (depende da ação externa e de autorização própria) |
 
 ## Revisão da correção
@@ -104,8 +104,8 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 007 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR da issue #64
-Diga: "aprovo o merge da PR #N"
+Conferir: Checks e diff da [PR #69](https://github.com/EuThiagoAndrade/rastro-quente/pull/69)
+Diga: "aprovo o merge da PR #69"
 ```
 
 ## Handoff de saída
@@ -113,7 +113,7 @@ Diga: "aprovo o merge da PR #N"
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 007 + implementar_issue + 64 + 602d5d3`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: issue #64 aberta, item 4 integrado / em andamento
-- `result`: pendente
-- `evidence`: pendente
-- `blockers`: gates finais
+- `state_before` / `state_after`: issue #64 aberta, item 4 integrado / branch `feature/issue-64` publicada e PR #69 aberta
+- `result`: `executed`
+- `evidence`: PR #69; validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge; depois do merge, ação externa do responsável e verificação em produção
