@@ -2,12 +2,12 @@
 
 > **Ciclo:** `007`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#62`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-62`
-> **PR:** `—`
+> **PR:** [#67](https://github.com/EuThiagoAndrade/rastro-quente/pull/67)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #62" em 2026-11-14
 > **Modo contínuo:** `—`
@@ -58,7 +58,7 @@ Não se aplica.
 - [x] E2E de limites, densidade, série e mapa ampliado; E2E de áreas adaptados ao menu "Camadas".
 - [x] ADR-009 completado e aceito; ADR-007 com status atualizado; `DESIGN.md` atualizado.
 - [x] E2E inteiro e gates finais (sem medições nem conferências com a carga real, por decisão do responsável).
-- [ ] PR aberta.
+- [x] PR [#67](https://github.com/EuThiagoAndrade/rastro-quente/pull/67) aberta; checks remotos e merge pendentes.
 
 ## Evidências
 
@@ -96,18 +96,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 007 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 007"
+Situação: Aguardando merge — ciclo 007 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #67](https://github.com/EuThiagoAndrade/rastro-quente/pull/67)
+Diga: "aprovo o merge da PR #67"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 007 + implementar_issue + 62 + 650bbc7`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #62 aberta, item 2 integrado / branch `feature/issue-62` com a implementação local
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #62 aberta, item 2 integrado / branch `feature/issue-62` publicada e PR #67 aberta
 - `result`: `executed`
-- `evidence`: validações em "Evidências"
-- `blockers`: E2E inteiro e PR pendentes
+- `evidence`: PR #67; validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge
