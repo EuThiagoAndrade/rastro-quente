@@ -7,7 +7,7 @@
 > **Issue:** `#63`
 > **Plano:** `_project/drafts/007_interface_base/007_plan.md`
 > **Branch:** `feature/issue-63`
-> **PR:** `—`
+> **PR:** [#68](https://github.com/EuThiagoAndrade/rastro-quente/pull/68)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #63" em 2026-11-15
 > **Modo contínuo:** `—`
@@ -66,7 +66,7 @@ Não se aplica.
 | M3 e M6 (T14) | Não executadas (decisão do responsável) |
 | `conferir:lentes` / `conferir:combinacao` / `conferir:sobreposicao` (estadual e municipal) | Não executadas e não estendidas ao recorte municipal (decisão do responsável) |
 | `node --test scripts/validate-governance.test.mjs` / `node scripts/validate-governance.mjs` / `git diff --check` | 55/55; 0 erros; sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Pendente (PR #68) |
 
 ## Revisão da correção
 
@@ -87,18 +87,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Em execução — ciclo 007 (completo)
-Quem: Agente
-Conferir: Gates finais e abertura da PR da issue #63
-Diga: —
+Situação: Aguardando merge — ciclo 007 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #68](https://github.com/EuThiagoAndrade/rastro-quente/pull/68)
+Diga: "aprovo o merge da PR #68"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 007 + implementar_issue + 63 + 604333e`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #63 aberta, item 3 integrado / branch `feature/issue-63` com a implementação local
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #63 aberta, item 3 integrado / branch `feature/issue-63` publicada e PR #68 aberta
 - `result`: `executed`
-- `evidence`: validações em "Evidências"
-- `blockers`: gates finais
+- `evidence`: PR #68; validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge
