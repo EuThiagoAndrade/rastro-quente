@@ -1,28 +1,49 @@
 <!doctype html>
-<html lang="pt-BR">
+<html lang="pt-BR" data-tema="claro">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="referrer" content="no-referrer" />
     <title>Rastro Quente — consulta territorial</title>
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
   </head>
   <body>
     <a class="pular" href="#principal">Ir para o conteúdo</a>
 
     <header class="topo">
-      <div class="topo__marca">
-        <h1 class="topo__titulo">Rastro Quente</h1>
-        <p class="topo__subtitulo">Consulta territorial de detecções de calor</p>
+      <div class="marca">
+        <div class="marca__icone">
+          <svg viewBox="0 0 48 48" width="48" height="48" role="img" aria-label="Rastro Quente">
+            <defs>
+              <linearGradient id="ic-fundo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2b5541" /><stop offset="1" stop-color="#1b3a2b" /></linearGradient>
+              <linearGradient id="ic-chama" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fdba74" /><stop offset=".55" stop-color="#f97316" /><stop offset="1" stop-color="#ea580c" /></linearGradient>
+            </defs>
+            <rect width="48" height="48" rx="13" fill="url(#ic-fundo)" />
+            <path d="M13 2c2 6-3 6-1 10 2-1 3-3 3-4 7 6 4 14-3 14-8 0-11-8-6-13 0 3 2 4 2 4-2-5 3-6 5-11Z" fill="url(#ic-chama)" transform="translate(6 5) scale(1.5)" />
+            <path d="M13 2c2 6-3 6-1 10 2-1 3-3 3-4 7 6 4 14-3 14-8 0-11-8-6-13 0 3 2 4 2 4-2-5 3-6 5-11Z" fill="#fef3c7" transform="translate(17.4 24.6) scale(.55)" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="topo__titulo">Rastro Quente</h1>
+          <p class="marca__frase">Um território. Muitos sinais.</p>
+        </div>
       </div>
-      <ul id="topo-chips" class="chips" aria-label="Origem dos dados" hidden></ul>
+      <ul id="topo-chips" class="topo__info" aria-label="Origem dos dados" hidden></ul>
       <div class="topo__acoes">
-        <button id="botao-sobre" type="button" class="botao botao--secundario" aria-haspopup="dialog" hidden>Sobre os dados</button>
-        <button id="botao-como-ler" type="button" class="botao botao--secundario" aria-haspopup="dialog" hidden>Como ler esta tela</button>
-        <button id="botao-tema" type="button" class="botao botao--secundario" aria-pressed="false">Tema escuro</button>
+        <button id="botao-sobre" type="button" class="icone-botao" aria-haspopup="dialog" aria-label="Sobre os dados" title="Sobre os dados" hidden>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5" /><path d="M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6" /></svg>
+        </button>
+        <button id="botao-como-ler" type="button" class="icone-botao" aria-haspopup="dialog" aria-label="Como ler esta tela" title="Como ler esta tela" hidden>
+          <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10" /><path d="M9.1 9a3 3 0 0 1 5.8 1c0 2-3 2.5-3 4.5" /><circle cx="12" cy="17.6" r=".6" fill="currentColor" /></svg>
+        </button>
+        <button id="botao-tema" type="button" class="icone-botao" aria-pressed="false" aria-label="Usar tema escuro" title="Usar tema escuro">
+          <svg class="ic-lua" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8Z" /></svg>
+          <svg class="ic-sol" viewBox="0 0 24 24" width="22" height="22" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+        </button>
       </div>
       <div class="topo__sessao">
         <p id="sessao-estado" class="topo__estado" role="status">Verificando sessão…</p>
-        <button id="botao-sair" type="button" class="botao botao--secundario" hidden>Sair</button>
+        <button id="botao-sair" type="button" class="botao" hidden>Sair</button>
       </div>
     </header>
 
@@ -38,105 +59,91 @@
         <div id="acesso-corpo"></div>
       </section>
 
-      <div id="conteudo" class="painel" data-estado-painel="carregando" hidden>
-        <aside id="filtros" class="painel__filtros coluna" aria-labelledby="t-filtros">
-          <div class="coluna__cabeca">
-            <h2 id="t-filtros" class="coluna__titulo">Filtros</h2>
-            <button id="botao-limpar" type="button" class="botao botao--texto">Limpar tudo</button>
+      <div id="conteudo" class="grade" data-estado-painel="carregando" hidden>
+        <!-- Esquerda: a pergunta (filtros e lentes). -->
+        <section id="filtros" class="coluna coluna--lentes" aria-labelledby="t-filtros">
+          <div class="cabeca-coluna">
+            <h2 id="t-filtros" class="rotulo-secao">Filtros</h2>
+            <button id="botao-limpar" type="button" class="botao-limpar" title="Volta período, município e lente ao padrão" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
+            </button>
           </div>
-          <p id="filtros-escopo" class="ajuda"></p>
 
           <details id="secao-consulta" class="secao" open>
-            <summary class="secao__titulo"><span>Consulta</span> <span id="consulta-aplicada" class="secao__resumo"></span></summary>
-            <div class="secao__corpo">
-              <form id="form-consulta" novalidate>
-                <fieldset class="grupo-atalhos">
-                  <legend>Período</legend>
-                  <div class="chips-escolha">
-                    <button id="botao-janela" type="button" class="chip-escolha" data-atalho="janela" aria-pressed="false">Janela inteira</button>
-                    <button type="button" class="chip-escolha" data-atalho="30" aria-pressed="false">Últimos 30 dias</button>
-                    <button type="button" class="chip-escolha" data-atalho="7" aria-pressed="false">Últimos 7 dias</button>
-                  </div>
-                </fieldset>
-                <div class="campos campos--periodo">
-                  <div class="campo">
-                    <label for="f-inicio">Início (dia GMT)</label>
-                    <input id="f-inicio" type="date" required aria-describedby="f-ajuda f-erro" />
-                  </div>
-                  <div class="campo">
-                    <label for="f-fim">Fim (dia GMT, inclusivo)</label>
-                    <input id="f-fim" type="date" required aria-describedby="f-ajuda f-erro" />
-                  </div>
-                </div>
-                <p id="f-ajuda" class="ajuda"></p>
-                <p id="f-erro" class="erro" role="alert" hidden></p>
-                <p id="f-mostrando" class="aviso-estado" role="status" hidden></p>
-                <div class="campo">
-                  <label for="f-municipio">Município</label>
-                  <select id="f-municipio"></select>
-                </div>
-              </form>
-            </div>
+            <summary><span>Consulta</span> <span id="consulta-aplicada" class="secao__resumo"></span></summary>
+            <form id="form-consulta" novalidate>
+              <label class="rotulo-secao" for="f-periodo">Período (dia GMT)</label>
+              <select id="f-periodo" class="campo-periodo">
+                <option value="ano">Janela inteira</option>
+                <option value="u6">Últimos 6 meses</option>
+                <option value="u3">Últimos 3 meses</option>
+                <option value="u1">Último mês</option>
+                <option value="personalizado">Intervalo personalizado…</option>
+              </select>
+              <div id="intervalo" class="intervalo" hidden>
+                <label for="f-inicio">Início <input id="f-inicio" type="date" required aria-describedby="f-ajuda f-erro" /></label>
+                <label for="f-fim">Fim (inclusivo) <input id="f-fim" type="date" required aria-describedby="f-ajuda f-erro" /></label>
+                <p id="f-ajuda" class="nota"></p>
+              </div>
+              <p id="periodo-resumo" class="nota"></p>
+              <p id="f-erro" class="erro-campo" role="alert" hidden></p>
+              <p id="f-mostrando" class="aviso-estado" role="status" hidden></p>
+              <label class="rotulo-secao rotulo-secao--campo" for="f-municipio">Município</label>
+              <select id="f-municipio" class="campo-periodo"></select>
+              <p class="nota">Vale para o mapa, a série e os municípios. As lentes ainda usam todo Mato Grosso.</p>
+            </form>
           </details>
 
+          <input type="radio" name="l-lente" value="nenhuma" checked hidden aria-hidden="true" tabindex="-1" />
           <details id="secao-lente" class="secao" data-secao-lente>
-            <summary class="secao__titulo"><span>Lente de seleção</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
-            <div class="secao__corpo">
-              <fieldset class="grupo-lentes">
-                <legend class="so-leitor">Lente de seleção</legend>
-                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="nenhuma" checked />
-                  <span><span class="opcao__nome">Nenhuma lente</span></span></label>
-                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="concentracao" />
-                  <span><span class="opcao__nome">Concentração</span> <span class="opcao__pergunta">Quais municípios somam mais detecções no período? Ordena por contagem, não por prioridade.</span></span></label>
-                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="recorrencia" />
-                  <span><span class="opcao__nome">Recorrência</span> <span class="opcao__pergunta">Onde as detecções voltam? Células de 0,05° com detecções em 3 ou mais meses.</span></span></label>
-                <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="persistencia" />
-                  <span><span class="opcao__nome">Persistência</span> <span class="opcao__pergunta">Onde as detecções seguem por dias? Células de 0,05° com detecções em 3 ou mais dias seguidos.</span></span></label>
+            <summary>Lente de seleção <span class="marca-ativa">ativa</span></summary>
+            <p id="filtros-escopo" class="escopo-lente"></p>
+            <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="concentracao" /> Concentração</span>
+              <span class="pergunta">Onde há mais focos acumulados?</span>
+              <span class="descricao">Soma os focos de cada município e destaca os 10 com mais registros, com os empatados no 10º lugar. É contagem, não prioridade.</span></label>
+            <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="recorrencia" /> Recorrência</span>
+              <span class="pergunta">Onde os focos voltam mês após mês no mesmo lugar?</span>
+              <span class="descricao">Quadrados de 0,05° (cerca de 5,5 km) com focos em 3 meses diferentes ou mais.</span></label>
+            <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="persistencia" /> Persistência</span>
+              <span class="pergunta">Onde os focos seguem dia após dia, sem pausa?</span>
+              <span class="descricao">Quadrados de 0,05° (cerca de 5,5 km) com focos em 3 dias seguidos ou mais.</span></label>
+          </details>
+
+          <details id="secao-contexto" class="secao" data-secao-lente>
+            <summary>Contexto territorial <span class="marca-ativa">ativa</span></summary>
+            <div class="opcao-lente">
+              <label class="linha"><input type="radio" name="l-lente" value="sobreposicao" /> Sobreposição com áreas protegidas</label>
+              <span class="pergunta">Quais focos caem dentro de áreas protegidas?</span>
+              <span class="descricao">Quadrados com focos dentro da classe de área escolhida abaixo.</span>
+              <fieldset id="lente-sobreposicao" class="sub" hidden>
+                <legend class="so-leitor">Classe de área protegida</legend>
+                <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral</label>
+                <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável</label>
+                <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
+                <p class="nota">Uma classe por vez; a ordem não indica prioridade. Estar dentro de uma área protegida não indica infração, autoria nem situação fundiária.</p>
               </fieldset>
             </div>
           </details>
 
-          <details id="secao-contexto" class="secao" data-secao-lente>
-            <summary class="secao__titulo"><span>Contexto territorial</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
-            <div class="secao__corpo">
-              <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="sobreposicao" />
-                <span><span class="opcao__nome">Sobreposição com áreas protegidas</span> <span class="opcao__pergunta">Onde há detecção dentro de área protegida de uma classe? Células de 0,05°.</span></span></label>
-              <div id="lente-sobreposicao" class="escolha-combinacao" hidden>
-                <fieldset class="grupo-opcoes">
-                  <legend>Classe de área protegida</legend>
-                  <label class="opcao"><input type="radio" name="l-classe" value="protecao_integral" /> Proteção integral (unidades de conservação)</label>
-                  <label class="opcao"><input type="radio" name="l-classe" value="uso_sustentavel" /> Uso sustentável (unidades de conservação)</label>
-                  <label class="opcao"><input type="radio" name="l-classe" value="terra_indigena" /> Terra indígena</label>
-                </fieldset>
-                <p class="ajuda">
-                  Uma classe por aplicação; a ordem das classes não indica prioridade. Estar dentro de uma área protegida orienta a
-                  avaliação técnica e não indica infração, autoria nem situação fundiária.
-                </p>
-              </div>
-            </div>
-          </details>
-
           <details id="secao-cruzar" class="secao" data-secao-lente>
-            <summary class="secao__titulo"><span>Cruzar critérios</span> <span class="etiqueta-ativa" hidden>ativa</span></summary>
-            <div class="secao__corpo">
-              <label class="opcao opcao--lente"><input type="radio" name="l-lente" value="combinacao" />
-                <span><span class="opcao__nome">Combinação de lentes</span> <span class="opcao__pergunta">Onde duas ou mais lentes apontam a mesma célula de 0,05°?</span></span></label>
-              <div id="lente-combinacao" class="escolha-combinacao" hidden>
-                <fieldset class="grupo-opcoes">
-                  <legend>Lentes a combinar</legend>
+            <summary>Cruzar critérios <span class="marca-ativa">ativa</span></summary>
+            <div class="opcao-lente opcao-lente--combinacao">
+              <label class="linha"><input type="radio" name="l-lente" value="combinacao" /> Combinação de lentes</label>
+              <span class="pergunta">Onde mais de uma lente aponta para o mesmo lugar?</span>
+              <span class="descricao">Cruza as lentes escolhidas em cada quadrado: “e” exige todas; “ou” basta uma.</span>
+              <div id="lente-combinacao" class="sub" hidden>
+                <fieldset class="sub__grupo">
+                  <legend class="so-leitor">Lentes a combinar</legend>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="concentracao" /> Concentração</label>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="recorrencia" /> Recorrência</label>
                   <label class="opcao"><input type="checkbox" name="l-comb" value="persistencia" /> Persistência</label>
                 </fieldset>
-                <fieldset class="grupo-opcoes">
-                  <legend>Operador</legend>
-                  <label class="opcao"><input type="radio" name="l-operador" value="e" checked /> e: células destacadas por todas as lentes escolhidas</label>
-                  <label class="opcao"><input type="radio" name="l-operador" value="ou" /> ou: células destacadas por pelo menos uma das lentes escolhidas</label>
+                <fieldset class="sub__grupo">
+                  <legend class="so-leitor">Operador</legend>
+                  <label class="opcao"><input type="radio" name="l-operador" value="e" checked /> e: destacada por todas</label>
+                  <label class="opcao"><input type="radio" name="l-operador" value="ou" /> ou: destacada por pelo menos uma</label>
                 </fieldset>
-                <p class="ajuda">
-                  O resultado é por célula de 0,05°, na ordem da posição da célula; não é ranking. Células destacadas por mais lentes
-                  não são mais graves nem prioritárias.
-                </p>
+                <p class="nota">Resultado por quadrado, na ordem da posição; não é ranking. Mais lentes não significa mais grave.</p>
               </div>
             </div>
           </details>
@@ -144,104 +151,99 @@
           <div class="acoes acoes--lente">
             <button id="botao-lente" type="button" class="botao botao--primario">Aplicar lente</button>
           </div>
-          <p id="lente-validacao" class="erro" role="alert" hidden></p>
+          <p id="lente-validacao" class="erro-campo" role="alert" hidden></p>
           <p id="lente-aviso-config" class="aviso-estado" role="status" hidden>A configuração escolhida mudou; aplique de novo para atualizar.</p>
-        </aside>
-
-        <section class="painel__mapa bloco-painel" aria-labelledby="t-mapa">
-          <div id="estado-consulta" role="status"></div>
-          <h2 id="t-mapa" class="bloco-painel__titulo">Mapa</h2>
-          <div class="ferramentas-mapa">
-            <button id="botao-limites" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar limites municipais</button>
-            <button id="botao-arrastar" type="button" class="botao botao--secundario" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
-            <button id="botao-enquadrar" type="button" class="botao botao--secundario">Enquadrar os dados</button>
-            <button id="botao-areas" type="button" class="botao botao--secundario" aria-pressed="false">Mostrar áreas protegidas</button>
-          </div>
-          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A tabela de registros é a alternativa em texto." tabindex="-1"></div>
-          <p id="mapa-contagem" class="ajuda" role="status"></p>
-          <p id="mapa-selecao" class="selecao" role="status"></p>
-          <ul class="legenda" aria-label="Legenda do mapa">
-            <li><span class="legenda__amostra legenda__amostra--deteccao" aria-hidden="true"></span> Detecção AQUA_M-T</li>
-            <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
-            <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Seleção (contorno tracejado azul claro)</li>
-            <li><span class="legenda__amostra legenda__amostra--destaque" aria-hidden="true"></span> Destaque da lente (contorno amarelo claro; a lista da lente é a alternativa em texto)</li>
-          </ul>
-          <p id="mapa-aviso" class="ajuda" hidden></p>
-          <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>
-          <div id="mapa-areas" data-estado-areas="oculta">
-            <div id="areas-estado" role="status"></div>
-            <div id="areas-legenda" hidden></div>
-            <div id="areas-selecao" class="painel-lente" hidden></div>
-          </div>
         </section>
 
-        <section id="resultado" class="painel__resultado coluna" aria-labelledby="t-resultado">
-          <h2 id="t-resultado" class="coluna__titulo">Resultado</h2>
+        <!-- Centro: onde (mapa). -->
+        <section class="mapa-cartao" aria-labelledby="t-mapa">
+          <h2 id="t-mapa" class="so-leitor">Mapa</h2>
+          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A tabela de registros é a alternativa em texto." tabindex="-1"></div>
+          <div class="flutuante flutuante--ferramentas ferramentas-mapa" role="group" aria-label="Ferramentas do mapa">
+            <button id="botao-limites" type="button" aria-pressed="false">Mostrar limites municipais</button>
+            <button id="botao-arrastar" type="button" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
+            <button id="botao-enquadrar" type="button">Enquadrar os dados</button>
+            <button id="botao-areas" type="button" aria-pressed="false">Mostrar áreas protegidas</button>
+          </div>
+          <details class="flutuante flutuante--legenda legenda-v13">
+            <summary><strong>Legenda</strong></summary>
+            <ul class="legenda" aria-label="Legenda do mapa">
+              <li><span class="legenda__amostra legenda__amostra--deteccao" aria-hidden="true"></span> Detecção de calor (AQUA_M-T)</li>
+              <li><span class="legenda__amostra legenda__amostra--limite" aria-hidden="true"></span> Limite municipal (discreto)</li>
+              <li><span class="legenda__amostra legenda__amostra--destaque" aria-hidden="true"></span> Destacada pela lente (contorno amarelo claro; a lista da lente é a alternativa em texto)</li>
+              <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Selecionada (tracejado azul claro)</li>
+            </ul>
+          </details>
+        </section>
+
+        <!-- Centro, abaixo do mapa: estado, série e disponibilidade (e, até o item 2, os registros). -->
+        <div class="rodape-mapa">
+          <div id="estado-consulta" role="status"></div>
+          <section class="cartao" aria-labelledby="t-no-mapa">
+            <h2 id="t-no-mapa" class="rotulo-secao">No mapa</h2>
+            <p id="mapa-contagem" class="nota" role="status"></p>
+            <p id="mapa-selecao" class="selecao" role="status"></p>
+            <p id="mapa-aviso" class="nota" hidden></p>
+            <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>
+            <div id="mapa-areas" data-estado-areas="oculta">
+              <div id="areas-estado" role="status"></div>
+              <div id="areas-legenda" hidden></div>
+              <div id="areas-selecao" class="painel-lente" hidden></div>
+            </div>
+          </section>
+          <section class="cartao" aria-labelledby="t-resumo">
+            <h2 id="t-resumo" class="rotulo-secao" tabindex="-1">Detecções no período (dias GMT)</h2>
+            <div id="resumo-corpo"></div>
+            <div id="serie-corpo"></div>
+          </section>
+          <section class="cartao disponibilidade-cartao" aria-labelledby="t-disp">
+            <h2 id="t-disp" class="rotulo-secao">Disponibilidade dos dados</h2>
+            <div id="disp-corpo"></div>
+          </section>
+          <section class="cartao" aria-labelledby="t-registros">
+            <h2 id="t-registros" class="rotulo-secao">Registros de detecção</h2>
+            <div id="registros-corpo"></div>
+          </section>
+        </div>
+
+        <!-- Direita: a resposta. -->
+        <aside id="resultado" class="coluna coluna--porque porque" aria-labelledby="t-resultado">
+          <h2 id="t-resultado" class="so-leitor">Resultado</h2>
           <section id="cartao-lentes" class="bloco-resultado" aria-labelledby="t-lentes" data-estado-lente="nenhuma">
             <h3 id="t-lentes" class="bloco-resultado__titulo">Lente</h3>
             <div id="lente-estado" role="status"></div>
             <div id="lente-corpo"></div>
           </section>
           <section class="bloco-resultado" aria-labelledby="t-municipios">
-            <h3 id="t-municipios" class="bloco-resultado__titulo">Municípios</h3>
+            <h3 id="t-municipios" class="bloco-resultado__titulo">Municípios no período</h3>
             <div id="municipios-corpo"></div>
           </section>
-        </section>
-
-        <div class="painel__detalhes">
-          <section class="bloco-painel" aria-labelledby="t-resumo">
-            <h2 id="t-resumo" class="bloco-painel__titulo" tabindex="-1">Detecções no período (dias GMT)</h2>
-            <div id="resumo-corpo"></div>
-            <div id="serie-corpo"></div>
-          </section>
-          <section class="bloco-painel" aria-labelledby="t-disp">
-            <h2 id="t-disp" class="bloco-painel__titulo">Disponibilidade dos dados</h2>
-            <div id="disp-corpo"></div>
-          </section>
-          <section class="bloco-painel" aria-labelledby="t-registros">
-            <h2 id="t-registros" class="bloco-painel__titulo">Registros de detecção</h2>
-            <div id="registros-corpo"></div>
-          </section>
-        </div>
+        </aside>
       </div>
     </main>
 
-    <footer class="rodape">
-      <ul class="rodape__frases">
-        <li>Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.</li>
-        <li>Uma lente indica onde olhar; não é ranking nem prova.</li>
-        <li>Totais em dia GMT; disponibilidade é separada da detecção.</li>
-      </ul>
+    <footer class="aviso-dominio rodape">
+      <span><strong>Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.</strong></span>
+      <span>Uma lente indica onde olhar; não é ranking nem prova.</span>
+      <span>Totais em dia GMT; disponibilidade é separada da detecção.</span>
     </footer>
 
     <dialog id="dialogo-sobre" class="dialogo" aria-labelledby="t-proveniencia">
       <div class="dialogo__cabeca">
         <h2 id="t-proveniencia" class="dialogo__titulo">Sobre os dados: versão, fontes e limitações</h2>
-        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
+        <button type="button" class="botao" data-fechar>Fechar</button>
       </div>
       <div id="proveniencia-corpo"></div>
     </dialog>
 
     <dialog id="dialogo-como-ler" class="dialogo" aria-labelledby="t-aviso">
-      <div class="dialogo__cabeca">
-        <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
-        <button type="button" class="botao botao--secundario" data-fechar>Fechar</button>
-      </div>
-      <p>
-        A tela vai da <strong>pergunta</strong> (filtros, à esquerda) ao <strong>onde</strong> (mapa e série, no centro) e à
-        <strong>resposta</strong> (resultado, à direita). O que se escolhe à esquerda vale para o mapa, a série e os municípios. As
-        lentes ainda usam todo Mato Grosso no período escolhido: o filtro de município não se aplica a elas.
-      </p>
-      <p>
-        Cada ponto é uma <strong>detecção de calor</strong> do satélite AQUA_M-T (INPE) dentro dos limites municipais do IBGE em
-        Mato Grosso. Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>, e não há
-        ranking ambiental de municípios: a lente de concentração só ordena por contagem de detecções, não por prioridade,
-        gravidade ou risco.
-      </p>
-      <p>
-        Datas, totais e séries usam <strong>dia GMT</strong>. A sensibilidade em America/Cuiaba é um campo separado, nunca
-        substitui o total principal. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.
-      </p>
+      <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
+      <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro. As lentes ainda usam todo Mato Grosso no período escolhido. O satélite e as fontes aparecem no topo.</div></div>
+      <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Os limites municipais e as áreas protegidas entram pelos botões do mapa.</div></div>
+      <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente e aplique. Os destaques ganham contorno amarelo; selecione um para ver motivo, evidência e ressalvas.</div></div>
+      <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> Os registros, a disponibilidade e a proveniência completa (no ícone de dados do topo) sustentam cada número.</div></div>
+      <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
+      <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
     </dialog>
 
     <script type="module" src="/src/main.ts"></script>

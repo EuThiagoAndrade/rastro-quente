@@ -28,12 +28,23 @@ export async function abrirSecao(page, id) {
 export async function consultar(page, { municipio, inicio, fim } = {}) {
   await abrirSecao(page, 'secao-consulta');
   if (municipio !== undefined) await page.locator('#f-municipio').selectOption(municipio === null ? '' : String(municipio));
+  // Datas só no "Intervalo personalizado…" do seletor de período (V13).
+  if ((inicio || fim) && (await page.locator('#f-periodo').inputValue()) !== 'personalizado') {
+    await page.locator('#f-periodo').selectOption('personalizado');
+  }
   if (inicio) await page.locator('#f-inicio').fill(inicio);
   if (fim) await page.locator('#f-fim').fill(fim);
 }
 
-/** Marca a lente no rádio da sua seção (Lente de seleção, Contexto territorial ou Cruzar critérios). */
+/**
+ * Marca a lente no rádio da sua seção (Lente de seleção, Contexto territorial ou Cruzar critérios). Como na V13, não há
+ * "Nenhuma lente" visível: a lente sai por "Limpar tudo" (que também volta período e município ao padrão).
+ */
 export async function escolherLente(page, valor) {
+  if (valor === 'nenhuma') {
+    await page.getByRole('button', { name: 'Limpar tudo' }).click();
+    return;
+  }
   const radio = page.locator(`input[name="l-lente"][value="${valor}"]`);
   const secao = await radio.evaluate((e) => e.closest('details')?.id);
   if (secao) await abrirSecao(page, secao);

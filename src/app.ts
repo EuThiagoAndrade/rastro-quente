@@ -196,9 +196,7 @@ class Controlador {
     // Sem botão "Consultar" (T16): período, atalhos e município se aplicam ao mudar.
     $('form-consulta').addEventListener('submit', (ev) => { ev.preventDefault(); this.aplicarFormulario(); });
     for (const id of ['f-inicio', 'f-fim', 'f-municipio']) $(id).addEventListener('change', () => this.aplicarFormulario());
-    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-atalho]')) {
-      b.addEventListener('click', () => this.aplicarAtalho(b.dataset['atalho'] as Atalho));
-    }
+    $('f-periodo').addEventListener('change', () => this.aoMudarPeriodo());
     $('botao-limpar').addEventListener('click', () => this.limparFiltros());
     $('botao-lente').addEventListener('click', () => void this.aplicarLente());
     // Escolher "Nenhuma lente" cancela a lente na hora, inclusive durante a leitura.
@@ -206,6 +204,7 @@ class Controlador {
       r.addEventListener('change', () => {
         const valor = lenteEscolhida();
         this.mostrarEscolhaLente();
+        this.atualizarLimpar();
         this.mostrarValidacaoLente(null);
         if (valor === 'nenhuma') this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
         else this.atualizarAvisoConfig();
@@ -317,6 +316,8 @@ class Controlador {
       renderAvisoMapa(prov.malhas);
       $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
       $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
+      $<HTMLSelectElement>('f-periodo').value = 'ano';
+      $('intervalo').hidden = true;
       this.aplicado = { carga: carga.id, inicio: this.dados.janela.inicio, fim: this.dados.janela.fim, municipio: null };
       this.mostrarRecorte(false);
       this.garantirMapa();
@@ -400,7 +401,29 @@ class Controlador {
 
   private mostrarRecorte(invalido: boolean): void {
     if (!this.dados || !this.aplicado) return;
-    renderRecorte(this.aplicado, this.nomeMunicipio(this.aplicado.municipio), this.dados.janela, invalido);
+    renderRecorte(this.aplicado, this.nomeMunicipio(this.aplicado.municipio), invalido);
+    this.atualizarLimpar();
+  }
+
+  /** "Limpar tudo" só fica ativo fora do padrão (janela inteira, todo o estado, nenhuma lente), como na V13. */
+  private atualizarLimpar(): void {
+    const a = this.aplicado;
+    const j = this.dados?.janela;
+    const padrao = !a || !j || (a.inicio === j.inicio && a.fim === j.fim && a.municipio === null
+      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma');
+    $<HTMLButtonElement>('botao-limpar').disabled = padrao;
+  }
+
+  /** Seletor de período (V13): atalho aplica na hora; "Intervalo personalizado" abre as datas, que aplicam ao mudar. */
+  private aoMudarPeriodo(): void {
+    const valor = $<HTMLSelectElement>('f-periodo').value;
+    const personalizado = valor === 'personalizado';
+    $('intervalo').hidden = !personalizado;
+    if (personalizado) {
+      this.aplicarFormulario();
+      return;
+    }
+    this.aplicarAtalho(valor as Atalho);
   }
 
   /**
@@ -424,6 +447,7 @@ class Controlador {
 
   private aplicarAtalho(atalho: Atalho): void {
     if (!this.dados) return;
+    $<HTMLSelectElement>('f-periodo').value = atalho;
     const p = periodoDoAtalho(atalho, this.dados.janela);
     $<HTMLInputElement>('f-inicio').value = p.inicio;
     $<HTMLInputElement>('f-fim').value = p.fim;
@@ -435,6 +459,8 @@ class Controlador {
     if (!this.dados) return;
     $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
     $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
+    $<HTMLSelectElement>('f-periodo').value = 'ano';
+    $('intervalo').hidden = true;
     $<HTMLSelectElement>('f-municipio').value = '';
     const nenhuma = document.querySelector<HTMLInputElement>('input[name="l-lente"][value="nenhuma"]');
     if (nenhuma) nenhuma.checked = true;
@@ -449,11 +475,6 @@ class Controlador {
     const valor = lenteEscolhida();
     $('lente-combinacao').hidden = valor !== 'combinacao';
     $('lente-sobreposicao').hidden = valor !== 'sobreposicao';
-    for (const secao of document.querySelectorAll<HTMLElement>('[data-secao-lente]')) {
-      const marcada = secao.querySelector<HTMLInputElement>('input[name="l-lente"]:checked');
-      const etiqueta = secao.querySelector<HTMLElement>('.etiqueta-ativa');
-      if (etiqueta) etiqueta.hidden = !marcada || marcada.value === 'nenhuma';
-    }
   }
 
   private estado(e: EstadoConsulta): void {

@@ -1,9 +1,7 @@
 /* Mapa: fundo escuro próprio (sem tiles de terceiros). Controles do Leaflet ampliados para toque
    e texto no piso de 0.875rem. A seleção usa contorno tracejado azul claro, não só cor. */
 .mapa {
-  height: clamp(18rem, 60vh, 34rem);
-  border: 2px solid var(--contorno);
-  border-radius: var(--raio-pequeno);
+  height: 100%;
   background: var(--mapa-fundo);
 }
 
@@ -15,7 +13,7 @@
 
 .mapa:focus-visible {
   outline: 3px solid var(--foco);
-  outline-offset: 2px;
+  outline-offset: -3px;
 }
 
 .ferramentas-mapa {

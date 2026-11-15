@@ -24,8 +24,10 @@ test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', 
   expect(sens).toContain('2026-11-01 04:00 GMT');
   await expect(page.getByText('Total principal — GMT')).toBeVisible();
   await expect(page.getByText('Sensibilidade — America/Cuiaba')).toBeVisible();
-  await expect(page.getByLabel('Início (dia GMT)')).toHaveValue('2026-10-01');
-  await expect(page.getByLabel('Fim (dia GMT, inclusivo)')).toHaveValue('2026-10-31');
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
+  await expect(page.locator('#periodo-resumo')).toHaveText('01/10/2026 a 31/10/2026 · 31 dias GMT');
+  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
+  await expect(page.locator('#f-fim')).toHaveValue('2026-10-31');
   // T18: total principal e sensibilidade ficam no cartão da série, no centro, acima das barras.
   const cartaoSerie = page.locator('section[aria-labelledby="t-resumo"]');
   await expect(page.getByRole('heading', { name: 'Detecções no período (dias GMT)' })).toBeVisible();
@@ -240,7 +242,7 @@ test('proveniência: versão, fontes, método e limitações', async ({ page }) 
   await page.getByRole('button', { name: 'Como ler esta tela' }).click();
   await expect(page.locator('#t-aviso')).toBeVisible();
   await expect(page.locator('#dialogo-como-ler')).toContainText('não comprovam incêndio, dano, autoria ou infração');
-  await page.locator('#dialogo-como-ler').getByRole('button', { name: 'Fechar' }).click();
+  await page.locator('#dialogo-como-ler').getByRole('button', { name: 'Entendi' }).click();
   await expect(page.locator('#botao-como-ler')).toBeFocused();
 });
 
@@ -273,36 +275,44 @@ test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a l
   await expect(page.locator('#total-principal')).toHaveText('60');
 });
 
-test('T16: atalhos aplicam na hora; resposta atrasada de recorte anterior é descartada; "Limpar tudo" volta ao padrão', async ({ page }) => {
+test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tudo" volta ao padrão', async ({ page }) => {
   await entrar(page, 'rp');
   await expect(page.getByRole('button', { name: 'Consultar' })).toHaveCount(0);
-  await expect(page.locator('#botao-janela')).toHaveAttribute('aria-pressed', 'true');
-  // Resumo do primeiro atalho retido; o segundo termina antes e vence.
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
+  await expect(page.locator('#periodo-resumo')).toHaveText('01/10/2026 a 31/10/2026 · 31 dias GMT');
+  await expect(page.locator('#intervalo')).toBeHidden();
+  await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
+  // Resumo do primeiro intervalo retido; o segundo termina antes e vence.
   let chamadas = 0;
   await page.route('**/rest/v1/rpc/consultar_resumo', async (rota) => {
     chamadas += 1;
     if (chamadas === 1) await new Promise((r) => setTimeout(r, 2000));
     await rota.continue();
   });
-  await page.getByRole('button', { name: 'Últimos 7 dias' }).click();
-  await page.getByRole('button', { name: 'Últimos 30 dias' }).click();
-  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-02');
-  await expect(page.locator('#f-fim')).toHaveValue('2026-10-31');
-  await expect(page.locator('[data-atalho="30"]')).toHaveAttribute('aria-pressed', 'true');
+  await consultar(page, { inicio: '2026-10-25' });
+  await expect(page.locator('#intervalo')).toBeVisible();
+  await consultar(page, { inicio: '2026-10-02' });
   await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
   await page.waitForTimeout(2500);
   await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
+  await expect(page.locator('#periodo-resumo')).toHaveText('02/10/2026 a 31/10/2026 · 30 dias GMT');
   await expect(page.locator('#consulta-aplicada')).toHaveText('Todo Mato Grosso · 2026-10-02 a 2026-10-31');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
+  // Atalho: "Último mês" volta ao mês inteiro do fim da janela (aqui, a janela inteira da fixture).
+  await page.locator('#f-periodo').selectOption('u1');
+  await expect(page.locator('#intervalo')).toBeHidden();
+  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
+  await expect(page.locator('#total-principal')).toHaveText('100');
 
   await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
   await escolherLente(page, 'recorrencia');
-  await expect(page.locator('#secao-lente .etiqueta-ativa')).toBeVisible();
+  await expect(page.locator('#secao-lente .marca-ativa')).toBeVisible();
   await page.getByRole('button', { name: 'Limpar tudo' }).click();
-  await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
+  await expect(page.locator('#f-periodo')).toHaveValue('ano');
   await expect(page.locator('#f-municipio')).toHaveValue('');
   await expect(page.locator('input[name="l-lente"][value="nenhuma"]')).toBeChecked();
-  await expect(page.locator('#secao-lente .etiqueta-ativa')).toBeHidden();
+  await expect(page.locator('#secao-lente .marca-ativa')).toBeHidden();
   await expect(page.locator('#total-principal')).toHaveText('100');
-  await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · Lentes: todo Mato Grosso · 2026-10-01 a 2026-10-31');
+  await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
+  await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · todo Mato Grosso · 2026-10-01 a 2026-10-31');
 });

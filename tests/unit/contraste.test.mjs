@@ -1,17 +1,17 @@
-// Contraste WCAG dos pares de cor declarados em src/estilos/tokens.css, nos temas claro e escuro (DESIGN.md, ciclo 007).
+// Contraste WCAG dos pares de cor declarados em src/estilos/tokens.css, nos temas claro e escuro (DESIGN.md, ciclo 007, referência V13).
 // Texto informativo ≥ 4,5:1; pistas de controles, estados e gráficos necessários ≥ 3:1. Cada par é uma superfície real
-// de uso. Tokens com tema usam light-dark(claro, escuro); os demais valem para os dois temas.
+// de uso.
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const css = readFileSync(path.resolve(import.meta.dirname, '../../src/estilos/tokens.css'), 'utf8');
-const TEMAS = { claro: {}, escuro: {} };
-for (const m of css.matchAll(/--([a-z0-9-]+):\s*(?:light-dark\(\s*(#[0-9a-f]{6})\s*,\s*(#[0-9a-f]{6})\s*\)|(#[0-9a-f]{6}));/gi)) {
-  TEMAS.claro[m[1]] = m[2] ?? m[4];
-  TEMAS.escuro[m[1]] = m[3] ?? m[4];
-}
+// Tema claro em :root; o escuro sobrescreve em :root[data-tema='escuro'] (referência V13).
+const bloco = (seletor) => css.slice(css.indexOf(seletor), css.indexOf('}', css.indexOf(seletor)));
+const ler = (texto) => Object.fromEntries([...texto.matchAll(/--([a-z0-9-]+):\s*(#[0-9a-f]{6});/gi)].map((m) => [m[1], m[2]]));
+const claro = ler(bloco(':root {'));
+const TEMAS = { claro, escuro: { ...claro, ...ler(bloco(":root[data-tema='escuro']")) } };
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 const lum = (hex) => {
@@ -23,7 +23,8 @@ const razao = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p);
 const TEXTO = [
   ['texto', 'superficie'], ['texto', 'fundo'], ['texto', 'superficie-suave'], ['texto', 'escolha-suave'], ['texto', 'linha-selecionada'],
   ['texto-suave', 'superficie'], ['texto-suave', 'fundo'], ['texto-suave', 'superficie-suave'],
-  ['sobre-escolha', 'escolha'], ['identidade', 'superficie'], ['escolha', 'superficie'], ['escolha', 'superficie-suave'],
+  ['sobre-escolha', 'escolha'], ['identidade', 'superficie'], ['link', 'superficie'], ['link', 'superficie-suave'], ['link', 'escolha-suave'],
+  ['aviso-borda', 'superficie'],
   ['erro', 'superficie'], ['aviso-texto', 'aviso-fundo'],
   ['classe-lacuna', 'superficie'], ['classe-indeterminada', 'superficie'], ['classe-sem-evidencia', 'superficie'],
 ];
@@ -31,7 +32,7 @@ const PISTAS = [
   ['contorno', 'superficie'], ['contorno', 'fundo'], ['escolha', 'superficie'], ['escolha', 'escolha-suave'],
   ['foco', 'superficie'], ['foco', 'fundo'], ['selecao-amostra', 'superficie'],
   ['selecao-mapa', 'mapa-fundo'], ['deteccao', 'mapa-fundo'], ['limite', 'mapa-fundo'], ['destaque', 'mapa-fundo'],
-  ['barra', 'superficie-suave'], ['deteccao-escura', 'superficie'], ['classe-lacuna', 'superficie'],
+  ['deteccao-escura', 'superficie'], ['classe-lacuna', 'superficie'],
   ['classe-indeterminada', 'superficie'], ['classe-sem-evidencia', 'superficie'], ['aviso-borda', 'aviso-fundo'],
   ['area-integral', 'mapa-fundo'], ['area-sustentavel', 'mapa-fundo'], ['area-indigena', 'mapa-fundo'],
 ];
@@ -52,9 +53,20 @@ for (const [tema, tokens] of Object.entries(TEMAS)) {
   }
 }
 
-test('os dois temas definem os mesmos tokens de cor', () => {
-  assert.deepEqual(Object.keys(TEMAS.claro).sort(), Object.keys(TEMAS.escuro).sort());
+test('o tema escuro redefine as cores com tema e herda as do mapa', () => {
   assert.ok(Object.keys(TEMAS.claro).length >= 30);
+  for (const k of ['fundo', 'superficie', 'texto', 'escolha', 'contorno']) assert.notEqual(TEMAS.claro[k], TEMAS.escuro[k], k);
+  for (const k of ['mapa-fundo', 'deteccao', 'destaque']) assert.equal(TEMAS.claro[k], TEMAS.escuro[k], k);
+});
+
+// Exceção decidida pelo responsável em 2026-11-14 ("mantenha o laranja da V13"): as barras da série usam o laranja da
+// detecção, abaixo de 3:1 sobre o fundo claro; a série tem a tabela "Ver a série como tabela" como alternativa em texto.
+test('barras da série: laranja da V13, igual à detecção (exceção registrada no DESIGN.md)', () => {
+  for (const t of Object.values(TEMAS)) {
+    assert.equal(t.barra, '#f97316');
+    assert.equal(t.barra, t.deteccao);
+    assert.ok(razao(t.barra, t.superficie) >= 2.5);
+  }
 });
 
 test('nenhuma cor literal fora dos tokens nas folhas de componentes e layout', () => {

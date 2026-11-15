@@ -48,8 +48,7 @@ async function combinar(page, lentes, operador = 'e') {
 }
 
 async function janela(page, inicio, fim) {
-  await page.locator('#f-inicio').fill(inicio);
-  await page.locator('#f-fim').fill(fim);
+  await consultar(page, { inicio, fim });
 }
 
 /** Segura a primeira chamada que casar com `filtro` até `soltar()`; com `resposta`, libera com ela. */

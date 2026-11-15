@@ -1,28 +1,27 @@
-// Topo (plano 007, T13 e T17): alternância de tema e diálogos nativos "Sobre os dados" e "Como ler esta tela".
-// O tema segue a preferência do sistema; a alternância vale só enquanto a página estiver aberta (nada é gravado
-// no navegador, como todo o resto da interface, ADR-007).
+// Topo (plano 007, T13; visual da referência V13): botão de tema (lua/sol) e diálogos nativos "Sobre os dados" e
+// "Como ler esta tela". A tela abre sempre no tema claro, como na V13; a troca vale só enquanto a página estiver
+// aberta (nada é gravado no navegador, ADR-007).
 
-const escuroNoSistema = (): MediaQueryList => window.matchMedia('(prefers-color-scheme: dark)');
-
-/** Tema efetivo: o escolhido na alternância ou, sem escolha, o do sistema. */
-export function temaEscuro(): boolean {
-  const escolhido = document.documentElement.dataset['tema'];
-  return escolhido ? escolhido === 'escuro' : escuroNoSistema().matches;
-}
+export const temaEscuro = (): boolean => document.documentElement.dataset['tema'] === 'escuro';
 
 export function iniciarTema(): void {
   const botao = document.getElementById('botao-tema');
   if (!botao) return;
-  const sincronizar = () => botao.setAttribute('aria-pressed', String(temaEscuro()));
+  const sincronizar = () => {
+    const escuro = temaEscuro();
+    const rotulo = escuro ? 'Usar tema claro' : 'Usar tema escuro';
+    botao.setAttribute('aria-pressed', String(escuro));
+    botao.setAttribute('aria-label', rotulo);
+    botao.title = rotulo;
+  };
   botao.addEventListener('click', () => {
     document.documentElement.dataset['tema'] = temaEscuro() ? 'claro' : 'escuro';
     sincronizar();
   });
-  escuroNoSistema().addEventListener('change', sincronizar);
   sincronizar();
 }
 
-/** Liga um botão a um `<dialog>` modal: abre com foco dentro e devolve o foco ao botão ao fechar (Esc ou "Fechar"). */
+/** Liga um botão a um `<dialog>` modal: abre com foco dentro e devolve o foco ao botão ao fechar (Esc ou botão). */
 export function ligarDialogo(botaoId: string, dialogoId: string): void {
   const botao = document.getElementById(botaoId);
   const dialogo = document.getElementById(dialogoId);

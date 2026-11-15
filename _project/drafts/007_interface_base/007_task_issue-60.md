@@ -61,16 +61,16 @@ Não se aplica.
 
 | Validação | Resultado |
 | :-- | :-- |
-| `npm run typecheck` | Sem erros |
+| `npm run typecheck` | Sem erros (versão com o visual da V13) |
 | `npm run build` | Concluído |
-| `npm run test:interface` | 148/148 (inclui 78 pares de contraste nos dois temas e 3 testes do recorte aplicado) |
-| `npm run test:e2e` | Rodada completa: 85/86; a falha foi no login da fixture na spec 07 a 390 px ("E-mail ou senha incorretos" logo após a troca de senha de teste, antes de qualquer tela de dados). A spec 07 repetida isolada: 14/14. Rodada anterior completa: 85/86 com a falha de seletor ambíguo da spec 06, corrigido; spec 06 repetida: 14/14 |
-| `conferir:lentes` / `conferir:combinacao` / `conferir:sobreposicao` | Carga real local, recorte estadual: `conferido` nos três, `celulasDiferentes: 0` na combinação e na sobreposição (RC-1, T20; nenhum módulo de lente alterado) |
-| M1 (`npm run medir:lentes -- abertura`) | Dentro: mediana comprimida 2,5 s, bruta 2,9 s (5 execuções por passagem, perfil do ADR-007, carga real); limite 5 s |
+| `npm run test:interface` | 151/151 (contraste nos dois temas, com a exceção das barras registrada; recorte aplicado com os atalhos de meses da V13) |
+| `npm run test:e2e` | Versão V13: 86/86 na rodada completa. Primeira versão (antes da revisão visual): 85/86, com falha intermitente de login da fixture na spec 07, repetida isolada 14/14 |
+| `conferir:lentes` / `conferir:combinacao` / `conferir:sobreposicao` | Carga real local, recorte estadual: `conferido` nos três, `celulasDiferentes: 0` na combinação e na sobreposição (RC-1, T20). A revisão visual não tocou `src/lentes/` |
+| M1 (`npm run medir:lentes -- abertura`) | Versão V13: mediana comprimida 2,5 s, bruta 2,8 s (5 execuções por passagem, perfil do ADR-007, carga real); limite 5 s. Primeira versão: 2,5 s e 2,9 s |
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Primeira versão da PR #65: "Validate governance" verde; demais checks reexecutam com a versão V13 |
 
 ## Revisão da correção
 
@@ -85,6 +85,7 @@ Não se aplica.
 - **Larguras intermediárias.** T17 só fixa a tela estreita; de 761 px a 1.099 px a tela usa duas colunas (filtros e o resto), e três a partir de 1.100 px. Registrado no `DESIGN.md`.
 - **Tema sem persistência.** A alternância vale enquanto a página estiver aberta, para não gravar nada no navegador (ADR-007).
 - **Cabeçalho claro.** O topo passa a usar a superfície, e não o verde de identidade, para funcionar nos dois temas; o verde fica na marca.
+- **Revisão visual pelo responsável e cópia do visual da V13 (2026-11-14).** Ao ver as fotos da primeira versão da PR #65, o responsável recusou a aparência: o plano dizia "nada dele é copiado; o `DESIGN.md` é escrito do zero", e o agente tinha lido isso como "não abrir o mockup", sem perguntar. Decisão humana literal, que muda o fora do escopo do plano ("copiar código, texto ou dados do mockup privado") só quanto ao visual: "Autorizo copiar o visual da V13, sem os dados fictícios" (opção A: cores, ícones, estilos e marcação reaproveitados; dados fictícios, contagens e malha do mockup continuam fora do Git). Escopo desta PR, também decidido pelo responsável ("1 e 2 como você sugeriu"): (1) copiar a casca da V13 (topo com marca e ícones, colunas, cartões, cores, tipografia, filtros com o seletor de período, rodapé e tema pelo botão); as funções dos itens 2, 3 e 5 (abas, ordenação, série mensal, "Camadas", "Legenda", ampliar, fundo de satélite) entram com o visual da V13 quando cada item chegar, sem controle sem função na tela; (2) a tabela de registros e os botões atuais do mapa ficam, no estilo da V13, até os itens que os substituem. A faixa "DEMONSTRAÇÃO" do mockup não entra. As decisões de rádios e atalhos acima são substituídas pelo que a V13 mostra. Três dúvidas seguintes, respondidas "1, 2 e 3 como você sugeriu": (1) no tema claro, escurecer só o verde do botão principal (`#5a8a71` → `#4f7c65`, branco 3,96 → 4,77:1), a frase destacada do rodapé (`#a0700d` → `#8f6400`, 4,36 → 5,26:1) e a borda dos campos (`#d9e0d5` → `#7f9086`, 1,35 → 3,37:1; no escuro `#6c8578`), para cumprir o mínimo de contraste; (2) sem opção "Nenhuma lente" visível, como na V13: a lente sai com "Limpar tudo"; (3) a tela abre sempre no tema claro, como na V13, e o botão da lua troca para o escuro. Depois das fotos, a última dúvida: as barras da série, em laranja da V13, ficam abaixo de 3:1 no tema claro; resposta literal "mantenha o laranja da V13" (exceção registrada no `DESIGN.md` e no teste de contraste; a série tem tabela como alternativa). Dois pisos do projeto prevalecem sobre a V13 sem nova pergunta, por já serem regra: texto ≥ 0,875 rem (frase da marca no celular) e alvo de toque ≥ 44 px (opções de classe e de combinação).
 - **Registro da criação das issues.** As alterações locais de `cycles.md` e do plano feitas por `criar_issues` (issues #60 a #64 e a confirmação dos payloads) entram nesta PR, que é a primeira depois delas.
 
 ## Encerramento

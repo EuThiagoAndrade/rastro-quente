@@ -4,7 +4,7 @@ import {
   AVISO_SIMPLIFICACAO, fmtBytes, fmtDataHoraGmt, fmtDiferenca, fmtIntervaloGmt, fmtNumero, humanizar,
   ROTULO_ALCANCE, ROTULO_CLASSE, ROTULO_DIVERGENCIA,
 } from './formato.ts';
-import { atalhoDoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
+import { resumoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
 import type {
   CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, PaginaDeteccoes, Registro, Resumo,
 } from './tipos.ts';
@@ -140,14 +140,14 @@ export function renderAcesso(a: Acesso, m: ManipuladoresAcesso): void {
 
 export function renderFiltros(carga: CargaDetalhe, municipios: MunicipioItem[], janela: { inicio: string; fim: string }): void {
   const sel = $<HTMLSelectElement>('f-municipio');
-  sel.replaceChildren(h('option', { value: '' }, 'Todo o estado de Mato Grosso'),
+  sel.replaceChildren(h('option', { value: '' }, 'Todo Mato Grosso'),
     ...municipios.map((m) => h('option', { value: String(m.codigo) }, m.nome)));
   for (const id of ['f-inicio', 'f-fim']) {
     const i = $<HTMLInputElement>(id);
     i.min = janela.inicio;
     i.max = janela.fim;
   }
-  $('f-ajuda').textContent = `Datas em dias GMT. Janela da versão consultada: ${janela.inicio} a ${janela.fim} (carga ${carga.id}). Os atalhos contam a partir de ${janela.fim}. A consulta se aplica ao mudar.`;
+  $('f-ajuda').textContent = `Dias GMT, dentro da janela da versão: ${janela.inicio} a ${janela.fim} (carga ${carga.id}).`;
 }
 
 /** Chips do topo: satélite e fontes da versão (T13). Só com acesso autorizado. */
@@ -156,7 +156,7 @@ export function renderTopo(carga: CargaDetalhe, fontes: Fonte[]): void {
   if (fontes.some((f) => f.chave.startsWith('cnuc'))) nomes.push('CNUC');
   if (fontes.some((f) => f.chave.startsWith('funai'))) nomes.push('FUNAI');
   $('topo-chips').replaceChildren(
-    h('li', { class: 'chip', id: 'chip-satelite' }, `Satélite ${carga.satelite} · INPE`),
+    h('li', { class: 'chip', id: 'chip-satelite' }, 'Satélite ', h('strong', {}, carga.satelite), ' · INPE'),
     h('li', { class: 'chip', id: 'chip-fontes' }, `Fontes: ${nomes.join(' · ')}`));
 }
 
@@ -164,17 +164,14 @@ export function renderTopo(carga: CargaDetalhe, fontes: Fonte[]): void {
  * Recorte aplicado (T16) no título da seção Consulta, no escopo da coluna de filtros e nos atalhos. Com o período
  * digitado inválido, a linha "Mostrando" diz qual recorte a tela continua mostrando.
  */
-export function renderRecorte(aplicado: Janela, municipio: string | null, janela: Janela, invalido: boolean): void {
+export function renderRecorte(aplicado: Janela, municipio: string | null, invalido: boolean): void {
   $('consulta-aplicada').textContent = textoRecorte(aplicado, municipio);
+  $('periodo-resumo').textContent = resumoPeriodo(aplicado);
   // Antes do item 4 as lentes são estaduais: a coluna diz isso, sem atribuir ao município resultados do estado.
-  $('filtros-escopo').textContent = `Uma lente por vez · Lentes: todo Mato Grosso · ${textoPeriodo(aplicado)}`;
+  $('filtros-escopo').textContent = `Uma lente por vez · todo Mato Grosso · ${textoPeriodo(aplicado)}`;
   const mostrando = $('f-mostrando');
   mostrando.hidden = !invalido;
   mostrando.textContent = invalido ? `Mostrando ${textoRecorte(aplicado, municipio)}: o período digitado ainda não foi aplicado.` : '';
-  const atalho = atalhoDoPeriodo(aplicado, janela);
-  for (const b of document.querySelectorAll<HTMLButtonElement>('[data-atalho]')) {
-    b.setAttribute('aria-pressed', String(b.dataset['atalho'] === atalho));
-  }
 }
 
 export function mostrarErroFiltro(texto: string | null): void {
@@ -503,6 +500,6 @@ export function limparResultados(): void {
   for (const id of ['f-municipio']) $<HTMLSelectElement>(id).replaceChildren();
   limpar($('proveniencia-corpo'));
   limpar($('topo-chips'));
-  for (const id of ['consulta-aplicada', 'filtros-escopo', 'f-mostrando']) $(id).textContent = '';
+  for (const id of ['consulta-aplicada', 'filtros-escopo', 'f-mostrando', 'periodo-resumo']) $(id).textContent = '';
   $('f-mostrando').hidden = true;
 }

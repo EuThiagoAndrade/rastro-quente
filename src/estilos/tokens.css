@@ -1,45 +1,46 @@
-/* Tokens do contrato visual (DESIGN.md, ciclo 007). Cada cor com tema usa light-dark(claro, escuro): o tema segue a
-   preferência do sistema e a alternância do topo fixa `data-tema` na raiz, só enquanto a página estiver aberta.
-   Cores sem light-dark são as mesmas nos dois temas (mapa, detecção, áreas). Pares de texto e pistas conferidos por
-   tests/unit/contraste.test.mjs nos dois temas. */
+/* Tokens do contrato visual (DESIGN.md, ciclo 007), copiados da referência V13 aprovada pelo responsável.
+   A tela abre no tema claro (:root); o botão da lua troca `data-tema="escuro"` na raiz, só enquanto a página
+   estiver aberta. Ajustes de contraste em relação à V13, decididos pelo responsável: --escolha, --aviso-borda e
+   --contorno no tema claro e --contorno no escuro. Pares conferidos por tests/unit/contraste.test.mjs. */
 :root {
-  color-scheme: light dark;
+  color-scheme: light;
 
-  /* Superfícies, texto e linhas. */
-  --fundo: light-dark(#f4f5f1, #0f1714);
-  --superficie: light-dark(#ffffff, #17221d);
-  --superficie-suave: light-dark(#eef1ea, #1f2d27);
-  --texto: light-dark(#1f3329, #e6ede8);
-  --texto-suave: light-dark(#46594e, #b3c2b9);
-  --identidade: light-dark(#254b39, #a7d3b8);
-  --contorno: light-dark(#5b6d63, #8a9c91);
-  --contorno-suave: light-dark(#cfd6cc, #33463c);
+  /* Superfícies, texto e linhas (V13 "claro"). */
+  --fundo: #f4f6f2;
+  --superficie: #ffffff;
+  --superficie-suave: #f1f4ee;
+  --texto: #1f3529;
+  --texto-suave: #4c6155;
+  --identidade: #1f3529;
+  --contorno: #7f9086;
+  --contorno-suave: #d9e0d5;
 
-  /* Escolha (verde-sálvia): ação primária, opção marcada e foco. Nunca o azul, que é só da seleção no mapa. */
-  --escolha: light-dark(#3b6650, #9cc5ad);
-  --sobre-escolha: light-dark(#ffffff, #0f1714);
-  --escolha-suave: light-dark(#e1ebe4, #22352c);
-  --foco: light-dark(#3b6650, #9cc5ad);
+  /* Escolha (verde-sálvia), link e foco. */
+  --escolha: #4f7c65;
+  --sobre-escolha: #ffffff;
+  --escolha-suave: #edf2f0;
+  --link: #3f6b55;
+  --foco: #1d4ed8;
 
-  /* Seleção no mapa (azul): o traço do mapa e a amostra da legenda; a linha selecionada da tabela de registros. */
+  /* Seleção (azul): traço no mapa, amostra da legenda, linha selecionada. */
   --selecao-mapa: #93c5fd;
-  --selecao-amostra: light-dark(#1d4ed8, #93c5fd);
-  --linha-selecionada: light-dark(#dbeafe, #1e3a5f);
+  --selecao-amostra: #1d4ed8;
+  --linha-selecionada: #dbeafe;
 
   /* Avisos, erros e classes de disponibilidade. */
-  --erro: light-dark(#9b1c1c, #fca5a5);
-  --aviso-fundo: light-dark(#fff7e0, #2b2410);
-  --aviso-borda: light-dark(#8a5a00, #d4a72c);
-  --aviso-texto: light-dark(#4a3200, #f5e3b3);
-  --classe-lacuna: light-dark(#8a1c1c, #fca5a5);
-  --classe-indeterminada: light-dark(#6b4a00, #f3c969);
-  --classe-sem-evidencia: light-dark(#2f4a3c, #a7d3b8);
-  --barra: light-dark(#b45309, #f59e0b);
+  --erro: #9b1c1c;
+  --aviso-fundo: #fff6df;
+  --aviso-borda: #8f6400;
+  --aviso-texto: #4a3400;
+  --classe-lacuna: #8a1c1c;
+  --classe-indeterminada: #6b4a00;
+  --classe-sem-evidencia: #2f4a3c;
+  --barra: #f97316;
+  --deteccao-escura: #7c2d12;
 
   /* Mapa (fundo próprio escuro nos dois temas) e camadas. Mesmos valores das constantes de src/mapa.ts. */
   --mapa-fundo: #152e27;
   --deteccao: #f97316;
-  --deteccao-escura: light-dark(#7c2d12, #fdba74);
   --limite: #6f9a88;
   --destaque: #fde68a;
   --area-integral: #86efac;
@@ -58,10 +59,31 @@
   --espaco: 1rem;
 }
 
-:root[data-tema='claro'] {
-  color-scheme: light;
-}
-
+/* Tema escuro (V13 base). */
 :root[data-tema='escuro'] {
   color-scheme: dark;
+  --fundo: #0f1f1a;
+  --superficie: #16291f;
+  --superficie-suave: #1d3428;
+  --texto: #e7efe6;
+  --texto-suave: #a9bcae;
+  --identidade: #e7efe6;
+  --contorno: #6c8578;
+  --contorno-suave: #2c463a;
+  --escolha: #8dbba3;
+  --sobre-escolha: #10241a;
+  --escolha-suave: #22382c;
+  --link: #a9d2bc;
+  --foco: #93c5fd;
+  --selecao-amostra: #93c5fd;
+  --linha-selecionada: #1e3a5f;
+  --erro: #fca5a5;
+  --aviso-fundo: #3a2c0c;
+  --aviso-borda: #d9a43a;
+  --aviso-texto: #fde8b3;
+  --classe-lacuna: #fca5a5;
+  --classe-indeterminada: #f3c969;
+  --classe-sem-evidencia: #a7d3b8;
+  --barra: #f97316;
+  --deteccao-escura: #fdba74;
 }

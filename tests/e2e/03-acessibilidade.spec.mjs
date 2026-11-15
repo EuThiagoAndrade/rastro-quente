@@ -54,8 +54,9 @@ function auditoriaNaPagina() {
     const r = razao(sobre(fg, bg), bg);
     return r < (grande ? 3 : 4.5) ? [`${etiqueta(e)} ${r.toFixed(2)}`] : [];
   });
-  const alvos = [...document.querySelectorAll('button, input:not([type=hidden]), select, summary, a[href], .opcao')]
-    .filter((e) => visivel(e) && !e.closest('.so-leitor') && !e.matches(':disabled') && !(e.matches('input') && e.closest('.opcao')))
+  // Rádios e caixas: o alvo é o rótulo inteiro (.opcao, cartão de lente ou a linha do título dele).
+  const alvos = [...document.querySelectorAll('button, input:not([type=hidden]), select, summary, a[href], .opcao, .opcao-lente .linha')]
+    .filter((e) => visivel(e) && !e.closest('.so-leitor') && !e.matches(':disabled') && !(e.matches('input') && e.closest('.opcao, .opcao-lente')))
     .filter((e) => { const r = e.getBoundingClientRect(); return r.width < 43.9 || r.height < 43.9; })
     .map((e) => `${etiqueta(e)} ${Math.round(e.getBoundingClientRect().width)}x${Math.round(e.getBoundingClientRect().height)}`);
   const largura = window.innerWidth;
@@ -79,10 +80,10 @@ const VIEWPORTS = [[360, 780, 'light'], [390, 844, 'light'], [768, 1024, 'light'
 
 for (const [w, h, esquema] of VIEWPORTS) {
   test(`${w}×${h} (${esquema === 'dark' ? 'tema escuro' : 'tema claro'}): fontes, contraste, alvos de toque e sem rolagem horizontal global`, async ({ page }) => {
-    await page.emulateMedia({ colorScheme: esquema });
     await page.setViewportSize({ width: w, height: h });
     await entrar(page, 'rp');
-    expect(await page.evaluate(() => matchMedia('(prefers-color-scheme: dark)').matches)).toBe(esquema === 'dark');
+    // A tela abre no claro (V13); o tema escuro vem pelo botão da lua.
+    if (esquema === 'dark') await page.getByRole('button', { name: 'Usar tema escuro' }).click();
     await expect(page.locator('#botao-tema')).toHaveAttribute('aria-pressed', String(esquema === 'dark'));
     // Abre o que fica recolhido (seções dos filtros, série, municípios) e seleciona um registro.
     for (const id of ['secao-consulta', 'secao-lente', 'secao-contexto', 'secao-cruzar']) await abrirSecao(page, id);
@@ -110,15 +111,18 @@ for (const [w, h, esquema] of VIEWPORTS) {
   });
 }
 
-test('tema: segue o sistema e alterna sem gravar nada no navegador', async ({ page }) => {
-  await page.emulateMedia({ colorScheme: 'light' });
+test('tema: abre no claro, mesmo com o sistema escuro, e alterna sem gravar nada no navegador', async ({ page }) => {
+  await page.emulateMedia({ colorScheme: 'dark' });
   await entrar(page, 'rp');
   const fundo = () => page.evaluate(() => getComputedStyle(document.body).backgroundColor);
   const claro = await fundo();
-  const botao = page.getByRole('button', { name: 'Tema escuro' });
+  expect(claro).toBe('rgb(244, 246, 242)');
+  const botao = page.locator('#botao-tema');
   await expect(botao).toHaveAttribute('aria-pressed', 'false');
+  await expect(botao).toHaveAccessibleName('Usar tema escuro');
   await botao.click();
   await expect(botao).toHaveAttribute('aria-pressed', 'true');
+  await expect(botao).toHaveAccessibleName('Usar tema claro');
   await expect(page.locator('html')).toHaveAttribute('data-tema', 'escuro');
   expect(await fundo()).not.toBe(claro);
   const a = await page.evaluate(auditoriaNaPagina);
@@ -130,23 +134,21 @@ test('tema: segue o sistema e alterna sem gravar nada no navegador', async ({ pa
   expect(chaves).toEqual([]);
 });
 
-test('layout: uma coluna no celular (filtros, mapa, resultado, série); três colunas no computador', async ({ page }) => {
+test('layout (V13): uma coluna no celular (filtros, mapa, série, resultado); três colunas no computador', async ({ page }) => {
   const caixa = (sel) => page.locator(sel).evaluate((e) => { const r = e.getBoundingClientRect(); return { x: r.x, y: r.y + scrollY, w: r.width, h: r.height }; });
   await page.setViewportSize({ width: 390, height: 844 });
   await entrar(page, 'rp');
   // T17: em tela estreita as seções começam fechadas e a Consulta mostra o recorte aplicado no título.
   await expect(page.locator('#secao-consulta')).not.toHaveAttribute('open', '');
   await expect(page.locator('#secao-consulta summary')).toContainText('Todo Mato Grosso · 2026-10-01 a 2026-10-31');
-  const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.painel__mapa'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
+  const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
   expect(mapa.w).toBeGreaterThan(390 * 0.9);
   expect(filtros.y).toBeLessThan(mapa.y);
-  expect(mapa.y).toBeLessThan(resultado.y);
-  expect(resultado.y).toBeLessThan(serie.y);
-  const rodape = await caixa('.rodape');
-  expect(rodape.y).toBeGreaterThan(serie.y);
+  expect(mapa.y).toBeLessThan(serie.y);
+  expect(serie.y).toBeLessThan(resultado.y);
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  const [f2, m2, r2, s2] = [await caixa('#filtros'), await caixa('.painel__mapa'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
+  const [f2, m2, r2, s2] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
   expect(m2.x).toBeGreaterThan(f2.x + f2.w - 1);
   expect(r2.x).toBeGreaterThan(m2.x + m2.w - 1);
   expect(m2.w).toBeGreaterThan(r2.w);
@@ -188,22 +190,19 @@ test('escala de cinza: a ação primária se distingue por preenchimento e a sec
   });
   await abrirSecao(page, 'secao-consulta');
   const primario = await estilo('#botao-lente');
-  const secundario = await estilo('#botao-limites');
+  const secundario = await estilo('#botao-sair');
   const cinza = (c) => { const [r, g, b] = c.match(/\d+(\.\d+)?/g).map(Number); return 0.299 * r + 0.587 * g + 0.114 * b; };
   expect(primario.bg).not.toBe('rgba(0, 0, 0, 0)');
   expect(primario.cor).toBe('rgb(255, 255, 255)');
-  expect(secundario.bg).toBe('rgb(255, 255, 255)');
-  expect(parseFloat(secundario.borda)).toBeGreaterThanOrEqual(2);
-  // Em tons de cinza, o preenchimento do primário é bem mais escuro que a superfície do secundário.
-  expect(cinza(secundario.bg) - cinza(primario.bg)).toBeGreaterThan(120);
-  // O contorno do secundário também é bem distinto da superfície.
-  expect(cinza(secundario.bg) - cinza(secundario.bordaCor)).toBeGreaterThan(100);
+  expect(parseFloat(secundario.borda)).toBeGreaterThanOrEqual(1);
+  // Em tons de cinza, o preenchimento do primário é bem mais escuro que a superfície do secundário (V13).
+  expect(cinza(secundario.bg) - cinza(primario.bg)).toBeGreaterThan(100);
   // Captura de trabalho em cinza (não versionada).
   // Via CSSOM, não por <style> injetado: o E2E serve os cabeçalhos do deploy (CSP sem 'unsafe-inline').
   await page.evaluate(() => { document.documentElement.style.filter = 'grayscale(1)'; });
   await page.locator('#filtros').screenshot({ path: 'test-results/cinza-filtros.png' });
   await page.locator('#mapa').scrollIntoViewIfNeeded();
-  await page.locator('.painel__mapa').screenshot({ path: 'test-results/cinza-mapa.png' });
+  await page.locator('.mapa-cartao').screenshot({ path: 'test-results/cinza-mapa.png' });
 });
 
 test('foco visível e fluxo só por teclado', async ({ page }) => {
@@ -225,8 +224,8 @@ test('foco visível e fluxo só por teclado', async ({ page }) => {
     vistos.push(f.id || f.tag);
     await page.keyboard.press('Tab');
   }
-  for (const id of ['botao-sobre', 'botao-tema', 'botao-sair', 'botao-limpar', 'botao-janela', 'f-municipio']) expect(vistos).toContain(id);
-  expect(vistos.indexOf('botao-limpar')).toBeLessThan(vistos.indexOf('f-municipio'));
+  for (const id of ['botao-sobre', 'botao-como-ler', 'botao-tema', 'botao-sair', 'f-periodo', 'f-municipio']) expect(vistos).toContain(id);
+  expect(vistos.indexOf('f-periodo')).toBeLessThan(vistos.indexOf('f-municipio'));
 
   // Município por teclado: aplica ao mudar, sem botão "Consultar" (T16).
   await page.locator('#f-municipio').focus();

@@ -102,13 +102,12 @@ test('R1-1: com filtro municipal ativo (Gama, 10), a lente lê o estado (100) e 
 test('concorrência: aplicação antiga retida não aparece depois da nova (duas concentrações)', async ({ page }) => {
   await entrar(page, 'rp');
   // Primeira aplicação na janela 01–10/10, retida no resumo da lente.
-  await page.locator('#f-inicio').fill('2026-10-01');
-  await page.locator('#f-fim').fill('2026-10-10');
+  await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
   const r = await reter(page, 'consultar_resumo');
   await aplicar(page);
   await r.chegada;
   // Segunda aplicação na janela inteira, que termina antes.
-  await page.locator('#f-fim').fill('2026-10-31');
+  await consultar(page, { fim: '2026-10-31' });
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   r.soltar();
@@ -252,8 +251,8 @@ test('lente acessível: teclado e 360 px sem rolagem horizontal da página', asy
   await page.setViewportSize({ width: 360, height: 780 });
   await entrar(page, 'rp');
   await abrirSecao(page, 'secao-lente');
-  await page.locator('input[name="l-lente"][value="nenhuma"]').focus();
-  await page.keyboard.press('ArrowDown');
+  await page.locator('input[name="l-lente"][value="concentracao"]').focus();
+  await page.keyboard.press('Space');
   await expect(page.locator('input[name="l-lente"][value="concentracao"]')).toBeChecked();
   await page.locator('#botao-lente').focus();
   await page.keyboard.press('Enter');
@@ -325,8 +324,7 @@ test.describe('recorrência', () => {
 
   test('janela com bordas parciais (15/08 a 14/10) roda e marca os meses parciais (D14)', async ({ page }) => {
     await entrar(page, 'rp');
-    await page.locator('#f-inicio').fill('2026-08-15');
-    await page.locator('#f-fim').fill('2026-10-14');
+    await consultar(page, { inicio: '2026-08-15', fim: '2026-10-14' });
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([
@@ -347,8 +345,7 @@ test.describe('recorrência', () => {
 
   test('janela que toca 2 meses GMT mostra "janela insuficiente", sem destaques', async ({ page }) => {
     await entrar(page, 'rp');
-    await page.locator('#f-inicio').fill('2026-08-15');
-    await page.locator('#f-fim').fill('2026-09-30');
+    await consultar(page, { inicio: '2026-08-15', fim: '2026-09-30' });
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'janela_insuficiente');
     await expect(page.locator('#lente-estado')).toContainText('A janela toca 2 meses GMT; a recorrência exige pelo menos 3.');

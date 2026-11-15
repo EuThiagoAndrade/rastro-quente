@@ -1,213 +1,316 @@
-/* Layout (DESIGN.md › Layout). Pergunta → onde → resposta: filtros à esquerda, mapa e série no centro, resultado à
-   direita. Abaixo de 761 px, uma coluna na ordem topo, filtros, mapa, resultado, série e disponibilidade, rodapé. */
+/* Layout copiado da referência V13 (DESIGN.md › Layout): pergunta (filtros) → onde (mapa, série) → resposta (resultado).
+   Computador como vitrine (a tela inteira, colunas com rolagem própria); notebook com o resultado abaixo; celular em
+   uma coluna, na ordem filtros, mapa, série e detalhes, resultado. */
+body {
+  min-height: 100dvh;
+}
+
+/* Topo */
 .topo {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem 1rem;
-  padding: 0.75rem var(--espaco);
-  background: var(--superficie);
+  gap: 0.75rem;
+  padding: 0.65rem 1rem;
   border-bottom: 1px solid var(--contorno-suave);
+  background: var(--superficie);
 }
 
-.topo__marca {
+.marca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-right: auto;
+}
+
+.marca__icone {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  filter: drop-shadow(0 2px 4px rgb(0 0 0 / 0.2));
+}
+
+.marca__icone svg {
+  display: block;
 }
 
 .topo__titulo {
   margin: 0;
-  font-size: 1.5rem;
-  color: var(--identidade);
+  font-size: 1.35rem;
+  letter-spacing: -0.02em;
 }
 
-.topo__subtitulo {
+.marca__frase {
   margin: 0;
-  font-size: var(--t-pequeno);
-  color: var(--texto-suave);
+  font-size: 1rem;
+  color: var(--texto);
+  letter-spacing: -0.01em;
+}
+
+.topo__info {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
 .topo__acoes,
 .topo__sessao {
   display: flex;
-  flex-wrap: wrap;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.4rem;
 }
 
 .topo__estado {
   margin: 0;
   font-size: var(--t-pequeno);
-  font-weight: 600;
+  color: var(--texto-suave);
 }
 
 main {
-  max-width: 120rem;
-  margin: 0 auto;
-  padding: var(--espaco);
+  padding: 0;
 }
 
-/* Tela de acesso: só marca (no topo), aviso de domínio e entrada. */
+/* Tela de acesso (sem equivalente na V13): cartão da V13 no centro. */
 .acesso {
   max-width: 40rem;
-  margin: 1rem auto;
-  padding: 1.5rem;
+  margin: 2rem auto;
+  padding: 1.25rem;
   border: 1px solid var(--contorno-suave);
   border-radius: var(--raio);
   background: var(--superficie);
 }
 
 .acesso__titulo {
-  font-size: var(--t-titulo);
+  margin-bottom: 0.5rem;
+  font-size: 1.125rem;
 }
 
 .acesso__aviso {
-  padding-left: 0.75rem;
-  border-left: 0.25rem solid var(--identidade);
+  padding: 0.7rem 0.8rem;
+  border: 1px solid var(--aviso-borda);
+  border-radius: 10px;
+  background: var(--aviso-fundo);
+  color: var(--aviso-texto);
 }
 
-/* Painel: uma coluna no celular. */
-.painel {
+/* Grade */
+.grade {
   display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  grid-template-areas:
-    'filtros'
-    'mapa'
-    'resultado'
-    'detalhes';
-  gap: var(--espaco);
-  align-items: start;
+  grid-template-columns: 280px minmax(0, 1fr);
+  grid-template-rows: auto auto auto;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
 }
 
-.painel__filtros { grid-area: filtros; }
-.painel__mapa { grid-area: mapa; }
-.painel__resultado { grid-area: resultado; }
-.painel__detalhes { grid-area: detalhes; }
-
-.painel__detalhes {
-  display: grid;
-  gap: var(--espaco);
+.grade > * {
   min-width: 0;
 }
 
-.coluna,
-.bloco-painel {
-  min-width: 0;
-  padding: var(--espaco);
+.coluna {
   border: 1px solid var(--contorno-suave);
   border-radius: var(--raio);
   background: var(--superficie);
-}
-
-.coluna__cabeca {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.25rem 0.75rem;
-}
-
-.coluna__titulo,
-.bloco-painel__titulo {
-  margin: 0 0 0.5rem;
-  font-size: var(--t-titulo);
-}
-
-.coluna__cabeca .coluna__titulo {
-  margin: 0;
-}
-
-.bloco-resultado + .bloco-resultado {
-  margin-top: var(--espaco);
-  padding-top: var(--espaco);
-  border-top: 1px solid var(--contorno-suave);
-}
-
-.bloco-resultado__titulo {
-  margin-top: 0;
-}
-
-/* Barra de rolagem das colunas laterais só aparece ao passar o mouse ou com o foco dentro. */
-.coluna {
+  overflow: auto;
   scrollbar-width: thin;
   scrollbar-color: transparent transparent;
 }
 
 .coluna:hover,
-.coluna:focus-within {
-  scrollbar-color: var(--contorno) transparent;
+.coluna:focus-within,
+.rodape-mapa:hover,
+.rodape-mapa:focus-within {
+  scrollbar-color: color-mix(in srgb, var(--texto-suave) 55%, transparent) transparent;
 }
 
-/* Tela média: filtros à esquerda; mapa, resultado e detalhes empilhados à direita. */
-@media (min-width: 761px) {
-  .painel {
-    grid-template-columns: minmax(15rem, 20rem) minmax(0, 1fr);
-    grid-template-areas:
-      'filtros mapa'
-      'filtros resultado'
-      'filtros detalhes';
+.coluna--lentes,
+.coluna--porque {
+  padding: 0.9rem;
+}
+
+.coluna--lentes {
+  grid-column: 1;
+  grid-row: 1 / 3;
+}
+
+.mapa-cartao {
+  grid-column: 2;
+  grid-row: 1;
+  height: 520px;
+}
+
+.rodape-mapa {
+  grid-column: 2;
+  grid-row: 2;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.6rem;
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+.coluna--porque {
+  grid-column: 1 / 3;
+  grid-row: 3;
+  min-height: 320px;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Computador: a tela inteira, três colunas. */
+@media (min-width: 1180px) and (min-height: 700px) {
+  body:has(#conteudo:not([hidden])) {
+    height: 100dvh;
+    display: grid;
+    grid-template-rows: auto minmax(0, 1fr) auto;
   }
 
-  .painel__filtros {
-    position: sticky;
-    top: var(--espaco);
-    max-height: calc(100vh - 2 * var(--espaco));
-    overflow-y: auto;
+  body:has(#conteudo:not([hidden])) main {
+    min-height: 0;
   }
 
-  .campos--periodo {
-    grid-template-columns: minmax(0, 1fr);
+  .grade {
+    height: 100%;
+    min-height: 0;
+    grid-template-columns: 280px minmax(0, 1fr) 336px;
+    grid-template-rows: minmax(250px, 1fr) auto;
+  }
+
+  .coluna--lentes {
+    grid-column: 1;
+    grid-row: 1 / 3;
+  }
+
+  .mapa-cartao {
+    grid-column: 2;
+    grid-row: 1;
+    height: auto;
+  }
+
+  .rodape-mapa {
+    grid-column: 2;
+    grid-row: 2;
+    max-height: 38dvh;
+    overflow: auto;
+  }
+
+  .coluna--porque {
+    grid-column: 3;
+    grid-row: 1 / 3;
+    min-height: 0;
   }
 }
 
-/* Tela larga: três colunas; o resultado fica à direita, ao lado do mapa e da série. */
-@media (min-width: 1100px) {
-  .painel {
-    grid-template-columns: minmax(16rem, 20rem) minmax(0, 1fr) minmax(18rem, 26rem);
-    grid-template-areas:
-      'filtros mapa resultado'
-      'filtros detalhes resultado';
-  }
-
-  .painel__resultado {
-    position: sticky;
-    top: var(--espaco);
-    max-height: calc(100vh - 2 * var(--espaco));
-    overflow-y: auto;
+@media (min-width: 1600px) and (min-height: 700px) {
+  .grade {
+    grid-template-columns: 304px minmax(0, 1fr) 360px;
+    gap: 1rem;
   }
 }
 
-/* Rodapé de domínio: as três frases, sempre visíveis. */
-.rodape {
-  padding: 0.75rem var(--espaco);
-  border-top: 1px solid var(--contorno-suave);
-  background: var(--superficie);
+/* Celular: uma coluna, na ordem do percurso. */
+@media (max-width: 760px) {
+  .topo {
+    padding: 0.65rem;
+    gap: 0.5rem;
+  }
+
+  .marca {
+    gap: 0.5rem;
+    min-width: 0;
+    flex: 1 1 0;
+  }
+
+  .marca__icone,
+  .marca__icone svg {
+    width: 36px;
+    height: 36px;
+  }
+
+  .topo__titulo {
+    font-size: 1rem;
+  }
+
+  .marca__frase {
+    font-size: 0.875rem;
+  }
+
+  .topo__info {
+    display: none;
+  }
+
+  .topo__sessao {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .grade {
+    display: flex;
+    flex-direction: column;
+    padding: 0.6rem;
+  }
+
+  .coluna--lentes {
+    order: 0;
+  }
+
+  .mapa-cartao {
+    order: 1;
+    height: 440px;
+  }
+
+  .rodape-mapa {
+    order: 2;
+  }
+
+  .coluna--porque {
+    order: 3;
+    min-height: 0;
+  }
+
+  .aviso-dominio span:not(:first-child) {
+    display: none;
+  }
 }
 
-.rodape__frases {
+/* Aviso de domínio fixo no rodapé. */
+.aviso-dominio {
+  position: sticky;
+  bottom: 0;
+  z-index: 900;
   display: flex;
   flex-wrap: wrap;
   gap: 0.25rem 1.5rem;
-  max-width: 120rem;
-  margin: 0 auto;
-  padding: 0;
-  list-style: none;
+  padding: 0.5rem 1.25rem;
+  border-top: 1px solid var(--contorno-suave);
+  background: var(--superficie);
   font-size: var(--t-pequeno);
-  color: var(--texto-suave);
 }
 
-/* Diálogos nativos: foco preso pelo navegador; Esc e "Fechar" devolvem o foco ao botão que abriu. */
+.aviso-dominio strong {
+  color: var(--aviso-borda);
+}
+
+/* Diálogos nativos: foco preso pelo navegador; Esc, "Fechar" ou "Entendi" devolvem o foco ao botão que abriu. */
 .dialogo {
-  width: min(48rem, calc(100vw - 2rem));
-  max-height: calc(100vh - 2rem);
-  padding: var(--espaco);
-  border: 1px solid var(--contorno);
-  border-radius: var(--raio);
+  width: min(40rem, calc(100vw - 2rem));
+  max-height: calc(100dvh - 2rem);
+  padding: 1.5rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: 14px;
   background: var(--superficie);
   color: var(--texto);
 }
 
+#dialogo-sobre {
+  width: min(52rem, calc(100vw - 2rem));
+}
+
 .dialogo::backdrop {
-  background: rgb(0 0 0 / 0.55);
+  background: rgb(0 0 0 / 0.6);
 }
 
 .dialogo__cabeca {
@@ -220,8 +323,25 @@ main {
 }
 
 .dialogo__titulo {
-  margin: 0;
-  font-size: var(--t-titulo);
+  margin: 0 0 0.5rem;
+  font-size: 1.25rem;
+}
+
+.passo {
+  display: flex;
+  gap: 0.9rem;
+  margin: 1rem 0;
+}
+
+.passo b {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: var(--escolha);
+  color: var(--sobre-escolha);
 }
 
 @media (min-width: 48rem) {
