@@ -112,6 +112,18 @@ export function criarMapa(elemento: HTMLElement): Mapa {
   const atribuicao = mapa.attributionControl.getContainer();
   if (cartao && atribuicao && typeof ResizeObserver !== 'undefined') {
     new ResizeObserver(() => cartao.style.setProperty('--altura-atribuicao', `${atribuicao.offsetHeight}px`)).observe(atribuicao);
+    // Altura livre abaixo das pílulas "Mapa" e "Camadas" (que quebram linha com texto grande), para os menus caberem
+    // no cartão e rolarem por dentro (issue #71, R3-1).
+    const controles = cartao.querySelector<HTMLElement>('.controles-mapa');
+    if (controles) {
+      const medir = () => {
+        const livre = cartao.clientHeight - (controles.offsetTop + controles.offsetHeight) - 16;
+        cartao.style.setProperty('--altura-menu', `${Math.max(livre, 96)}px`);
+      };
+      const observador = new ResizeObserver(medir);
+      observador.observe(cartao);
+      observador.observe(controles);
+    }
   }
 
   // Áreas protegidas em painel próprio, abaixo dos destaques e dos pontos, desenhadas em SVG para permitir a

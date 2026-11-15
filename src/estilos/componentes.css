@@ -866,6 +866,10 @@ tr.selecionada td {
   /* fieldset tem min-width: min-content por padrão; zerado, as linhas quebram em vez de sair da tela. */
   min-width: 0;
   max-width: calc(100vw - 4rem - var(--alvo));
+  /* Cabe no cartão do mapa (que corta o excesso): abaixo da pílula e acima da borda, com rolagem interna. */
+  max-height: var(--altura-menu, 60vh);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   margin: 0;
   padding: 0.3rem 0.75rem;
   border: 1px solid var(--contorno-suave);

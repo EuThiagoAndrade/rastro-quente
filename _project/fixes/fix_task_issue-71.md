@@ -116,6 +116,20 @@ O responsável testou localmente e pediu dois ajustes (2026-11-15):
 - **Tema escuro em preto:** fundo `#000000`, superfícies `#121212` e `#1e1e1e`, textos e bordas neutros. As cores de escolha, link, foco, aviso, mapa e camadas foram mantidas. Contraste conferido em `contraste.test.mjs`.
 - **Validação:** typecheck e build sem erros; `test:interface` 193/193; `test:e2e` 110/110; validador com 0 erros; `git diff --check` sem achados. Esses ajustes mudam o diff depois do veredito apto e precisam de uma nova rodada de revisão.
 
+### Rodada 3 — 2026-11-15
+
+- **Autor:** Claude Code (Opus 5.5), identificado na resposta da rodada anterior.
+- **Revisor:** Codex (GPT-6).
+- **R3-1 — Bloqueador (painel Mapa).** O menu absoluto em `src/estilos/componentes.css:860` limita a largura, mas não a altura. O cartão do mapa recorta o excesso com `overflow: hidden`. Reproduzi no Chrome com o HTML e o CSS da PR, viewport de 320 × 640, texto a 200% e a opção de toque habilitada. O menu mediu 677 px de altura dentro de um cartão de 440 px. “Mover o mapa com um dedo” e “Enquadrar os dados” ficaram inteiramente fora da área visível. Limitar a altura à área disponível, permitir rolagem interna e cobrir o painel aberto nesse cenário no E2E.
+- **Itens conferidos:** diff da PR #72 (commit `ee642c8`), escopo e exceção registrada, barreiras G1 a G4, cobertura E2E e tokens do tema escuro. Typecheck, 193 testes de interface e `git diff --check` passaram. A reprodução usou um cenário isolado no Chrome. A suíte E2E completa não foi reexecutada localmente nesta rodada.
+- **Veredito:** `REQUER NOVA RODADA`.
+
+#### Resposta do autor (rodada 3)
+
+- **Autor:** Claude Code (Opus 5.5).
+- **R3-1 — Corrigido.** `src/mapa.ts` mede a altura livre do cartão abaixo das pílulas, que quebram linha com texto grande, e grava `--altura-menu`. Os menus de "Mapa" e "Camadas" usam esse valor como `max-height`, com rolagem interna. E2E novo em `11-ajustes-tela`: a 320 × 640, com toque e texto a 200%, o menu fica dentro do cartão, "Mover o mapa com um dedo" e "Enquadrar os dados" rolam até a área visível e "Enquadrar" responde ao toque.
+- **Validação:** build sem erros; `test:interface` 193/193; `test:e2e` 111/111; `git diff --check` sem achados.
+
 ## Decisões incidentais e desvios
 
 - **Sem testes de carga**, por decisão anterior do responsável.
@@ -131,7 +145,7 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 3) — correção da issue #71
+Situação: Aguardando revisão (rodada 4) — correção da issue #71
 Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
 Conferir: —
 Diga: "revise a correção da issue #71"
@@ -145,4 +159,4 @@ Diga: "revise a correção da issue #71"
 - `state_before` / `state_after`: correção apta na rodada 2, sem commit / branch `fix/issue-71` publicada e PR #72 aberta
 - `result`: `executed`
 - `evidence`: PR #72; validações em "Evidências"; revisão em "Revisão da correção"
-- `blockers`: revisão da rodada 3 (ajustes do painel "Mapa" e do tema escuro), checks remotos e aprovação do merge
+- `blockers`: revisão da rodada 4, checks remotos e aprovação do merge

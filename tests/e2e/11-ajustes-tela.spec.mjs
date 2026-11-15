@@ -2,7 +2,7 @@
 // "Consulta" recolhida e foco verde. Fixtures fictícias (Município Alfa 60, Beta 30, Gama 10 detecções).
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { entrar } from './ajuda.mjs';
+import { abrirOpcoesMapa, entrar } from './ajuda.mjs';
 
 test.beforeAll(() => cadastrarRp());
 
@@ -61,4 +61,29 @@ test('"Consulta" recolhida não mostra resumo e o foco da interface é verde', a
   await page.keyboard.press('Tab');
   const cor = await consulta.locator('summary').evaluate((s) => getComputedStyle(s).outlineColor);
   expect(cor).toBe('rgb(63, 107, 85)');
+});
+
+test.describe('painel "Mapa" em tela pequena (R3-1)', () => {
+  test.use({ hasTouch: true, isMobile: true, viewport: { width: 320, height: 640 } });
+
+  test('a 320 px com texto a 200%, o menu cabe no cartão e rola até a última opção', async ({ page }) => {
+    await entrar(page, 'rp');
+    await page.evaluate(() => { document.documentElement.style.fontSize = '200%'; });
+    await abrirOpcoesMapa(page, true);
+    const menu = page.locator('#opcoes-mapa .painel-mapa');
+    const cartao = await page.locator('.mapa-cartao').boundingBox();
+    await expect.poll(async () => {
+      const m = await menu.boundingBox();
+      return m.y + m.height <= cartao.y + cartao.height + 1 && m.y >= cartao.y;
+    }).toBe(true);
+    for (const id of ['#botao-arrastar', '#botao-enquadrar']) {
+      const botao = page.locator(id);
+      await botao.scrollIntoViewIfNeeded();
+      const b = await botao.boundingBox();
+      const m = await menu.boundingBox();
+      expect(b.y).toBeGreaterThanOrEqual(m.y - 1);
+      expect(b.y + b.height).toBeLessThanOrEqual(m.y + m.height + 1);
+    }
+    await page.locator('#botao-enquadrar').tap();
+  });
 });
