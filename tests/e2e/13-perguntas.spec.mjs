@@ -44,8 +44,10 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
   const textos = await etapas(page).allTextContents();
   expect(textos[0]).toBe('Acesso e versão dos dados validados');
   expect(textos[1]).toBe('Agente principal iniciado');
+  // Os subagentes rodam em paralelo: a numeração das evidências (E1, E2) segue a ordem em que as ferramentas terminam.
+  expect(textos.some((x) => /^Ferramenta executada: comparação de períodos \(evidência E[12]\)$/.test(x))).toBe(true);
   for (const t of ['Subagente de lentes e evidências iniciado', 'Subagente de disponibilidade iniciado',
-    'Ferramenta executada: comparação de períodos (evidência E1)', 'Análise do subagente de lentes e evidências conferida',
+    'Análise do subagente de lentes e evidências conferida',
     'Análise do subagente de disponibilidade conferida', 'Síntese do agente principal iniciada', 'Chamada 6 ao modelo (agente principal)']) {
     expect(textos, t).toContain(t);
   }
@@ -56,7 +58,7 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
   await expect(page.locator('.resposta-ia .referencias').first()).toContainText('(comparação de períodos)');
   // Evidências por identificador e o caminho de volta ao detalhamento determinístico.
   await page.locator('#perguntas-evidencias > summary').click();
-  const e1 = page.locator('[data-evidencia="E1"]');
+  const e1 = page.locator('.evidencia').filter({ hasText: 'comparação de períodos' });
   await e1.locator('summary').click();
   await expect(e1.locator('pre')).toContainText('"total": 55');
   await e1.getByRole('button', { name: 'Ver o detalhamento na tela' }).click();
@@ -88,7 +90,7 @@ test('"Por que esta célula foi destacada?" usa o destaque aberto; outro destaqu
   expect(corpo.recorte).toEqual({ tipo: 'selecao', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, municipio: null, lente: { tipo: 'concentracao' } });
   expect(corpo.pergunta).toMatch(/^Por que esta célula foi destacada\? Destaque aberto: Município Alfa \(9900001\)/);
   expect(Object.keys(corpo).sort()).toEqual(['carga', 'pergunta', 'recorte']);
-  await expect(etapas(page)).toContainText(['Ferramenta executada: destaques da lente (evidência E1)']);
+  await expect(etapas(page).filter({ hasText: /^Ferramenta executada: destaques da lente \(evidência E[12]\)$/ })).toHaveCount(1);
   // Outro destaque: a resposta anterior sai, com o aviso.
   await page.locator('#botao-voltar').click();
   await page.locator('#lente-destaques .botao-nome').nth(1).click();
@@ -126,7 +128,7 @@ test('"Comparar municípios" abre o seletor do município B; o texto livre usa a
   await page.locator('#botao-perguntar').click();
   await expect(painel(page)).toHaveAttribute('data-estado-perguntas', 'resposta');
   await expect(page.locator('.perguntas__pergunta')).toHaveText('Pergunta: Qual dos dois teve mais detecções no período?');
-  await expect(etapas(page)).toContainText(['Ferramenta executada: comparação de municípios (evidência E1)']);
+  await expect(etapas(page).filter({ hasText: /^Ferramenta executada: comparação de municípios \(evidência E[12]\)$/ })).toHaveCount(1);
   // A pergunta não mudou os filtros.
   await expect(page.locator('#f-municipio')).toHaveValue('9900001');
 });
