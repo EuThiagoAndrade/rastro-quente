@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
+  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
 } from '../../servidor/agentes.ts';
 import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES } from '../../servidor/gemini.ts';
 import { Orcamento } from '../../servidor/orcamento.ts';
@@ -218,6 +218,36 @@ test('referência com o envelope "dados" do resultado da ferramenta: normalizada
   assert.equal(normalizarReferencia('E2.dados.inventado', indice), 'E2.dados.inventado');
   assert.equal(normalizarReferencia('E3.dados.a.total', indice), 'E3.dados.a.total');
   assert.equal(conferirAfirmacao({ texto: 'Foram 55 detecções em A.', referencias: [normalizarReferencia('E2.dados.a.total', indice)] }, indice), null);
+});
+
+test('conferência pelo mesmo item (município, unidade ou lado), nunca pela evidência inteira; texto anexado ao caminho descartado', () => {
+  const comp = {
+    a: { janela: JANELA_A, total: 55 }, b: { janela: JANELA_B, total: 43 }, diferenca_total: -12,
+    itens: { itens: [
+      { chave: 'municipio:9900001', unidade: 'Município Alfa (9900001)', classificacao: 'permaneceu nos destaques observados', a: { destaques: [{ deteccoes: 29 }] }, b: { destaques: [{ deteccoes: 29 }] } },
+      { chave: 'municipio:9900002', unidade: 'Município Beta (9900002)', classificacao: 'permaneceu nos destaques observados', a: { destaques: [{ deteccoes: 18 }] }, b: { destaques: [{ deteccoes: 12 }] } },
+    ] },
+  };
+  const disp = { lados: [{ lado: 'A', municipios: [{ municipio: 'Município Alfa (9900001)', texto: '8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida' }] }, { lado: 'B', municipios: [{ municipio: 'Município Alfa (9900001)', texto: '10 de 10 dias sem evidência de lacuna' }] }] };
+  const indice = indexar([{ id: 'E1', ferramenta: 'comparar_periodos', dados: comp }, { id: 'E2', ferramenta: 'consultar_disponibilidade', dados: disp }]);
+  const ok = (texto, ...referencias) => conferirAfirmacao({ texto, referencias }, indice);
+  assert.equal(itemDe('E1.itens.itens[0].a.destaques[0].deteccoes', indice), 'E1.itens.itens[0]');
+  assert.equal(itemDe('E2.lados[0].municipios[0].texto', indice), 'E2.lados[0].municipios[0]');
+  assert.equal(itemDe('E1.a.total', indice), 'E1.a');
+  assert.equal(itemDe('E1.diferenca_total', indice), null);
+  // Código e números do mesmo município aceitos; número de outro município ou ausente rejeitado.
+  assert.equal(ok('O Município Alfa (9900001) manteve 29 detecções.', 'E1.itens.itens[0].a.destaques[0].deteccoes'), null);
+  assert.equal(ok('O Município Alfa (9900001) teve 30 detecções.', 'E1.itens.itens[0].a.destaques[0].deteccoes'), 'número divergente');
+  assert.equal(ok('O Município Alfa (9900001) foi de 29 para 18 detecções.', 'E1.itens.itens[0].a.destaques[0].deteccoes'), 'número divergente');
+  assert.equal(ok('No Município Alfa (9900001), 8 de 10 dias sem evidência de lacuna.', 'E2.lados[0].municipios[0].texto'), null);
+  // Datas do mesmo lado aceitas; total do outro lado não vem junto.
+  assert.equal(ok('De 2026-10-01 a 2026-10-10 foram 55 detecções.', 'E1.a.total'), null);
+  assert.equal(ok('De 2026-10-01 a 2026-10-10 foram 43 detecções.', 'E1.a.total'), 'número divergente');
+  assert.equal(ok('A diferença foi de -12 (de 55 para 43).', 'E1.diferenca_total'), 'número divergente');
+  // Texto anexado ao caminho e envelope "dados".
+  assert.equal(normalizarReferencia('E2.lados[0].municipios[0] (Município Alfa (9900001))', indice), 'E2.lados[0].municipios[0]');
+  assert.equal(normalizarReferencia('E1.dados.itens.itens[1] (Beta)', indice), 'E1.itens.itens[1]');
+  assert.equal(normalizarReferencia('E9.lados[0] (x)', indice), 'E9.lados[0] (x)');
 });
 
 test('saída fora do formato do subagente: falha só dele; síntese inválida mantém as análises conferidas', async () => {

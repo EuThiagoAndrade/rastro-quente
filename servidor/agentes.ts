@@ -283,6 +283,8 @@ export function conferirAfirmacao(a: Afirmacao, indice: ReadonlyMap<string, Valo
     const v = valoresDe(indice, ref);
     if (!v.length) return 'referência inexistente';
     valores.push(...v);
+    const item = itemDe(ref, indice);
+    if (item) valores.push(...valoresDe(indice, item));
   }
   const textos = valores.filter((v) => v !== null).map((v) => String(v).toLowerCase());
   // Datas (AAAA-MM-DD ou DD/MM/AAAA) têm de constar nas evidências referenciadas.
@@ -307,14 +309,31 @@ export function conferirAfirmacao(a: Afirmacao, indice: ReadonlyMap<string, Valo
 }
 
 /**
- * O resultado chega ao modelo como `{ evidencia: "E1", dados: {...} }`; o caminho `E1.dados.a.total` é o mesmo campo que
- * `E1.a.total`. Só normaliza quando o caminho citado não existe e o normalizado existe; nada mais é reescrito.
+ * Normaliza o caminho citado só quando ele não existe no índice: (1) descarta texto anexado depois do caminho
+ * (`E2.lados[0].municipios[0] (Município Alfa)`); (2) tira o envelope `dados` do resultado da ferramenta
+ * (`E1.dados.a.total` é o mesmo campo que `E1.a.total`). Nada mais é reescrito.
  */
 export function normalizarReferencia(ref: string, indice: ReadonlyMap<string, Valor>): string {
   const r = ref.trim();
   if (valoresDe(indice, r).length) return r;
-  const sem = r.replace(/^(E\d+)\.dados(?=[.[]|$)/, '$1');
-  return sem !== r && valoresDe(indice, sem).length ? sem : r;
+  const caminho = /^E\d+(?:\.[A-Za-z_][A-Za-z0-9_]*|\[\d+\])*/.exec(r)?.[0] ?? r;
+  for (const c of [caminho, caminho.replace(/^(E\d+)\.dados(?=[.[]|$)/, '$1')]) if (c !== r && valoresDe(indice, c).length) return c;
+  return r;
+}
+
+/**
+ * Item da evidência a que um caminho pertence (decisão do responsável de 2026-11-16): o ancestral mais próximo que
+ * identifica um município ou unidade (tem `municipio` ou `unidade`) ou, na falta dele, o lado da comparação
+ * (`E1.a`, `E1.b`). Nunca a evidência inteira. Os valores desse item também valem na conferência de números e datas.
+ */
+export function itemDe(ref: string, indice: ReadonlyMap<string, Valor>): string | null {
+  const partes = [...ref.matchAll(/^E\d+|\.[A-Za-z_][A-Za-z0-9_]*|\[\d+\]/g)].map((m) => m[0]);
+  for (let n = partes.length; n > 1; n -= 1) {
+    const p = partes.slice(0, n).join('');
+    if (indice.has(`${p}.municipio`) || indice.has(`${p}.unidade`)) return p;
+  }
+  const lado = /^E\d+\.[ab](?=[.[]|$)/.exec(ref)?.[0];
+  return lado && indice.has(`${lado}.janela.inicio`) ? lado : null;
 }
 
 /** Saída estruturada (texto JSON) → afirmações conferidas; formato fora do esquema é saída inválida. */
