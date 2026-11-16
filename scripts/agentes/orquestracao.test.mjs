@@ -8,7 +8,7 @@ import assert from 'node:assert/strict';
 import {
   conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
 } from '../../servidor/agentes.ts';
-import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES } from '../../servidor/gemini.ts';
+import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES, SOBRECARGA } from '../../servidor/gemini.ts';
 import { Orcamento } from '../../servidor/orcamento.ts';
 import { ErroHttp } from '../../servidor/resposta.ts';
 import { CASOS } from './casos.mjs';
@@ -284,6 +284,31 @@ test('429 num subagente: nenhuma repetição e nenhuma chamada posterior; o que 
   assert.equal(log.eventos.at(-1).tipo, 'erro');
 });
 
+test('503 (sobrecarga): uma só repetição por chamada; o teto conta as respondidas; 500 e 429 não se repetem', async () => {
+  const sobrecarga = () => { throw new ErroHttp('provedor_indisponivel', SOBRECARGA); };
+  // Uma 503 na primeira chamada de cada subagente: 6 respondidas, 8 pedidos, resultado completo.
+  const base = roteiro();
+  const vezes = { lentes: 0, disponibilidade: 0 };
+  const umaVez = (papel) => (i) => { vezes[papel] += 1; return vezes[papel] === 1 ? sobrecarga() : base[papel](i); };
+  const { amb, log } = ambiente({ roteiro: roteiro({ lentes: umaVez('lentes'), disponibilidade: umaVez('disponibilidade') }) });
+  const r = await orquestrar(amb);
+  assert.equal(r.estado, 'completa');
+  assert.equal(r.chamadas.length, LIMITE_CHAMADAS);
+  assert.equal(log.interacoes.length, 8);
+  assert.equal(r.chamadas.reduce((n, c) => n + c.repeticoes, 0), 2);
+  // Duas 503 seguidas na mesma chamada: falha do provedor, nenhuma terceira tentativa e nenhuma chamada posterior.
+  const { amb: a2, log: l2 } = ambiente({ roteiro: roteiro({ sintese: sobrecarga }) });
+  await assert.rejects(orquestrar(a2), (e) => e instanceof FalhaProvedor && e.codigo === 'provedor_indisponivel');
+  assert.equal(l2.interacoes.filter((i) => papelDe(i) === 'sintese').length, 2);
+  assert.equal(l2.interacoes.length, 7);
+  // 500 sem marca de sobrecarga e 429: sem repetição.
+  for (const erro of [new ErroHttp('provedor_indisponivel'), new ErroHttp('cota_provedor')]) {
+    const { amb: a3, log: l3 } = ambiente({ roteiro: roteiro({ sintese: () => { throw erro; } }) });
+    await assert.rejects(orquestrar(a3), (e) => e instanceof FalhaProvedor && e.codigo === erro.codigo);
+    assert.equal(l3.interacoes.filter((i) => papelDe(i) === 'sintese').length, 1, erro.codigo);
+  }
+});
+
 test('tempo esgotado na geração: erro próprio, sem síntese', async () => {
   const provedor = { modelo: 'm', interagir: (_i, sinal) => new Promise((_ok, falha) => sinal.addEventListener('abort', () => falha(sinal.reason))) };
   const { amb } = ambiente({ provedor, limites: { totalMs: 1000, leituraMs: 500, geracaoMs: 500, porGeracaoMs: 30 } });
@@ -386,8 +411,12 @@ test('cliente REST: chave só no cabeçalho, 429 e erro sem repetição e sem re
   assert.equal(pedidos[0].init.headers['x-goog-api-key'], 'chave-ficticia');
   assert.ok(!pedidos[0].init.body.includes('chave-ficticia'));
   const g2 = criarGemini({ chave: 'k', modelo: 'gemini-3.1-flash-lite' }, buscar(500, {}));
-  await assert.rejects(g2.interagir(i, new AbortController().signal), (e) => e.codigo === 'provedor_indisponivel');
+  await assert.rejects(g2.interagir(i, new AbortController().signal), (e) => e.codigo === 'provedor_indisponivel' && e.detalhe === undefined);
   assert.equal(pedidos.length, 2);
+  // 503 marcado como sobrecarga (o único que a orquestração repete); o cliente em si nunca repete.
+  const g3 = criarGemini({ chave: 'k', modelo: 'gemini-3.1-flash-lite' }, buscar(503, { error: { message: 'segredo do provedor' } }));
+  await assert.rejects(g3.interagir(i, new AbortController().signal), (e) => e.codigo === 'provedor_indisponivel' && e.detalhe === SOBRECARGA && !String(e.message).includes('segredo'));
+  assert.equal(pedidos.length, 3);
 });
 
 test('casos de avaliação em português: respondíveis, parciais e fora do alcance, com o comportamento esperado declarado', () => {

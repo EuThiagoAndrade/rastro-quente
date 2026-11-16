@@ -29,9 +29,9 @@ const configLigada = () => ({ habilitada: true, supabaseUrl: L.api, chavePublica
 
 /** Provedor simulado: cliente REST real sobre `fetch` simulado (nenhuma rede); conta as chamadas e guarda os corpos. */
 const corpos = [];
-const provedorSimulado = (falharNa = null) => (config) => {
+const provedorSimulado = (falharNa = null, statusFalha = 500) => (config) => {
   const registro = { corpos: [] };
-  const f = fetchSimulado(registro, falharNa);
+  const f = fetchSimulado(registro, falharNa, statusFalha);
   return criarGemini(config.gemini, async (url, init) => {
     chamadas.provedor += 1;
     corpos.push(String(init.body));
@@ -257,6 +257,14 @@ test('falha do provedor na síntese: 502 com as evidências conferidas, sem sín
   assert.equal(evidencia(r.json, 'comparar_periodos').a.total, 55);
   assert.ok(!('resposta' in r.json));
   assert.equal(chamadas.provedor, 6);
+  // 503 (sobrecarga) na síntese: uma repetição, 7 pedidos e 6 chamadas respondidas, resultado completo.
+  zerar();
+  deps = depsPadrao({ provedor: provedorSimulado(6, 503) });
+  const r2 = await chamar({ token: tokens.rp });
+  assert.equal(r2.status, 200);
+  assert.equal(chamadas.provedor, 7);
+  assert.equal(r2.json.execucao.total_chamadas, 6);
+  assert.equal(r2.json.execucao.chamadas.at(-1).repeticoes, 1);
   deps = depsPadrao();
 });
 

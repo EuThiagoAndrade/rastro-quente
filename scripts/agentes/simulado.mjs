@@ -35,11 +35,11 @@ export function respostaSimulada(corpo) {
   return texto({ afirmacoes: [afirmacao], limites: [] });
 }
 
-/** `fetch` simulado do provedor: conta as chamadas e guarda os corpos enviados. */
-export function fetchSimulado(registro = { corpos: [] }, falharNa = null) {
+/** `fetch` simulado do provedor: conta as chamadas e guarda os corpos enviados; falha no pedido `falharNa` (500 por padrão). */
+export function fetchSimulado(registro = { corpos: [] }, falharNa = null, statusFalha = 500) {
   return async (_url, init) => {
     registro.corpos.push(String(init.body));
-    if (falharNa === registro.corpos.length) return new Response('{"error":{"message":"falha simulada"}}', { status: 503 });
+    if (falharNa === registro.corpos.length) return new Response('{"error":{"message":"falha simulada"}}', { status: statusFalha });
     return new Response(JSON.stringify(respostaSimulada(JSON.parse(String(init.body)))), { status: 200, headers: { 'content-type': 'application/json' } });
   };
 }

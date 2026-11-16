@@ -10,6 +10,8 @@ import { ErroHttp } from './resposta.ts';
 export const ENDPOINT_GEMINI = 'https://generativelanguage.googleapis.com/v1beta/interactions';
 /** Corpo completo de uma chamada (instruções, ferramentas, histórico e evidências), medido em bytes UTF-8 (T6). */
 export const LIMITE_ENVIO_BYTES = 64 * 1024;
+/** Detalhe do erro de HTTP 503 (sobrecarga temporária do modelo), o único que a orquestração repete. */
+export const SOBRECARGA = 'sobrecarga';
 export const LIMITE_SAIDA_TOKENS = 1500;
 
 export type Passo = Record<string, unknown> & { type: string };
@@ -121,9 +123,9 @@ export function criarGemini(cfg: { chave: string; modelo: string }, buscar: type
         if (sinal.aborted) throw e;
         throw new ErroHttp('provedor_indisponivel');
       }
-      // Sem repetição automática (429, erro ou resposta inválida); o corpo de erro do provedor não é repassado.
+      // O cliente não repete; a orquestração repete uma vez só a sobrecarga (503). O corpo de erro não é repassado.
       if (r.status === 429) throw new ErroHttp('cota_provedor');
-      if (!r.ok) throw new ErroHttp('provedor_indisponivel');
+      if (!r.ok) throw new ErroHttp('provedor_indisponivel', r.status === 503 ? SOBRECARGA : undefined);
       return lerResposta(await r.json().catch(() => null));
     },
   };
