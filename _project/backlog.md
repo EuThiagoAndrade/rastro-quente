@@ -493,3 +493,33 @@ A relação entre as opções de lentes à esquerda e os resultados à direita n
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar em um único item as mudanças de identificação das lentes, simplificação da área do mapa e atualização pontual de “Como ler esta tela”; captura local.
+
+## BL-018 — Biomas de Mato Grosso no mapa e na análise de focos de calor
+
+> **Criado em:** `2026-11-16`
+> **Atualizado em:** `2026-11-16`
+> **Estado:** `Disponível`
+
+### Problema e benefício esperado
+
+Identificar em qual bioma de Mato Grosso cai a coordenada de cada detecção de calor e comparar a distribuição das detecções entre Amazônia, Cerrado e Pantanal dentro do recorte consultado.
+
+### Contexto
+
+- Adicionar uma camada acionável de biomas, com limites semitransparentes, legenda e focos visíveis acima dos polígonos. Usar como referência a [malha vetorial oficial do IBGE](https://www.ibge.gov.br/geociencias/informacoes-ambientais/estudos-ambientais/15842-biomas.html?edicao=45164), compatível com a escala 1:250.000, recortada para Mato Grosso e com a edição identificada.
+- Cruzar as coordenadas das detecções com os polígonos e exibir as contagens por bioma conforme os filtros de período e município. Permitir selecionar um bioma no resumo para filtrar o mapa e a lista de focos.
+- Definir o tratamento das coordenadas exatamente na divisa. As opções discutidas são uma categoria explícita de divisa ou a atribuição a um único bioma por regra documentada. Evitar dupla contagem. A classificação descreve a posição reportada da detecção.
+- Comparar as contagens de cada bioma entre períodos para identificar aumentos e reduções. Exibir também a densidade de focos por 1.000 km², usando a área de cada bioma dentro do recorte territorial consultado.
+- A primeira entrega sugerida reúne camada, contagem e filtro. Comparação temporal e densidade fazem parte deste mesmo item e podem ser entregues depois.
+
+### Encaminhamentos
+
+—
+
+### Restante
+
+—
+
+### Registro
+
+- 2026-11-16 — Pedido explícito de guardar em um único item a camada de biomas e as análises de focos associadas; captura local.
