@@ -31,6 +31,20 @@ export class Orcamento {
     return Math.min(global, daFase, fase === 'geracao' ? this.limites.porGeracaoMs : Number.POSITIVE_INFINITY);
   }
 
+  /**
+   * Espera fora das fases (espaçamento entre chamadas ao provedor, para a cota por minuto): consome só o tempo total;
+   * se não couber no tempo restante, `tempo_esgotado`; o cancelamento do pedido interrompe a espera.
+   */
+  async aguardar(ms: number): Promise<void> {
+    if (this.pedido.aborted) throw new ErroHttp('cancelada');
+    if (ms >= this.limites.totalMs - (this.agora() - this.inicio)) throw new ErroHttp('tempo_esgotado');
+    await new Promise<void>((ok, falha) => {
+      const fim = (): void => { clearTimeout(t); falha(new ErroHttp('cancelada')); };
+      const t = setTimeout(() => { this.pedido.removeEventListener('abort', fim); ok(); }, ms);
+      this.pedido.addEventListener('abort', fim, { once: true });
+    });
+  }
+
   /** Executa `f` dentro do orçamento da fase; esgotado ou cancelado vira erro próprio, nunca resultado parcial. */
   async executar<T>(fase: Fase, f: (sinal: AbortSignal) => Promise<T>): Promise<T> {
     if (this.pedido.aborted) throw new ErroHttp('cancelada');

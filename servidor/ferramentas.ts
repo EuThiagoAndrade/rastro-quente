@@ -83,23 +83,43 @@ function lerRecorte(ctx: Contexto, filtro: Filtro): Promise<{ resumo: Resumo; re
   return p;
 }
 
-/** Disponibilidade dos municípios pedidos (concorrência 4); falha fica no município, nunca vira classe. */
+const disponibilidades = new WeakMap<Contexto, Map<string, DisponibilidadeMunicipio>>();
+
+/**
+ * Disponibilidade dos municípios pedidos (concorrência 4); falha fica no município, nunca vira classe. Respostas
+ * completas da mesma execução e janela são reaproveitadas (o subagente de disponibilidade e o de lentes leem os mesmos
+ * municípios); nada parcial entra no reaproveitamento.
+ */
 async function lerDisponibilidade(ctx: Contexto, filtro: Filtro, codigos: readonly number[]): Promise<Map<number, DisponibilidadeMunicipio>> {
   const pedido: PedidoLente = { carga: filtro.carga, janela: { inicio: filtro.inicio, fim: filtro.fim } };
+  let cache = disponibilidades.get(ctx);
+  if (!cache) { cache = new Map(); disponibilidades.set(ctx, cache); }
+  const chave = (codigo: number) => `${filtro.inicio}|${filtro.fim}|${codigo}`;
   const disp = new Map<number, DisponibilidadeMunicipio>();
+  const faltam: number[] = [];
+  for (const codigo of codigos) {
+    const x = cache.get(chave(codigo));
+    if (x) disp.set(codigo, x); else faltam.push(codigo);
+  }
+  if (!faltam.length) return disp;
+  const lidos = new Map<number, DisponibilidadeMunicipio>();
   await ctx.orcamento.executar('leitura', async (sinal) => {
-    await emParalelo([...codigos], CONCORRENCIA_DISPONIBILIDADE, () => !sinal.aborted, async (codigo) => {
+    await emParalelo(faltam, CONCORRENCIA_DISPONIBILIDADE, () => !sinal.aborted, async (codigo) => {
     try {
       const r = await consultarDisponibilidade(ctx.cliente, { ...filtro, municipio: codigo });
-      disp.set(codigo, { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, ctx.carga.satelite, r) });
+      lidos.set(codigo, { estado: 'ok', dias: validarDisponibilidade(pedido, codigo, ctx.carga.satelite, r) });
     } catch (e) {
       if (e instanceof ErroConsulta && e.tipo !== 'fonte_indisponivel' && e.tipo !== 'entrada_invalida') throw e;
-      disp.set(codigo, { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' });
+      lidos.set(codigo, { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' });
     }
     });
     // Interrompida pelo orçamento ou pelo pedido: nada parcial sai daqui (o orçamento classifica o motivo).
     if (sinal.aborted) throw new Error('interrompida');
   });
+  for (const [codigo, x] of lidos) {
+    disp.set(codigo, x);
+    if (x.estado === 'ok') cache.set(chave(codigo), x);
+  }
   return disp;
 }
 
@@ -253,19 +273,80 @@ async function compararMunicipiosF(ctx: Contexto): Promise<unknown> {
   };
 }
 
+const linhaMunicipio = (ctx: Contexto, x: ReturnType<typeof disponibilidadePorMunicipio>[number]) => ({
+  municipio: `${ctx.nomes.get(x.codigo) ?? ''} (${x.codigo})`, texto: textoDisponibilidadeMunicipio(x), ...(x.estado === 'completa' ? { por_classe: x.porClasse } : {}),
+});
+
+const NOTA_DISPONIBILIDADE = 'Disponibilidade não comprova cobertura; cada município tem as próprias classes, sem agregação.';
+
+function textoZero(z: ConferenciaZero): string | null {
+  if (z.estado === 'nao_necessaria') return null;
+  if (z.estado === 'completa') return z.lacunaTotal ? 'lado sem detecções e com lacuna conhecida em todos os dias de todos os municípios do recorte: comparação indisponível' : 'lado sem detecções; conferência de todos os municípios do recorte concluída, sem lacuna total';
+  if (z.estado === 'falha') return `lado sem detecções; conferência dos municípios não concluída (${z.motivo}): nada conclusivo`;
+  return 'lado sem detecções; conferência dos municípios não concluída: nada conclusivo';
+}
+
+/**
+ * Disponibilidade por município e dia, sem agregação (T3, CP-18): no pedido de disponibilidade, os municípios
+ * pedidos; na seleção e nas comparações, só os municípios exigidos pelos destaques de cada lado (todos os do recorte
+ * num lado sem detecções), com o alcance declarado. Nunca declara disponibilidade estadual ao examinar uma seleção.
+ */
 async function consultarDisponibilidadeF(ctx: Contexto): Promise<unknown> {
   const r = ctx.pedido.recorte;
-  if (r.tipo !== 'disponibilidade') throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
-  dentroDaCarga(ctx, r.janela);
-  for (const m of r.municipios) municipioValido(ctx, m);
-  const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: null };
-  const disp = await lerDisponibilidade(ctx, filtro, r.municipios);
-  const linhas = disponibilidadePorMunicipio(r.municipios, r.janela, disp);
+  if (r.tipo === 'disponibilidade') {
+    dentroDaCarga(ctx, r.janela);
+    for (const m of r.municipios) municipioValido(ctx, m);
+    const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: null };
+    const disp = await lerDisponibilidade(ctx, filtro, r.municipios);
+    return {
+      ferramenta: 'consultar_disponibilidade', janela: r.janela,
+      alcance: r.municipios.length === ctx.nomes.size ? 'todos os municípios da carga' : `${r.municipios.length} municípios pedidos; não é disponibilidade estadual`,
+      municipios: disponibilidadePorMunicipio(r.municipios, r.janela, disp).map((x) => linhaMunicipio(ctx, x)),
+      nota: NOTA_DISPONIBILIDADE,
+    };
+  }
+  let lados: { lado: Lado; janela: Janela; municipio: number | null; codigos: number[]; disp: Map<number, DisponibilidadeMunicipio>; zero: ConferenciaZero }[];
+  if (r.tipo === 'selecao') {
+    dentroDaCarga(ctx, r.janela);
+    municipioValido(ctx, r.municipio);
+    const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
+    const { registros } = await lerRecorte(ctx, filtro);
+    const codigos = r.municipio !== null ? [r.municipio] : municipiosDe(await calcular(ctx, r.lente, r.janela, null, registros));
+    lados = [{ lado: 'A', janela: r.janela, municipio: r.municipio, codigos, disp: await lerDisponibilidade(ctx, filtro, codigos), zero: { estado: 'nao_necessaria' } }];
+  } else {
+    let filtros: [Filtro, Filtro];
+    let janelas: [Janela, Janela];
+    if (r.tipo === 'periodos') {
+      municipioValido(ctx, r.municipio);
+      validarPeriodos(ctx.janelaCarga, r.a, r.b);
+      const fa: Filtro = { carga: ctx.carga.id, inicio: r.a.inicio, fim: r.a.fim, municipio: r.municipio };
+      filtros = [fa, { ...fa, inicio: r.b.inicio, fim: r.b.fim }];
+      janelas = [r.a, r.b];
+    } else {
+      dentroDaCarga(ctx, r.janela);
+      validarMunicipios(r.a, r.b, new Set(ctx.nomes.keys()));
+      const fa: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.a };
+      filtros = [fa, { ...fa, municipio: r.b }];
+      janelas = [r.janela, r.janela];
+    }
+    const q = await qualificarLados(ctx, await Promise.all([0, 1].map((i) => lado(ctx, filtros[i]!, r.lente, janelas[i]!))));
+    lados = q.map((l, i) => ({
+      lado: (i === 0 ? 'A' : 'B') as Lado, janela: janelas[i]!, municipio: l.filtro.municipio,
+      codigos: [...l.disp.keys()].sort((x, y) => x - y), disp: l.disp, zero: l.zero,
+    }));
+  }
+  const estadual = lados.some((l) => l.municipio === null);
   return {
-    ferramenta: 'consultar_disponibilidade', janela: r.janela,
-    alcance: r.municipios.length === ctx.nomes.size ? 'todos os municípios da carga' : `${r.municipios.length} municípios pedidos; não é disponibilidade estadual`,
-    municipios: linhas.map((x) => ({ municipio: `${ctx.nomes.get(x.codigo) ?? ''} (${x.codigo})`, texto: textoDisponibilidadeMunicipio(x), ...(x.estado === 'completa' ? { por_classe: x.porClasse } : {}) })),
-    nota: 'Disponibilidade não comprova cobertura; cada município tem as próprias classes, sem agregação.',
+    ferramenta: 'consultar_disponibilidade',
+    alcance: estadual
+      ? 'municípios exigidos pelos destaques de cada lado (todos os do recorte só num lado sem detecções); não é disponibilidade estadual completa'
+      : 'municípios do recorte do pedido',
+    lados: lados.map((l) => ({
+      lado: l.lado, janela: l.janela,
+      municipios: disponibilidadePorMunicipio(l.codigos, l.janela, l.disp).map((x) => linhaMunicipio(ctx, x)),
+      ...(textoZero(l.zero) ? { conferencia_sem_deteccoes: textoZero(l.zero) } : {}),
+    })),
+    nota: NOTA_DISPONIBILIDADE,
   };
 }
 
@@ -292,6 +373,24 @@ async function lerDetalhes(ctx: Contexto, args: { lado?: unknown; pagina?: unkno
       municipio: `${ctx.nomes.get(x.municipio_codigo) ?? ''} (${x.municipio_codigo})`,
     })),
   };
+}
+
+/**
+ * Recorte fixado contra a carga vigente antes de qualquer chamada ao provedor (T4): período dentro da versão, igual
+ * duração dos períodos e municípios válidos. Pedido inválido não chega ao modelo.
+ */
+export function validarRecorte(ctx: Contexto): void {
+  const r = ctx.pedido.recorte;
+  try {
+    if (r.tipo === 'periodos') { municipioValido(ctx, r.municipio); validarPeriodos(ctx.janelaCarga, r.a, r.b); return; }
+    dentroDaCarga(ctx, r.janela);
+    if (r.tipo === 'selecao') municipioValido(ctx, r.municipio);
+    else if (r.tipo === 'municipios') validarMunicipios(r.a, r.b, new Set(ctx.nomes.keys()));
+    else for (const m of r.municipios) municipioValido(ctx, m);
+  } catch (e) {
+    if (e instanceof ErroComparacao) throw new ErroHttp('entrada_invalida', e.message);
+    throw e;
+  }
 }
 
 /** Executa uma ferramenta do catálogo; nome fora do catálogo ou argumento fora do pedido é recusado. */

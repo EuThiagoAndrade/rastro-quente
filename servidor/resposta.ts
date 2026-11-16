@@ -15,7 +15,10 @@ export type CodigoErro =
   | 'cancelada'
   | 'fonte_indisponivel'
   | 'leitura_inconsistente'
-  | 'provedor_indisponivel';
+  | 'provedor_indisponivel'
+  | 'cota_provedor'
+  | 'saida_invalida'
+  | 'limite_envio';
 
 const STATUS: Record<CodigoErro, number> = {
   ia_desabilitada: 503,
@@ -32,6 +35,9 @@ const STATUS: Record<CodigoErro, number> = {
   fonte_indisponivel: 502,
   leitura_inconsistente: 502,
   provedor_indisponivel: 502,
+  cota_provedor: 429,
+  saida_invalida: 502,
+  limite_envio: 502,
 };
 
 const TEXTO: Record<CodigoErro, string> = {
@@ -49,6 +55,9 @@ const TEXTO: Record<CodigoErro, string> = {
   fonte_indisponivel: 'Fonte de dados indisponível.',
   leitura_inconsistente: 'Leitura inconsistente dos dados; nada parcial foi usado.',
   provedor_indisponivel: 'O provedor de IA não respondeu; as evidências continuam disponíveis na aplicação.',
+  cota_provedor: 'A cota do provedor de IA se esgotou; nada foi repetido automaticamente. Uma nova tentativa consome nova cota.',
+  saida_invalida: 'O provedor de IA devolveu uma resposta fora do formato; nada dela foi usado.',
+  limite_envio: 'As evidências passam do limite de envio ao provedor; nenhuma síntese foi gerada a partir de amostra.',
 };
 
 const CABECALHOS = { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store', 'x-content-type-options': 'nosniff' };
@@ -56,6 +65,8 @@ const CABECALHOS = { 'content-type': 'application/json; charset=utf-8', 'cache-c
 export function json(status: number, corpo: unknown, extras: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(corpo), { status, headers: { ...CABECALHOS, ...extras } });
 }
+
+export const textoErro = (codigo: CodigoErro): string => TEXTO[codigo];
 
 export function erro(codigo: CodigoErro, detalhe?: string): Response {
   return json(STATUS[codigo], { erro: codigo, texto: TEXTO[codigo], ...(detalhe ? { detalhe } : {}) },

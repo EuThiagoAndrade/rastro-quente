@@ -2,13 +2,13 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#78`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-78`
 > **PR:** [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83)
-> **Integração:** `Pendente`
+> **Integração:** squash `cdc4fc5` em `main` (2026-11-16)
 > **Autorização inicial:** "Autorizo a implementação da issue #78" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -56,7 +56,7 @@ Não se aplica.
 - [x] Testes HTTP, bundle e prova do pacote.
 - [x] ADR-011, CI e documentação.
 - [x] PR [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83) aberta.
-- [ ] Checks remotos e merge aprovado.
+- [x] Checks remotos verdes e PR integrada por squash (`cdc4fc5`, 2026-11-16), conferido no GitHub durante a issue #79.
 
 ## Evidências
 
@@ -71,7 +71,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes em `4ce29f3`: "Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E" |
 
 ## Revisão da correção
 

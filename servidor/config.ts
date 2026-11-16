@@ -1,13 +1,13 @@
 // Configuração do servidor (plano 008, T4 e T6): só variáveis do servidor, nunca com prefixo VITE. A IA fica desligada
 // por padrão; qualquer variável ausente ou inválida também a desliga. Nada aqui é registrado em log.
 
-export const MODELO_FIXADO = 'gemini-3.8-flash';
+export const MODELO_FIXADO = 'gemini-3.1-flash-lite';
 
 export interface ConfigLigada {
   habilitada: true;
   supabaseUrl: string;
   chavePublica: string;
-  gemini: { chave: string; modelo: string };
+  gemini: { chave: string; modelo: string; intervaloMs?: number };
   /** Origens admitidas além da própria (validação de origem não substitui autenticação). */
   origens: string[];
 }
@@ -29,7 +29,8 @@ const url = (x: string | undefined): string | null => {
 /**
  * `RQ_IA_HABILITADA=true` liga a função; `RQ_SUPABASE_URL` e `RQ_SUPABASE_CHAVE_PUBLICAVEL` são a configuração
  * pública do Supabase (a sessão é a do usuário); `RQ_GEMINI_CHAVE` e `RQ_GEMINI_MODELO` (exatamente o modelo fixado,
- * sem alias) são do provedor; `RQ_ORIGENS` lista origens extras separadas por vírgula.
+ * sem alias) são do provedor; `RQ_GEMINI_INTERVALO_MS` (opcional, inteiro de 0 a 20000) espaça as chamadas ao provedor
+ * para a cota por minuto do projeto (presente e inválido desliga a função); `RQ_ORIGENS` lista origens extras separadas por vírgula.
  */
 export function lerConfigServidor(env: Ambiente): ConfigServidor {
   if (env['RQ_IA_HABILITADA'] !== 'true') return { habilitada: false };
@@ -38,6 +39,9 @@ export function lerConfigServidor(env: Ambiente): ConfigServidor {
   const chave = env['RQ_GEMINI_CHAVE'] ?? '';
   const modelo = env['RQ_GEMINI_MODELO'] ?? '';
   if (!supabaseUrl || !chavePublica || !chave || modelo !== MODELO_FIXADO) return { habilitada: false };
+  const bruto = env['RQ_GEMINI_INTERVALO_MS'];
+  const intervaloMs = bruto === undefined || bruto === '' ? 0 : /^\d{1,5}$/.test(bruto) && Number(bruto) <= 20_000 ? Number(bruto) : null;
+  if (intervaloMs === null) return { habilitada: false };
   const origens = (env['RQ_ORIGENS'] ?? '').split(',').map((x) => x.trim()).filter((x) => url(x) !== null);
-  return { habilitada: true, supabaseUrl, chavePublica, gemini: { chave, modelo }, origens };
+  return { habilitada: true, supabaseUrl, chavePublica, gemini: { chave, modelo, ...(intervaloMs ? { intervaloMs } : {}) }, origens };
 }
