@@ -116,6 +116,8 @@ jobs:
         run: npm run typecheck
       - name: Typecheck server function
         run: npm run typecheck:servidor
+      - name: Test agent orchestration (simulated provider, no key, no network)
+        run: npm run test:agentes
       - name: Build (public placeholder values only)
         env:
           VITE_SUPABASE_URL: https://projeto-exemplo.supabase.co

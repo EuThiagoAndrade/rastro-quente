@@ -1,6 +1,6 @@
-// Handler da explicação (plano 008, T4). Ordem fixa: habilitação → método e origem → formato e limites → JWT (Supabase
-// Auth) → autorização vigente provada por consulta sob RLS → carga fixada (eco conferido) → ferramentas → revalidação →
-// provedor → revalidação → resposta. Desligada, responde 503 antes de ler corpo, sessão ou qualquer serviço. O cliente
+// Handler da explicação (plano 008, T4 e T5). Ordem fixa: habilitação → método e origem → formato e limites → JWT
+// (Supabase Auth) → autorização vigente provada por consulta sob RLS → carga fixada (eco conferido) → orquestração dos
+// agentes (ferramentas, revalidação antes de cada envio de evidências ao provedor) → revalidação → resposta. Desligada, responde 503 antes de ler corpo, sessão ou qualquer serviço. O cliente
 // Supabase é criado por pedido, com a chave pública e o JWT do usuário: sem service_role, senha de banco ou sessão
 // compartilhada. Logs só com etapa, código e duração.
 import type { SupabaseClient } from '@supabase/supabase-js';
@@ -10,11 +10,12 @@ import { primeiroDiaGmt, ultimoDiaGmt } from '../src/formato.ts';
 import { ErroLente } from '../src/lentes/contrato.ts';
 import type { CargaDetalhe } from '../src/tipos.ts';
 import type { ConfigLigada, ConfigServidor } from './config.ts';
-import { executarFerramenta, FERRAMENTA_DO_PEDIDO, type Contexto } from './ferramentas.ts';
+import { FalhaProvedor, orquestrar, type Evento, type Resultado } from './agentes.ts';
+import { executarFerramenta, validarRecorte, type Contexto } from './ferramentas.ts';
 import type { Provedor } from './gemini.ts';
 import { Orcamento } from './orcamento.ts';
 import { lerCorpo, validarPedido, type Pedido } from './pedido.ts';
-import { erro, ErroHttp, json, type CodigoErro } from './resposta.ts';
+import { erro, ErroHttp, json, textoErro, type CodigoErro } from './resposta.ts';
 
 export const AVISO_IA = 'Gerado por IA a partir das evidências abaixo; pode conter erros. Confira as evidências. Detecções não comprovam incêndio, dano, autoria ou infração.';
 
@@ -24,8 +25,10 @@ export interface Dependencias {
   criarCliente(config: ConfigLigada, token: string, sinal: () => AbortSignal): SupabaseClient;
   provedor(config: ConfigLigada): Provedor;
   /** Execução das ferramentas (os testes envolvem a real para simular revogação ou troca de carga no meio). */
-  executar?: (ctx: Contexto, nome: string) => Promise<unknown>;
-  registrar?: (evento: { etapa: string; ms: number; codigo?: string }) => void;
+  executar?: (ctx: Contexto, nome: string, args: Record<string, unknown>) => Promise<unknown>;
+  /** Eventos por etapa da execução real (o painel do item 4 os consome); sem conteúdo. */
+  emitir?: (e: Evento) => void;
+  registrar?: (evento: { etapa: string; ms: number; codigo?: string; chamadas?: number; tokens?: number | null }) => void;
 }
 
 const DE_CONSULTA: Record<TipoErro, CodigoErro> = {
@@ -61,12 +64,35 @@ async function revalidar(cliente: SupabaseClient, carga: CargaDetalhe): Promise<
   if (atual.id !== carga.id || atual.identidade !== carga.identidade) throw new ErroHttp('versao_substituida');
 }
 
+/** Corpo da resposta: afirmações conferidas, notas fixas, análises, evidências por identificador e a execução real. */
+export function corpoResultado(r: Resultado, modelo: string) {
+  const soma = (k: 'entrada' | 'saida' | 'raciocinio') => r.chamadas.reduce((t, c) => t + (c.uso?.[k] ?? 0), 0);
+  return {
+    estado: r.estado,
+    classificacao: r.classificacao,
+    resposta: {
+      afirmacoes: r.afirmacoes, limites: r.limites, notas: r.notas,
+      gerado_por_ia: r.afirmacoes.length > 0 || r.analises.some((a) => a.afirmacoes.length > 0), aviso: AVISO_IA,
+    },
+    analises: r.analises,
+    evidencias: Object.fromEntries(r.evidencias.map((e) => [e.id, { ferramenta: e.ferramenta, papel: e.papel, dados: e.dados }])),
+    execucao: {
+      modelo, total_chamadas: r.chamadas.length, chamadas: r.chamadas,
+      // Consumo verificado só quando o provedor informou o uso de todas as chamadas.
+      uso: { entrada: soma('entrada'), saida: soma('saida'), raciocinio: soma('raciocinio'), verificado: r.chamadas.length > 0 && r.chamadas.every((c) => c.uso !== null) },
+      etapas: r.etapas,
+    },
+  };
+}
+
 export async function tratarExplicar(request: Request, deps: Dependencias): Promise<Response> {
   const config = deps.config;
   const registrar = deps.registrar ?? (() => {});
   const t0 = performance.now();
-  const fim = (r: Response, etapa: string): Response => {
-    registrar({ etapa, ms: Math.round(performance.now() - t0), codigo: String(r.status) });
+  // Log: só etapa, código, duração, número de chamadas e tokens agregados; nunca pergunta, resposta ou dados.
+  const fim = (r: Response, etapa: string, x?: Resultado): Response => {
+    const tokens = x ? x.chamadas.reduce((t, c) => t + (c.uso?.entrada ?? 0) + (c.uso?.saida ?? 0) + (c.uso?.raciocinio ?? 0), 0) : null;
+    registrar({ etapa, ms: Math.round(performance.now() - t0), codigo: String(r.status), ...(x ? { chamadas: x.chamadas.length, tokens } : {}) });
     return r;
   };
   // Desligada: nada é lido, nem o corpo nem a sessão, em qualquer método ou identidade.
@@ -85,33 +111,44 @@ export async function tratarExplicar(request: Request, deps: Dependencias): Prom
   if (!token) return fim(erro('nao_autenticado'), 'sessao');
   const orcamento = new Orcamento(request.signal);
   const cliente = deps.criarCliente(config, token, () => orcamento.sinalAtual);
-  let evidencias: unknown = null;
+  let carga: CargaDetalhe | null = null;
   try {
     const usuario = await cliente.auth.getUser(token);
     if (usuario.error || !usuario.data.user || usuario.data.user.role !== 'authenticated') return fim(erro('nao_autenticado'), 'sessao');
-    const carga = await autorizar(cliente);
+    const vigente = await autorizar(cliente);
+    carga = vigente;
     // Eco da carga: o pedido feito sobre outra versão não é misturado com a vigente.
-    if (pedido.carga.id !== carga.id || pedido.carga.identidade !== carga.identidade) throw new ErroHttp('versao_substituida');
-    const municipios = await lerMunicipios(cliente, carga.id);
+    if (pedido.carga.id !== vigente.id || pedido.carga.identidade !== vigente.identidade) throw new ErroHttp('versao_substituida');
+    const municipios = await lerMunicipios(cliente, vigente.id);
     const ctx: Contexto = {
-      cliente, carga, pedido, orcamento, nomes: new Map(municipios.map((m) => [m.codigo, m.nome])),
-      janelaCarga: { inicio: primeiroDiaGmt(carga.janela_inicio), fim: ultimoDiaGmt(carga.janela_fim) },
+      cliente, carga: vigente, pedido, orcamento, nomes: new Map(municipios.map((m) => [m.codigo, m.nome])),
+      janelaCarga: { inicio: primeiroDiaGmt(vigente.janela_inicio), fim: ultimoDiaGmt(vigente.janela_fim) },
     };
-    const executar = deps.executar ?? ((c: Contexto, nome: string) => executarFerramenta(c, nome));
-    evidencias = await executar(ctx, FERRAMENTA_DO_PEDIDO[pedido.recorte.tipo]);
-    await revalidar(cliente, carga);
-    const geracao = await orcamento.executar('geracao', (sinal) => deps.provedor(config).gerar({ pergunta: pedido.pergunta, evidencias }, sinal));
-    await revalidar(cliente, carga);
-    return fim(json(200, {
-      resposta: { texto: geracao.texto, gerado_por_ia: true, aviso: AVISO_IA },
-      evidencias, uso: geracao.uso,
-    }), 'concluida');
+    validarRecorte(ctx);
+    const executar = deps.executar ?? ((c: Contexto, nome: string, args: Record<string, unknown>) => executarFerramenta(c, nome, args));
+    const provedor = deps.provedor(config);
+    const r = await orquestrar({
+      pedido, orcamento, provedor,
+      executar: (nome, args) => executar(ctx, nome, args),
+      revalidar: () => revalidar(cliente, vigente),
+      ...(deps.emitir ? { emitir: deps.emitir } : {}),
+    });
+    await revalidar(cliente, vigente);
+    return fim(json(200, corpoResultado(r, provedor.modelo)), 'concluida', r);
   } catch (e) {
-    const x = classificar(e);
-    // Falha do provedor: as evidências já conferidas e revalidadas continuam acessíveis; nenhuma síntese.
-    if (x.codigo === 'provedor_indisponivel' && evidencias !== null) {
-      return fim(json(502, { erro: x.codigo, texto: 'O provedor de IA não respondeu; as evidências continuam disponíveis.', evidencias }), 'provedor');
+    // Falha do provedor: o que já foi conferido continua acessível, depois de revalidar acesso e carga; nenhuma síntese.
+    if (e instanceof FalhaProvedor && carga) {
+      try {
+        await revalidar(cliente, carga);
+      } catch (e2) {
+        return fim(erro(classificar(e2).codigo), 'erro');
+      }
+      const c = corpoResultado(e.parcial, config.gemini.modelo);
+      return fim(json(e.codigo === 'cota_provedor' ? 429 : 502, {
+        erro: e.codigo, texto: textoErro(e.codigo), analises: c.analises, evidencias: c.evidencias, execucao: c.execucao,
+      }), 'provedor', e.parcial);
     }
+    const x = classificar(e);
     return fim(erro(x.codigo, x.codigo === 'entrada_invalida' ? x.detalhe : undefined), 'erro');
   }
 }
