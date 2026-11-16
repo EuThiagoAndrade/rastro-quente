@@ -2,17 +2,17 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#77`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-77`
 > **PR:** [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82)
-> **Integração:** `Pendente`
+> **Integração:** squash `49592f2` em `main` (2026-11-16)
 > **Autorização inicial:** "Autorizo a implementação da issue #77" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
-> **Última atualização:** 2026-11-16
+> **Última atualização:** 2026-11-16 (reconciliada na issue #78)
 > **handoff_schema_version:** `2`
 
 ## Objetivo
@@ -58,7 +58,7 @@ Não se aplica.
 - [x] KB-007, `DESIGN.md`, README, runbook e regularização documental.
 - [x] Gates locais (ver "Evidências").
 - [x] PR [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82) aberta.
-- [ ] Checks remotos e merge aprovado.
+- [x] Checks remotos verdes e merge aprovado ("Aprovo o merge da PR #82", 2026-11-16); squash `49592f2`, conferido no GitHub durante a issue #78.
 
 ## Evidências
 
@@ -73,7 +73,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes em `f795b47`: "Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E" |
 
 ## Revisão da correção
 
@@ -113,7 +113,7 @@ Diga: "aprovo o merge da PR #82"
 - `state_before` / `state_after`: issue #77 aberta, plano `Aprovado`, ciclo `Planejamento` / branch `feature/issue-77` publicada e PR #82 aberta; plano `Em Execução`, ciclo `Em execução`, task `Em andamento`
 - `result`: `executed`
 - `evidence`: PR #82 (branch `feature/issue-77`); validações em "Evidências"
-- `blockers`: checks remotos e aprovação do merge
+- `blockers`: nenhum (reconciliação na issue #78: PR #82 integrada por squash `49592f2`, issue #77 fechada)
 
 ## Referência do bootstrap
 

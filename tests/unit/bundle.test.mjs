@@ -117,3 +117,20 @@ test('o upload (.vercelignore) também exclui credenciais, dependências e resul
   const vercel = readFileSync(path.join(RAIZ, '.vercelignore'), 'utf8').split(/\r?\n/);
   for (const item of ['local/', '.env', '.env.*', 'node_modules/', 'dist/', 'test-results/']) assert.ok(vercel.includes(item), item);
 });
+
+test('função de explicação (ciclo 008): nada do servidor no bundle e nenhuma chave do Gemini versionada', () => {
+  const texto = lista.filter((f) => /\.(html|js|css)$/.test(f)).map((f) => readFileSync(f, 'utf8')).join('\n');
+  for (const proibido of ['RQ_GEMINI', 'RQ_IA_HABILITADA', 'RQ_SUPABASE', 'generativelanguage.googleapis.com', 'x-goog-api-key']) {
+    assert.ok(!texto.includes(proibido), `não deve conter "${proibido}"`);
+  }
+  const r = spawnSync('git', ['ls-files'], { cwd: RAIZ, encoding: 'utf8' });
+  assert.equal(r.status, 0);
+  for (const f of r.stdout.split(/\r?\n/).filter((x) => x && !x.startsWith('local/'))) {
+    let conteudo;
+    try { conteudo = readFileSync(path.join(RAIZ, f), 'utf8'); } catch { continue; }
+    assert.ok(!/^\s*(VITE_)?RQ_GEMINI_CHAVE\s*=\s*\S/m.test(conteudo), `valor de RQ_GEMINI_CHAVE em ${f}`);
+    assert.ok(!/VITE_[A-Z_]*GEMINI/.test(conteudo), `variável do Gemini com prefixo VITE em ${f}`);
+    // Chaves de API do Google começam por AIza.
+    assert.ok(!/AIza[\w-]{30,}/.test(conteudo), `chave do Google em ${f}`);
+  }
+});
