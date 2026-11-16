@@ -54,7 +54,9 @@ Não se aplica.
 - [x] PR 1 [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) aberta, sem fechar a issue.
 - [x] Checks remotos verdes (3/3) e merge aprovado ("aprovo o merge da PR #87", 2026-11-16), squash `f0599c5`. Antes da aprovação, o responsável confirmou Fluid compute ligado e plano Hobby.
 - [x] Etapa A (ação externa), "concluí a ação externa da issue #81 — etapa A" em 2026-11-16: deploy de produção do `f0599c5` (status Vercel `success`) e Redeploy depois das variáveis, `Ready`; projeto Gemini no nível gratuito, sem faturamento, `gemini-3.1-flash-lite` com RPM 15, TPM 250 mil e RPD 500 (iguais aos da issue #79); `RQ_SUPABASE_URL` (base `.supabase.co`, sem `/rest/v1/`), `RQ_SUPABASE_CHAVE_PUBLICAVEL`, `RQ_GEMINI_CHAVE` (Sensitive) e `RQ_GEMINI_MODELO` em Production, sem `RQ_IA_HABILITADA`; domínio de produção confirmado pelo responsável; observabilidade restrita no Hobby, retenção dos logs não observável no painel.
-- [ ] Autorização de produção e verificação desligada.
+- [x] Autorização de produção: em 2026-11-16, à pergunta "Autoriza a verificação em produção do ciclo 008?", o responsável respondeu "Autorizo" (registrado como "autorizo a verificação em produção do ciclo 008").
+- [x] Verificação desligada, parte do agente (2026-11-16, sem sessão, no domínio de produção): `GET` e `POST` anônimos em `/api/explicar` → 503 `ia_desabilitada` (texto fixo, `Cache-Control: no-store`, sem dados nem detalhe do ambiente), em 1,3 s e 0,5 s; `POST` com `Origin` externa → 503 (a habilitação vem antes da origem, ADR-011). Bundle publicado (`index.html` e `/assets/index-PI3x1kgA.js`, 566.951 bytes) sem `RQ_GEMINI`, `RQ_IA_HABILITADA`, `generativelanguage`, `AIza`, `service_role` nem `interactions`. A única ocorrência de `sb_secret_` é o teste de prefixo de chave da biblioteca `supabase-js`, sem valor. Só a URL pública do Supabase aparece, como esperado. Cabeçalhos da página iguais aos de `vercel.json` (CSP, `nosniff`, `DENY`, `no-referrer`, `Permissions-Policy`, `no-cache`).
+- [ ] Verificação desligada, parte do responsável: consulta, lentes e comparação funcionando; painel de perguntas com a IA indisponível.
 - [ ] Etapa B (ação externa): habilitação.
 - [ ] Etapa C: verificação T9 hospedada.
 - [ ] PR 2: `008_validation_agentes.md`, reconciliação e fechamento da issue.
@@ -70,7 +72,7 @@ Não se aplica.
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
 | Checks remotos | PR 1 (#87): verdes ("Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E"); PR 2 pendente |
-| Verificação hospedada | Não iniciada; aguarda "autorizo a verificação em produção do ciclo 008" |
+| Verificação hospedada | Desligada: sondagens do agente conformes (ver "Execução"); conferência na interface pelo responsável pendente |
 
 ## Revisão da correção
 
