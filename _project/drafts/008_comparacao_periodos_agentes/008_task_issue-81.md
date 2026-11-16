@@ -7,8 +7,8 @@
 > **Issue:** `#81`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `chore/issue-81`
-> **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação; não fecha a issue)
-> **Integração:** `Pendente`
+> **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação, integrada; não fecha a issue); PR 2 a abrir
+> **Integração:** PR 1 (#87) por squash `f0599c5` em `main` (2026-11-16); PR 2 pendente
 > **Autorização inicial:** "autorizo a implementação da issue #81" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -52,8 +52,8 @@ Não se aplica.
 - [x] Limites da Vercel conferidos na documentação oficial (páginas de duração, limitações, Fluid compute e configuração, atualizadas em 2026-08-24/25): Hobby com Fluid compute, padrão e máximo de 300 s; Fluid compute ligado por padrão em projetos novos desde 2025-04-23; respostas em fluxo contam na duração; corpo até 4,5 MB (não se aplica à resposta em fluxo). A documentação não diz se um valor acima do máximo reprova o deploy nem traz a retenção de logs: ficam para a etapa A.
 - [x] Runbook (seção 12), `vercel.json`, teste e ADR-011.
 - [x] PR 1 [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) aberta, sem fechar a issue.
-- [ ] Checks remotos e merge aprovado da PR #87.
-- [ ] Etapa A (ação externa): cotas, Fluid compute, variáveis sem habilitação, logs.
+- [x] Checks remotos verdes (3/3) e merge aprovado ("aprovo o merge da PR #87", 2026-11-16), squash `f0599c5`. Antes da aprovação, o responsável confirmou Fluid compute ligado e plano Hobby.
+- [x] Etapa A (ação externa), "concluí a ação externa da issue #81 — etapa A" em 2026-11-16: deploy de produção do `f0599c5` (status Vercel `success`) e Redeploy depois das variáveis, `Ready`; projeto Gemini no nível gratuito, sem faturamento, `gemini-3.1-flash-lite` com RPM 15, TPM 250 mil e RPD 500 (iguais aos da issue #79); `RQ_SUPABASE_URL` (base `.supabase.co`, sem `/rest/v1/`), `RQ_SUPABASE_CHAVE_PUBLICAVEL`, `RQ_GEMINI_CHAVE` (Sensitive) e `RQ_GEMINI_MODELO` em Production, sem `RQ_IA_HABILITADA`; domínio de produção confirmado pelo responsável; observabilidade restrita no Hobby, retenção dos logs não observável no painel.
 - [ ] Autorização de produção e verificação desligada.
 - [ ] Etapa B (ação externa): habilitação.
 - [ ] Etapa C: verificação T9 hospedada.
@@ -69,8 +69,8 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
-| Verificação hospedada | Não iniciada (depende do merge da PR 1, da etapa A e da autorização de produção) |
+| Checks remotos | PR 1 (#87): verdes ("Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E"); PR 2 pendente |
+| Verificação hospedada | Não iniciada; aguarda "autorizo a verificação em produção do ciclo 008" |
 
 ## Revisão da correção
 
@@ -91,21 +91,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 008 (completo)
+Situação: Aguardando verificação em produção — ciclo 008 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #87 (https://github.com/EuThiagoAndrade/rastro-quente/pull/87); roteiro de docs/runbook.md, seção 12
-Diga: "aprovo o merge da PR #87"
+Conferir: Itens de verificação do plano (T9) e docs/runbook.md, seção 12 (verificação desligada)
+Diga: "autorizo a verificação em produção do ciclo 008"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (PR 1, preparação) + 831ee8e`
-- `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: issue #81 aberta, plano `Em Execução` / branch `chore/issue-81` publicada e PR #87 aberta, task `Em andamento`
+- `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (etapa A) + f0599c5`
+- `effect_class`: `local_mutation`
+- `state_before` / `state_after`: PR #87 integrada, etapa A pendente / etapa A concluída e registrada, verificação em produção não iniciada
 - `result`: `executed`
-- `evidence`: PR #87 (branch `chore/issue-81`); validações em "Evidências"
-- `blockers`: gates de merge da PR 1; depois, ação externa (etapa A) e autorização de produção
+- `evidence`: status Vercel `success` em `f0599c5`; retorno do responsável registrado em "Execução"
+- `blockers`: autorização de verificação em produção
 
 ## Referência do bootstrap
 
