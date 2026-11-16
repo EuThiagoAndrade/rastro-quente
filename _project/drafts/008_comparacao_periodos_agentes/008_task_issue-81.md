@@ -7,7 +7,7 @@
 > **Issue:** `#81`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `chore/issue-81`
-> **PR:** — (preparação; a PR não fecha a issue)
+> **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação; não fecha a issue)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #81" em 2026-11-16
 > **Modo contínuo:** `—`
@@ -51,7 +51,8 @@ Não se aplica.
 - [x] Branch `chore/issue-81`; esta task; task da issue #80 e rastreabilidade do plano reconciliadas.
 - [x] Limites da Vercel conferidos na documentação oficial (páginas de duração, limitações, Fluid compute e configuração, atualizadas em 2026-08-24/25): Hobby com Fluid compute, padrão e máximo de 300 s; Fluid compute ligado por padrão em projetos novos desde 2025-04-23; respostas em fluxo contam na duração; corpo até 4,5 MB (não se aplica à resposta em fluxo). A documentação não diz se um valor acima do máximo reprova o deploy nem traz a retenção de logs: ficam para a etapa A.
 - [x] Runbook (seção 12), `vercel.json`, teste e ADR-011.
-- [ ] PR 1 aberta, checks verdes e merge aprovado.
+- [x] PR 1 [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) aberta, sem fechar a issue.
+- [ ] Checks remotos e merge aprovado da PR #87.
 - [ ] Etapa A (ação externa): cotas, Fluid compute, variáveis sem habilitação, logs.
 - [ ] Autorização de produção e verificação desligada.
 - [ ] Etapa B (ação externa): habilitação.
@@ -66,7 +67,7 @@ Não se aplica.
 | `npm run typecheck` / `npm run typecheck:servidor` | Sem erros |
 | `npm run build` | Concluído |
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
-| `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais (depois de preencher o número da PR no bloco) |
+| `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
 | Checks remotos | Pendente |
 | Verificação hospedada | Não iniciada (depende do merge da PR 1, da etapa A e da autorização de produção) |
@@ -92,8 +93,8 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Aguardando merge — ciclo 008 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR de preparação da issue #81
-Diga: "aprovo o merge da PR #N"
+Conferir: Checks e diff da PR #87 (https://github.com/EuThiagoAndrade/rastro-quente/pull/87); roteiro de docs/runbook.md, seção 12
+Diga: "aprovo o merge da PR #87"
 ```
 
 ## Handoff de saída
@@ -101,9 +102,9 @@ Diga: "aprovo o merge da PR #N"
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (PR 1, preparação) + 831ee8e`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: issue #81 aberta, plano `Em Execução` / branch `chore/issue-81` com a preparação, task `Em andamento`
+- `state_before` / `state_after`: issue #81 aberta, plano `Em Execução` / branch `chore/issue-81` publicada e PR #87 aberta, task `Em andamento`
 - `result`: `executed`
-- `evidence`: validações em "Evidências"
+- `evidence`: PR #87 (branch `chore/issue-81`); validações em "Evidências"
 - `blockers`: gates de merge da PR 1; depois, ação externa (etapa A) e autorização de produção
 
 ## Referência do bootstrap
