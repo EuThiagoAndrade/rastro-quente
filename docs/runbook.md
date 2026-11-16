@@ -110,6 +110,8 @@ Aplicação estática (ADR-007). Diretrizes **efetivamente implementadas** neste
 | `npm run typecheck` | `tsc --noEmit` sobre `src/` |
 | `npm run build` | `vite build` em `dist/` (ignorado pelo Git); exige as variáveis públicas abaixo |
 | `npm run test:interface` | Contraste dos pares de cor, lógica pura e inspeção do bundle de produção (sem `local/`, sem segredo, sem dados, sem login por senha) |
+| `npm run test:api` | Ciclo 008: `supabase db reset` e o handler real de `/api/explicar` por HTTP local, com Auth e RLS locais, fixture fictícia e provedor simulado (matriz de acesso T4, limites, revogação e troca de carga) |
+| `node scripts/agentes/conferir-pacote.mjs` | Ciclo 008: confere o pacote de `.vercel/output` (gerado por `npx --no-install vercel build --standalone`; no Windows, num contêiner `node:24`, porque a CLI cria links simbólicos) — runtime Node 24, handler, execução isolada, 503 desligada e evidências iguais às do código-fonte; exige banco local vazio |
 | `npm run test:e2e` | `supabase db reset`, build de teste, Chrome do sistema: sessão, acesso, consulta, estados, acessibilidade, lentes, combinação de lentes, camada de áreas protegidas e sobreposição (82 testes, dados fictícios) |
 | `npm run medir:interface` | Medição em celular emulado com a carga real local: malha municipal nas três qualidades e, no ciclo 006, a visão geral da camada de áreas (teto de 600.000 bytes brutos) e o contorno real da maior área (grava `medicao-interface.json` em `local/dados-prototipo/`) |
 | `npm run conferir:lentes` | Ciclo 004: publica a carga real local num banco vazio e confere as lentes por SQL independente e a célula de cada detecção pelo texto da fonte (grava `conferencia-lentes.json` em `local/dados-prototipo/`; código 1 em divergência) |

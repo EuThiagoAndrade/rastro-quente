@@ -29,6 +29,8 @@ Interface base (ciclo `007`): visual da referência V13 com o contrato `DESIGN.m
 
 Comparação determinística (ciclo `008`, issue #77): dois períodos de mesma duração no mesmo recorte, ou dois municípios no mesmo período, com a mesma lente nos dois lados, sem IA nem chave (`comparacao-008-v1` em `src/comparacao.ts`). Contrato, regras de zero, ausência e disponibilidade e limites em `_project/knowledge/KB-007_comparacao_territorial.md`.
 
+Função de explicação (ciclo `008`, issue #78): `/api/explicar`, função Node 24 na Vercel com a lógica em `servidor/`, **desligada por padrão** (503). Acesso sob o JWT do responsável e a RLS, catálogo fechado de ferramentas determinísticas e cliente do Gemini só no servidor ([ADR-011](_project/decisions/ADR-011_funcao_explicacao_servidor.md)). `npm run typecheck:servidor`, `npm run test:api` (Supabase local, provedor simulado) e `node scripts/agentes/conferir-pacote.mjs` (pacote do `vercel build --standalone`) conferem a função.
+
 Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.
