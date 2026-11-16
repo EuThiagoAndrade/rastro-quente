@@ -1,4 +1,4 @@
-// Respostas HTTP da função: sempre JSON e `no-store`, sem CORS amplo e sem eco do conteúdo recebido. Erros levam só
+// Respostas HTTP da função: JSON (ou fluxo de linhas JSON, a pedido) e sempre `no-store`, sem CORS amplo e sem eco do conteúdo recebido. Erros levam só
 // um código e um texto fixo do código; nunca corpo de rede, pilha, JWT ou segredo.
 
 export type CodigoErro =
@@ -82,4 +82,30 @@ export class ErroHttp extends Error {
     this.codigo = codigo;
     this.detalhe = detalhe;
   }
+}
+
+/** Tipo do fluxo de eventos (uma mensagem JSON por linha), pedido pelo cliente em `Accept`. */
+export const TIPO_FLUXO = 'application/x-ndjson';
+
+/**
+ * Resposta em fluxo: `produzir` envia mensagens (cada uma vira uma linha JSON) e termina; `cancelar` é chamado se o
+ * cliente fechar o fluxo antes do fim. Status 200: o resultado e o seu status vão na última mensagem.
+ */
+export function fluxo(produzir: (enviar: (mensagem: unknown) => void) => Promise<void>, cancelar: () => void): Response {
+  const codificador = new TextEncoder();
+  let aberto = true;
+  const corpo = new ReadableStream<Uint8Array>({
+    start(c) {
+      const enviar = (m: unknown): void => { if (aberto) c.enqueue(codificador.encode(`${JSON.stringify(m)}\n`)); };
+      void produzir(enviar).then(
+        () => { if (aberto) { aberto = false; c.close(); } },
+        () => { if (aberto) { aberto = false; c.error(new Error('fluxo interrompido')); } },
+      );
+    },
+    cancel() {
+      aberto = false;
+      cancelar();
+    },
+  });
+  return new Response(corpo, { status: 200, headers: { ...CABECALHOS, 'content-type': `${TIPO_FLUXO}; charset=utf-8` } });
 }

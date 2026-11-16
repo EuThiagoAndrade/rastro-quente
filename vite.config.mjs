@@ -18,5 +18,9 @@ function cabecalhosDoDeploy() {
 export default defineConfig({
   build: { outDir: process.env.RQ_OUT_DIR ?? 'dist', emptyOutDir: true, sourcemap: false, target: 'es2022' },
   server: { port: 5173, strictPort: true, host: '127.0.0.1' },
-  preview: { port: 5173, strictPort: true, host: '127.0.0.1', headers: cabecalhosDoDeploy() },
+  preview: {
+    port: 5173, strictPort: true, host: '127.0.0.1', headers: cabecalhosDoDeploy(),
+    // Issue #80 — só no E2E (RQ_API_E2E): `/api` vai ao handler real com o provedor simulado, na mesma origem.
+    proxy: process.env.RQ_API_E2E ? { '/api': { target: process.env.RQ_API_E2E } } : undefined,
+  },
 });

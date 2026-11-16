@@ -267,7 +267,7 @@
             <div id="serie-corpo"></div>
           </section>
           <section class="cartao disponibilidade-cartao" aria-labelledby="t-disp">
-            <h2 id="t-disp" class="rotulo-secao">Disponibilidade dos dados</h2>
+            <h2 id="t-disp" class="rotulo-secao" tabindex="-1">Disponibilidade dos dados</h2>
             <div id="disp-corpo"></div>
           </section>
         </div>
@@ -306,6 +306,33 @@
             <div id="comparacao-estado" role="status"></div>
             <div id="comparacao-corpo"></div>
           </section>
+          <!-- Perguntas (ciclo 008, item 4): agentes sobre o que está na tela; etapas reais e evidências. -->
+          <section id="painel-perguntas" class="perguntas" aria-labelledby="t-perguntas" data-estado-perguntas="ociosa" aria-busy="false">
+            <h2 id="t-perguntas" class="rotulo-secao" tabindex="-1">Perguntar sobre a tela</h2>
+            <p class="nota">Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação. As respostas são geradas por IA e podem conter erros.</p>
+            <div class="perguntas__prontas" role="group" aria-label="Perguntas prontas">
+              <button id="pergunta-destaque" type="button" class="botao pergunta" data-pergunta="destaque" aria-describedby="pergunta-destaque-motivo">Por que esta célula foi destacada?</button>
+              <p id="pergunta-destaque-motivo" class="nota pergunta__motivo" hidden></p>
+              <button id="pergunta-periodos" type="button" class="botao pergunta" data-pergunta="periodos" aria-describedby="pergunta-periodos-motivo">O que mudou entre estes períodos?</button>
+              <p id="pergunta-periodos-motivo" class="nota pergunta__motivo" hidden></p>
+              <button id="pergunta-lacunas" type="button" class="botao pergunta" data-pergunta="lacunas" aria-describedby="pergunta-lacunas-motivo">Há lacunas nos dados?</button>
+              <p id="pergunta-lacunas-motivo" class="nota pergunta__motivo" hidden></p>
+              <button id="acao-comparar-municipios" type="button" class="botao pergunta pergunta--acao" aria-describedby="acao-comparar-municipios-motivo">Comparar municípios</button>
+              <p id="acao-comparar-municipios-motivo" class="nota pergunta__motivo" hidden></p>
+            </div>
+            <form id="form-pergunta" class="perguntas__livre" novalidate>
+              <label for="pergunta-livre" class="rotulo-secao rotulo-secao--campo">Sua pergunta</label>
+              <textarea id="pergunta-livre" rows="3" maxlength="2000" aria-describedby="pergunta-ajuda pergunta-contexto"></textarea>
+              <p id="pergunta-ajuda" class="nota">Até 2.000 caracteres. Não escreva dados pessoais, senhas ou chaves. A pergunta não muda os filtros; para outro recorte, mude-o na tela.</p>
+              <p id="pergunta-contexto" class="nota"></p>
+              <div class="acoes">
+                <button id="botao-perguntar" type="submit" class="botao botao--primario">Perguntar</button>
+                <button id="botao-cancelar-pergunta" type="button" class="botao" hidden>Cancelar</button>
+              </div>
+            </form>
+            <div id="perguntas-estado" role="status"></div>
+            <div id="perguntas-corpo"></div>
+          </section>
         </aside>
       </div>
     </main>
@@ -330,6 +357,7 @@
       <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Mapa", escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"), abra a "Lista de focos" ou enquadre os dados; com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
+      <div class="passo"><b>5</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as perguntas prontas e o texto livre usam o que está na tela (recorte, lente, destaque aberto ou comparação) e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
     </dialog>

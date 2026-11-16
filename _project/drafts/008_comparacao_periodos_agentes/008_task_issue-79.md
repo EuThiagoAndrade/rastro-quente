@@ -2,13 +2,13 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#79`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-79`
 > **PR:** [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
-> **Integração:** `Pendente`
+> **Integração:** squash `80af104` em `main` (2026-11-16)
 > **Autorização inicial:** "autorizo a implementação da issue #79" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -57,7 +57,7 @@ Não se aplica.
 - [x] Complemento da ADR-011 e CI.
 - [x] PR [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85) aberta.
 - [x] Ação externa (projeto Gemini, cotas RPM/TPM/RPD e chave no `.env` local) e prova real local de T9.
-- [ ] Checks remotos e merge aprovado.
+- [x] Checks remotos verdes e PR integrada por squash (`80af104`, 2026-11-16), conferido no GitHub durante a issue #80.
 
 ## Evidências
 
@@ -73,7 +73,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes em `7773be1` (PR #85): "Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E" |
 
 ## Revisão da correção
 
