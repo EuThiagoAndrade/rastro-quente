@@ -100,8 +100,8 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Parado — ciclo 008 (completo)
 Quem: Responsável
-Conferir: Tentativa 1 da prova real T9 em "Evidências" (indisponibilidade do provedor: HTTP 503 de alta demanda e tempo esgotado) e a PR #85 (https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
-Diga: sua resposta à pergunta registrada: repito a prova real T9 agora ou depois que a cota diária renovar?
+Conferir: Pergunta registrada: quando repetir a prova real T9 (agora ou depois da renovação da cota diária)? Tentativa 1 em "Evidências" (indisponibilidade do provedor: HTTP 503 de alta demanda e tempo esgotado) e a PR #85 (https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
+Diga: sua resposta à pergunta registrada
 ```
 
 ## Handoff de saída
