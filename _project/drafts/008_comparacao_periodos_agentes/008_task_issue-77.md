@@ -7,7 +7,7 @@
 > **Issue:** `#77`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-77`
-> **PR:** —
+> **PR:** [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "Autorizo a implementação da issue #77" em 2026-11-16
 > **Modo contínuo:** `—`
@@ -57,7 +57,8 @@ Não se aplica.
 - [x] Interface: seção "Comparar", aba "Comparação" (`src/apresentacao-comparacao.ts`), abas do resultado generalizadas para três, rótulo do lado no mapa, orquestração em `src/app.ts`; E2E `tests/e2e/12-comparacao.spec.mjs`.
 - [x] KB-007, `DESIGN.md`, README, runbook e regularização documental.
 - [x] Gates locais (ver "Evidências").
-- [ ] PR, checks remotos e merge aprovado.
+- [x] PR [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82) aberta.
+- [ ] Checks remotos e merge aprovado.
 
 ## Evidências
 
@@ -98,21 +99,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 008 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 008"
+Situação: Aguardando merge — ciclo 008 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #82 (https://github.com/EuThiagoAndrade/rastro-quente/pull/82)
+Diga: "aprovo o merge da PR #82"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 77 + b6525a2`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #77 aberta, plano `Aprovado`, ciclo `Planejamento` / branch `feature/issue-77`, plano `Em Execução`, ciclo `Em execução`, task `Em andamento`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #77 aberta, plano `Aprovado`, ciclo `Planejamento` / branch `feature/issue-77` publicada e PR #82 aberta; plano `Em Execução`, ciclo `Em execução`, task `Em andamento`
 - `result`: `executed`
-- `evidence`: branch local e esta task
-- `blockers`: nenhum
+- `evidence`: PR #82 (branch `feature/issue-77`); validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge
 
 ## Referência do bootstrap
 

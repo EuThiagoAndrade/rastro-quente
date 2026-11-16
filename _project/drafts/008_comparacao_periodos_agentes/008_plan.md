@@ -420,7 +420,7 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#77](https://github.com/EuThiagoAndrade/rastro-quente/issues/77) (item 1), [#78](https://github.com/EuThiagoAndrade/rastro-quente/issues/78) (item 2), [#79](https://github.com/EuThiagoAndrade/rastro-quente/issues/79) (item 3), [#80](https://github.com/EuThiagoAndrade/rastro-quente/issues/80) (item 4), [#81](https://github.com/EuThiagoAndrade/rastro-quente/issues/81) (item 5), criadas em 2026-11-15 |
-| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), squash `b6525a2` integrada em 2026-11-15 |
+| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), squash `b6525a2` integrada em 2026-11-15; [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82) (item 1, aberta) |
 | Branch(es) | chore/cycle-008-plan (documental); feature/issue-77 (item 1, task [008_task_issue-77.md](008_task_issue-77.md)) |
 | Destino após conclusão | `_project/executed/008_comparacao_periodos_agentes/008_plan.md` |
 
@@ -429,10 +429,10 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 008 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 008"
+Situação: Aguardando merge — ciclo 008 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #82 (https://github.com/EuThiagoAndrade/rastro-quente/pull/82)
+Diga: "aprovo o merge da PR #82"
 ```
 
 ## Handoff de saída
