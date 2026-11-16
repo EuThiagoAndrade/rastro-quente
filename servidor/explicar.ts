@@ -3,6 +3,12 @@
 // agentes (ferramentas, revalidação antes de cada envio de evidências ao provedor) → revalidação → resposta. Desligada, responde 503 antes de ler corpo, sessão ou qualquer serviço. O cliente
 // Supabase é criado por pedido, com a chave pública e o JWT do usuário: sem service_role, senha de banco ou sessão
 // compartilhada. Logs só com etapa, código e duração.
+//
+// Fluxo de eventos (plano 008, T7; item 4): com `Accept: application/x-ndjson`, depois da matriz T4 (os acessos negados
+// continuam respostas HTTP comuns, sem fluxo e sem provedor), a resposta é um fluxo de linhas JSON na própria resposta
+// HTTP: `{"tipo":"evento","evento":…}` a cada etapa real da orquestração, sem conteúdo, e por fim
+// `{"tipo":"fim","status":N,"corpo":…}`, com o mesmo status e corpo da resposta sem fluxo. Fechar o fluxo cancela a
+// execução: nenhuma chamada nova ao provedor começa depois disso.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { lerCargaVigente, lerMunicipios, sondarAcesso } from '../src/consulta.ts';
 import { ErroConsulta, type TipoErro } from '../src/erros.ts';
@@ -15,7 +21,7 @@ import { executarFerramenta, validarRecorte, type Contexto } from './ferramentas
 import type { Provedor } from './gemini.ts';
 import { Orcamento } from './orcamento.ts';
 import { lerCorpo, validarPedido, type Pedido } from './pedido.ts';
-import { erro, ErroHttp, json, textoErro, type CodigoErro } from './resposta.ts';
+import { erro, ErroHttp, fluxo, json, textoErro, TIPO_FLUXO, type CodigoErro } from './resposta.ts';
 
 export const AVISO_IA = 'Gerado por IA a partir das evidências abaixo; pode conter erros. Confira as evidências. Detecções não comprovam incêndio, dano, autoria ou infração.';
 
@@ -109,47 +115,63 @@ export async function tratarExplicar(request: Request, deps: Dependencias): Prom
   // JWT só no cabeçalho, nunca na URL.
   const token = /^Bearer ([A-Za-z0-9._-]+)$/.exec(request.headers.get('authorization') ?? '')?.[1];
   if (!token) return fim(erro('nao_autenticado'), 'sessao');
-  const orcamento = new Orcamento(request.signal);
+  // O cancelamento do fluxo pelo cliente vale como cancelamento do pedido.
+  const cancelamento = new AbortController();
+  const orcamento = new Orcamento(AbortSignal.any([request.signal, cancelamento.signal]));
   const cliente = deps.criarCliente(config, token, () => orcamento.sinalAtual);
-  let carga: CargaDetalhe | null = null;
+  let ctx: Contexto;
   try {
     const usuario = await cliente.auth.getUser(token);
     if (usuario.error || !usuario.data.user || usuario.data.user.role !== 'authenticated') return fim(erro('nao_autenticado'), 'sessao');
     const vigente = await autorizar(cliente);
-    carga = vigente;
     // Eco da carga: o pedido feito sobre outra versão não é misturado com a vigente.
     if (pedido.carga.id !== vigente.id || pedido.carga.identidade !== vigente.identidade) throw new ErroHttp('versao_substituida');
     const municipios = await lerMunicipios(cliente, vigente.id);
-    const ctx: Contexto = {
+    ctx = {
       cliente, carga: vigente, pedido, orcamento, nomes: new Map(municipios.map((m) => [m.codigo, m.nome])),
       janelaCarga: { inicio: primeiroDiaGmt(vigente.janela_inicio), fim: ultimoDiaGmt(vigente.janela_fim) },
     };
     validarRecorte(ctx);
-    const executar = deps.executar ?? ((c: Contexto, nome: string, args: Record<string, unknown>) => executarFerramenta(c, nome, args));
-    const provedor = deps.provedor(config);
-    const r = await orquestrar({
-      pedido, orcamento, provedor,
-      executar: (nome, args) => executar(ctx, nome, args),
-      revalidar: () => revalidar(cliente, vigente),
-      ...(config.gemini.intervaloMs ? { intervaloMs: config.gemini.intervaloMs } : {}),
-      ...(deps.emitir ? { emitir: deps.emitir } : {}),
-    });
-    await revalidar(cliente, vigente);
-    return fim(json(200, corpoResultado(r, provedor.modelo)), 'concluida', r);
   } catch (e) {
-    // Falha do provedor: o que já foi conferido continua acessível, depois de revalidar acesso e carga; nenhuma síntese.
-    if (e instanceof FalhaProvedor && carga) {
-      try {
-        await revalidar(cliente, carga);
-      } catch (e2) {
-        return fim(erro(classificar(e2).codigo), 'erro');
-      }
-      const c = corpoResultado(e.parcial, config.gemini.modelo);
-      return fim(json(e.codigo === 'cota_provedor' ? 429 : 502, {
-        erro: e.codigo, texto: textoErro(e.codigo), analises: c.analises, evidencias: c.evidencias, execucao: c.execucao,
-      }), 'provedor', e.parcial);
-    }
     const x = classificar(e);
     return fim(erro(x.codigo, x.codigo === 'entrada_invalida' ? x.detalhe : undefined), 'erro');
   }
+
+  const executarOrquestracao = async (emitir?: (e: Evento) => void): Promise<Response> => {
+    const vigente = ctx.carga;
+    try {
+      const executar = deps.executar ?? ((c: Contexto, nome: string, args: Record<string, unknown>) => executarFerramenta(c, nome, args));
+      const provedor = deps.provedor(config);
+      const r = await orquestrar({
+        pedido, orcamento, provedor,
+        executar: (nome, args) => executar(ctx, nome, args),
+        revalidar: () => revalidar(cliente, vigente),
+        ...(config.gemini.intervaloMs ? { intervaloMs: config.gemini.intervaloMs } : {}),
+        ...(emitir ? { emitir } : {}),
+      });
+      await revalidar(cliente, vigente);
+      return fim(json(200, corpoResultado(r, provedor.modelo)), 'concluida', r);
+    } catch (e) {
+      // Falha do provedor: o que já foi conferido continua acessível, depois de revalidar acesso e carga; nenhuma síntese.
+      if (e instanceof FalhaProvedor) {
+        try {
+          await revalidar(cliente, vigente);
+        } catch (e2) {
+          return fim(erro(classificar(e2).codigo), 'erro');
+        }
+        const c = corpoResultado(e.parcial, config.gemini.modelo);
+        return fim(json(e.codigo === 'cota_provedor' ? 429 : 502, {
+          erro: e.codigo, texto: textoErro(e.codigo), analises: c.analises, evidencias: c.evidencias, execucao: c.execucao,
+        }), 'provedor', e.parcial);
+      }
+      const x = classificar(e);
+      return fim(erro(x.codigo, x.codigo === 'entrada_invalida' ? x.detalhe : undefined), 'erro');
+    }
+  };
+
+  if (!(request.headers.get('accept') ?? '').includes(TIPO_FLUXO)) return executarOrquestracao(deps.emitir);
+  return fluxo(async (enviar) => {
+    const r = await executarOrquestracao((e) => { deps.emitir?.(e); enviar({ tipo: 'evento', evento: e }); });
+    enviar({ tipo: 'fim', status: r.status, corpo: await r.json() });
+  }, () => cancelamento.abort());
 }

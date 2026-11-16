@@ -22,14 +22,19 @@ import {
 } from './apresentacao-resultado.ts';
 import {
   ITENS_POR_PAGINA, mostrarAbaComparacao, renderComparacaoMunicipios, renderComparacaoPeriodos, renderEstadoComparacao,
-  renderLadoNoMapa, textoJanela, type ContextoComparacao, type EstadoComparacao, type EstadoLista, type Modo,
+  nomeUnidade, renderLadoNoMapa, textoJanela, type ContextoComparacao, type EstadoComparacao, type EstadoLista, type Modo,
 } from './apresentacao-comparacao.ts';
 import {
-  compararMunicipios, compararPeriodos, conferirZero, duracaoDias, contextoCombinacao, contextoConcentracao, disponibilidadePorMunicipio,
+  chaveUnidade, compararMunicipios, compararPeriodos, conferirZero, duracaoDias, contextoCombinacao, contextoConcentracao, disponibilidadePorMunicipio,
   ErroComparacao, leiturasDeDisponibilidade, unidadesDe, validarMunicipios, validarPeriodos,
   type ComparacaoMunicipal, type ComparacaoTemporal, type ConferenciaZero, type Lado, type ResultadoComparavel,
   type ValidacaoPeriodos,
 } from './comparacao.ts';
+import {
+  chaveContexto, escolherRecorte, montarPedido, perguntar, type ConfigLente as ConfigLenteIa, type ContextoTela, type Desfecho,
+  type Escolha, type Evento as EventoIa, type Ferramenta, type Pergunta,
+} from './agentes.ts';
+import { renderDisponibilidade as renderDisponibilidadePerguntas, renderPerguntas, type EstadoPerguntas } from './apresentacao-agentes.ts';
 import { lerConfiguracao } from './config.ts';
 import { AVISO_FALHA, AVISO_FALHA_NOMES, AVISO_SEM_CHAVE, fundoInicial, lerChaveEsri, type Fundo } from './fundo.ts';
 import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
@@ -286,6 +291,13 @@ class Controlador {
   private usuarioAutorizado = false;
   private motivoPendente: 'saiu' | 'expirada' | undefined;
   private erroCallback: string | undefined;
+  // Perguntas (plano 008, item 4): uma execução por aba, geração própria e o contexto da pergunta em curso ou da
+  // resposta exibida. Mudou o contexto (seleção, filtro, lente, comparação, carga ou sessão), ela é cancelada e sai.
+  private geracaoPergunta = 0;
+  private perguntaEmCurso: AbortController | null = null;
+  private chavePergunta: string | null = null;
+  private ultimaPergunta: { tipo: Pergunta; livre: string } | null = null;
+  private estadoPerguntas: EstadoPerguntas = { tipo: 'ociosa' };
 
   constructor(private readonly senhaLocal: boolean, private readonly sessao: Sessao) {}
 
@@ -355,6 +367,14 @@ class Controlador {
     $('lista-focos').addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.stopPropagation(); this.fecharListaFocos(); } });
     $('botao-voltar').addEventListener('click', () => this.voltarAosDestaques());
     ligarAbas();
+    // Perguntas (item 4): prontas, ação de comparação municipal, texto livre e cancelamento.
+    for (const p of ['destaque', 'periodos', 'lacunas'] as const) $(`pergunta-${p}`).addEventListener('click', () => void this.perguntarAgora(p));
+    $('acao-comparar-municipios').addEventListener('click', () => this.abrirComparacaoMunicipios());
+    $('form-pergunta').addEventListener('submit', (ev) => {
+      ev.preventDefault();
+      void this.perguntarAgora('livre', $<HTMLTextAreaElement>('pergunta-livre').value);
+    });
+    $('botao-cancelar-pergunta').addEventListener('click', () => this.perguntaEmCurso?.abort());
     const arrastar = $('botao-arrastar');
     arrastar.addEventListener('click', () => {
       const ativo = arrastar.getAttribute('aria-pressed') !== 'true';
@@ -518,6 +538,10 @@ class Controlador {
     this.limparAreas();
     this.redefinirComparacao();
     abrirAba('municipios');
+    // Sessão, acesso ou versão mudaram: a pergunta e a resposta saem junto, sem aviso de seleção.
+    this.descartarPergunta(false);
+    $<HTMLTextAreaElement>('pergunta-livre').value = '';
+    this.atualizarPerguntas();
   }
 
   // --- Consulta --------------------------------------------------------------------------------------
@@ -971,6 +995,7 @@ class Controlador {
     limparCorpoLente();
     this.estadoLente(o.estado);
     this.mostrarMunicipios();
+    this.atualizarPerguntas();
   }
 
   private fontesLente(): FontesLente {
@@ -1025,6 +1050,7 @@ class Controlador {
     if (!l || !this.dados) return;
     renderResultadoLente(l.resultado, l.selecionado,
       { nomes: this.dados.nomes, registros: l.porId, paginaEvidencia: l.paginaEvidencia }, this.manipuladoresLente());
+    this.atualizarPerguntas();
   }
 
   /** Antes de abrir uma explicação: guarda a rolagem da lista e mostra a aba Destaques. */
@@ -1259,6 +1285,7 @@ class Controlador {
         noMapa: this.mapa?.contagem().destaques ?? 0,
       },
       this.manipuladoresCombinacao());
+    this.atualizarPerguntas();
   }
 
   /** Seleciona a célula (pela lista ou pelo mapa) e leva a lista à página dela. */
@@ -1393,6 +1420,7 @@ class Controlador {
       nomes: this.dados.nomes, registros: s.porId, pagina: s.pagina, paginaEvidencia: s.paginaEvidencia,
       noMapa: this.mapa?.contagem().destaques ?? 0, contornos: s.contornos,
     }, this.manipuladoresSobreposicao());
+    this.atualizarPerguntas();
   }
 
   /** Abre a célula (pela lista ou pelo mapa) e baixa o contorno real de cada área citada (R1-6). */
@@ -1629,6 +1657,7 @@ class Controlador {
     this.restaurarMapaA();
     renderLadoNoMapa(null);
     if (modoComparacao() !== 'nenhuma') this.estadoComparacao({ tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 });
+    this.atualizarPerguntas();
   }
 
   /** Sessão, versão ou "Limpar tudo": sem comparação, campos vazios e a aba fora da coluna. */
@@ -1894,6 +1923,7 @@ class Controlador {
       if (!(e instanceof ErroComparacao)) throw e;
       this.comparacao = null;
       this.estadoComparacao({ tipo: 'recusada', texto: e.message });
+      this.atualizarPerguntas();
       return;
     }
     c.resultado = r;
@@ -1929,6 +1959,178 @@ class Controlador {
     if (r.tipo === 'temporal') renderComparacaoPeriodos(r, ctx, m);
     else renderComparacaoMunicipios(r, ctx, m);
     if (ativo) document.getElementById(ativo)?.focus({ preventScroll: true });
+    this.atualizarPerguntas();
+  }
+
+  // --- Perguntas aos agentes (plano 008, item 4; T7) ----------------------------------------------------------------
+
+  /** Lente do formulário no formato do pedido; sem lente completa, `null` (o mesmo que a comparação calcularia). */
+  private configLenteFormulario(): ConfigLenteIa | null {
+    const escolhida = lenteEscolhida();
+    if (escolhida === 'combinacao') {
+      const c = this.lerConfigCombinacao();
+      return c ? { tipo: 'combinacao', lentes: c.lentes, operador: c.operador } : null;
+    }
+    if (escolhida === 'sobreposicao') {
+      const marcada = document.querySelector<HTMLInputElement>('input[name="l-classe"]:checked')?.value;
+      const classe = CLASSES_AREA.find((c) => c === marcada);
+      return classe ? { tipo: 'sobreposicao', classe } : null;
+    }
+    return Object.hasOwn(LENTES, escolhida) ? { tipo: escolhida as keyof typeof LENTES } : null;
+  }
+
+  /** Destaque aberto na aba Destaques (lente, combinação ou sobreposição), com os municípios das suas detecções. */
+  private destaqueAberto(): ContextoTela['destaque'] {
+    let id: string | null = null;
+    let r: ResultadoComparavel | null = null;
+    let unidade: Unidade | undefined;
+    if (this.lente?.selecionado) {
+      id = this.lente.selecionado;
+      r = this.lente.resultado;
+      unidade = this.lente.resultado.destaques.find((d) => d.id_destaque === id)?.unidade;
+    } else if (this.combinacao?.selecionado) {
+      id = this.combinacao.selecionado;
+      r = this.combinacao.resultado;
+      unidade = this.combinacao.resultado.celulas.find((c) => c.id_combinado === id)?.unidade;
+    } else if (this.sobreposicao?.selecionado) {
+      id = this.sobreposicao.selecionado;
+      r = this.sobreposicao.resultado;
+      unidade = this.sobreposicao.resultado.destaques.find((d) => d.id_destaque === id)?.unidade;
+    }
+    if (!id || !r || !unidade) return null;
+    const chave = chaveUnidade(unidade);
+    return { id, rotulo: nomeUnidade(unidade), municipios: unidadesDe(r).find((u) => u.chave === chave)?.municipios ?? [] };
+  }
+
+  /** O que está na tela agora; `null` sem acesso autorizado ou recorte aplicado. */
+  private contextoPergunta(): ContextoTela | null {
+    const dados = this.dados;
+    const a = this.aplicado;
+    if (!dados || !a || !this.usuarioAutorizado) return null;
+    const c = this.comparacao?.resultado ? this.comparacao : null;
+    const comLente = !!(this.lente || this.combinacao || this.sobreposicao);
+    const [la, lb] = c?.lados ?? [];
+    return {
+      carga: { id: dados.carga.id, identidade: dados.carga.identidade },
+      janela: { inicio: a.inicio, fim: a.fim },
+      municipio: a.municipio,
+      lente: comLente || c ? this.configLenteFormulario() : null,
+      destaque: comLente ? this.destaqueAberto() : null,
+      comparacao: !c || !la || !lb ? null
+        : c.modo === 'periodos' ? { modo: 'periodos', a: la.pedido.janela, b: lb.pedido.janela }
+          : { modo: 'municipios', a: la.filtro.municipio ?? 0, b: lb.filtro.municipio ?? 0 },
+    };
+  }
+
+  /**
+   * Recalcula o que cada pergunta pode usar agora. Se o contexto mudou desde a pergunta em curso ou a resposta exibida,
+   * a execução é cancelada e a resposta sai da tela (nenhuma resposta obsoleta).
+   */
+  private atualizarPerguntas(): void {
+    const ctx = this.contextoPergunta();
+    if (this.chavePergunta !== null && chaveContexto(this.geracaoSessao, ctx) !== this.chavePergunta) this.descartarPergunta(true);
+    const sem: Escolha = { indisponivel: 'Sem dados autorizados na tela.' };
+    const escolhas = Object.fromEntries((['destaque', 'periodos', 'lacunas', 'livre'] as const)
+      .map((p) => [p, ctx ? escolherRecorte(p, ctx) : sem])) as Record<Pergunta, Escolha>;
+    const comparar = !ctx ? sem.indisponivel
+      : ctx.municipio === null ? 'Escolha um município na Consulta para ser o A.'
+        : modoComparacao() === 'municipios' ? 'A comparação de municípios já está aberta em Filtros › Comparar.' : null;
+    renderDisponibilidadePerguntas(escolhas, comparar, this.perguntaEmCurso !== null);
+  }
+
+  private mostrarPerguntas(e: EstadoPerguntas): void {
+    this.estadoPerguntas = e;
+    renderPerguntas(e, {
+      tentarDeNovo: () => { const u = this.ultimaPergunta; if (u) void this.perguntarAgora(u.tipo, u.livre); },
+      abrirDetalhamento: (f) => this.abrirDetalhamento(f),
+    });
+  }
+
+  /** Cancela a execução em curso e tira a resposta da tela; `avisar` diz que foi a seleção que mudou. */
+  private descartarPergunta(avisar: boolean): void {
+    this.geracaoPergunta++;
+    this.perguntaEmCurso?.abort();
+    this.perguntaEmCurso = null;
+    this.chavePergunta = null;
+    this.mostrarPerguntas(avisar && this.estadoPerguntas.tipo !== 'ociosa' && this.estadoPerguntas.tipo !== 'descartada' ? { tipo: 'descartada' } : { tipo: 'ociosa' });
+  }
+
+  /** "Comparar municípios": abre o seletor do município B na seção Comparar; nada é calculado antes da escolha. */
+  private abrirComparacaoMunicipios(): void {
+    const radio = document.querySelector<HTMLInputElement>('input[name="c-modo"][value="municipios"]');
+    if (!radio || this.aplicado?.municipio == null) return;
+    radio.checked = true;
+    this.aoMudarModoComparacao();
+    $<HTMLDetailsElement>('secao-comparar').open = true;
+    $('cmp-municipio-b').focus();
+  }
+
+  /** Leva ao detalhamento determinístico da evidência, que continua completo na tela. */
+  private abrirDetalhamento(f: Ferramenta): void {
+    if (f === 'explicar_selecao') abrirAba('destaques', true);
+    else if (f === 'comparar_periodos' || f === 'comparar_municipios' || (f === 'consultar_disponibilidade' && this.comparacao)) abrirAba('comparacao', true);
+    else if (f === 'consultar_disponibilidade') {
+      $('t-disp').scrollIntoView({ block: 'nearest' });
+      $('t-disp').focus();
+    }
+  }
+
+  /**
+   * Envia a pergunta com o JWT da sessão (só no cabeçalho) e mostra as etapas reais à medida que chegam. Sessão,
+   * acesso e versão recusados pelo servidor nunca ficam locais: a tela inteira reage, como nas lentes.
+   */
+  private async perguntarAgora(tipo: Pergunta, livre = ''): Promise<void> {
+    const ctx = this.contextoPergunta();
+    if (!ctx || this.perguntaEmCurso) return;
+    const pedido = montarPedido(tipo, ctx, livre);
+    if ('indisponivel' in pedido) {
+      $('perguntas-estado').textContent = pedido.indisponivel;
+      return;
+    }
+    const g = ++this.geracaoPergunta;
+    const controle = new AbortController();
+    this.perguntaEmCurso = controle;
+    this.chavePergunta = chaveContexto(this.geracaoSessao, ctx);
+    this.ultimaPergunta = { tipo, livre };
+    const atual = () => g === this.geracaoPergunta;
+    const etapas: EventoIa[] = [];
+    this.mostrarPerguntas({ tipo: 'executando', pergunta: pedido.pergunta, etapas: [] });
+    this.atualizarPerguntas();
+    $('perguntas-estado').scrollIntoView({ block: 'nearest' });
+    let desfecho: Desfecho | 'rede';
+    try {
+      const { data } = await this.sessao.cliente.auth.getSession();
+      const token = data.session?.access_token;
+      if (!atual()) return;
+      if (!token) {
+        this.tratarErroGlobal(new ErroConsulta('sessao_expirada', 'explicação sem sessão'));
+        return;
+      }
+      desfecho = await perguntar(pedido, token, controle.signal, (e) => {
+        if (!atual()) return;
+        etapas.push(e);
+        this.mostrarPerguntas({ tipo: 'executando', pergunta: pedido.pergunta, etapas: [...etapas] });
+      });
+    } catch {
+      desfecho = 'rede';
+    }
+    if (!atual()) return;
+    this.perguntaEmCurso = null;
+    const base = { pergunta: pedido.pergunta, etapas };
+    if (controle.signal.aborted) this.mostrarPerguntas({ tipo: 'cancelada', ...base });
+    else if (desfecho === 'rede') this.mostrarPerguntas({ tipo: 'rede', ...base });
+    else if (desfecho.tipo === 'formato') this.mostrarPerguntas({ tipo: 'formato', ...base });
+    else if (desfecho.tipo === 'resposta') this.mostrarPerguntas({ tipo: 'resposta', ...base, resposta: desfecho.resposta });
+    else {
+      const global: Partial<Record<string, TipoErro>> = { nao_autenticado: 'sessao_expirada', acesso_negado: 'acesso_negado', sem_publicacao: 'sem_publicacao' };
+      const tipoGlobal = global[desfecho.codigo];
+      if (tipoGlobal) { this.tratarErroGlobal(new ErroConsulta(tipoGlobal, 'explicação')); return; }
+      if (desfecho.codigo === 'versao_substituida') { this.aoFalharConsulta(new ErroConsulta('versao_substituida', 'carga_indisponivel')); return; }
+      this.mostrarPerguntas({ tipo: 'falha', ...base, desfecho });
+    }
+    // Sem execução em curso, a resposta fica até o contexto mudar; cancelada ou falha, também sai com ele.
+    if (this.estadoPerguntas.tipo === 'cancelada') this.chavePergunta = null;
+    this.atualizarPerguntas();
   }
 
   private versaoDe(r: ResultadoComparavel): string {

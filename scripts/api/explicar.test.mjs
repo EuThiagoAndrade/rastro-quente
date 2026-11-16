@@ -64,7 +64,20 @@ function iniciarServidor() {
       });
       const r = await tratarExplicar(request, deps);
       res.writeHead(r.status, Object.fromEntries(r.headers));
-      res.end(Buffer.from(await r.arrayBuffer()));
+      // Fluxo (item 4): cada parte sai assim que produzida; fechar a conexão cancela o fluxo.
+      if (!r.body) { res.end(); return; }
+      const leitor = r.body.getReader();
+      res.on('close', () => { if (!res.writableEnded) void leitor.cancel().catch(() => {}); });
+      try {
+        for (;;) {
+          const { done, value } = await leitor.read();
+          if (done) break;
+          res.write(value);
+        }
+        res.end();
+      } catch {
+        res.destroy();
+      }
     });
     servidor.listen(0, '127.0.0.1', () => { base = `http://127.0.0.1:${servidor.address().port}`; ok(); });
   });
@@ -191,6 +204,92 @@ test('responsável com pedido válido: evidências relidas no servidor, principa
   }
   assert.equal(r.json.execucao.etapas[0].tipo, 'acesso_validado');
   assert.equal(r.json.execucao.etapas.at(-1).tipo, 'concluido');
+});
+
+const ACEITA_FLUXO = { accept: 'application/x-ndjson' };
+
+/** Lê o fluxo linha a linha; `aoEvento` pode devolver verdadeiro para cancelar no meio. */
+async function lerFluxo(r, aoEvento = () => false, controle = null) {
+  const mensagens = [];
+  const decodificador = new TextDecoder();
+  let resto = '';
+  const leitor = r.body.getReader();
+  for (;;) {
+    let parte;
+    try { parte = await leitor.read(); } catch { break; }
+    if (parte.done) break;
+    resto += decodificador.decode(parte.value, { stream: true });
+    let i;
+    while ((i = resto.indexOf('\n')) >= 0) {
+      const m = JSON.parse(resto.slice(0, i));
+      resto = resto.slice(i + 1);
+      mensagens.push(m);
+      if (aoEvento(m)) { controle?.abort(); return mensagens; }
+    }
+  }
+  return mensagens;
+}
+
+test('fluxo de eventos: com Accept ndjson, as etapas reais chegam antes do fim, que traz o mesmo corpo da resposta comum', async () => {
+  zerar();
+  const r = await fetch(`${base}/api/explicar`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${tokens.rp}`, ...ACEITA_FLUXO }, body: JSON.stringify(PEDIDO()) });
+  assert.equal(r.status, 200);
+  assert.match(r.headers.get('content-type'), /^application\/x-ndjson/);
+  assert.equal(r.headers.get('cache-control'), 'no-store');
+  const mensagens = await lerFluxo(r);
+  const fim = mensagens.at(-1);
+  assert.equal(fim.tipo, 'fim');
+  assert.equal(fim.status, 200);
+  assert.equal(fim.corpo.estado, 'completa');
+  assert.equal(evidencia(fim.corpo, 'comparar_periodos').a.total, 55);
+  const eventos = mensagens.slice(0, -1);
+  assert.ok(eventos.every((m) => m.tipo === 'evento'));
+  // Os eventos do fluxo são exatamente as etapas registradas na execução (nada simulado, nada a mais).
+  assert.deepEqual(eventos.map((m) => m.evento), fim.corpo.execucao.etapas);
+  const tipos = eventos.map((m) => m.evento.tipo);
+  assert.equal(tipos[0], 'acesso_validado');
+  assert.equal(tipos.at(-1), 'concluido');
+  for (const t of ['agente_iniciado', 'subagente_iniciado', 'ferramenta_concluida', 'subagente_concluido', 'sintese_iniciada']) assert.ok(tipos.includes(t), t);
+  // Eventos sem conteúdo da pergunta ou das evidências.
+  const texto = JSON.stringify(eventos);
+  assert.ok(!texto.includes('O que mudou') && !texto.includes('"dados"'));
+  assert.equal(chamadas.provedor, 6);
+});
+
+test('fluxo de eventos: acesso negado e pedido inválido continuam respostas HTTP comuns, sem fluxo e sem provedor', async () => {
+  zerar();
+  const h = { 'content-type': 'application/json', ...ACEITA_FLUXO };
+  const negado = await fetch(`${base}/api/explicar`, { method: 'POST', headers: { ...h, authorization: `Bearer ${tokens.oa}` }, body: JSON.stringify(PEDIDO()) });
+  assert.equal(negado.status, 403);
+  assert.match(negado.headers.get('content-type'), /^application\/json/);
+  assert.equal((await negado.json()).erro, 'acesso_negado');
+  const semSessao = await fetch(`${base}/api/explicar`, { method: 'POST', headers: h, body: JSON.stringify(PEDIDO()) });
+  assert.equal(semSessao.status, 401);
+  assert.equal(chamadas.provedor, 0);
+});
+
+test('fluxo cancelado pelo cliente: nenhuma chamada nova ao provedor depois do cancelamento', async () => {
+  zerar();
+  let liberar;
+  const espera = new Promise((ok) => { liberar = ok; });
+  deps = depsPadrao({ executar: async (c, nome, args) => { await espera; return executarFerramenta(c, nome, args); } });
+  const controle = new AbortController();
+  const r = await fetch(`${base}/api/explicar`, { method: 'POST', signal: controle.signal, headers: { 'content-type': 'application/json', authorization: `Bearer ${tokens.rp}`, ...ACEITA_FLUXO }, body: JSON.stringify(PEDIDO()) });
+  let antes = 0;
+  // Os dois subagentes pediram as ferramentas (3 chamadas); cancela enquanto elas rodam.
+  const mensagens = await lerFluxo(r, (m) => {
+    const pediram = m.tipo === 'evento' && m.evento.tipo === 'chamada_modelo' && m.evento.ordem === 3;
+    if (pediram) antes = 3;
+    return pediram;
+  }, controle);
+  assert.ok(!mensagens.some((m) => m.tipo === 'fim'));
+  assert.equal(antes, 3);
+  await new Promise((ok) => setTimeout(ok, 200));
+  liberar();
+  await new Promise((ok) => setTimeout(ok, 500));
+  assert.equal(chamadas.provedor, 3, 'nenhuma chamada depois do cancelamento');
+  assert.equal(comEvidencias(), 0);
+  deps = depsPadrao();
 });
 
 test('formato e limites: método, origem, corpo excessivo, JSON, campo extra e pergunta longa são recusados antes da sessão', async () => {

@@ -1545,3 +1545,159 @@ tr.selecionada td {
     grid-template-columns: 1fr;
   }
 }
+
+/* Perguntas (ciclo 008, item 4): no fim da coluna de resultado; etapas reais, resposta conferida e evidências. */
+.perguntas {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 2px solid var(--contorno-suave);
+}
+
+.perguntas__prontas {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.pergunta {
+  width: 100%;
+  text-align: left;
+}
+
+.pergunta--acao {
+  border-style: dashed;
+}
+
+.pergunta__motivo {
+  margin: -0.15rem 0 0.25rem;
+}
+
+.perguntas__livre textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 5rem;
+  padding: 0.5rem;
+  border: 1px solid var(--contorno);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  resize: vertical;
+}
+
+#perguntas-estado {
+  margin: 0.75rem 0 0.25rem;
+  font-weight: 600;
+}
+
+#perguntas-estado:empty {
+  display: none;
+}
+
+.perguntas__pergunta {
+  margin: 0.25rem 0 0.5rem;
+  overflow-wrap: anywhere;
+}
+
+.etapas {
+  margin: 0 0 0.75rem;
+  padding-left: 1.5rem;
+  color: var(--texto-suave);
+  font-size: var(--t-pequeno);
+}
+
+.etapas li {
+  margin: 0.15rem 0;
+}
+
+.etapas li[data-etapa='erro'] {
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.resposta-ia {
+  margin: 0.5rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-left: 3px solid var(--escolha);
+  border-radius: 10px;
+  background: var(--superficie-suave);
+}
+
+.resposta-ia__estado {
+  margin: 0 0 0.4rem;
+  font-weight: 600;
+}
+
+.marca-ia {
+  margin: 0 0 0.5rem;
+  font-size: var(--t-pequeno);
+  color: var(--texto-suave);
+}
+
+.marca-ia__etiqueta {
+  display: inline-block;
+  padding: 0 0.5rem;
+  border: 2px solid var(--escolha);
+  border-radius: 999px;
+  color: var(--texto);
+  font-weight: 600;
+}
+
+.notas-ia p {
+  margin: 0.15rem 0;
+}
+
+.afirmacoes {
+  margin: 0.25rem 0 0.5rem;
+  padding-left: 1.25rem;
+}
+
+.afirmacoes li {
+  margin: 0.35rem 0;
+  overflow-wrap: anywhere;
+}
+
+.referencias {
+  display: block;
+  font-size: var(--t-pequeno);
+  color: var(--texto-suave);
+}
+
+.perguntas__bloco {
+  margin: 0.5rem 0;
+}
+
+.perguntas__bloco > summary,
+.evidencia > summary {
+  min-height: var(--alvo);
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.analise {
+  margin: 0.25rem 0 0.5rem;
+}
+
+.evidencia {
+  margin: 0.25rem 0;
+  padding-left: 0.5rem;
+  border-left: 2px solid var(--contorno-suave);
+}
+
+.evidencia__dados {
+  max-height: 16rem;
+  overflow: auto;
+  margin: 0.4rem 0;
+  padding: 0.5rem;
+  border-radius: 8px;
+  background: var(--superficie-suave);
+  color: var(--texto);
+  font-family: Consolas, 'Courier New', monospace;
+  font-size: var(--t-pequeno);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
