@@ -27,6 +27,8 @@ Lentes de seleção (ciclos `004` e `005`): concentração, recorrência e persi
 
 Interface base (ciclo `007`): visual da referência V13 com o contrato `DESIGN.md` (tokens, componentes, temas claro e escuro), três colunas no computador, lentes no recorte da consulta, densidade por célula, série do período, "Lista de focos", painéis "Mapa" e "Camadas" e mapa-base de satélite da Esri com "Sem fundo" sempre disponível ([ADR-009](_project/decisions/ADR-009_interface_base.md) e [ADR-010](_project/decisions/ADR-010_mapa_base_terceiros.md)). A chave da Esri fica só na Vercel (`VITE_ESRI_CHAVE`), nunca no repositório.
 
+Comparação determinística (ciclo `008`, issue #77): dois períodos de mesma duração no mesmo recorte, ou dois municípios no mesmo período, com a mesma lente nos dois lados, sem IA nem chave (`comparacao-008-v1` em `src/comparacao.ts`). Contrato, regras de zero, ausência e disponibilidade e limites em `_project/knowledge/KB-007_comparacao_territorial.md`.
+
 Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.
