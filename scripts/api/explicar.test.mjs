@@ -121,6 +121,11 @@ test('desligada: 503 em qualquer método e identidade, sem ler corpo, sessão, S
   // A entrada real da função, sem variáveis de ambiente, também fica desligada.
   assert.deepEqual(lerConfigServidor({}), { habilitada: false });
   assert.deepEqual(lerConfigServidor({ RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: 'x', RQ_GEMINI_CHAVE: 'x', RQ_GEMINI_MODELO: 'gemini-latest' }), { habilitada: false });
+  // Espaçamento opcional do provedor: inteiro de 0 a 20000; presente e inválido desliga a função.
+  const base = { RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: 'x', RQ_GEMINI_CHAVE: 'x', RQ_GEMINI_MODELO: 'gemini-3.8-flash' };
+  assert.equal(lerConfigServidor(base).gemini.intervaloMs, undefined);
+  assert.equal(lerConfigServidor({ ...base, RQ_GEMINI_INTERVALO_MS: '13000' }).gemini.intervaloMs, 13000);
+  for (const v of ['-1', '20001', '1e4', 'x']) assert.deepEqual(lerConfigServidor({ ...base, RQ_GEMINI_INTERVALO_MS: v }), { habilitada: false }, v);
   for (const f of [POST, GET]) assert.equal((await f(new Request('http://x/api/explicar', { method: 'POST', body: '{}' }))).status, 503);
   deps = depsPadrao();
 });

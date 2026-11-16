@@ -131,6 +131,7 @@ export async function tratarExplicar(request: Request, deps: Dependencias): Prom
       pedido, orcamento, provedor,
       executar: (nome, args) => executar(ctx, nome, args),
       revalidar: () => revalidar(cliente, vigente),
+      ...(config.gemini.intervaloMs ? { intervaloMs: config.gemini.intervaloMs } : {}),
       ...(deps.emitir ? { emitir: deps.emitir } : {}),
     });
     await revalidar(cliente, vigente);

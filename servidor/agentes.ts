@@ -92,6 +92,8 @@ export interface Ambiente {
   /** Acesso e carga vigentes; lança se revogado ou trocado. Chamada antes de cada envio de evidências. */
   revalidar(): Promise<void>;
   emitir?(e: Evento): void;
+  /** Intervalo mínimo entre o início de duas chamadas ao provedor (cota por minuto do projeto); 0 ou ausente, sem espera. */
+  intervaloMs?: number;
 }
 
 /** Falha do provedor no meio da execução: leva o que já foi conferido, sem síntese. */
@@ -348,11 +350,24 @@ export async function orquestrar(amb: Ambiente): Promise<Resultado> {
   };
   const emitir = (e: Evento): void => { res.etapas.push(e); amb.emitir?.(e); };
   let parar: CodigoErro | null = null;
+  const intervalo = Math.max(0, amb.intervaloMs ?? 0);
+  let proximaLivre = 0;
 
-  /** Única porta para o modelo: teto de 6 chamadas, orçamento de geração e parada após falha do provedor. */
+  /**
+   * Única porta para o modelo: teto de 6 chamadas, espaçamento entre chamadas (inclusive as paralelas, por reserva
+   * de horário), orçamento de geração e parada após falha do provedor. A espera não conta na geração, só no total.
+   */
   async function chamar(papel: Papel, i: Interacao): Promise<RespostaInteracao> {
     if (parar) throw new ErroHttp(parar);
     if (res.chamadas.length >= LIMITE_CHAMADAS) throw new ErroHttp('saida_invalida', 'limite de chamadas');
+    if (intervalo > 0) {
+      const agora = performance.now();
+      const inicio = Math.max(agora, proximaLivre);
+      proximaLivre = inicio + intervalo;
+      if (inicio > agora) await amb.orcamento.aguardar(inicio - agora);
+      if (parar) throw new ErroHttp(parar);
+      if (res.chamadas.length >= LIMITE_CHAMADAS) throw new ErroHttp('saida_invalida', 'limite de chamadas');
+    }
     const ordem = res.chamadas.length + 1;
     const registro: RegistroChamada = { ordem, papel, ms: 0, uso: null };
     res.chamadas.push(registro);

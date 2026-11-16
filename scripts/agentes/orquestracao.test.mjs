@@ -242,6 +242,28 @@ test('tempo esgotado na geração: erro próprio, sem síntese', async () => {
   await assert.rejects(orquestrar(amb), (e) => e instanceof ErroHttp && e.codigo === 'tempo_esgotado');
 });
 
+test('espaçamento entre chamadas (cota por minuto): inícios separados pelo intervalo, inclusive os paralelos; fora do orçamento de geração', async () => {
+  const inicios = [];
+  const provedor = { modelo: 'm', interagir: (i) => { inicios.push(performance.now()); return roteiro()[papelDe(i)](i); } };
+  // Orçamento de geração menor que a soma das esperas: a espera não pode consumi-lo.
+  const { amb } = ambiente({ provedor, limites: { totalMs: 5000, leituraMs: 1000, geracaoMs: 200, porGeracaoMs: 100 } });
+  const r = await orquestrar({ ...amb, intervaloMs: 60 });
+  assert.equal(r.estado, 'completa');
+  assert.equal(inicios.length, 6);
+  for (let k = 1; k < inicios.length; k += 1) assert.ok(inicios[k] - inicios[k - 1] >= 55, `intervalo ${k}: ${inicios[k] - inicios[k - 1]}`);
+});
+
+test('espaçamento que não cabe no tempo total: tempo esgotado antes de chamar; cancelamento interrompe a espera', async () => {
+  const { amb, log } = ambiente({ limites: { totalMs: 100, leituraMs: 100, geracaoMs: 100, porGeracaoMs: 100 } });
+  await assert.rejects(orquestrar({ ...amb, intervaloMs: 500 }), (e) => e instanceof ErroHttp && e.codigo === 'tempo_esgotado');
+  assert.equal(log.interacoes.length, 1);
+  const ctl = new AbortController();
+  const o = new Orcamento(ctl.signal);
+  const espera = o.aguardar(10_000);
+  ctl.abort();
+  await assert.rejects(espera, (e) => e instanceof ErroHttp && e.codigo === 'cancelada');
+});
+
 test('revogação antes da síntese: erro de acesso, sem a chamada final e sem resultado', async () => {
   let n = 0;
   const { amb, log } = ambiente({ revalidar: async () => { n += 1; if (n === 3) throw new ErroHttp('acesso_negado'); } });

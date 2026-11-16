@@ -5,7 +5,9 @@
 // cotas e chave) e banco local vazio (`npm run prova:agentes` faz `supabase db reset`).
 //
 // Uso: `npm run prova:agentes` (casos mínimos de T9: R1, R2, P1 e F1) ou `npm run prova:agentes -- R3 F2` (casos
-// escolhidos de `casos.mjs`). Intervalo entre casos em `RQ_PROVA_INTERVALO_MS` (padrão 30 s), para respeitar o RPM.
+// escolhidos de `casos.mjs`). Nível gratuito (RPM 5, RPD 20): as chamadas de cada caso são espaçadas por
+// `RQ_GEMINI_INTERVALO_MS` (padrão 13 s, no máximo 5 inícios por minuto) e os casos por `RQ_PROVA_INTERVALO_MS`
+// (padrão 60 s). Os casos mínimos gastam cerca de 19 chamadas, quase toda a cota diária.
 // O relatório (JSON) traz endpoint, modelo, papéis e ordem das chamadas, ferramentas, eventos, estado, uso e tempo;
 // nunca a chave, o JWT ou dados de conta. O texto gerado aparece para a conferência humana dos fatos.
 import { sqlAdmin, statusLocal } from '../banco/local.mjs';
@@ -24,20 +26,21 @@ if (!chave) {
 }
 const pedidos = process.argv.slice(2);
 const escolhidos = pedidos.length ? CASOS.filter((c) => pedidos.includes(c.id)) : CASOS.filter((c) => ['R1', 'R2', 'P1', 'F1'].includes(c.id));
-const intervalo = Number(process.env.RQ_PROVA_INTERVALO_MS ?? 30_000);
+const intervalo = Number(process.env.RQ_PROVA_INTERVALO_MS ?? 60_000);
+const intervaloChamadas = Number(process.env.RQ_GEMINI_INTERVALO_MS ?? 13_000);
 const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 const L = statusLocal();
 if (sqlAdmin('select count(*) from public.cargas;') !== '0') throw new Error('Banco local deve estar vazio; rode `npm run prova:agentes` (faz `supabase db reset`).');
 
-const relatorio = { geradoEm: new Date().toISOString(), endpoint: ENDPOINT_GEMINI, modelo: MODELO_FIXADO, casos: [] };
+const relatorio = { geradoEm: new Date().toISOString(), endpoint: ENDPOINT_GEMINI, modelo: MODELO_FIXADO, intervalo_chamadas_ms: intervaloChamadas, casos: [] };
 try {
   sqlAdmin(sqlFixture());
   const cargaId = Number(sqlAdmin(`select id from public.cargas where identidade = '${IDENTIDADE}';`));
   await criarConta(L, 'rp', {});
   cadastrarRp();
   const token = await tokenDe('rp');
-  const config = { habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave, modelo: MODELO_FIXADO }, origens: [] };
+  const config = { habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave, modelo: MODELO_FIXADO, intervaloMs: intervaloChamadas }, origens: [] };
   for (const [i, caso] of escolhidos.entries()) {
     if (i > 0) await esperar(intervalo);
     // Metadados de cada envio real (sem corpo): store, ferramentas, saída estruturada, bytes e status HTTP.
