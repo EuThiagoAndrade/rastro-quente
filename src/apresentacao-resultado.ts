@@ -7,36 +7,44 @@ import type { RegistroLente } from './lentes/contrato.ts';
 import { linhaCelulasDestacadas, listaMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import type { Registro, Resumo } from './tipos.ts';
 
-export type Aba = 'destaques' | 'municipios';
+export type Aba = 'destaques' | 'municipios' | 'comparacao';
+
+const ABAS: readonly { aba: Aba; botao: string; painel: string }[] = [
+  { aba: 'destaques', botao: 'aba-destaques', painel: 'cartao-lentes' },
+  { aba: 'municipios', botao: 'aba-municipios', painel: 'painel-municipios' },
+  // Comparação (ciclo 008): a aba só aparece com um modo de comparação escolhido.
+  { aba: 'comparacao', botao: 'aba-comparacao', painel: 'painel-comparacao' },
+];
 
 /** Abre uma aba; com `focar`, o foco vai para o botão da aba (navegação por setas). */
 export function abrirAba(aba: Aba, focar = false): void {
-  const destaques = aba === 'destaques';
-  for (const [id, ativa] of [['aba-destaques', destaques], ['aba-municipios', !destaques]] as const) {
-    const b = $(id);
+  for (const x of ABAS) {
+    const ativa = x.aba === aba;
+    const b = $(x.botao);
     b.setAttribute('aria-selected', String(ativa));
     b.tabIndex = ativa ? 0 : -1;
+    $(x.painel).hidden = !ativa;
   }
-  $('cartao-lentes').hidden = !destaques;
-  $('painel-municipios').hidden = destaques;
-  if (focar) $(destaques ? 'aba-destaques' : 'aba-municipios').focus();
+  if (focar) $(ABAS.find((x) => x.aba === aba)?.botao ?? 'aba-municipios').focus();
 }
 
-export const abaAberta = (): Aba => ($('aba-destaques').getAttribute('aria-selected') === 'true' ? 'destaques' : 'municipios');
+export const abaAberta = (): Aba => ABAS.find((x) => $(x.botao).getAttribute('aria-selected') === 'true')?.aba ?? 'municipios';
 
-/** Ligação das abas: clique e setas esquerda/direita, Home e End. */
+/** Ligação das abas: clique e setas esquerda/direita, Home e End, só entre as abas visíveis. */
 export function ligarAbas(aoAbrir: (aba: Aba) => void = () => {}): void {
-  for (const aba of ['destaques', 'municipios'] as const) {
-    const b = $(aba === 'destaques' ? 'aba-destaques' : 'aba-municipios');
-    b.addEventListener('click', () => { abrirAba(aba); aoAbrir(aba); });
+  for (const x of ABAS) {
+    const b = $(x.botao);
+    b.addEventListener('click', () => { abrirAba(x.aba); aoAbrir(x.aba); });
     b.addEventListener('keydown', (ev) => {
-      const outra: Aba = aba === 'destaques' ? 'municipios' : 'destaques';
-      const alvo = ev.key === 'ArrowRight' || ev.key === 'ArrowLeft' ? outra
-        : ev.key === 'Home' ? 'destaques' : ev.key === 'End' ? 'municipios' : null;
+      const visiveis = ABAS.filter((y) => !$(y.botao).hidden);
+      const i = visiveis.findIndex((y) => y.aba === x.aba);
+      const alvo = ev.key === 'ArrowRight' ? visiveis[(i + 1) % visiveis.length]
+        : ev.key === 'ArrowLeft' ? visiveis[(i - 1 + visiveis.length) % visiveis.length]
+          : ev.key === 'Home' ? visiveis[0] : ev.key === 'End' ? visiveis.at(-1) : undefined;
       if (!alvo) return;
       ev.preventDefault();
-      abrirAba(alvo, true);
-      aoAbrir(alvo);
+      abrirAba(alvo.aba, true);
+      aoAbrir(alvo.aba);
     });
   }
 }

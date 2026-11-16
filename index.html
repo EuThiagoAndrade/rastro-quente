@@ -145,12 +145,39 @@
               </div>
             </div>
           </details>
+
+          <details id="secao-comparar" class="secao">
+            <summary>Comparar <span class="marca-ativa">ativa</span></summary>
+            <fieldset class="sub__grupo">
+              <legend class="so-leitor">Tipo de comparação</legend>
+              <label class="opcao"><input type="radio" name="c-modo" value="nenhuma" checked /> Sem comparação</label>
+              <label class="opcao"><input type="radio" name="c-modo" value="periodos" /> Dois períodos</label>
+              <label class="opcao"><input type="radio" name="c-modo" value="municipios" /> Dois municípios</label>
+            </fieldset>
+            <div id="comparar-periodos" class="sub" hidden>
+              <p id="cmp-a-periodo" class="nota"></p>
+              <div class="intervalo">
+                <label for="cmp-b-inicio">Início de B <input id="cmp-b-inicio" type="date" aria-describedby="cmp-ajuda-periodo cmp-erro" /></label>
+                <label for="cmp-b-fim">Fim de B (inclusivo) <input id="cmp-b-fim" type="date" aria-describedby="cmp-ajuda-periodo cmp-erro" /></label>
+              </div>
+              <p id="cmp-ajuda-periodo" class="nota">B precisa ter o mesmo número de dias GMT de A, na mesma versão dos dados. Nada é ajustado para caber.</p>
+            </div>
+            <div id="comparar-municipios" class="sub" hidden>
+              <p id="cmp-a-municipio" class="nota"></p>
+              <label class="rotulo-secao rotulo-secao--campo" for="cmp-municipio-b">Município B</label>
+              <select id="cmp-municipio-b" class="campo-periodo" aria-describedby="cmp-erro"></select>
+            </div>
+            <p id="cmp-erro" class="erro-campo" role="alert" hidden></p>
+            <p class="nota">Os dois lados usam a lente escolhida, com os mesmos parâmetros. O mapa, a série e os municípios continuam no recorte A; o resultado fica na aba Comparação.</p>
+          </details>
         </section>
 
         <!-- Centro: onde (mapa). -->
         <section class="mapa-cartao" aria-labelledby="t-mapa">
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
           <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
+          <!-- Comparação (ciclo 008): qual lado o mapa mostra, sobre o próprio mapa. -->
+          <p id="mapa-lado" class="flutuante mapa-lado" role="status" hidden></p>
           <!-- "Mapa" e "Camadas" (issue #71): painéis recolhíveis lado a lado, no alto à direita. -->
           <div class="controles-mapa">
             <details id="opcoes-mapa" class="flutuante flutuante--painel flutuante--opcoes">
@@ -250,6 +277,7 @@
           <div class="abas" role="tablist" aria-label="Resultado">
             <button type="button" role="tab" id="aba-destaques" aria-selected="false" aria-controls="cartao-lentes" tabindex="-1">Destaques</button>
             <button type="button" role="tab" id="aba-municipios" aria-selected="true" aria-controls="painel-municipios">Municípios</button>
+            <button type="button" role="tab" id="aba-comparacao" aria-selected="false" aria-controls="painel-comparacao" tabindex="-1" hidden>Comparação</button>
           </div>
           <section id="cartao-lentes" class="painel-aba" role="tabpanel" aria-labelledby="aba-destaques" data-estado-lente="nenhuma" hidden>
             <div id="lente-estado" role="status"></div>
@@ -272,6 +300,11 @@
           <section id="painel-municipios" class="painel-aba" role="tabpanel" aria-labelledby="aba-municipios">
             <h2 id="t-municipios" tabindex="-1">Municípios no período</h2>
             <div id="municipios-corpo"></div>
+          </section>
+          <section id="painel-comparacao" class="painel-aba" role="tabpanel" aria-labelledby="aba-comparacao" data-estado-comparacao="nenhuma" hidden>
+            <h2 id="t-comparacao" tabindex="-1">Comparação</h2>
+            <div id="comparacao-estado" role="status"></div>
+            <div id="comparacao-corpo"></div>
           </section>
         </aside>
       </div>

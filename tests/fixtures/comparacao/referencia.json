@@ -1,0 +1,16 @@
+{
+  "_origem": "Fixture fictícia do ciclo 008 (item 1, issue #77). Municípios e coordenadas inventados; nenhum dado real. Os ids das células foram calculados à mão pela grade T1 de 0,05° (índice = piso(coordenada × 20)).",
+  "carga": { "id": 8, "identidade": "8888888888888888888888888888888888888888888888888888888888888888" },
+  "outra_carga": { "id": 9, "identidade": "9999999999999999999999999999999999999999999999999999999999999999" },
+  "janela_carga": { "inicio": "2025-08-01", "fim": "2026-12-31" },
+  "municipios": { "9908001": "Município Colniza fictício", "9908002": "Município Delta fictício", "9908003": "Município Épsilon fictício" },
+  "celulas": {
+    "c1": { "lat": -12.52, "lon": -56.48, "id": "c-251_-1130" },
+    "c2": { "lat": -12.42, "lon": -56.48, "id": "c-249_-1130" },
+    "c3": { "lat": -12.32, "lon": -56.48, "id": "c-247_-1130" },
+    "c4": { "lat": -12.22, "lon": -56.48, "id": "c-245_-1130" },
+    "c5": { "lat": -12.12, "lon": -56.48, "id": "c-243_-1130" },
+    "c6": { "lat": -12.02, "lon": -56.48, "id": "c-241_-1130" },
+    "divisa": { "lat": -12.72, "lon": -56.38, "id": "c-255_-1128" }
+  }
+}

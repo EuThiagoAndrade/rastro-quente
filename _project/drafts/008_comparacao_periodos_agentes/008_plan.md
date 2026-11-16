@@ -1,10 +1,10 @@
 # Plano de Implementação — Comparação de períodos e agentes de explicação
 
 > **Ciclo:** `008`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-15
-> **Última atualização:** 2026-11-15
+> **Última atualização:** 2026-11-16
 > **Tipo:** `feature`
 > **Prioridade:** `P2`
 > **Nível:** `completo`
@@ -419,9 +419,9 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
-| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), integração pendente |
-| Branch(es) | chore/cycle-008-plan |
+| Issue(s) | [#77](https://github.com/EuThiagoAndrade/rastro-quente/issues/77) (item 1), [#78](https://github.com/EuThiagoAndrade/rastro-quente/issues/78) (item 2), [#79](https://github.com/EuThiagoAndrade/rastro-quente/issues/79) (item 3), [#80](https://github.com/EuThiagoAndrade/rastro-quente/issues/80) (item 4), [#81](https://github.com/EuThiagoAndrade/rastro-quente/issues/81) (item 5), criadas em 2026-11-15 |
+| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), squash `b6525a2` integrada em 2026-11-15 |
+| Branch(es) | chore/cycle-008-plan (documental); feature/issue-77 (item 1, task [008_task_issue-77.md](008_task_issue-77.md)) |
 | Destino após conclusão | `_project/executed/008_comparacao_periodos_agentes/008_plan.md` |
 
 
@@ -429,10 +429,10 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 008 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR https://github.com/EuThiagoAndrade/rastro-quente/pull/76
-Diga: "aprovo o merge da PR #76"
+Situação: Pronto para continuar — ciclo 008 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 008"
 ```
 
 ## Handoff de saída

@@ -630,6 +630,11 @@ tr.selecionada td {
   display: inline-block;
 }
 
+/* Comparação (ciclo 008): "ativa" com um modo escolhido. */
+.secao:has(input[name="c-modo"]:checked:not([value="nenhuma"])) .marca-ativa {
+  display: inline-block;
+}
+
 .campo-periodo {
   width: 100%;
   min-height: var(--alvo);
@@ -829,6 +834,24 @@ tr.selecionada td {
   background: color-mix(in srgb, var(--superficie) 92%, transparent);
   backdrop-filter: blur(6px);
   font-size: var(--t-pequeno);
+}
+
+/* Comparação (ciclo 008): rótulo do lado mostrado no mapa, no alto à esquerda; em tela estreita, abaixo dos painéis. */
+.mapa-lado {
+  top: 0.75rem;
+  left: 0.75rem;
+  max-width: calc(50% - 1.5rem);
+  margin: 0;
+  border: 2px solid var(--escolha);
+  color: var(--texto);
+  font-weight: 600;
+}
+
+@media (max-width: 760px) {
+  .mapa-lado {
+    top: calc(0.75rem + var(--alvo) + 0.5rem);
+    max-width: calc(100% - 1.5rem);
+  }
 }
 
 /* "Mapa" e "Camadas" (issue #71): dois painéis recolhíveis lado a lado, no alto à direita, à esquerda do botão de

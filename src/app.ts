@@ -18,8 +18,18 @@ import {
   renderResultadoSobreposicao, type AreaExibida, type EstadoContorno, type ManipuladoresSobreposicao,
 } from './apresentacao-areas.ts';
 import {
-  abrirAba, balaoRegistros, explicacaoAberta, ligarAbas, marcarFoco, renderListaFocos, renderMunicipios,
+  abaAberta, abrirAba, balaoRegistros, explicacaoAberta, ligarAbas, marcarFoco, renderListaFocos, renderMunicipios,
 } from './apresentacao-resultado.ts';
+import {
+  ITENS_POR_PAGINA, mostrarAbaComparacao, renderComparacaoMunicipios, renderComparacaoPeriodos, renderEstadoComparacao,
+  renderLadoNoMapa, textoJanela, type ContextoComparacao, type EstadoComparacao, type EstadoLista, type Modo,
+} from './apresentacao-comparacao.ts';
+import {
+  compararMunicipios, compararPeriodos, conferirZero, duracaoDias, contextoCombinacao, contextoConcentracao, disponibilidadePorMunicipio,
+  ErroComparacao, leiturasDeDisponibilidade, unidadesDe, validarMunicipios, validarPeriodos,
+  type ComparacaoMunicipal, type ComparacaoTemporal, type ConferenciaZero, type Lado, type ResultadoComparavel,
+  type ValidacaoPeriodos,
+} from './comparacao.ts';
 import { lerConfiguracao } from './config.ts';
 import { AVISO_FALHA, AVISO_FALHA_NOMES, AVISO_SEM_CHAVE, fundoInicial, lerChaveEsri, type Fundo } from './fundo.ts';
 import { chaveArea, diagnosticarAusencia, lerAreas, type AreaLida, type ClasseArea } from './lentes/carregar-areas.ts';
@@ -40,10 +50,11 @@ import {
   type FontesLente, type OrigemChamada, type PedidoLente,
 } from './lentes/carregar.ts';
 import {
-  ErroLente, recorteDe, type DisponibilidadeMunicipio, type RegistroLente, type ResultadoLente, type TipoLente,
+  ErroLente, recorteDe, type DisponibilidadeMunicipio, type EntradaLente, type RegistroLente, type ResultadoLente, type TipoLente,
+  type Unidade,
 } from './lentes/contrato.ts';
 import { chaveRecorte, MemoriaRecortes, type LeituraRecorte } from './memoria.ts';
-import { celulasDistintas, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
+import { celulasDistintas, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import {
   consultarDeteccoes, consultarDisponibilidade, consultarResumo, fontesAreas, lerCargaVigente, lerContornoReal, lerLimites,
   lerMunicipios, lerProveniencia, sondarAcesso, type Filtro,
@@ -51,6 +62,7 @@ import {
 import { ErroConsulta, type TipoErro } from './erros.ts';
 import { primeiroDiaGmt, ultimoDiaGmt } from './formato.ts';
 import { periodoDoAtalho, validarPeriodo, type Atalho, type Janela } from './recorte.ts';
+import type { LeituraAreas } from './lentes/carregar-areas.ts';
 import { fecharDialogos, iniciarTema, ligarDialogo } from './topo.ts';
 import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { densidadePorCelula } from './densidade.ts';
@@ -121,6 +133,42 @@ interface CamadaAreas {
   areas: AreaLida[];
 }
 
+/** Um lado da comparação (plano 008, item 1): recorte, resumo, leitura conferida, resultado bruto e disponibilidade. */
+interface LadoAplicado {
+  lado: Lado;
+  filtro: Filtro;
+  pedido: PedidoLente;
+  resumo: Resumo;
+  leitura: LeituraRecorte;
+  /** Resultado da lente sem qualificação; `null` sem lente (só contagens). */
+  bruto: ResultadoComparavel | null;
+  /** Municípios do recorte deste lado: todos no estado, um no município. */
+  recorte: number[];
+  disp: Map<number, DisponibilidadeMunicipio>;
+}
+
+/** Lente escolhida, aplicada igual nos dois lados. */
+interface LenteComparacao {
+  nome: string;
+  calcular(e: EntradaLente, camada: LeituraAreas | null): ResultadoComparavel;
+  sobreposicao: boolean;
+  combinacao: ConfigCombinacao | null;
+}
+
+/** Comparação aplicada: os dois lados e o estado da aba (mapa, página, unidades abertas, lista e contexto). */
+interface ComparacaoAplicada {
+  modo: Exclude<Modo, 'nenhuma'>;
+  lados: [LadoAplicado, LadoAplicado];
+  validacao: ValidacaoPeriodos | null;
+  lente: LenteComparacao | null;
+  mapa: Lado;
+  pagina: number;
+  abertas: Set<string>;
+  lista: EstadoLista;
+  contexto: ContextoComparacao['contexto'];
+  resultado: ComparacaoTemporal | ComparacaoMunicipal | null;
+}
+
 /** Intervalo mínimo entre redesenhos da lista enquanto a disponibilidade chega (CPU lenta no celular, T14). */
 const INTERVALO_QUALIFICACAO_MS = 750;
 
@@ -139,6 +187,10 @@ function limitador(intervaloMs: number): () => boolean {
 const LENTES = { concentracao, recorrencia, persistencia } as const;
 
 const marcado = (id: string): boolean => $<HTMLInputElement>(id).checked;
+/** Modo de comparação marcado nos filtros (plano 008, item 1). */
+const modoComparacao = (): Modo => (document.querySelector<HTMLInputElement>('input[name="c-modo"]:checked')?.value ?? 'nenhuma') as Modo;
+const retangulo = (u: { sul: string; oeste: string; norte: string; leste: string }): [[number, number], [number, number]] =>
+  [[Number(u.sul), Number(u.oeste)], [Number(u.norte), Number(u.leste)]];
 const mapaAmpliado = (): boolean => document.body.classList.contains('mapa-ampliado');
 /** `data-estado-limites` em `#conteudo` (M5, T14): `desligado`, `carregando`, `completo` ou `erro`. */
 const estadoLimites = (e: 'desligado' | 'carregando' | 'completo' | 'erro'): void => { $('conteudo').dataset['estadoLimites'] = e; };
@@ -226,6 +278,11 @@ class Controlador {
   private lentePendente = false;
   /** Posição da rolagem da coluna de resultado antes de abrir uma explicação (voltar ao mesmo ponto). */
   private rolagemLista = 0;
+  // Comparação (plano 008, item 1): geração própria; resultado e leituras dos dois lados só nesta página.
+  private geracaoComparacao = 0;
+  private comparacao: ComparacaoAplicada | null = null;
+  /** O mapa mostra o lado B da comparação (os pontos e destaques do recorte aplicado saíram dele). */
+  private mapaComB = false;
   private usuarioAutorizado = false;
   private motivoPendente: 'saiu' | 'expirada' | undefined;
   private erroCallback: string | undefined;
@@ -254,14 +311,20 @@ class Controlador {
         }
         abrirAba('destaques');
         void this.aplicarLente();
+        this.aoMudarLenteComparacao();
       });
     }
     // Configuração da lente (classe, critérios, operador) vale ao mudar e recalcula no mesmo recorte (T16).
     $('lente-combinacao').addEventListener('change', () => {
       this.concentracaoRetirada = false;
-      if (lenteEscolhida() === 'combinacao') void this.aplicarLente();
+      if (lenteEscolhida() === 'combinacao') { void this.aplicarLente(); this.aoMudarLenteComparacao(); }
     });
-    $('lente-sobreposicao').addEventListener('change', () => { if (lenteEscolhida() === 'sobreposicao') void this.aplicarLente(); });
+    $('lente-sobreposicao').addEventListener('change', () => {
+      if (lenteEscolhida() === 'sobreposicao') { void this.aplicarLente(); this.aoMudarLenteComparacao(); }
+    });
+    // Comparação (plano 008, item 1): modo e lado B se aplicam ao mudar, como os demais filtros.
+    for (const r of document.querySelectorAll<HTMLInputElement>('input[name="c-modo"]')) r.addEventListener('change', () => this.aoMudarModoComparacao());
+    for (const id of ['cmp-b-inicio', 'cmp-b-fim', 'cmp-municipio-b']) $(id).addEventListener('change', () => void this.compararAgora());
     // Camadas (T8, T10): limites, áreas, detecções individuais e densidade.
     $('c-limites').addEventListener('change', () => void this.alternarLimites());
     $('c-areas').addEventListener('change', () => void this.alternarAreas());
@@ -384,6 +447,7 @@ class Controlador {
       this.usuarioAutorizado = true;
       this.renderAcesso({ tipo: 'autorizado' });
       renderFiltros(carga, municipios, this.dados.janela);
+      $<HTMLSelectElement>('cmp-municipio-b').replaceChildren(new Option('Escolha…', ''), ...municipios.map((m) => new Option(m.nome, String(m.codigo))));
       renderTopo(carga, prov.fontes);
       renderProveniencia(carga, prov.fontes, prov.malhas);
       renderAvisoMapa(prov.malhas);
@@ -452,6 +516,7 @@ class Controlador {
     // Sessão, acesso ou publicação mudaram: a lente e toda a memória de recortes saem junto (R2-1, T6).
     this.limparLente({ memoria: true, estado: { tipo: 'nenhuma' } });
     this.limparAreas();
+    this.redefinirComparacao();
     abrirAba('municipios');
   }
 
@@ -522,7 +587,7 @@ class Controlador {
     const a = this.aplicado;
     const j = this.dados?.janela;
     const padrao = !a || !j || (a.inicio === j.inicio && a.fim === j.fim && a.municipio === null
-      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma');
+      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma' && modoComparacao() === 'nenhuma');
     $<HTMLButtonElement>('botao-limpar').disabled = padrao;
   }
 
@@ -601,6 +666,7 @@ class Controlador {
     configuracaoPadrao();
     this.mostrarEscolhaLente();
     this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+    this.redefinirComparacao();
     abrirAba('municipios');
     this.aplicarFormulario();
     this.mostrarMunicipios();
@@ -633,6 +699,8 @@ class Controlador {
     const g = this.geracaoSessao;
     const c = ++this.geracaoConsulta;
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
+    // Novo recorte A: a comparação em curso é descartada e refeita depois da leitura (T7).
+    this.cancelarComparacao();
     this.resultado = null;
     this.pontos = 'carregando';
     this.selecionado = null;
@@ -674,6 +742,7 @@ class Controlador {
       return;
     }
     if (atual() && this.lentePendente && lenteEscolhida() !== 'nenhuma') void this.aplicarLente();
+    if (atual()) void this.compararAgora();
   }
 
   /**
@@ -737,6 +806,8 @@ class Controlador {
       // A camada e os contornos eram da versão substituída.
       this.limparAreas();
     }
+    this.cancelarComparacao();
+    if (modoComparacao() !== 'nenhuma') this.estadoComparacao({ tipo: 'incompleta', texto: 'A consulta do recorte A falhou; a comparação espera o recorte A.' });
     this.resultado = null;
     this.pontos = 'erro';
     this.mapa?.limparTudo();
@@ -965,6 +1036,10 @@ class Controlador {
   }
 
   private selecionarDestaque(id: string): void {
+    if (this.mapaComB) {
+      this.abrirUnidadeComparacao(id);
+      return;
+    }
     if (this.sobreposicao) {
       this.selecionarCelulaSobreposicao(id);
       return;
@@ -1113,8 +1188,13 @@ class Controlador {
 
   /** Desenha os destaques no mapa; na concentração, com a geometria de exibição de cada município. */
   private async desenharDestaques(r: ResultadoLente, atual: () => boolean): Promise<void> {
+    await this.desenharUnidades(r.destaques.map((d) => ({ id: d.id_destaque, unidade: d.unidade })), atual);
+  }
+
+  /** Unidades no mapa: município pela geometria de exibição (lida sob demanda), célula pelo retângulo da grade. */
+  private async desenharUnidades(itens: { id: string; unidade: Unidade }[], atual: () => boolean): Promise<void> {
     if (!this.mapa || !this.dados) return;
-    const codigos = r.destaques.flatMap((d) => (d.unidade.tipo === 'municipio' ? [d.unidade.codigo] : []));
+    const codigos = itens.flatMap((d) => (d.unidade.tipo === 'municipio' ? [d.unidade.codigo] : []));
     let erro: unknown = null;
     await emParalelo(codigos.filter((c) => !this.limites.has(c)), CONCORRENCIA_DISPONIBILIDADE, atual, async (codigo) => {
       try {
@@ -1126,13 +1206,12 @@ class Controlador {
       }
     });
     if (!atual()) return;
-    this.mapa.definirDestaques(r.destaques.flatMap((d): DestaqueMapa[] => {
+    this.mapa.definirDestaques(itens.flatMap((d): DestaqueMapa[] => {
       if (d.unidade.tipo === 'municipio') {
         const l = this.limites.get(d.unidade.codigo);
-        return l ? [{ id: d.id_destaque, geometria: l.geometria_exibicao }] : [];
+        return l ? [{ id: d.id, geometria: l.geometria_exibicao }] : [];
       }
-      const u = d.unidade;
-      return [{ id: d.id_destaque, retangulo: [[Number(u.sul), Number(u.oeste)], [Number(u.norte), Number(u.leste)]] }];
+      return [{ id: d.id, retangulo: retangulo(d.unidade) }];
     }));
     this.mapa.enquadrarDestaques();
     if (erro !== null) throw erro;
@@ -1473,6 +1552,501 @@ class Controlador {
     if (resultado.estado === 'sem_destaques') this.estadoLente({ tipo: 'sem_destaques', segundos });
     else if (this.sobreposicao.resultado.destaques.some((d) => d.cobertura.estado !== 'completa')) this.estadoLente({ tipo: 'cobertura_nao_verificada' });
     else this.estadoLente({ tipo: 'completo', segundos });
+  }
+
+  // --- Comparação de períodos e municípios (plano 008, item 1; KB-007) --------------------------------------------
+
+  /** Modo escolhido: mostra os campos do modo, preenche um B padrão, abre a aba e calcula. */
+  private aoMudarModoComparacao(): void {
+    const modo = modoComparacao();
+    $('comparar-periodos').hidden = modo !== 'periodos';
+    $('comparar-municipios').hidden = modo !== 'municipios';
+    if (modo === 'periodos') this.periodoBPadrao();
+    this.atualizarLimpar();
+    void this.compararAgora();
+    if (modo !== 'nenhuma') abrirAba('comparacao');
+  }
+
+  private aoMudarLenteComparacao(): void {
+    if (modoComparacao() !== 'nenhuma') void this.compararAgora();
+  }
+
+  /** B padrão: o período imediatamente anterior a A, com a mesma duração; se não couber na versão, o seguinte. */
+  private periodoBPadrao(): void {
+    const a = this.aplicado;
+    const j = this.dados?.janela;
+    const inicioB = $<HTMLInputElement>('cmp-b-inicio');
+    const fimB = $<HTMLInputElement>('cmp-b-fim');
+    if (!a || !j || (inicioB.value && fimB.value)) return;
+    const n = duracaoDias({ inicio: a.inicio, fim: a.fim });
+    const dia = (base: string, passo: number) => new Date(Date.parse(`${base}T00:00:00Z`) + passo * 86_400_000).toISOString().slice(0, 10);
+    const antes = { inicio: dia(a.inicio, -n), fim: dia(a.inicio, -1) };
+    const depois = { inicio: dia(a.fim, 1), fim: dia(a.fim, n) };
+    const b = antes.inicio >= j.inicio ? antes : depois.fim <= j.fim ? depois : null;
+    if (!b) return;
+    inicioB.value = b.inicio;
+    fimB.value = b.fim;
+  }
+
+  /** Notas do lado A nos campos de comparação (sempre o recorte aplicado). */
+  private mostrarLadoA(): void {
+    const a = this.aplicado;
+    if (!a) return;
+    $('cmp-a-periodo').textContent = `A: período aplicado na Consulta, ${textoJanela(a)} (${duracaoDias(a)} dias GMT).`;
+    $('cmp-a-municipio').textContent = a.municipio === null
+      ? 'Escolha um município na Consulta para ser o A.'
+      : `A: ${this.nomeMunicipio(a.municipio) ?? ''}, o município da Consulta.`;
+  }
+
+  private mostrarErroComparacao(texto: string | null): void {
+    const e = $('cmp-erro');
+    e.textContent = texto ?? '';
+    e.hidden = texto === null;
+  }
+
+  private estadoComparacao(e: EstadoComparacao): void {
+    renderEstadoComparacao(e, () => void this.compararAgora());
+  }
+
+  /** Volta o mapa ao recorte aplicado (lado A): pontos e destaques da lente comum. */
+  private restaurarMapaA(): void {
+    if (!this.mapaComB) return;
+    this.mapaComB = false;
+    this.mapa?.fecharBalao();
+    if (Array.isArray(this.pontos)) this.mapa?.definirPontos(this.pontos);
+    this.mapa?.limparDestaques();
+    if (this.lente) void this.desenharDestaques(this.lente.resultado, () => !this.mapaComB).catch(() => {});
+    else if (this.combinacao) this.mapa?.definirDestaques(this.combinacao.resultado.celulas.map((c) => ({ id: c.id_combinado, retangulo: retangulo(c.unidade) })));
+    else if (this.sobreposicao) {
+      this.mapa?.definirDestaques(this.sobreposicao.resultado.destaques.flatMap((d): DestaqueMapa[] => (d.unidade.tipo === 'celula_005' ? [{ id: d.id_destaque, retangulo: retangulo(d.unidade) }] : [])));
+    }
+  }
+
+  /** Descarta o cálculo em curso e o resultado exibido; o modo escolhido continua (troca de recorte, falha de A). */
+  private cancelarComparacao(): void {
+    this.geracaoComparacao++;
+    this.comparacao = null;
+    this.restaurarMapaA();
+    renderLadoNoMapa(null);
+    if (modoComparacao() !== 'nenhuma') this.estadoComparacao({ tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 });
+  }
+
+  /** Sessão, versão ou "Limpar tudo": sem comparação, campos vazios e a aba fora da coluna. */
+  private redefinirComparacao(): void {
+    const nenhuma = document.querySelector<HTMLInputElement>('input[name="c-modo"][value="nenhuma"]');
+    if (nenhuma) nenhuma.checked = true;
+    this.cancelarComparacao();
+    for (const id of ['cmp-b-inicio', 'cmp-b-fim', 'cmp-municipio-b']) $<HTMLInputElement>(id).value = '';
+    $('comparar-periodos').hidden = true;
+    $('comparar-municipios').hidden = true;
+    this.mostrarErroComparacao(null);
+    this.estadoComparacao({ tipo: 'nenhuma' });
+    mostrarAbaComparacao(false);
+    if (abaAberta() === 'comparacao') abrirAba('municipios');
+  }
+
+  /** Lente do formulário para os dois lados; `{ incompleta }` quando falta escolha (nada é calculado). */
+  private lenteDaComparacao(): LenteComparacao | null | { incompleta: string } {
+    const escolhida = lenteEscolhida();
+    if (escolhida === 'nenhuma') return null;
+    if (escolhida === 'combinacao') {
+      const config = this.lerConfigCombinacao();
+      if (!config) return { incompleta: 'Escolha pelo menos 2 lentes para combinar.' };
+      return {
+        nome: `Combinação (${config.lentes.map((l) => TITULO_LENTE[l]).join(config.operador === 'e' ? ' e ' : ' ou ')})`,
+        calcular: (e) => combinar(e, config.lentes, config.operador), sobreposicao: false, combinacao: config,
+      };
+    }
+    if (escolhida === 'sobreposicao') {
+      const marcada = document.querySelector<HTMLInputElement>('input[name="l-classe"]:checked')?.value;
+      const classe = CLASSES_AREA.find((c) => c === marcada);
+      if (!classe) return { incompleta: 'Escolha a classe de área protegida.' };
+      return {
+        nome: `Sobreposição · ${ROTULO_AREA[classe]}`, sobreposicao: true, combinacao: null,
+        calcular: (e, camada) => {
+          if (!camada) throw new ErroLente('camada de áreas não lida');
+          return sobreposicao(e, camada, classe);
+        },
+      };
+    }
+    if (!Object.hasOwn(LENTES, escolhida)) return null;
+    const lente = escolhida as keyof typeof LENTES;
+    return { nome: TITULO_LENTE[lente], calcular: (e) => LENTES[lente](e), sobreposicao: false, combinacao: null };
+  }
+
+  /**
+   * Leitura completa e conferida de um recorte, com a memória T6: o resumo é sempre relido; páginas já lidas no mesmo
+   * recorte e com o mesmo total são reaproveitadas. Nada parcial sai daqui.
+   */
+  private async lerRecorteComparacao(
+    filtro: Filtro,
+    atual: () => boolean,
+    progresso: (lidos: number, total: number) => void,
+  ): Promise<{ pedido: PedidoLente; resumo: Resumo; leitura: LeituraRecorte } | null> {
+    const pedido: PedidoLente = { carga: filtro.carga, janela: { inicio: filtro.inicio, fim: filtro.fim }, municipio: filtro.municipio };
+    const chave = chaveRecorte(this.geracaoSessao, filtro);
+    const emVoo = this.memoria.obter(chave) ? undefined : this.leiturasEmVoo.get(chave);
+    if (emVoo) {
+      await emVoo.catch(() => null);
+      if (!atual()) return null;
+    }
+    const resumo = await consultarResumo(this.sessao.cliente, filtro);
+    if (!atual()) return null;
+    const total = validarResumo(pedido, resumo);
+    let leitura = this.memoria.obter(chave);
+    if (!leitura || leitura.totalResumo !== total || leitura.registros.length !== total) {
+      const registros = await lerPaginas(this.fontesLente(), pedido, total, atual, progresso);
+      if (!registros || !atual()) return null;
+      leitura = this.memoria.guardar({ chave, registros, totalResumo: total, disponibilidade: leitura?.disponibilidade ?? new Map() });
+    } else progresso(total, total);
+    return { pedido, resumo, leitura };
+  }
+
+  /**
+   * Calcula a comparação do modo escolhido: valida o pedido, lê os dois lados (mesma carga), aplica a mesma lente em
+   * cada um, mostra o resultado inicial e qualifica com a disponibilidade, em concorrência global 4 (T3, T6, R3-1).
+   */
+  private async compararAgora(): Promise<void> {
+    this.cancelarComparacao();
+    const modo = modoComparacao();
+    this.mostrarLadoA();
+    this.mostrarErroComparacao(null);
+    mostrarAbaComparacao(modo !== 'nenhuma');
+    if (modo === 'nenhuma') {
+      this.estadoComparacao({ tipo: 'nenhuma' });
+      if (abaAberta() === 'comparacao') abrirAba('municipios');
+      return;
+    }
+    const dados = this.dados;
+    const a = this.aplicado;
+    if (!dados || !a || !this.resultado) return;
+    const g = this.geracaoSessao;
+    const gc = this.geracaoComparacao;
+    const atual = () => g === this.geracaoSessao && gc === this.geracaoComparacao;
+
+    // Pedido (T1, T2): sem ajuste automático de datas; recusa sem resultado comparativo (CP-3).
+    let filtroB: Filtro;
+    let validacao: ValidacaoPeriodos | null = null;
+    try {
+      if (modo === 'periodos') {
+        const inicio = $<HTMLInputElement>('cmp-b-inicio').value;
+        const fim = $<HTMLInputElement>('cmp-b-fim').value;
+        if (!inicio || !fim) {
+          this.estadoComparacao({ tipo: 'incompleta', texto: 'Escolha o início e o fim do período B.' });
+          return;
+        }
+        validacao = validarPeriodos(dados.janela, { inicio: a.inicio, fim: a.fim }, { inicio, fim });
+        filtroB = { ...a, inicio, fim };
+      } else {
+        if (a.municipio === null) {
+          this.estadoComparacao({ tipo: 'incompleta', texto: 'Escolha um município na Consulta para ser o A.' });
+          return;
+        }
+        const b = $<HTMLSelectElement>('cmp-municipio-b').value;
+        if (!b) {
+          this.estadoComparacao({ tipo: 'incompleta', texto: 'Escolha o município B.' });
+          return;
+        }
+        validarMunicipios(a.municipio, Number(b), new Set(dados.municipios.map((m) => m.codigo)));
+        filtroB = { ...a, municipio: Number(b) };
+      }
+    } catch (e) {
+      if (!(e instanceof ErroComparacao)) throw e;
+      this.mostrarErroComparacao(e.message);
+      this.estadoComparacao({ tipo: 'recusada', texto: e.message });
+      return;
+    }
+    const lente = this.lenteDaComparacao();
+    if (lente && 'incompleta' in lente) {
+      this.estadoComparacao({ tipo: 'incompleta', texto: lente.incompleta });
+      return;
+    }
+
+    // Registros dos dois lados (resultado inicial, teto de 120 s): progresso somado.
+    const lidos = { A: 0, B: 0 };
+    const totais = { A: 0, B: 0 };
+    const progresso = (l: Lado) => (feitos: number, total: number) => {
+      lidos[l] = feitos;
+      totais[l] = total;
+      if (atual()) this.estadoComparacao({ tipo: 'carregando', etapa: 'registros', feitos: lidos.A + lidos.B, total: totais.A + totais.B });
+    };
+    const todos = dados.municipios.map((m) => m.codigo);
+    let lados: [LadoAplicado, LadoAplicado];
+    try {
+      const [la, lb] = await Promise.all([
+        this.lerRecorteComparacao(a, atual, progresso('A')), this.lerRecorteComparacao(filtroB, atual, progresso('B')),
+      ]);
+      if (!la || !lb || !atual()) return;
+      let camada: LeituraAreas | null = null;
+      if (lente?.sobreposicao) {
+        this.estadoComparacao({ tipo: 'carregando', etapa: 'areas', feitos: 0, total: 0 });
+        camada = await lerAreas(fontesAreas(this.sessao.cliente), a.carga, atual);
+        if (!camada || !atual()) return;
+      }
+      const montar = (lado: Lado, filtro: Filtro, l: NonNullable<typeof la>): LadoAplicado => ({
+        lado, filtro, pedido: l.pedido, resumo: l.resumo, leitura: l.leitura,
+        bruto: lente ? lente.calcular({
+          carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: l.pedido.janela, registros: l.leitura.registros,
+          totalResumo: l.leitura.totalResumo, nomes: dados.nomes, recorte: recorteDe(filtro.municipio),
+        }, camada) : null,
+        recorte: filtro.municipio === null ? todos : [filtro.municipio],
+        disp: new Map(l.leitura.disponibilidade),
+      });
+      lados = [montar('A', a, la), montar('B', filtroB, lb)];
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
+      this.estadoComparacao(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' });
+      return;
+    }
+    this.comparacao = {
+      modo, lados, validacao, lente, mapa: 'A', pagina: 0, abertas: new Set(), lista: { tipo: 'nao_solicitada' },
+      contexto: modo === 'municipios' ? { estado: 'nao_solicitado' } : null, resultado: null,
+    };
+    renderLadoNoMapa(this.textoLadoNoMapa('A'));
+    this.mostrarComparacao();
+
+    // Qualificação (R3-1: conta no teto de 360 s): municípios dos destaques e, num lado com zero, todo o recorte;
+    // no recorte municipal, sempre o próprio município (seção municipal separada, T3).
+    const pedidos = lados.flatMap((l) => leiturasDeDisponibilidade([{
+      lado: l.lado, destaques: l.bruto ? this.municipiosDosDestaques(l.bruto) : [], zero: l.leitura.totalResumo === 0, lidos: new Set(l.disp.keys()),
+    }], l.recorte, l.filtro.municipio !== null));
+    await this.lerDisponibilidadeComparacao(pedidos, atual);
+    if (!atual() || !this.comparacao) return;
+    this.mostrarComparacao();
+    if (!this.comparacao) return;
+    const falhou = lados.some((l) => [...l.disp.values()].some((d) => d.estado === 'falha'));
+    this.estadoComparacao(falhou ? { tipo: 'cobertura_nao_verificada' } : { tipo: 'pronta' });
+  }
+
+  private municipiosDosDestaques(r: ResultadoComparavel): number[] {
+    return unidadesDe(r).flatMap((u) => u.municipios);
+  }
+
+  /** Lê a disponibilidade pedida nos dois lados com concorrência global 4; falha fica no município, nunca vira classe. */
+  private async lerDisponibilidadeComparacao(
+    pedidos: { lado: Lado; codigo: number }[],
+    atual: () => boolean,
+    aoProgredir?: (feitos: number) => void,
+  ): Promise<void> {
+    const c = this.comparacao;
+    const dados = this.dados;
+    if (!c || !dados || !pedidos.length) return;
+    let feitos = 0;
+    const redesenhar = limitador(INTERVALO_QUALIFICACAO_MS);
+    const progresso = () => {
+      if (aoProgredir) aoProgredir(feitos);
+      else this.estadoComparacao({ tipo: 'carregando', etapa: 'disponibilidade', feitos, total: pedidos.length });
+    };
+    progresso();
+    await emParalelo(pedidos, CONCORRENCIA_DISPONIBILIDADE, atual, async ({ lado, codigo }) => {
+      const l = c.lados[lado === 'A' ? 0 : 1];
+      let d: DisponibilidadeMunicipio;
+      try {
+        const resp = await consultarDisponibilidade(this.sessao.cliente, { ...l.filtro, municipio: codigo });
+        if (!atual()) return;
+        d = { estado: 'ok', dias: validarDisponibilidade(l.pedido, codigo, dados.carga.satelite, resp) };
+        l.leitura.disponibilidade.set(codigo, d);
+      } catch (e) {
+        if (!atual() || this.erroDaLente(e, 'disponibilidade') === 'global') return;
+        d = { estado: 'falha', motivo: e instanceof ErroLente ? e.message : 'fonte indisponível' };
+      }
+      l.disp.set(codigo, d);
+      feitos += 1;
+      if (!atual()) return;
+      if (redesenhar()) this.mostrarComparacao();
+      progresso();
+    });
+  }
+
+  /** Resultado comparativo do estado atual dos dois lados (qualificação e conferência do zero incluídas). */
+  private calcularComparacao(c: ComparacaoAplicada): ComparacaoTemporal | ComparacaoMunicipal {
+    const qualificado = (l: LadoAplicado): ResultadoComparavel | null => {
+      const r = l.bruto;
+      if (!r) return null;
+      if ('tipo' in r) return qualificarCombinacao(r, l.disp);
+      if (r.lente === 'sobreposicao') return qualificarSobreposicao(r, l.disp);
+      return qualificar(r, l.disp);
+    };
+    const zero = (l: LadoAplicado): ConferenciaZero =>
+      (l.leitura.totalResumo === 0 ? conferirZero(l.recorte, l.pedido.janela, l.disp) : { estado: 'nao_necessaria' });
+    const [la, lb] = c.lados;
+    if (c.modo === 'periodos' && c.validacao) {
+      return compararPeriodos(
+        { janela: la.pedido.janela, total: la.leitura.totalResumo, resultado: qualificado(la), zero: zero(la) },
+        { janela: lb.pedido.janela, total: lb.leitura.totalResumo, resultado: qualificado(lb), zero: zero(lb) },
+        c.validacao);
+    }
+    const lado = (l: LadoAplicado) => ({
+      codigo: l.filtro.municipio ?? 0, nome: this.nomeMunicipio(l.filtro.municipio) ?? '',
+      numeros: numerosMunicipio(l.resumo, l.leitura.registros), resultado: qualificado(l), zero: zero(l),
+    });
+    return compararMunicipios(la.pedido.janela, lado(la), lado(lb));
+  }
+
+  private mostrarComparacao(): void {
+    const c = this.comparacao;
+    const dados = this.dados;
+    if (!c || !dados) return;
+    let r: ComparacaoTemporal | ComparacaoMunicipal;
+    try {
+      r = this.calcularComparacao(c);
+    } catch (e) {
+      if (!(e instanceof ErroComparacao)) throw e;
+      this.comparacao = null;
+      this.estadoComparacao({ tipo: 'recusada', texto: e.message });
+      return;
+    }
+    c.resultado = r;
+    const [la, lb] = c.lados;
+    const estadual = c.modo === 'periodos' && la.filtro.municipio === null;
+    const pendenteZero = c.lados.map((l) => (l.leitura.totalResumo === 0 ? conferirZero(l.recorte, l.pedido.janela, l.disp) : null))
+      .find((z) => z?.estado === 'pendente');
+    const listaVisivel = !estadual || c.lista.tipo !== 'nao_solicitada';
+    const ctx: ContextoComparacao = {
+      lente: c.lente?.nome ?? null, mapa: c.mapa, pagina: c.pagina, abertas: c.abertas,
+      disponibilidade: {
+        estado: c.lista, estadual, nomes: dados.nomes,
+        a: listaVisivel ? disponibilidadePorMunicipio(la.recorte, la.pedido.janela, la.disp) : [],
+        b: listaVisivel ? disponibilidadePorMunicipio(lb.recorte, lb.pedido.janela, lb.disp) : [],
+      },
+      progressoZero: pendenteZero?.estado === 'pendente' ? `${pendenteZero.feitos} de ${pendenteZero.total} municípios conferidos` : null,
+      contexto: c.contexto,
+      metadados: { carga: { id: dados.carga.id, identidade: dados.carga.identidade }, versaoMetodo: la.bruto ? this.versaoDe(la.bruto) : null },
+    };
+    const m = {
+      mostrarNoMapa: (l: Lado) => this.mostrarLadoNoMapa(l),
+      pagina: (p: number) => {
+        c.pagina = Math.max(0, p);
+        this.mostrarComparacao();
+        document.getElementById('comparacao-pagina')?.focus();
+      },
+      abrir: (chave: string, aberta: boolean) => { if (aberta) c.abertas.add(chave); else c.abertas.delete(chave); },
+      listaCompleta: () => void this.listaCompletaComparacao(),
+      contextoEstadual: () => void this.contextoEstadualComparacao(),
+    };
+    // O foco fica onde estava ao redesenhar a qualificação.
+    const ativo = document.activeElement instanceof HTMLElement && $('comparacao-corpo').contains(document.activeElement) ? document.activeElement.id : '';
+    if (r.tipo === 'temporal') renderComparacaoPeriodos(r, ctx, m);
+    else renderComparacaoMunicipios(r, ctx, m);
+    if (ativo) document.getElementById(ativo)?.focus({ preventScroll: true });
+  }
+
+  private versaoDe(r: ResultadoComparavel): string {
+    return 'tipo' in r ? `${r.versao_combinacao} · ${r.versao_metodo}` : r.versao_metodo;
+  }
+
+  /** "Disponibilidade de todos os municípios" (T3, CP-16): os municípios do recorte nos dois lados, com progresso. */
+  private async listaCompletaComparacao(): Promise<void> {
+    const c = this.comparacao;
+    if (!c || c.lista.tipo === 'carregando') return;
+    const g = this.geracaoSessao;
+    const gc = this.geracaoComparacao;
+    const atual = () => g === this.geracaoSessao && gc === this.geracaoComparacao && this.comparacao === c;
+    // Falhas anteriores são lidas de novo.
+    for (const l of c.lados) for (const [codigo, d] of l.disp) if (d.estado === 'falha') l.disp.delete(codigo);
+    const pedidos = c.lados.flatMap((l) => leiturasDeDisponibilidade([{ lado: l.lado, destaques: [], zero: false, lidos: new Set(l.disp.keys()) }], l.recorte, true));
+    const total = c.lados.reduce((s, l) => s + l.recorte.length, 0);
+    const jaLidos = total - pedidos.length;
+    c.lista = { tipo: 'carregando', feitos: jaLidos, total };
+    this.mostrarComparacao();
+    await this.lerDisponibilidadeComparacao(pedidos, atual, (feitos) => {
+      c.lista = { tipo: 'carregando', feitos: jaLidos + feitos, total };
+      this.mostrarComparacao();
+    });
+    if (!atual()) return;
+    const falhou = c.lados.some((l) => l.recorte.some((codigo) => l.disp.get(codigo)?.estado !== 'ok'));
+    c.lista = falhou ? { tipo: 'falha' } : { tipo: 'completa' };
+    this.mostrarComparacao();
+    document.getElementById('t-comparacao-disp')?.focus();
+  }
+
+  /**
+   * "Ver contexto estadual" na comparação de municípios (T2, D8, CM-6): a concentração (ou, com a combinação escolhida,
+   * a combinação com a concentração) calculada em todo Mato Grosso no mesmo período, numa seção própria.
+   */
+  private async contextoEstadualComparacao(): Promise<void> {
+    const c = this.comparacao;
+    const dados = this.dados;
+    if (!c || !dados || c.modo !== 'municipios') return;
+    const g = this.geracaoSessao;
+    const gc = this.geracaoComparacao;
+    const atual = () => g === this.geracaoSessao && gc === this.geracaoComparacao && this.comparacao === c;
+    c.contexto = { estado: 'carregando' };
+    this.mostrarComparacao();
+    const [la, lb] = c.lados;
+    const escolhidos = [la, lb].map((l) => ({ lado: l.lado, codigo: l.filtro.municipio ?? 0, nome: this.nomeMunicipio(l.filtro.municipio) ?? '' }));
+    try {
+      const estado = await this.lerRecorteComparacao({ ...la.filtro, municipio: null }, atual, () => {});
+      if (!estado || !atual()) return;
+      const entrada: EntradaLente = {
+        carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: estado.pedido.janela, registros: estado.leitura.registros,
+        totalResumo: estado.leitura.totalResumo, nomes: dados.nomes, recorte: recorteDe(null),
+      };
+      const comb = c.lente?.combinacao;
+      if (comb) {
+        const lentes = LENTES_CANONICAS.filter((l) => l === 'concentracao' || comb.lentes.includes(l));
+        const r = combinar(entrada, lentes, comb.operador);
+        c.contexto = { estado: 'pronto', valor: contextoCombinacao(r, new Map(estado.leitura.registros.map((x) => [x.id_tecnico, x])), escolhidos) };
+      } else {
+        const contagens = new Map<number, number>();
+        for (const x of estado.leitura.registros) contagens.set(x.municipio_codigo, (contagens.get(x.municipio_codigo) ?? 0) + 1);
+        c.contexto = { estado: 'pronto', valor: contextoConcentracao(concentracao(entrada), contagens, escolhidos) };
+      }
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
+      c.contexto = { estado: 'falha' };
+    }
+    this.mostrarComparacao();
+    document.getElementById('t-comparacao-contexto')?.focus();
+  }
+
+  private textoLadoNoMapa(lado: Lado): string | null {
+    const c = this.comparacao;
+    if (!c) return null;
+    const f = c.lados[lado === 'A' ? 0 : 1].filtro;
+    const onde = f.municipio === null ? 'todo Mato Grosso' : (this.nomeMunicipio(f.municipio) ?? '');
+    return `Mapa: lado ${lado}${lado === 'A' ? ' (recorte aplicado)' : ''} · ${textoJanela(f)} · ${onde}`;
+  }
+
+  /** Alterna o lado mostrado no mapa (T7): B troca pontos e destaques; A volta ao recorte aplicado. */
+  private mostrarLadoNoMapa(lado: Lado): void {
+    const c = this.comparacao;
+    if (!c || !this.mapa) return;
+    c.mapa = lado;
+    if (lado === 'A') this.restaurarMapaA();
+    else {
+      const l = c.lados[1];
+      this.mapaComB = true;
+      this.mapa.fecharBalao();
+      this.mapa.definirPontos(l.leitura.registros);
+      this.mapa.limparDestaques();
+      const gc = this.geracaoComparacao;
+      const unidades = l.bruto ? unidadesDe(l.bruto) : [];
+      void this.desenharUnidades(unidades.map((u) => ({ id: u.chave, unidade: u.unidade })), () => gc === this.geracaoComparacao && this.mapaComB)
+        .catch(() => {});
+    }
+    this.mapa.enquadrar();
+    $('mapa-lado').dataset['lado'] = lado;
+    renderLadoNoMapa(this.textoLadoNoMapa(lado));
+    this.mostrarComparacao();
+    document.querySelector<HTMLElement>(`#comparacao-mapa button[data-lado="${lado}"]`)?.focus();
+  }
+
+  /** Toque numa unidade do lado B no mapa: abre essa unidade na aba Comparação. */
+  private abrirUnidadeComparacao(chave: string): void {
+    const c = this.comparacao;
+    const r = c?.resultado;
+    if (!c || !r) return;
+    const i = r.itens.findIndex((x) => x.chave === chave);
+    if (i < 0) return;
+    if (mapaAmpliado()) this.ampliarMapa(false, false);
+    c.abertas.add(chave);
+    c.pagina = Math.floor(i / ITENS_POR_PAGINA);
+    abrirAba('comparacao');
+    this.mostrarComparacao();
+    const alvo = document.querySelector<HTMLElement>(`#comparacao-itens details[data-chave="${CSS.escape(chave)}"] > summary`);
+    alvo?.scrollIntoView({ block: 'nearest' });
+    alvo?.focus();
   }
 
   // --- Camada de áreas protegidas, sob demanda (plano 006, T24) -----------------------------------------
