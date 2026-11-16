@@ -7,7 +7,7 @@
 > **Issue:** `#80`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-80`
-> **PR:** —
+> **PR:** [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #80" em 2026-11-16
 > **Modo contínuo:** `—`
@@ -56,7 +56,7 @@ Não se aplica.
 - [x] Fluxo de eventos no servidor e testes.
 - [x] Painel, contexto, cancelamento e gerações no navegador.
 - [x] E2E, acessibilidade, `DESIGN.md`, ajuda e ADR-011.
-- [ ] PR aberta.
+- [x] PR [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86) aberta.
 - [ ] Checks remotos e merge aprovado.
 
 ## Evidências
@@ -72,7 +72,7 @@ Não se aplica.
 | E2E `03-acessibilidade.spec.mjs` | 13/13, com o painel e a resposta abertos na auditoria (contraste, alvos, fontes, reflow) em 360, 390, 768 e 1440 px, temas claro e escuro |
 | E2E completo (`npm run test:e2e`) | Não executado localmente por decisão do responsável ("Não precise fazer testes de carga exaustivos"); coberto pelo job "Interface typecheck, build and E2E" da CI |
 | `node --test scripts/validate-governance.test.mjs` | 55/55 |
-| `node scripts/validate-governance.mjs` | 0 erros depois do bloco final desta task |
+| `node scripts/validate-governance.mjs` | 0 erros, 0 avisos |
 | `git diff --check` | Sem achados |
 | Prova do pacote (`conferir-pacote`) | Não refeita: o empacotamento e as importações não mudaram; o fluxo hospedado na Vercel é conferido no item 5 |
 | Checks remotos | Pendente |
@@ -97,21 +97,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 008 (completo)
-Quem: Agente
-Conferir: Implementação da issue #80 em andamento na branch feature/issue-80
-Diga: —
+Situação: Aguardando merge — ciclo 008 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #86 (https://github.com/EuThiagoAndrade/rastro-quente/pull/86)
+Diga: "aprovo o merge da PR #86"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 80 + 80af104`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #80 aberta, plano `Em Execução` / branch `feature/issue-80`, task `Em andamento`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #80 aberta, plano `Em Execução` / branch `feature/issue-80` publicada e PR #86 aberta, task `Em andamento`
 - `result`: `executed`
-- `evidence`: branch `feature/issue-80`
-- `blockers`: nenhum
+- `evidence`: PR #86 (branch `feature/issue-80`); validações em "Evidências"
+- `blockers`: nenhum além dos gates de merge; checks remotos e aprovação do merge
 
 ## Referência do bootstrap
 
