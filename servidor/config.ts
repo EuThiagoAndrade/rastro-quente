@@ -1,7 +1,7 @@
 // Configuração do servidor (plano 008, T4 e T6): só variáveis do servidor, nunca com prefixo VITE. A IA fica desligada
 // por padrão; qualquer variável ausente ou inválida também a desliga. Nada aqui é registrado em log.
 
-export const MODELO_FIXADO = 'gemini-3.8-flash';
+export const MODELO_FIXADO = 'gemini-3.1-flash-lite';
 
 export interface ConfigLigada {
   habilitada: true;

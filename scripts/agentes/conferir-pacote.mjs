@@ -136,7 +136,7 @@ try {
   const oa = await tokenDe('oa');
   executor = await iniciar(pacote, {
     RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: L.anon,
-    RQ_GEMINI_CHAVE: 'chave-ficticia-de-teste', RQ_GEMINI_MODELO: 'gemini-3.8-flash',
+    RQ_GEMINI_CHAVE: 'chave-ficticia-de-teste', RQ_GEMINI_MODELO: 'gemini-3.1-flash-lite',
   });
   const pedido = {
     pergunta: 'O que mudou entre estes períodos?', carga: { id: cargaId, identidade: IDENTIDADE },
@@ -162,7 +162,7 @@ try {
   const fonte = await tratarExplicar(new Request('http://x/api/explicar', {
     method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${rp}` }, body: JSON.stringify(pedido),
   }), {
-    config: { habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave: 'x', modelo: 'gemini-3.8-flash' }, origens: [] },
+    config: { habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave: 'x', modelo: 'gemini-3.1-flash-lite' }, origens: [] },
     criarCliente, provedor: (c) => criarGemini(c.gemini, fetchSimulado()),
   });
   // Identificadores dependem da ordem de conclusão dos subagentes em paralelo: comparar por ferramenta.

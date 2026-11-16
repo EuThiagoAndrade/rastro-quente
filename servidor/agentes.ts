@@ -351,20 +351,26 @@ export async function orquestrar(amb: Ambiente): Promise<Resultado> {
   const emitir = (e: Evento): void => { res.etapas.push(e); amb.emitir?.(e); };
   let parar: CodigoErro | null = null;
   const intervalo = Math.max(0, amb.intervaloMs ?? 0);
-  let proximaLivre = 0;
+  // Fila das chamadas ao provedor: cada uma começa pelo menos `intervalo` depois do início real da anterior.
+  let fila: Promise<void> = Promise.resolve();
+  let ultimoInicio = Number.NEGATIVE_INFINITY;
 
   /**
-   * Única porta para o modelo: teto de 6 chamadas, espaçamento entre chamadas (inclusive as paralelas, por reserva
-   * de horário), orçamento de geração e parada após falha do provedor. A espera não conta na geração, só no total.
+   * Única porta para o modelo: teto de 6 chamadas, espaçamento entre chamadas (inclusive as paralelas, em fila
+   * pelo início real), orçamento de geração e parada após falha do provedor. A espera não conta na geração, só no total.
    */
   async function chamar(papel: Papel, i: Interacao): Promise<RespostaInteracao> {
     if (parar) throw new ErroHttp(parar);
     if (res.chamadas.length >= LIMITE_CHAMADAS) throw new ErroHttp('saida_invalida', 'limite de chamadas');
     if (intervalo > 0) {
-      const agora = performance.now();
-      const inicio = Math.max(agora, proximaLivre);
-      proximaLivre = inicio + intervalo;
-      if (inicio > agora) await amb.orcamento.aguardar(inicio - agora);
+      const vez = fila.then(async () => {
+        for (let falta = ultimoInicio + intervalo - performance.now(); falta > 0; falta = ultimoInicio + intervalo - performance.now()) {
+          await amb.orcamento.aguardar(Math.ceil(falta));
+        }
+        ultimoInicio = performance.now();
+      });
+      fila = vez.catch(() => {});
+      await vez;
       if (parar) throw new ErroHttp(parar);
       if (res.chamadas.length >= LIMITE_CHAMADAS) throw new ErroHttp('saida_invalida', 'limite de chamadas');
     }

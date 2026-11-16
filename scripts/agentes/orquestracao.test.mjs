@@ -63,7 +63,7 @@ function roteiro(sobrescrever = {}) {
 function ambiente({ roteiro: rot = roteiro(), recorte, pergunta = 'O que mudou entre estes períodos?', executar, revalidar, limites, provedor } = {}) {
   const log = { interacoes: [], execucoes: [], revalidacoes: 0, eventos: [] };
   const prov = provedor ?? {
-    modelo: 'gemini-3.8-flash',
+    modelo: 'gemini-3.1-flash-lite',
     async interagir(i) {
       log.interacoes.push(i);
       const papel = papelDe(i);
@@ -250,7 +250,7 @@ test('espaçamento entre chamadas (cota por minuto): inícios separados pelo int
   const r = await orquestrar({ ...amb, intervaloMs: 60 });
   assert.equal(r.estado, 'completa');
   assert.equal(inicios.length, 6);
-  for (let k = 1; k < inicios.length; k += 1) assert.ok(inicios[k] - inicios[k - 1] >= 55, `intervalo ${k}: ${inicios[k] - inicios[k - 1]}`);
+  for (let k = 1; k < inicios.length; k += 1) assert.ok(inicios[k] - inicios[k - 1] >= 59, `intervalo ${k}: ${inicios[k] - inicios[k - 1]}`);
 });
 
 test('espaçamento que não cabe no tempo total: tempo esgotado antes de chamar; cancelamento interrompe a espera', async () => {
@@ -299,7 +299,7 @@ test('sem laço: modelo que insiste em chamar funções não ultrapassa 6 chamad
 });
 
 test('limite de envio de 64 KiB com histórico: subagente falha sem chamar o provedor; nada de amostra como total', async () => {
-  const provedor = { modelo: 'gemini-3.8-flash', interagir: async (i) => { corpoInteracao('gemini-3.8-flash', i); return roteiro()[papelDe(i)](i); } };
+  const provedor = { modelo: 'gemini-3.1-flash-lite', interagir: async (i) => { corpoInteracao('gemini-3.1-flash-lite', i); return roteiro()[papelDe(i)](i); } };
   const { amb, log } = ambiente({ provedor, executar: async (nome) => { log.execucoes.push(nome); return nome === 'comparar_periodos' ? { grande: 'x'.repeat(LIMITE_ENVIO_BYTES) } : DADOS[nome]; } });
   const r = await orquestrar(amb);
   const lentes = r.analises.find((a) => a.papel === 'lentes');
@@ -309,11 +309,11 @@ test('limite de envio de 64 KiB com histórico: subagente falha sem chamar o pro
 });
 
 test('transporte: corpo com store=false, sem previous_interaction_id, ferramentas e saída estruturada; resposta em steps', () => {
-  const corpo = JSON.parse(corpoInteracao('gemini-3.8-flash', { sistema: 's', entrada: [{ type: 'user_input', content: [{ type: 'text', text: 'p' }] }], ferramentas: [{ type: 'function', name: 'f', description: 'd', parameters: { type: 'object', properties: {} } }], escolha: { modo: 'any', permitidas: ['f'] } }));
+  const corpo = JSON.parse(corpoInteracao('gemini-3.1-flash-lite', { sistema: 's', entrada: [{ type: 'user_input', content: [{ type: 'text', text: 'p' }] }], ferramentas: [{ type: 'function', name: 'f', description: 'd', parameters: { type: 'object', properties: {} } }], escolha: { modo: 'any', permitidas: ['f'] } }));
   assert.equal(corpo.store, false);
   assert.ok(!('previous_interaction_id' in corpo) && !('background' in corpo));
   assert.deepEqual(corpo.generation_config, { max_output_tokens: 1500, tool_choice: { allowed_tools: { mode: 'any', tools: ['f'] } } });
-  const c2 = JSON.parse(corpoInteracao('gemini-3.8-flash', { sistema: 's', entrada: [], escolha: 'none', esquema: { type: 'object' } }));
+  const c2 = JSON.parse(corpoInteracao('gemini-3.1-flash-lite', { sistema: 's', entrada: [], escolha: 'none', esquema: { type: 'object' } }));
   assert.deepEqual(c2.response_format, { type: 'text', mime_type: 'application/json', schema: { type: 'object' } });
   assert.equal(c2.generation_config.tool_choice, 'none');
   const r = lerResposta({ status: 'requires_action', steps: [{ type: 'thought', signature: 'abc' }, { type: 'function_call', id: 'c1', name: 'f', arguments: { a: 1 } }], usage: { total_input_tokens: 7, total_output_tokens: 23, total_thought_tokens: 49 } });
@@ -331,13 +331,13 @@ test('cliente REST: chave só no cabeçalho, 429 e erro sem repetição e sem re
   const pedidos = [];
   const buscar = (status, corpo) => async (url, init) => { pedidos.push({ url, init }); return new Response(JSON.stringify(corpo), { status }); };
   const i = { sistema: 's', entrada: [] };
-  const g = criarGemini({ chave: 'chave-ficticia', modelo: 'gemini-3.8-flash' }, buscar(429, { error: { message: 'segredo do provedor' } }));
+  const g = criarGemini({ chave: 'chave-ficticia', modelo: 'gemini-3.1-flash-lite' }, buscar(429, { error: { message: 'segredo do provedor' } }));
   await assert.rejects(g.interagir(i, new AbortController().signal), (e) => e.codigo === 'cota_provedor' && !String(e.message).includes('segredo'));
   assert.equal(pedidos.length, 1);
   assert.equal(pedidos[0].url, ENDPOINT_GEMINI);
   assert.equal(pedidos[0].init.headers['x-goog-api-key'], 'chave-ficticia');
   assert.ok(!pedidos[0].init.body.includes('chave-ficticia'));
-  const g2 = criarGemini({ chave: 'k', modelo: 'gemini-3.8-flash' }, buscar(500, {}));
+  const g2 = criarGemini({ chave: 'k', modelo: 'gemini-3.1-flash-lite' }, buscar(500, {}));
   await assert.rejects(g2.interagir(i, new AbortController().signal), (e) => e.codigo === 'provedor_indisponivel');
   assert.equal(pedidos.length, 2);
 });

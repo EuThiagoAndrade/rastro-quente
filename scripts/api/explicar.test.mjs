@@ -25,7 +25,7 @@ let cargaId;
 const chamadas = { provedor: 0, clientes: 0 };
 let deps;
 
-const configLigada = () => ({ habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave: 'chave-ficticia-de-teste', modelo: 'gemini-3.8-flash' }, origens: [] });
+const configLigada = () => ({ habilitada: true, supabaseUrl: L.api, chavePublica: L.anon, gemini: { chave: 'chave-ficticia-de-teste', modelo: 'gemini-3.1-flash-lite' }, origens: [] });
 
 /** Provedor simulado: cliente REST real sobre `fetch` simulado (nenhuma rede); conta as chamadas e guarda os corpos. */
 const corpos = [];
@@ -122,7 +122,7 @@ test('desligada: 503 em qualquer método e identidade, sem ler corpo, sessão, S
   assert.deepEqual(lerConfigServidor({}), { habilitada: false });
   assert.deepEqual(lerConfigServidor({ RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: 'x', RQ_GEMINI_CHAVE: 'x', RQ_GEMINI_MODELO: 'gemini-latest' }), { habilitada: false });
   // Espaçamento opcional do provedor: inteiro de 0 a 20000; presente e inválido desliga a função.
-  const base = { RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: 'x', RQ_GEMINI_CHAVE: 'x', RQ_GEMINI_MODELO: 'gemini-3.8-flash' };
+  const base = { RQ_IA_HABILITADA: 'true', RQ_SUPABASE_URL: L.api, RQ_SUPABASE_CHAVE_PUBLICAVEL: 'x', RQ_GEMINI_CHAVE: 'x', RQ_GEMINI_MODELO: 'gemini-3.1-flash-lite' };
   assert.equal(lerConfigServidor(base).gemini.intervaloMs, undefined);
   assert.equal(lerConfigServidor({ ...base, RQ_GEMINI_INTERVALO_MS: '13000' }).gemini.intervaloMs, 13000);
   for (const v of ['-1', '20001', '1e4', 'x']) assert.deepEqual(lerConfigServidor({ ...base, RQ_GEMINI_INTERVALO_MS: v }), { habilitada: false }, v);
@@ -178,7 +178,7 @@ test('responsável com pedido válido: evidências relidas no servidor, principa
   assert.equal(r.json.resposta.gerado_por_ia, true);
   assert.match(r.json.resposta.aviso, /Gerado por IA/);
   assert.ok(r.json.resposta.afirmacoes.length >= 1);
-  assert.equal(r.json.execucao.modelo, 'gemini-3.8-flash');
+  assert.equal(r.json.execucao.modelo, 'gemini-3.1-flash-lite');
   assert.equal(r.json.execucao.total_chamadas, 6);
   assert.equal(r.json.execucao.chamadas.filter((c) => c.papel === 'principal').length, 2);
   assert.equal(r.json.execucao.uso.verificado, true);
@@ -261,8 +261,8 @@ test('falha do provedor na síntese: 502 com as evidências conferidas, sem sín
 });
 
 test('limite de envio: corpo acima de 64 KiB é recusado antes de chamar o provedor', () => {
-  assert.throws(() => corpoInteracao('gemini-3.8-flash', { sistema: 's', entrada: [{ type: 'user_input', content: [{ type: 'text', text: 'x'.repeat(LIMITE_ENVIO_BYTES) }] }] }), (e) => e instanceof ErroHttp && e.codigo === 'limite_envio');
-  assert.ok(corpoInteracao('gemini-3.8-flash', { sistema: 's', entrada: [] }).includes('"store":false'));
+  assert.throws(() => corpoInteracao('gemini-3.1-flash-lite', { sistema: 's', entrada: [{ type: 'user_input', content: [{ type: 'text', text: 'x'.repeat(LIMITE_ENVIO_BYTES) }] }] }), (e) => e instanceof ErroHttp && e.codigo === 'limite_envio');
+  assert.ok(corpoInteracao('gemini-3.1-flash-lite', { sistema: 's', entrada: [] }).includes('"store":false'));
 });
 
 test('responsável revogado durante a execução: 403, resposta descartada e nenhuma evidência enviada ao provedor', async () => {

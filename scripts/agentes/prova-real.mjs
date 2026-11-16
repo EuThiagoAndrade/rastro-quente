@@ -5,9 +5,9 @@
 // cotas e chave) e banco local vazio (`npm run prova:agentes` faz `supabase db reset`).
 //
 // Uso: `npm run prova:agentes` (casos mínimos de T9: R1, R2, P1 e F1) ou `npm run prova:agentes -- R3 F2` (casos
-// escolhidos de `casos.mjs`). Nível gratuito (RPM 5, RPD 20): as chamadas de cada caso são espaçadas por
-// `RQ_GEMINI_INTERVALO_MS` (padrão 13 s, no máximo 5 inícios por minuto) e os casos por `RQ_PROVA_INTERVALO_MS`
-// (padrão 60 s). Os casos mínimos gastam cerca de 19 chamadas, quase toda a cota diária.
+// escolhidos de `casos.mjs`). Nível gratuito de `gemini-3.1-flash-lite` (RPM 15, RPD 500): sem espera entre as
+// chamadas de um caso por padrão (`RQ_GEMINI_INTERVALO_MS`, por exemplo 13000 para RPM 5) e 60 s entre casos
+// (`RQ_PROVA_INTERVALO_MS`). Os casos mínimos gastam cerca de 19 chamadas.
 // O relatório (JSON) traz endpoint, modelo, papéis e ordem das chamadas, ferramentas, eventos, estado, uso e tempo;
 // nunca a chave, o JWT ou dados de conta. O texto gerado aparece para a conferência humana dos fatos.
 import { sqlAdmin, statusLocal } from '../banco/local.mjs';
@@ -18,6 +18,7 @@ import { criarCliente } from '../../api/explicar.ts';
 import { criarGemini, ENDPOINT_GEMINI } from '../../servidor/gemini.ts';
 import { MODELO_FIXADO } from '../../servidor/config.ts';
 import { CASOS, RECORTES } from './casos.mjs';
+import { INSTRUCOES } from '../../servidor/agentes.ts';
 
 const chave = process.env.RQ_GEMINI_CHAVE ?? '';
 if (!chave) {
@@ -27,7 +28,7 @@ if (!chave) {
 const pedidos = process.argv.slice(2);
 const escolhidos = pedidos.length ? CASOS.filter((c) => pedidos.includes(c.id)) : CASOS.filter((c) => ['R1', 'R2', 'P1', 'F1'].includes(c.id));
 const intervalo = Number(process.env.RQ_PROVA_INTERVALO_MS ?? 60_000);
-const intervaloChamadas = Number(process.env.RQ_GEMINI_INTERVALO_MS ?? 13_000);
+const intervaloChamadas = Number(process.env.RQ_GEMINI_INTERVALO_MS ?? 0);
 const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
 
 const L = statusLocal();
@@ -47,8 +48,18 @@ try {
     const envios = [];
     const buscar = async (url, init) => {
       const corpo = JSON.parse(String(init.body));
-      const r = await fetch(url, init);
+      const t = performance.now();
+      const meta = () => ({ papel: Object.entries(INSTRUCOES).find(([, v]) => v === corpo.system_instruction)?.[0] ?? null });
+      let r;
+      try {
+        r = await fetch(url, init);
+      } catch (e) {
+        // Chamada interrompida (tempo ou cancelamento): registrada com o tamanho do envio, sem o corpo.
+        envios.push({ url, status: `interrompida (${e?.name ?? 'erro'})`, ms: Math.round(performance.now() - t), bytes: Buffer.byteLength(String(init.body)), ...meta(), saida_estruturada: Boolean(corpo.response_format), store: corpo.store });
+        throw e;
+      }
       envios.push({
+        ms: Math.round(performance.now() - t), ...meta(),
         url, status: r.status, bytes: Buffer.byteLength(String(init.body)), store: corpo.store,
         ferramentas: (corpo.tools ?? []).map((t) => t.name), saida_estruturada: Boolean(corpo.response_format),
         tool_choice: corpo.generation_config?.tool_choice ?? null, chave_no_corpo: String(init.body).includes(chave), jwt_no_corpo: String(init.body).includes(token),
