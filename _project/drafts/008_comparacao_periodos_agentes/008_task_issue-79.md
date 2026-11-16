@@ -7,7 +7,7 @@
 > **Issue:** `#79`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-79`
-> **PR:** —
+> **PR:** [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #79" em 2026-11-16
 > **Modo contínuo:** `—`
@@ -55,7 +55,7 @@ Não se aplica.
 - [x] Orquestração, transporte, conferência de evidências e casos de avaliação.
 - [x] Testes com provedor simulado (`test:agentes`, `test:api`) e prova do pacote.
 - [x] Complemento da ADR-011 e CI.
-- [ ] PR aberta.
+- [x] PR [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85) aberta.
 - [ ] Ação externa (projeto Gemini, cotas RPM/TPM/RPD e chave no `.env` local) e prova real local de T9.
 - [ ] Checks remotos e merge aprovado.
 
@@ -99,7 +99,7 @@ Não se aplica.
 PRÓXIMO PASSO
 Situação: Aguardando ação externa — ciclo 008 (completo)
 Quem: Responsável
-Conferir: Roteiro de T9 no plano (projeto Gemini gratuito, cotas RPM/TPM/RPD de gemini-3.8-flash e chave RQ_GEMINI_CHAVE só no .env local) e a PR da issue #79
+Conferir: Roteiro de T9 no plano (projeto Gemini gratuito, cotas RPM/TPM/RPD de gemini-3.8-flash e chave RQ_GEMINI_CHAVE só no .env local) e a PR #85 (https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
 Diga: "concluí a ação externa da issue #79"
 ```
 
@@ -108,9 +108,9 @@ Diga: "concluí a ação externa da issue #79"
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 79 + cdc4fc5`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: issue #79 aberta, plano `Em Execução` / branch `feature/issue-79` publicada e PR aberta, task `Em andamento`, prova real pendente
+- `state_before` / `state_after`: issue #79 aberta, plano `Em Execução` / branch `feature/issue-79` publicada e PR #85 aberta, task `Em andamento`, prova real pendente
 - `result`: `executed`
-- `evidence`: branch `feature/issue-79`; validações em "Evidências"
+- `evidence`: PR #85 (branch `feature/issue-79`); validações em "Evidências"
 - `blockers`: ação externa da issue #79 e prova real local antes do merge; checks remotos e aprovação do merge
 
 ## Referência do bootstrap
