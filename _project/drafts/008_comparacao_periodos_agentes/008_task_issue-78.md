@@ -7,7 +7,7 @@
 > **Issue:** `#78`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-78`
-> **PR:** —
+> **PR:** [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "Autorizo a implementação da issue #78" em 2026-11-16
 > **Modo contínuo:** `—`
@@ -55,7 +55,8 @@ Não se aplica.
 - [x] Função, ferramentas, orçamento, cliente Gemini desligado e handler.
 - [x] Testes HTTP, bundle e prova do pacote.
 - [x] ADR-011, CI e documentação.
-- [ ] PR, checks remotos e merge aprovado.
+- [x] PR [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83) aberta.
+- [ ] Checks remotos e merge aprovado.
 
 ## Evidências
 
@@ -94,21 +95,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 008 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 008"
+Situação: Aguardando merge — ciclo 008 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #83 (https://github.com/EuThiagoAndrade/rastro-quente/pull/83)
+Diga: "aprovo o merge da PR #83"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 78 + 49592f2`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue #78 aberta, plano `Em Execução` / branch `feature/issue-78` com a implementação local, task `Em andamento`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue #78 aberta, plano `Em Execução` / branch `feature/issue-78` publicada e PR #83 aberta, task `Em andamento`
 - `result`: `executed`
-- `evidence`: validações em "Evidências"
-- `blockers`: nenhum
+- `evidence`: PR #83 (branch `feature/issue-78`); validações em "Evidências"
+- `blockers`: checks remotos e aprovação do merge
 
 ## Referência do bootstrap
 
