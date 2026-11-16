@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, LIMITE_CHAMADAS, NOTAS, orquestrar, TEXTO_RECUSA,
+  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
 } from '../../servidor/agentes.ts';
 import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES } from '../../servidor/gemini.ts';
 import { Orcamento } from '../../servidor/orcamento.ts';
@@ -51,7 +51,7 @@ const comId = (analise, id) => ({ ...analise, afirmacoes: analise.afirmacoes.map
 /** Roteiro padrão: principal delega aos dois; cada subagente chama sua ferramenta; síntese válida. */
 function roteiro(sobrescrever = {}) {
   const r = {
-    principal: () => ({ ...chamadaF('delegar_lentes', { classificacao: 'respondivel' }), passos: [], chamadas: [{ id: 'd1', nome: 'delegar_lentes', argumentos: { classificacao: 'respondivel' } }, { id: 'd2', nome: 'delegar_disponibilidade', argumentos: { classificacao: 'respondivel' } }] }),
+    principal: () => chamadaF('delegar', { analistas: ['lentes', 'disponibilidade'], classificacao: 'respondivel' }),
     lentes: (i) => (i.escolha === 'none' ? saida(ANALISE.lentes) : chamadaF('comparar_periodos')),
     disponibilidade: (i) => (i.escolha === 'none' ? saida(comId(ANALISE.disponibilidade, idRecebido(i))) : chamadaF('consultar_disponibilidade')),
     sintese: () => saida(SINTESE),
@@ -124,7 +124,7 @@ test('comparação: principal delega aos dois subagentes, cada um com chamadas p
 
 test('pergunta só de disponibilidade: o principal pode delegar só a esse subagente (4 chamadas)', async () => {
   const recorte = { tipo: 'disponibilidade', janela: JANELA_A, municipios: [9900001] };
-  const rot = roteiro({ principal: () => chamadaF('delegar_disponibilidade', { classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: ANALISE.disponibilidade.afirmacoes.map((a) => ({ ...a, referencias: ['E1.lados[0].municipios[0].texto'] })), limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
+  const rot = roteiro({ principal: () => chamadaF('delegar', { analistas: ['disponibilidade'], classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: ANALISE.disponibilidade.afirmacoes.map((a) => ({ ...a, referencias: ['E1.lados[0].municipios[0].texto'] })), limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
   const { amb, log } = ambiente({ roteiro: rot, recorte, pergunta: 'Há lacunas nos dados?' });
   const r = await orquestrar(amb);
   assert.equal(r.estado, 'completa');
@@ -134,7 +134,7 @@ test('pergunta só de disponibilidade: o principal pode delegar só a esse subag
 });
 
 test('comparação sem a delegação necessária: resultado incompleto explícito, sem execução inventada', async () => {
-  const rot = roteiro({ principal: () => chamadaF('delegar_disponibilidade', { classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
+  const rot = roteiro({ principal: () => chamadaF('delegar', { analistas: ['disponibilidade'], classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
   const { amb, log } = ambiente({ roteiro: rot });
   const r = await orquestrar(amb);
   assert.equal(r.estado, 'incompleta');
@@ -154,7 +154,7 @@ test('pergunta de autoria: recusa com texto do código, uma chamada, nenhuma fer
 
 test('pergunta causal: resposta parcial, com nota fixa e limite', async () => {
   const rot = roteiro({
-    principal: () => ({ passos: [], texto: '', uso: null, chamadas: [{ id: 'd1', nome: 'delegar_lentes', argumentos: { classificacao: 'parcial' } }, { id: 'd2', nome: 'delegar_disponibilidade', argumentos: { classificacao: 'parcial' } }] }),
+    principal: () => ({ passos: [], texto: '', uso: null, chamadas: [{ id: 'd1', nome: 'delegar', argumentos: { analistas: ['lentes', 'disponibilidade'], classificacao: 'parcial' } }] }),
     sintese: () => saida({ ...SINTESE, classificacao: 'parcial', limites: ['As evidências não mostram causas.'] }),
   });
   const { amb } = ambiente({ roteiro: rot, pergunta: 'Por que as detecções diminuíram?' });
@@ -208,6 +208,18 @@ test('conferência de afirmações: datas, números pt-BR, referência a ramo e 
   assert.equal(conferirAfirmacao({ texto: 'Sem número.', referencias: ['E1.x'] }, indice), 'referência inexistente');
 });
 
+test('referência com o envelope "dados" do resultado da ferramenta: normalizada só quando o caminho citado não existe', () => {
+  const indice = indexar([{ id: 'E2', ferramenta: 'comparar_periodos', dados: DADOS.comparar_periodos }]);
+  assert.equal(normalizarReferencia('E2.dados.a.total', indice), 'E2.a.total');
+  assert.equal(normalizarReferencia('E2.dados.itens.itens[0]', indice), 'E2.itens.itens[0]');
+  assert.equal(normalizarReferencia('E2.dados', indice), 'E2');
+  assert.equal(normalizarReferencia('E2.a.total', indice), 'E2.a.total');
+  // Caminho que continua inexistente depois de tirar o envelope fica como veio (e a afirmação é rejeitada).
+  assert.equal(normalizarReferencia('E2.dados.inventado', indice), 'E2.dados.inventado');
+  assert.equal(normalizarReferencia('E3.dados.a.total', indice), 'E3.dados.a.total');
+  assert.equal(conferirAfirmacao({ texto: 'Foram 55 detecções em A.', referencias: [normalizarReferencia('E2.dados.a.total', indice)] }, indice), null);
+});
+
 test('saída fora do formato do subagente: falha só dele; síntese inválida mantém as análises conferidas', async () => {
   const rot = roteiro({ disponibilidade: (i) => (i.escolha === 'none' ? saida('não é JSON') : chamadaF('consultar_disponibilidade')), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: [{ texto: 'Foram 99.', referencias: ['E1.a.total'] }], limites: [] }) });
   const { amb } = ambiente({ roteiro: rot });
@@ -223,8 +235,14 @@ test('saída inválida do principal: falha do provedor, sem subagentes', async (
   const { amb, log } = ambiente({ roteiro: roteiro({ principal: () => chamadaF('delegar_tudo', {}) }) });
   await assert.rejects(orquestrar(amb), (e) => e instanceof FalhaProvedor && e.codigo === 'saida_invalida');
   assert.equal(log.interacoes.length, 1);
-  const { amb: a2 } = ambiente({ roteiro: roteiro({ principal: () => ({ passos: [], texto: '', uso: null, chamadas: [{ id: '1', nome: 'recusar_pergunta', argumentos: { motivo: 'previsao' } }, { id: '2', nome: 'delegar_lentes', argumentos: { classificacao: 'respondivel' } }] }) }) });
+  const { amb: a2 } = ambiente({ roteiro: roteiro({ principal: () => ({ passos: [], texto: '', uso: null, chamadas: [{ id: '1', nome: 'recusar_pergunta', argumentos: { motivo: 'previsao' } }, { id: '2', nome: 'delegar', argumentos: { analistas: ['lentes'], classificacao: 'respondivel' } }] }) }) });
   await assert.rejects(orquestrar(a2), (e) => e instanceof FalhaProvedor && e.codigo === 'saida_invalida');
+  // Delegação com analista fora do catálogo ou lista vazia: saída inválida, sem subagentes.
+  for (const analistas of [['lentes', 'causas'], [], 'lentes']) {
+    const { amb: a3, log: l3 } = ambiente({ roteiro: roteiro({ principal: () => chamadaF('delegar', { analistas, classificacao: 'respondivel' }) }) });
+    await assert.rejects(orquestrar(a3), (e) => e instanceof FalhaProvedor && e.codigo === 'saida_invalida', JSON.stringify(analistas));
+    assert.equal(l3.interacoes.length, 1);
+  }
 });
 
 test('429 num subagente: nenhuma repetição e nenhuma chamada posterior; o que foi conferido continua acessível', async () => {
@@ -289,7 +307,7 @@ test('injeção de prompt: a pergunta vai delimitada como dado, sem mudar instru
 });
 
 test('sem laço: modelo que insiste em chamar funções não ultrapassa 6 chamadas', async () => {
-  const sempre = (i) => (i.ferramentas?.length ? chamadaF(i.ferramentas[0].name, i.ferramentas[0].name.startsWith('delegar') ? { classificacao: 'respondivel' } : {}) : saida('{}'));
+  const sempre = (i) => (i.ferramentas?.length ? chamadaF(i.ferramentas[0].name, i.ferramentas[0].name.startsWith('delegar') ? { analistas: ['lentes'], classificacao: 'respondivel' } : {}) : saida('{}'));
   const rot = { principal: sempre, lentes: sempre, disponibilidade: sempre, sintese: sempre };
   const { amb, log } = ambiente({ roteiro: rot });
   const r = await orquestrar(amb);

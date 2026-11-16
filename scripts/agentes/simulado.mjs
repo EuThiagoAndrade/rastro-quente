@@ -11,7 +11,7 @@ export function respostaSimulada(corpo) {
   const chamada = (name, args, id) => ({ type: 'function_call', id, name, arguments: args });
   const texto = (obj) => ({ status: 'completed', usage, steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(obj) }] }] });
   if (papel === 'principal') {
-    return { status: 'requires_action', usage, steps: [chamada('delegar_lentes', { classificacao: 'respondivel' }, 'p1'), chamada('delegar_disponibilidade', { classificacao: 'respondivel' }, 'p2')] };
+    return { status: 'requires_action', usage, steps: [chamada('delegar', { analistas: ['lentes', 'disponibilidade'], classificacao: 'respondivel' }, 'p1')] };
   }
   if (papel === 'sintese') {
     const linha = corpo.input[0].content[0].text.split('\n').find((l) => l.startsWith('Análises conferidas (dados): '));

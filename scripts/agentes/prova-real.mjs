@@ -9,7 +9,9 @@
 // chamadas de um caso por padrão (`RQ_GEMINI_INTERVALO_MS`, por exemplo 13000 para RPM 5) e 60 s entre casos
 // (`RQ_PROVA_INTERVALO_MS`). Os casos mínimos gastam cerca de 19 chamadas.
 // O relatório (JSON) traz endpoint, modelo, papéis e ordem das chamadas, ferramentas, eventos, estado, uso e tempo;
-// nunca a chave, o JWT ou dados de conta. O texto gerado aparece para a conferência humana dos fatos.
+// nunca a chave, o JWT ou dados de conta. O texto gerado aparece para a conferência humana dos fatos. Com
+// `RQ_PROVA_DIAGNOSTICO=1`, o relatório traz também o texto bruto das saídas do modelo, as evidências (fixture fictícia)
+// e o motivo de cada afirmação rejeitada, para diagnóstico local; não versionar esse relatório.
 import { sqlAdmin, statusLocal } from '../banco/local.mjs';
 import { CONTAS, cadastrarRp, criarConta, removerConta, tokenDe } from '../../tests/e2e/contas.mjs';
 import { IDENTIDADE, SQL_LIMPEZA, sqlFixture } from '../../tests/e2e/fixture.mjs';
@@ -18,7 +20,9 @@ import { criarCliente } from '../../api/explicar.ts';
 import { criarGemini, ENDPOINT_GEMINI } from '../../servidor/gemini.ts';
 import { MODELO_FIXADO } from '../../servidor/config.ts';
 import { CASOS, RECORTES } from './casos.mjs';
-import { INSTRUCOES } from '../../servidor/agentes.ts';
+import { conferirAfirmacao, indexar, INSTRUCOES, normalizarReferencia } from '../../servidor/agentes.ts';
+
+const diagnostico = process.env.RQ_PROVA_DIAGNOSTICO === '1';
 
 const chave = process.env.RQ_GEMINI_CHAVE ?? '';
 if (!chave) {
@@ -30,6 +34,22 @@ const escolhidos = pedidos.length ? CASOS.filter((c) => pedidos.includes(c.id)) 
 const intervalo = Number(process.env.RQ_PROVA_INTERVALO_MS ?? 60_000);
 const intervaloChamadas = Number(process.env.RQ_GEMINI_INTERVALO_MS ?? 0);
 const esperar = (ms) => new Promise((ok) => setTimeout(ok, ms));
+
+/** Motivo de cada afirmação das saídas estruturadas, conferida contra as evidências devolvidas (só diagnóstico). */
+function rejeicoes(envios, evidencias) {
+  if (!evidencias) return [];
+  const indice = indexar(Object.entries(evidencias).map(([id, e]) => ({ id, ferramenta: e.ferramenta, dados: e.dados })));
+  return envios.filter((e) => e.saida_estruturada).flatMap((e) => (e.saida ?? []).flatMap((txt) => {
+    try {
+      return (JSON.parse(txt).afirmacoes ?? []).map((a) => {
+        const referencias = (a.referencias ?? []).map((r) => normalizarReferencia(r, indice));
+        return { papel: e.papel, texto: a.texto, referencias, motivo: conferirAfirmacao({ texto: a.texto, referencias }, indice) };
+      });
+    } catch {
+      return [{ papel: e.papel, motivo: 'saída não é JSON', texto: txt.slice(0, 300) }];
+    }
+  }));
+}
 
 const L = statusLocal();
 if (sqlAdmin('select count(*) from public.cargas;') !== '0') throw new Error('Banco local deve estar vazio; rode `npm run prova:agentes` (faz `supabase db reset`).');
@@ -58,7 +78,13 @@ try {
         envios.push({ url, status: `interrompida (${e?.name ?? 'erro'})`, ms: Math.round(performance.now() - t), bytes: Buffer.byteLength(String(init.body)), ...meta(), saida_estruturada: Boolean(corpo.response_format), store: corpo.store });
         throw e;
       }
+      let saida;
+      if (diagnostico) {
+        const bruto = await r.clone().json().catch(() => null);
+        saida = (bruto?.steps ?? []).flatMap((p) => (p.type === 'model_output' ? (p.content ?? []).map((c) => c.text ?? '') : p.type === 'function_call' ? [`function_call ${p.name} ${JSON.stringify(p.arguments)}`] : []));
+      }
       envios.push({
+        ...(diagnostico ? { saida } : {}),
         ms: Math.round(performance.now() - t), ...meta(),
         url, status: r.status, bytes: Buffer.byteLength(String(init.body)), store: corpo.store,
         ferramentas: (corpo.tools ?? []).map((t) => t.name), saida_estruturada: Boolean(corpo.response_format),
@@ -89,6 +115,7 @@ try {
       recusadas: etapas.filter((e) => e.tipo === 'ferramenta_recusada').length,
       analises: (j.analises ?? []).map((a) => ({ papel: a.papel, estado: a.estado, motivo: a.motivo ?? null, afirmacoes: a.afirmacoes.length, rejeitadas: a.rejeitadas })),
       resposta: j.resposta ?? null, envios, conferencia, passou: Object.values(conferencia).every(Boolean),
+      ...(diagnostico ? { evidencias: j.evidencias ?? null, rejeicoes: rejeicoes(envios, j.evidencias) } : {}),
     });
     process.stderr.write(`${caso.id}: HTTP ${resposta.status}, ${j.estado ?? j.erro}, ${envios.length} chamada(s)\n`);
   }

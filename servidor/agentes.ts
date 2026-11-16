@@ -1,8 +1,8 @@
 // Orquestração dos agentes (plano 008, T5 e T6). Um agente principal e dois subagentes, cada um com chamadas próprias
 // ao modelo, instruções próprias e ferramentas próprias; o cálculo é sempre das ferramentas determinísticas.
 //
-//   1. principal (1 chamada): classifica a pergunta e delega por chamada de função (`delegar_lentes`,
-//      `delegar_disponibilidade`) ou recusa (`recusar_pergunta`); a aplicação valida a seleção;
+//   1. principal (1 chamada): classifica a pergunta e delega numa única chamada de função (`delegar`, com a lista de
+//      analistas) ou recusa (`recusar_pergunta`); a aplicação valida a seleção;
 //   2. cada subagente delegado (até 2 chamadas): pede ferramentas do seu catálogo (uma rodada), recebe os resultados e
 //      devolve saída estruturada com referências às evidências;
 //   3. principal (1 chamada): sintetiza as análises conferidas, com saída estruturada e referências.
@@ -119,24 +119,23 @@ const COMUM = [
 export const INSTRUCOES: Record<'principal' | 'sintese' | Subagente, string> = {
   principal: [
     'Você é o agente principal do Rastro Quente. Não calcula nada nem vê os dados: classifica a pergunta e delega.',
-    'Use exatamente uma das opções por chamada de função:',
-    '- delegar_lentes: destaques das lentes, comparação de períodos ou de municípios e detalhes das detecções;',
-    '- delegar_disponibilidade: disponibilidade dos dados e lacunas por município e dia;',
+    'Faça uma única chamada de função, uma destas:',
+    '- delegar, com "analistas" listando quem responde: "lentes" (destaques das lentes, comparação de períodos ou de municípios e detalhes das detecções) e/ou "disponibilidade" (disponibilidade dos dados e lacunas por município e dia);',
     '- recusar_pergunta: autoria, infração, propriedade, previsão, dados pessoais ou credenciais, ou tema fora do Rastro Quente.',
-    'Pode delegar aos dois analistas. Comparações pedem os dois. Use classificacao "parcial" quando parte da pergunta (por exemplo, causas) não puder ser respondida com detecções e disponibilidade.',
+    'Comparações de períodos ou de municípios pedem os dois analistas na mesma chamada: ["lentes", "disponibilidade"]. Use classificacao "parcial" quando parte da pergunta (por exemplo, causas) não puder ser respondida com detecções e disponibilidade.',
     COMUM,
   ].join('\n'),
   lentes: [
     'Você é o analista de lentes e evidências do Rastro Quente.',
     'Chame a ferramenta do pedido (e, se precisar, ler_detalhes) e depois descreva os resultados só com as evidências recebidas.',
-    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho do campo usado: identificador seguido do caminho com pontos e índices, por exemplo E1.a.total ou E1.itens.itens[0].classificacao.',
+    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho do campo usado: identificador seguido do caminho com pontos e índices, por exemplo E1.a.total ou E1.itens.itens[0].classificacao. Ao nomear um município ou outra unidade, cite o item inteiro (por exemplo E1.itens.itens[0]), que inclui nome, código e valores.',
     'Copie números, datas, códigos e classificações exatamente como estão nas evidências; não calcule, não arredonde e não some. Se a página de detalhes não for o total, diga que é amostra.',
     COMUM,
   ].join('\n'),
   disponibilidade: [
     'Você é o analista de disponibilidade dos dados do Rastro Quente.',
     'Chame consultar_disponibilidade e depois descreva só o que as evidências recebidas mostram, por município, sem agregar municípios.',
-    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho do campo usado, por exemplo E1.lados[0].municipios[0].texto.',
+    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho usado. Ao nomear um município, cite o item inteiro do município em cada lado (por exemplo E1.lados[0].municipios[0] e E1.lados[1].municipios[0]), que inclui nome, código e texto.',
     'Copie números e textos exatamente como estão nas evidências. Declare o alcance: não diga que examinou o estado inteiro se a evidência disser o contrário.',
     COMUM,
   ].join('\n'),
@@ -190,11 +189,20 @@ export const NOTAS = {
 
 const NOME: Record<Subagente, string> = { lentes: 'lentes e evidências', disponibilidade: 'disponibilidade dos dados' };
 
-const DELEGACAO = { type: 'object', additionalProperties: false, required: ['classificacao'], properties: { classificacao: { type: 'string', enum: ['respondivel', 'parcial'] } } };
+const DELEGACAO = {
+  type: 'object', additionalProperties: false, required: ['analistas', 'classificacao'],
+  properties: {
+    analistas: { type: 'array', minItems: 1, maxItems: 2, uniqueItems: true, items: { type: 'string', enum: ['lentes', 'disponibilidade'] } },
+    classificacao: { type: 'string', enum: ['respondivel', 'parcial'] },
+  },
+};
 
 export const FERRAMENTAS_PRINCIPAL: DeclaracaoFuncao[] = [
-  { type: 'function', name: 'delegar_lentes', description: 'Delega ao analista de lentes e evidências (destaques, comparações, detalhes).', parameters: DELEGACAO },
-  { type: 'function', name: 'delegar_disponibilidade', description: 'Delega ao analista de disponibilidade dos dados (lacunas por município e dia).', parameters: DELEGACAO },
+  {
+    type: 'function', name: 'delegar',
+    description: 'Delega numa só chamada aos analistas listados: "lentes" (destaques, comparações, detalhes) e/ou "disponibilidade" (lacunas por município e dia).',
+    parameters: DELEGACAO,
+  },
   {
     type: 'function', name: 'recusar_pergunta', description: 'Recusa a pergunta fora do alcance do Rastro Quente.',
     parameters: { type: 'object', additionalProperties: false, required: ['motivo'], properties: { motivo: { type: 'string', enum: [...MOTIVOS_RECUSA] } } },
@@ -298,6 +306,17 @@ export function conferirAfirmacao(a: Afirmacao, indice: ReadonlyMap<string, Valo
   return null;
 }
 
+/**
+ * O resultado chega ao modelo como `{ evidencia: "E1", dados: {...} }`; o caminho `E1.dados.a.total` é o mesmo campo que
+ * `E1.a.total`. Só normaliza quando o caminho citado não existe e o normalizado existe; nada mais é reescrito.
+ */
+export function normalizarReferencia(ref: string, indice: ReadonlyMap<string, Valor>): string {
+  const r = ref.trim();
+  if (valoresDe(indice, r).length) return r;
+  const sem = r.replace(/^(E\d+)\.dados(?=[.[]|$)/, '$1');
+  return sem !== r && valoresDe(indice, sem).length ? sem : r;
+}
+
 /** Saída estruturada (texto JSON) → afirmações conferidas; formato fora do esquema é saída inválida. */
 export function lerAfirmacoes(texto: string, indice: ReadonlyMap<string, Valor>, comClassificacao: boolean) {
   let j: unknown;
@@ -312,7 +331,7 @@ export function lerAfirmacoes(texto: string, indice: ReadonlyMap<string, Valor>,
     const a = x as Record<string, unknown>;
     const ok = typeof a === 'object' && a !== null && typeof a['texto'] === 'string' && Array.isArray(a['referencias'])
       && (a['referencias'] as unknown[]).every((r) => typeof r === 'string');
-    const af = ok ? { texto: (a['texto'] as string).trim(), referencias: [...new Set(a['referencias'] as string[])].slice(0, 12) } : null;
+    const af = ok ? { texto: (a['texto'] as string).trim(), referencias: [...new Set((a['referencias'] as string[]).map((r) => normalizarReferencia(r, indice)))].slice(0, 12) } : null;
     if (af && conferirAfirmacao(af, indice) === null) aceitas.push(af); else rejeitadas += 1;
   }
   // Limites também passam pela conferência de HTML, links e alegações (sem exigir referência).
@@ -466,11 +485,14 @@ export async function orquestrar(amb: Ambiente): Promise<Resultado> {
     const delegadas = new Map<Subagente, Classificacao>();
     for (const c of r0.chamadas) {
       if (c.nome === 'recusar_pergunta') continue;
-      const papel = ({ delegar_lentes: 'lentes', delegar_disponibilidade: 'disponibilidade' } as Record<string, Subagente>)[c.nome];
       const cl = c.argumentos['classificacao'];
-      if (!papel || (cl !== 'respondivel' && cl !== 'parcial')) throw new ErroHttp('saida_invalida', 'delegação fora do catálogo');
-      if (!ferramentasDe(papel, amb.pedido).length) { emitir({ tipo: 'delegacao_recusada', papel }); continue; }
-      delegadas.set(papel, delegadas.get(papel) === 'parcial' ? 'parcial' : cl);
+      const analistas = c.argumentos['analistas'];
+      if (c.nome !== 'delegar' || (cl !== 'respondivel' && cl !== 'parcial') || !Array.isArray(analistas) || !analistas.length
+        || analistas.some((a) => a !== 'lentes' && a !== 'disponibilidade')) throw new ErroHttp('saida_invalida', 'delegação fora do catálogo');
+      for (const papel of new Set(analistas as Subagente[])) {
+        if (!ferramentasDe(papel, amb.pedido).length) { emitir({ tipo: 'delegacao_recusada', papel }); continue; }
+        delegadas.set(papel, delegadas.get(papel) === 'parcial' ? 'parcial' : cl);
+      }
     }
     if (recusa) {
       const motivo = recusa.argumentos['motivo'];
