@@ -2,13 +2,13 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#80`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-80`
 > **PR:** [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86)
-> **Integração:** `Pendente`
+> **Integração:** squash `831ee8e` em `main` (2026-11-16)
 > **Autorização inicial:** "autorizo a implementação da issue #80" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -57,7 +57,7 @@ Não se aplica.
 - [x] Painel, contexto, cancelamento e gerações no navegador.
 - [x] E2E, acessibilidade, `DESIGN.md`, ajuda e ADR-011.
 - [x] PR [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86) aberta.
-- [ ] Checks remotos e merge aprovado.
+- [x] Checks remotos verdes e PR integrada por squash (`831ee8e`, 2026-11-16), conferido no GitHub durante a issue #81.
 
 ## Evidências
 
@@ -75,7 +75,7 @@ Não se aplica.
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos |
 | `git diff --check` | Sem achados |
 | Prova do pacote (`conferir-pacote`) | Não refeita: o empacotamento e as importações não mudaram; o fluxo hospedado na Vercel é conferido no item 5 |
-| Checks remotos | Pendente |
+| Checks remotos | Verdes na PR #86; integrada por squash `831ee8e` (conferido no GitHub em 2026-11-16) |
 
 ## Revisão da correção
 

@@ -95,6 +95,9 @@ test('vercel.json: build estático, CSP restrita ao Supabase e aos tiles da Esri
   assert.equal(v.git.deploymentEnabled.main, true);
   assert.equal(v.git.deploymentEnabled['**'], false, 'branches e PRs não geram deploy');
   assert.ok(!('env' in v) && !('build' in v), 'variáveis ficam no painel da Vercel, nunca no arquivo');
+  // Issue #81 (plano 008, T6): só a função de explicação, com 300 s (máximo do Hobby com Fluid compute); o orçamento
+  // interno de 270 s encerra 30 s antes.
+  assert.deepEqual(v.functions, { 'api/explicar.ts': { maxDuration: 300 } });
   assert.ok(!/(service_role|rq_executor|eyJ[\w-]+\.|sb_secret_|postgres(ql)?:\/\/)/i.test(texto), 'sem segredo');
   const gerais = Object.fromEntries(v.headers.find((h) => h.source === '/(.*)').headers.map((h) => [h.key, h.value]));
   const csp = Object.fromEntries(gerais['Content-Security-Policy'].split(';').map((d) => d.trim().split(/\s+/)).map(([k, ...r]) => [k, r]));

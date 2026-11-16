@@ -290,3 +290,84 @@ Após a verificação, o painel exibiu Database Size de 0,045/0,5 GB, Egress de 
 ### Pausa e retomada (não simuladas)
 
 O Supabase Free pausa o projeto após uma semana de inatividade. **Isso não foi simulado nem testado.** O que se sabe: a retomada é manual, no painel, e o que a recarga de dados não restaura são contas, Auth, segredos, o cadastro do responsável e o provedor Google (seção 6). Sem promessa de disponibilidade contínua, de prazo de recuperação ou de gratuidade incondicional.
+
+## 12. Ciclo 008, item 5 — IA hospedada: configuração, verificação e desligamento
+
+Escopo: issue #81 (plano 008, T6 e T9). **Nada daqui começa antes da PR de preparação integrada** (merge aprovado, commit na `main`, deploy de produção dessa `main`). O agente prepara o roteiro, confere por leitura o que alcançar e faz só as sondagens anônimas; contas, painéis, variáveis e as sessões Google são do responsável. O agente nunca recebe a chave do Gemini, JWT, UUID, e-mail ou senha. Dúvida, cobrança, cartão, trial, faturamento, cota insuficiente ou divergência: **pare e conte ao agente**.
+
+A IA fica **desligada** até a etapa B. Desligada, `/api/explicar` responde 503 a qualquer pedido, sem ler dados nem chamar o provedor, e a consulta, as lentes e a comparação continuam funcionando sem IA (ADR-011).
+
+### Variáveis da função (somente nomes; valores só no painel da Vercel)
+
+Escopo **Production**. Nenhuma tem prefixo `VITE_` e nenhuma vai ao bundle. A Vercel só aplica variáveis a deploys novos: toda mudança exige **Redeploy** da produção atual.
+
+| Variável | Valor | Sensível? |
+| :-- | :-- | :-- |
+| `RQ_IA_HABILITADA` | ausente na etapa A; `true` só na etapa B. Qualquer outro valor desliga | Não |
+| `RQ_SUPABASE_URL` | o mesmo valor de `VITE_SUPABASE_URL` | Não (pública) |
+| `RQ_SUPABASE_CHAVE_PUBLICAVEL` | o mesmo valor de `VITE_SUPABASE_CHAVE_PUBLICAVEL` (publicável, nunca `sb_secret_…` ou `service_role`) | Não (pública) |
+| `RQ_GEMINI_CHAVE` | chave da API do projeto Gemini do nível gratuito | **Sim**: marcar como *Sensitive* |
+| `RQ_GEMINI_MODELO` | exatamente `gemini-3.1-flash-lite` (outro valor desliga a função) | Não |
+| `RQ_GEMINI_INTERVALO_MS` | opcional; ausente = sem espera. Usar só se a cota por minuto conferida for menor que 6 (por exemplo `13000` para RPM 5) | Não |
+| `RQ_ORIGENS` | opcional; deixar ausente (a própria origem já é aceita) | Não |
+
+A chave do Gemini **não** entra em `.env.example`, issue, PR, chat, log ou print. Na prova local, ela continua só no `.env` ignorado (`scripts/agentes/prova-real.mjs`).
+
+### Etapa A — configuração com a IA desligada (primeira ação externa)
+
+1. **Gemini (AI Studio):** confira que o projeto continua no **nível gratuito**, sem faturamento ligado, e anote RPM, TPM e RPD de `gemini-3.1-flash-lite` exibidos para o projeto (na issue #79: RPM 15, TPM 250 mil, RPD 500). Uma pergunta de comparação faz até 6 chamadas respondidas (até 12 pedidos com a repetição única em 503); o roteiro da etapa C gasta cerca de 30. Se a cota mudou e não comporta isso, pare.
+2. **Vercel:** plano Hobby, sem cartão. Em Settings, Functions, confira que **Fluid compute** está ligado (padrão de projetos novos desde abril de 2025). Com ele, o Hobby admite até 300 s por função, o valor fixado em `vercel.json` para `api/explicar.ts`; respostas em fluxo contam nesse limite. Se o deploy da `main` integrada falhar por `maxDuration` ou Fluid compute, pare; não troque de plano.
+3. Cadastre as variáveis da tabela **sem** `RQ_IA_HABILITADA` e faça **Redeploy** da produção atual.
+4. **Logs:** em Logs/Observability, anote a retenção exibida para o plano. Os registros da função trazem só `funcao`, `etapa`, `ms`, `codigo`, `chamadas` e `tokens`. Registros internos da Vercel e do Google não são controlados pelo projeto.
+
+Retorno ao agente: "concluí a ação externa da issue #81" **dizendo "etapa A"**, com domínio, SHA do deploy, nomes das variáveis (sem valores), cotas exibidas, estado do Fluid compute e retenção dos logs.
+
+### Verificação desligada (agente, depois de "autorizo a verificação em produção do ciclo 008")
+
+Sem sessão e sem dados:
+
+- `GET` e `POST` anônimos em `<DOMINIO>/api/explicar` → **503**, sem dados nem detalhe do ambiente;
+- bundle publicado (`index.html` e `/assets/*.js`) sem `RQ_GEMINI`, `generativelanguage`, `AIza` nem a chave;
+- cabeçalhos da página (CSP, `X-Content-Type-Options`) iguais aos de `vercel.json`;
+- na interface, o responsável confirma que consulta, lentes e comparação funcionam e que o painel de perguntas mostra a IA indisponível.
+
+Só depois disso, a etapa B.
+
+### Etapa B — habilitação (segunda ação externa)
+
+Cadastre `RQ_IA_HABILITADA` = `true` (Production) e faça **Redeploy**. Retorno: "concluí a ação externa da issue #81" **dizendo "etapa B"**, com o SHA do novo deploy.
+
+### Etapa C — verificação habilitada e demonstração (T9)
+
+Execução conjunta: o responsável usa a interface com a própria sessão; o agente faz as sondagens anônimas e registra as evidências. Espaçar as perguntas em cerca de 60 s, como na prova local.
+
+| # | Caso | Quem | Esperado |
+| :-- | :-- | :-- | :-- |
+| C1 | Anônimos: `GET`; `POST` com `Origin` de outro site; `POST` com corpo válido sem `Authorization`; o mesmo com JWT inválido | Agente | 405; 403 `origem_negada`; 401; 401. Todos em JSON, sem fluxo, sem dados e sem chamada ao provedor (a função não lê dados antes do JWT) |
+| C2 | Outra conta Google, fora da lista de responsáveis | Responsável | Acesso negado na tela, sem resposta da IA |
+| C3 | "O que mudou entre estes períodos?" com dois períodos comparados | Responsável | Etapas reais: principal, os **dois** subagentes e síntese; até 6 chamadas; "Gerado por IA"; números iguais aos do detalhamento sem IA |
+| C4 | "Há lacunas nos dados?" | Responsável | Delegação só ao subagente de disponibilidade |
+| C5 | Pergunta causal ("Por que as detecções diminuíram?") | Responsável | Resposta parcial, com a nota fixa de causa fora das evidências |
+| C6 | Pergunta de autoria ("Quem colocou fogo em …?") | Responsável | Recusa com o texto fixo, 1 chamada |
+| C7 | "Comparar municípios" e uma pergunta em texto livre | Responsável | Seletor do município B; resposta sobre o par escolhido |
+| C8 | Cancelar durante a execução; trocar o período B durante outra | Responsável | Execução encerrada, sem resposta tardia |
+| C9 | Falha do provedor | Responsável (ambiente) e agente | Ver abaixo |
+| C10 | Fluxo e logs | Responsável | Na aba Rede, `/api/explicar` com `application/x-ndjson` e etapas chegando ao longo da execução; nos logs da Vercel, só os campos da etapa A, sem pergunta, resposta, JWT ou ID |
+
+**C9 — falha controlada.** A cota diária não é esgotada de propósito. Se um 429, 503 ou tempo esgotado ocorrer naturalmente em C3–C8, é registrado como observado. Senão, o responsável troca temporariamente `RQ_GEMINI_CHAVE` por um valor inválido e faz Redeploy: uma pergunta deve terminar em erro claro, com comparação e consulta ainda utilizáveis. Depois, restaura a chave e faz Redeploy. Esse ensaio faz parte da etapa B e é informado ao agente; sem ele, C9 fica registrado como "não executado em produção".
+
+Evidências em `_project/drafts/008_comparacao_periodos_agentes/008_validation_agentes.md`: data, SHA do deploy, modelo, cotas exibidas e, por caso, etapas, número de chamadas, duração, estado e conferência dos fatos contra o detalhamento. O relatório distingue observado em produção, observado só localmente, simulado e não executado. Nada de chave, JWT, UUID, e-mail ou dados de conta; prints, se houver, sem dados de conta.
+
+### Desligamento de emergência
+
+Em ordem, ao primeiro sinal de cobrança, abuso, vazamento ou resposta indevida:
+
+1. **AI Studio:** revogue a chave do projeto. O efeito é imediato e as chamadas passam a falhar, sem custo.
+2. **Vercel:** remova `RQ_IA_HABILITADA` (ou troque o valor) e faça **Redeploy**. A função volta ao 503 sem chamar o provedor.
+3. Confira: `GET` e `POST` anônimos → 503; consulta, lentes e comparação funcionando.
+
+Não mexa em dados, cargas, políticas RLS ou na lista de responsáveis para conter falha da IA. Reverter código só por PR autorizada. Para religar, use uma chave nova (rotação), cadastrada como *Sensitive*, e repita as etapas B e C no que for afetado.
+
+### Fora do que este roteiro prova
+
+Não comprova que a Vercel ou o Google apagam o conteúdo enviado (os termos do nível gratuito admitem uso para melhoria e revisão humana; D7), limite de uso por usuário (as cotas são as do projeto Gemini), disponibilidade contínua do modelo, nem síntese de IA de todo o estado acima de 270 s (T6).
