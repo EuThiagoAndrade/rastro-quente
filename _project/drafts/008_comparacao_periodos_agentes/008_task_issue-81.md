@@ -57,7 +57,8 @@ Não se aplica.
 - [x] Autorização de produção: em 2026-11-16, à pergunta "Autoriza a verificação em produção do ciclo 008?", o responsável respondeu "Autorizo" (registrado como "autorizo a verificação em produção do ciclo 008").
 - [x] Verificação desligada, parte do agente (2026-11-16, sem sessão, no domínio de produção): `GET` e `POST` anônimos em `/api/explicar` → 503 `ia_desabilitada` (texto fixo, `Cache-Control: no-store`, sem dados nem detalhe do ambiente), em 1,3 s e 0,5 s; `POST` com `Origin` externa → 503 (a habilitação vem antes da origem, ADR-011). Bundle publicado (`index.html` e `/assets/index-PI3x1kgA.js`, 566.951 bytes) sem `RQ_GEMINI`, `RQ_IA_HABILITADA`, `generativelanguage`, `AIza`, `service_role` nem `interactions`. A única ocorrência de `sb_secret_` é o teste de prefixo de chave da biblioteca `supabase-js`, sem valor. Só a URL pública do Supabase aparece, como esperado. Cabeçalhos da página iguais aos de `vercel.json` (CSP, `nosniff`, `DENY`, `no-referrer`, `Permissions-Policy`, `no-cache`).
 - [x] Verificação desligada, parte do responsável ("Sim, tudo certo", 2026-11-17): consulta, lentes e comparação funcionando; painel de perguntas com a IA indisponível, sem quebrar a tela.
-- [ ] Etapa B (ação externa): habilitação.
+- [x] Etapa B (ação externa), "concluí a ação externa da issue #81 — etapa B" em 2026-11-17: `RQ_IA_HABILITADA` cadastrada em Production e Redeploy `Ready` do commit da PR #87 (print do painel com "Redeploy of …", ambiente Production).
+- [x] C1 (agente, 2026-11-17, sem sessão, domínio de produção): `GET` → 405 `metodo_nao_permitido`; `POST` com `Origin` externa → 403 `origem_negada`; `POST` com corpo válido sem `Authorization` → 401 `nao_autenticado` (também com `Accept: application/x-ndjson`: JSON, sem fluxo); JWT inválido → 401 (1,1 s, consulta ao Auth); mesma origem sem JWT → 401. Todos em JSON, `Cache-Control: no-store`, sem dados; carga fictícia no corpo, recusada antes de qualquer leitura. A saída do 503 confirma a habilitação. Incidente de ferramenta, não da função: o `curl` do Windows recodifica argumentos com acento, e o corpo com "á" passado por argumento chegou como UTF-8 inválido (400 `entrada_invalida`, detalhe `UTF-8`, comportamento correto). Enviado de arquivo em UTF-8, o mesmo pedido teve 401.
 - [ ] Etapa C: verificação T9 hospedada.
 - [ ] PR 2: `008_validation_agentes.md`, reconciliação e fechamento da issue.
 
@@ -72,7 +73,7 @@ Não se aplica.
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos, 9 itens manuais |
 | `git diff --check` | Sem achados |
 | Checks remotos | PR 1 (#87): verdes ("Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E"); PR 2 pendente |
-| Verificação hospedada | Desligada: sondagens do agente conformes (ver "Execução"); conferência na interface pelo responsável conforme; etapa B pendente |
+| Verificação hospedada | Desligada: conforme (agente e responsável). Habilitada: C1 conforme; C2–C10 em andamento |
 
 ## Revisão da correção
 
@@ -93,10 +94,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando ação externa — ciclo 008 (completo)
+Situação: Aguardando verificação em produção — ciclo 008 (completo)
 Quem: Responsável
-Conferir: docs/runbook.md, seção 12, etapa B (RQ_IA_HABILITADA=true em Production e Redeploy)
-Diga: "concluí a ação externa da issue #81"
+Conferir: docs/runbook.md, seção 12, etapa C (casos C2–C10); autorização de produção já registrada
+Diga: "autorizo a verificação em produção do ciclo 008"
 ```
 
 ## Handoff de saída
@@ -104,10 +105,10 @@ Diga: "concluí a ação externa da issue #81"
 - `handoff_schema_version: 2`
 - `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (etapa A) + f0599c5`
 - `effect_class`: `read_only` (sondagens) e `local_mutation` (task)
-- `state_before` / `state_after`: etapa A concluída, verificação em produção não iniciada / verificação desligada conforme, etapa B pendente
+- `state_before` / `state_after`: etapa A concluída, verificação em produção não iniciada / etapa B concluída, C1 conforme, C2–C10 pendentes
 - `result`: `executed`
 - `evidence`: status Vercel `success` em `f0599c5`; retorno do responsável registrado em "Execução"
-- `blockers`: etapa B (ação externa do responsável)
+- `blockers`: execução de C2–C10 com a sessão do responsável
 
 ## Referência do bootstrap
 
