@@ -7,7 +7,7 @@
 > **Issue:** `#91`
 > **Plano:** `_project/executed/009_rotulos_lentes_espaco_mapa/009_plan.md`
 > **Branch:** `feature/issue-91`
-> **PR:** —
+> **PR:** [#92](https://github.com/EuThiagoAndrade/rastro-quente/pull/92)
 > **Integração:** `Pendente`
 > **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** "Confirmo o nível leve em modo contínuo e autorizo o plano do ciclo 009" em 2026-11-17
@@ -66,7 +66,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55 aprovados, 0 falhas |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos |
 | `git diff --check` | Sem problemas |
-| Checks remotos | Pendente (PR) |
+| Checks remotos | Pendentes na PR #92 |
 
 ## Revisão da correção
 
@@ -106,8 +106,8 @@ Diga: —
 - `effect_class`: `remote_mutation`
 - `state_before` / `state_after`: issue #91 aberta, sem branch / branch `feature/issue-91` com implementação, testes, documentação e encerramento prospectivo; PR aberta, aguardando checks e aprovação do merge
 - `result`: `executed`
-- `evidence`: issue #91; PR da branch `feature/issue-91`; validações em "Evidências"
-- `blockers`: checks remotos e "aprovo o merge da PR #N"
+- `evidence`: issue #91; PR #92; validações em "Evidências"
+- `blockers`: checks remotos e "aprovo o merge da PR #92"
 
 ## Referência do bootstrap
 

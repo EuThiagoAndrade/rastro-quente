@@ -176,7 +176,7 @@ Revisão formal → promoção → issue → branch e task → interface → tes
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#91](https://github.com/EuThiagoAndrade/rastro-quente/issues/91) |
-| PR(s) | — |
+| PR(s) | [#92](https://github.com/EuThiagoAndrade/rastro-quente/pull/92) |
 | Branch(es) | `feature/issue-91` |
 | Destino após conclusão | `_project/executed/009_rotulos_lentes_espaco_mapa/009_plan.md` (movido no encerramento prospectivo) |
 
