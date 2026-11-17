@@ -5,7 +5,7 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#79`
-> **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
+> **Plano:** `_project/executed/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `feature/issue-79`
 > **PR:** [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85)
 > **Integração:** squash `80af104` em `main` (2026-11-16)
@@ -101,10 +101,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 008 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #85 (https://github.com/EuThiagoAndrade/rastro-quente/pull/85); prova real T9 e prova do pacote em "Evidências"
-Diga: "aprovo o merge da PR #85"
+Situação: Concluído — ciclo 008 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

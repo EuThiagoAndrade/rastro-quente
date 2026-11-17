@@ -356,7 +356,7 @@ Execução conjunta: o responsável usa a interface com a própria sessão; o ag
 
 **C9 — falha controlada.** A cota diária não é esgotada de propósito. Se um 429, 503 ou tempo esgotado ocorrer naturalmente em C3–C8, é registrado como observado. Senão, o responsável troca temporariamente `RQ_GEMINI_CHAVE` por um valor inválido e faz Redeploy: uma pergunta deve terminar em erro claro, com comparação e consulta ainda utilizáveis. Depois, restaura a chave e faz Redeploy. Esse ensaio faz parte da etapa B e é informado ao agente; sem ele, C9 fica registrado como "não executado em produção".
 
-Evidências em `_project/drafts/008_comparacao_periodos_agentes/008_validation_agentes.md`: data, SHA do deploy, modelo, cotas exibidas e, por caso, etapas, número de chamadas, duração, estado e conferência dos fatos contra o detalhamento. O relatório distingue observado em produção, observado só localmente, simulado e não executado. Nada de chave, JWT, UUID, e-mail ou dados de conta; prints, se houver, sem dados de conta.
+Evidências em `_project/executed/008_comparacao_periodos_agentes/008_validation_agentes.md`: data, SHA do deploy, modelo, cotas exibidas e, por caso, etapas, número de chamadas, duração, estado e conferência dos fatos contra o detalhamento. O relatório distingue observado em produção, observado só localmente, simulado e não executado. Nada de chave, JWT, UUID, e-mail ou dados de conta; prints, se houver, sem dados de conta.
 
 ### Desligamento de emergência
 

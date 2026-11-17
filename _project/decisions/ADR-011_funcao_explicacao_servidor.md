@@ -80,6 +80,6 @@ Sob a autorização literal "autorizo a implementação da issue #79" de 2026-11
 
 ## Referências
 
-- Plano `_project/drafts/008_comparacao_periodos_agentes/008_plan.md` (v3), T4 a T6 e item 2.
+- Plano `_project/executed/008_comparacao_periodos_agentes/008_plan.md` (v3), T4 a T6 e item 2.
 - ADR-005 (banco e autorização), ADR-007 (interface), KB-007 (comparação).
 - Prova: `npm run typecheck:servidor`, `npm run test:api`, `npm run test:agentes`, `scripts/agentes/conferir-pacote.mjs` e `npm run prova:agentes` (resultados nas tasks das issues #78 e #79).
