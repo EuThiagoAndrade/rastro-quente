@@ -208,9 +208,9 @@ export function atualizarContornosPainel(e: EstadoContorno): void {
 function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: ContextoSobreposicao, m: ManipuladoresSobreposicao): HTMLElement {
   const c = d.cobertura;
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': d.id_destaque },
-    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, `Célula ${idCelula(d)} (${bordas(d)})`),
-    ficha([['Célula 0,05°', idCelula(d)], ['Detecções da evidência', fmtNumero(d.evidencia.valor)],
-      ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(d)]]),
+    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, 'Lugar selecionado'),
+    h('p', { class: 'criterio' }, `Este lugar teve ${fmtNumero(d.evidencia.valor)} ${d.evidencia.valor === 1 ? 'foco registrado' : 'focos registrados'} dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`),
+    h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'),
     h('section', { class: 'criterio', 'data-tipo': 'sobreposicao', 'aria-label': 'Critério: sobreposição com áreas protegidas' },
       h('h4', {}, `Sobreposição · ${ROTULO_CLASSE[r.classe]}`),
       h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
@@ -230,7 +230,9 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
   }
   corpo.append(caixaRessalvas(h('p', { id: 'lente-aviso-dominio' }, LIMITACOES_SOBREPOSICAO[0] ?? '')),
     detalhesEvidencia(d.id_destaque, d.evidencia.deteccoes.length, tabelaEvidencia(d, ctx, m)),
-    metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+    h('details', { class: 'detalhes' }, h('summary', {}, 'Ver localização e detalhes técnicos'),
+      ficha([['Célula 0,05°', idCelula(d)], ['Detecções da evidência', fmtNumero(d.evidencia.valor)], ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(d)]]),
+      metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo })));
   return corpo;
 }
 
@@ -247,9 +249,6 @@ export function renderResultadoSobreposicao(
   if (r.estado === 'com_destaques') corpo.append(h('p', { class: 'criterio' }, `${fmtNumero(r.destaques.length)} lugares tiveram focos dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`), h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'));
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
-    h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
-    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
   );
   if (r.estado === 'sem_camada') {
     corpo.append(h('p', { id: 'lente-sem-camada', class: 'aviso-estado' }, `${TEXTO_SEM_CAMADA[0]?.toUpperCase()}${TEXTO_SEM_CAMADA.slice(1)}.`));
@@ -281,7 +280,10 @@ export function renderResultadoSobreposicao(
       corpo.append(h('div', { class: 'acoes' }, anterior, proxima));
     }
   }
-  corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, 'Detalhes técnicos e limitações'),
+    h('p', { id: 'lente-escopo', class: 'ajuda' }, `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
+    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
+    h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l)))));
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
   mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que este lugar aparece?');
 }

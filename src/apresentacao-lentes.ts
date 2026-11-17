@@ -161,7 +161,7 @@ function tabelaEvidencia(d: Destaque, ctx: ContextoLente, m: ManipuladoresLente)
 export const linhaMunicipio = (x: DiaRestritivo['municipios'][number], nomes: Map<number, string>): string =>
   `${nomeMunicipio(x.codigo, nomes)}: ${ROTULO_CLASSE[x.classe].rotulo}${x.motivos.length ? ` (${x.motivos.map(humanizar).join('; ')})` : ''}`;
 
-function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: ManipuladoresLente): HTMLElement {
+function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: ManipuladoresLente, posicao: number): HTMLElement {
   const lente = r.lente;
   const c = d.cobertura;
   const datas = lente === 'recorrencia' ? d.evidencia.datas.map(rotuloMes)
@@ -170,24 +170,17 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
   const n = d.evidencia.deteccoes.length;
   const u = d.unidade;
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': d.id_destaque },
-    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, u.tipo === 'municipio' ? u.nome : 'Lugar selecionado'),
+    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, u.tipo === 'municipio' ? u.nome : `Lugar ${fmtNumero(posicao)}${r.recorte.tipo === 'municipio' ? ` em ${ctx.nomes.get(r.recorte.municipio) ?? 'município selecionado'}` : ''}`),
     h('p', { class: 'criterio' }, lente === 'recorrencia'
-      ? `Este lugar teve focos em ${fmtNumero(d.evidencia.valor)} meses diferentes. A Recorrência destaca lugares com focos em pelo menos 3 meses.`
+      ? `Este lugar teve ${fmtNumero(n)} ${n === 1 ? 'foco' : 'focos'} em ${fmtNumero(d.evidencia.valor)} meses diferentes. A Recorrência destaca lugares com focos em pelo menos 3 meses.`
       : lente === 'persistencia' ? `Este lugar teve focos em ${fmtNumero(d.evidencia.valor)} dias seguidos. A Persistência destaca sequências de pelo menos 3 dias.`
         : `Este município teve ${fmtNumero(n)} focos no período e foi destacado pela quantidade de registros.`),
-    h('p', { class: 'nota' }, 'Por que este lugar aparece?'),
-    h('p', { class: 'nota' }, `Destacado por: ${TITULO_LENTE[lente]}.`),
-    h('section', { class: 'criterio', 'data-lente': lente, 'aria-label': `Critério: ${TITULO_LENTE[lente]}` },
-      h('h4', {}, TITULO_LENTE[lente]),
-      h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
-      h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(n)} detecções (registros principais da janela)${datas.length ? `; ${rotuloDatas}: ${datas.join(', ')}` : ''}.`)),
-    h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
   );
   const explicacaoDisponibilidade = c.estado === 'pendente' ? 'A disponibilidade dos dados ainda está sendo verificada.'
     : c.estado === 'falha' ? 'Não foi possível verificar a disponibilidade dos dados para este lugar.'
       : c.demais_dias.length ? `Em ${fmtNumero(c.demais_dias.length)} dias houve lacuna conhecida ou informação incerta. Pode ter havido focos não registrados nesses dias.`
         : 'Não foi identificada lacuna nos dias avaliados. Isso não garante que todos os focos foram detectados.';
-  corpo.insertBefore(h('section', { class: 'criterio' }, h('h4', {}, 'Faltou alguma informação?'), h('p', { class: 'nota' }, 'A disponibilidade ajuda a entender o que pode ter ficado de fora.'), h('p', {}, explicacaoDisponibilidade)), corpo.querySelector('#lente-cobertura'));
+  const disponibilidade = h('section', { class: 'bloco' }, h('h4', {}, 'Faltou alguma informação?'), h('p', { class: 'nota' }, 'A disponibilidade ajuda a entender o que pode ter ficado de fora.'), h('p', {}, explicacaoDisponibilidade));
   if (lente === 'recorrencia' && r.janela.meses) {
     const contagens = new Map<string, number>();
     for (const id of d.evidencia.deteccoes) {
@@ -195,21 +188,23 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
       if (registro) { const mes = registro.data_hora_gmt.slice(0, 7); contagens.set(mes, (contagens.get(mes) ?? 0) + 1); }
     }
     if (d.evidencia.deteccoes.every((id) => ctx.registros.has(id))) {
-      corpo.insertBefore(h('section', { class: 'criterio', 'aria-label': 'Focos por mês' },
+      corpo.append(h('section', { class: 'bloco', 'aria-label': 'Focos por mês' },
         h('h4', {}, 'Em quais meses houve focos?'),
         h('p', { class: 'nota' }, 'A lista mostra quantos focos foram registrados em cada mês do período.'),
         h('ul', { class: 'meses-focos' }, ...r.janela.meses.map((mes) => {
           const total = contagens.get(mes.mes) ?? 0;
           return h('li', { class: total ? 'meses-focos__com-registro' : '' }, h('strong', {}, fmtNumero(total)), h('span', {}, `${rotuloMes(mes.mes)}${mes.parcial ? ' (parcial)' : ''}`));
-        }))), corpo.querySelector('#lente-cobertura'));
+        }))));
     }
   }
+  corpo.append(disponibilidade);
+  const detalhesDisponibilidade = h('div', {}, h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)));
   if (u.tipo === 'celula_005') {
-    corpo.append(h('p', { id: 'lente-municipios', class: 'nota' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
+    detalhesDisponibilidade.append(h('p', { id: 'lente-municipios', class: 'nota' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
       `${c.municipios.map((x) => nomeMunicipio(x, ctx.nomes)).join('; ')}. São os municípios das detecções da célula na janela; um dia só conta como sem evidência de lacuna se todos estiverem assim.`));
   }
   if (c.estado === 'completa' && c.demais_dias.length) {
-    corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, `Dias que contam contra (${c.demais_dias.length})`),
+    detalhesDisponibilidade.append(h('details', { class: 'detalhes' }, h('summary', {}, `Dias que contam contra (${c.demais_dias.length})`),
       h('ul', { class: 'lista-simples', id: 'lente-dias' }, ...c.demais_dias.map((dia) => h('li', { 'data-classe': dia.classe },
         `${dia.dia}: ${ROTULO_CLASSE[dia.classe].rotulo}`,
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
@@ -239,6 +234,10 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
     corpo.append(detalhesEvidencia(d.id_destaque, n, tabelaEvidencia(d, ctx, m)));
   }
   corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, 'Ver localização e detalhes técnicos'),
+    h('section', { 'data-lente': lente, 'aria-label': `Critério: ${TITULO_LENTE[lente]}` },
+      h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
+      h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(n)} detecções (registros principais da janela)${datas.length ? `; ${rotuloDatas}: ${datas.join(', ')}` : ''}.`)),
+    detalhesDisponibilidade,
     ficha(u.tipo === 'municipio'
       ? [['Município', u.nome], ['Código IBGE', String(u.codigo)], ['Detecções da evidência', fmtNumero(n)], ['Posição na lista', d.ordem ? `${d.ordem}º, por contagem` : '—']]
       : [['Célula 0,05°', u.id], ['Detecções da evidência', fmtNumero(n)],
@@ -283,12 +282,13 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     }
     corpo.append(lista);
   }
-  corpo.append(
+  corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, 'Detalhes técnicos e limitações'),
     h('dl', { class: 'metadados', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-escopo', class: 'nota' },
       `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
     h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'),
-    h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+    h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l)))));
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
-  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, municipios ? 'Por que este município?' : 'Por que este lugar aparece?');
+  const posicao = escolhido ? (municipios ? r.destaques : [...r.destaques].sort((a, b) => b.evidencia.valor - a.evidencia.valor)).findIndex((d) => d.id_destaque === escolhido.id_destaque) + 1 : 0;
+  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m, posicao) : null, municipios ? 'Por que este município?' : 'Por que este lugar aparece?');
 }

@@ -135,9 +135,8 @@ function tabelaUniao(c: CelulaCombinada, ctx: ContextoCombinacao, m: Manipulador
 function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoCombinacao, m: ManipuladoresCombinacao): HTMLElement {
   const cob = c.cobertura;
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': c.id_combinado },
-    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, `Célula ${c.unidade.id} (${bordas(c)})`),
-    ficha([['Célula 0,05°', c.unidade.id], ['Detecções da evidência', fmtNumero(c.evidencia.deteccoes.length)],
-      ['Município(s)', cob.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(c)]]),
+    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, 'Lugar selecionado'),
+    h('p', { class: 'criterio' }, `Este lugar foi destacado por: ${nomesDosCriterios(c)}.`),
     h('p', { id: 'lente-celula-lentes' }, h('strong', {}, 'Destacada por: '), `${nomesDosCriterios(c)}.`),
     h('p', { id: 'lente-operador', class: 'nota' }, r.operador === 'e'
       ? `Operador "e": a célula entrou porque todas as lentes escolhidas (${descreverLentes(r.lentes, 'e')}) a destacaram.`
@@ -154,7 +153,9 @@ function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoC
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
   corpo.append(caixaRessalvas(null), detalhesEvidencia(c.id_combinado, c.evidencia.deteccoes.length, tabelaUniao(c, ctx, m)),
-    metadados({ carga: r.carga, janela: r.janela, versao: `${r.versao_combinacao} sobre ${r.versao_metodo}` }));
+    h('details', { class: 'detalhes' }, h('summary', {}, 'Ver localização e detalhes técnicos'),
+      ficha([['Célula 0,05°', c.unidade.id], ['Detecções da evidência', fmtNumero(c.evidencia.deteccoes.length)], ['Município(s)', cob.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(c)]]),
+      metadados({ carga: r.carga, janela: r.janela, versao: `${r.versao_combinacao} sobre ${r.versao_metodo}` })));
   return corpo;
 }
 
@@ -174,10 +175,6 @@ export function renderResultadoCombinacao(
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),
       `${descreverLentes(r.lentes, r.operador)} (operador ${DESCRICAO_OPERADOR[r.operador]}).`),
-    h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
-    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [
-      h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, ORDEM_FIXA),
   );
   if (r.estado === 'indisponivel') {
@@ -210,7 +207,11 @@ export function renderResultadoCombinacao(
       corpo.append(h('div', { class: 'acoes' }, anterior, proxima));
     }
   }
-  corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  corpo.append(h('p', { class: 'nota' }, 'Focos e sobreposições não comprovam incêndio, dano, autoria ou infração.'),
+    h('details', { class: 'detalhes' }, h('summary', {}, 'Detalhes técnicos e limitações'),
+      h('p', { id: 'lente-escopo', class: 'ajuda' }, `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
+      h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)])),
+      h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l)))));
   const escolhida = r.estado === 'com_celulas' ? r.celulas.find((c) => c.id_combinado === selecionado) : undefined;
   mostrarExplicacao(escolhida ? painelCelula(r, escolhida, ctx, m) : null, 'Por que este lugar aparece?');
 }

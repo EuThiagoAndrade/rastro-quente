@@ -364,6 +364,7 @@ test.describe('recorrência', () => {
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'recorrencia:celula_005:c-230_-1120');
     await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.');
     await expect(page.locator('#lente-municipios')).toContainText('Município Alfa (9900001); Município Beta (9900002)');
+    await page.getByText('Ver localização e detalhes técnicos').click();
     await page.getByText('Dias que contam contra (2)').click();
     expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'incidencia_indeterminada']);
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
