@@ -2,13 +2,13 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `chore`
 > **Issue:** `#81`
 > **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `chore/issue-81`
-> **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação, integrada; não fecha a issue); PR 2 a abrir
-> **Integração:** PR 1 (#87) por squash `f0599c5` em `main` (2026-11-16); PR 2 pendente
+> **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação, integrada; não fecha a issue); [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) (correção, relatório e reconciliação; fecha a issue)
+> **Integração:** PR 1 (#87) por squash `f0599c5` em `main` (2026-11-16); PR 2 (#88) pendente
 > **Autorização inicial:** "autorizo a implementação da issue #81" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -75,7 +75,8 @@ Não se aplica.
   - Balanço: segurança, acesso, recusa, cancelamento e eventos estão conformes. A análise de disponibilidade foi rejeitada em 4 de 6 execuções com dados reais, e em comparações a conferência descarta justamente as frases comparativas. Os achados (a) a (f) pedem decisão do responsável antes de corrigir, numa PR adicional da mesma issue.
 - [x] Decisões do responsável sobre o fechamento (2026-11-17): C2 "Registrar como não executado"; C9 "Registrar como parcial"; publicação "Uma PR só, fecha a issue" (correção, relatório e reconciliação juntos, sem reverificação exaustiva em produção).
 - [x] Pacote de confiabilidade 1 a 3 implementado e testado localmente; relatório `008_validation_agentes.md` redigido.
-- [ ] PR 2 aberta (fecha a issue), checks remotos e merge aprovado.
+- [x] PR 2 [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) aberta, com `Closes #81`.
+- [ ] Checks remotos e merge aprovado da PR #88.
 
 ## Evidências
 
@@ -115,21 +116,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando verificação em produção — ciclo 008 (completo)
+Situação: Aguardando merge — ciclo 008 (completo)
 Quem: Responsável
-Conferir: docs/runbook.md, seção 12, etapa C (casos C2–C10); autorização de produção já registrada
-Diga: "autorizo a verificação em produção do ciclo 008"
+Conferir: Checks e diff da PR #88 (https://github.com/EuThiagoAndrade/rastro-quente/pull/88); relatório 008_validation_agentes.md
+Diga: "aprovo o merge da PR #88"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (etapa A) + f0599c5`
-- `effect_class`: `read_only` (sondagens) e `local_mutation` (task)
-- `state_before` / `state_after`: etapa A concluída, verificação em produção não iniciada / etapa B concluída, C1 conforme, C2–C10 pendentes
+- `logical_key`: `rastro-quente + 008 + implementar_issue + 81 (PR 2, correção e relatório) + f0599c5`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: PR #87 integrada, verificação hospedada concluída com achados / pacote 1 a 3 e relatório na branch `chore/issue-81`, PR #88 aberta, task `Aguardando integração`
 - `result`: `executed`
-- `evidence`: status Vercel `success` em `f0599c5`; retorno do responsável registrado em "Execução"
-- `blockers`: execução de C2–C10 com a sessão do responsável
+- `evidence`: PR #88; validações em "Evidências"; `008_validation_agentes.md`
+- `blockers`: checks remotos e aprovação do merge
 
 ## Referência do bootstrap
 
