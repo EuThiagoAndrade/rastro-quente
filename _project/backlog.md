@@ -163,8 +163,8 @@ O responsável considera o dado público e o cruzamento importante, e não vê i
 ## BL-007 — Definição visual e interface
 
 > **Criado em:** `2026-11-10`
-> **Atualizado em:** `2026-11-10`
-> **Estado:** `Disponível`
+> **Atualizado em:** `2026-11-17`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -176,7 +176,7 @@ Existe uma referência visual privada fora do repositório, que serve de inspira
 
 ### Encaminhamentos
 
-—
+- ciclo 007 — 2026-11-15 — item inteiro
 
 ### Restante
 
@@ -185,6 +185,7 @@ Existe uma referência visual privada fora do repositório, que serve de inspira
 ### Registro
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
+- 2026-11-17 — Pedido explícito de registrar o retorno do ciclo 007, integrado em main em 2026-11-15. Item inteiro encaminhado; o item passa a Encaminhado.
 
 ## BL-008 — Atualização menos manual
 
