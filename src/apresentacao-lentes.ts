@@ -197,7 +197,7 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
         }))));
     }
   }
-  corpo.append(disponibilidade);
+  corpo.append(disponibilidade, h('section', { class: 'painel-secao' }, h('h4', {}, 'Como ler'), h('p', { class: 'nota' }, 'Este resultado indica um lugar que atende ao critério escolhido. Ele não comprova incêndio, dano ou responsável.')));
   const detalhesDisponibilidade = h('div', {}, h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)));
   if (u.tipo === 'celula_005') {
     detalhesDisponibilidade.append(h('p', { id: 'lente-municipios', class: 'nota' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
@@ -261,9 +261,11 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     const maior = Math.max(...r.destaques.map((d) => d.evidencia.valor));
     const escopo = r.recorte.tipo === 'municipio' ? `Em ${ctx.nomes.get(r.recorte.municipio) ?? 'o município escolhido'}` : 'Em Mato Grosso';
     const frase = r.lente === 'recorrencia' ? `${escopo}, ${fmtNumero(r.destaques.length)} lugares tiveram focos em pelo menos 3 meses diferentes. O maior número observado foi ${fmtNumero(maior)} meses.` : r.lente === 'persistencia' ? `${escopo}, ${fmtNumero(r.destaques.length)} sequências tiveram focos em pelo menos 3 dias seguidos. A maior durou ${fmtNumero(maior)} dias.` : `${escopo}, ${fmtNumero(r.destaques.length)} municípios foram destacados pela quantidade de focos registrados.`;
-    corpo.append(h('p', { class: 'criterio', id: 'lente-resposta' }, frase), h('p', { class: 'nota' }, 'Focos de calor não comprovam incêndio, dano, autoria ou infração.'));
+    $('resumo-lente').append(h('p', { class: 'resposta-painel', id: 'lente-resposta' }, frase));
+    corpo.append(h('section', { class: 'painel-secao' }, h('h3', {}, 'Como ler este resultado'), h('p', { class: 'nota' }, municipios ? 'A lente soma os focos registrados em cada município e destaca os maiores totais. Municípios maiores podem reunir mais registros.' : 'Cada lugar é um quadrado de aproximadamente 5 km de lado. Os focos registrados no mesmo quadrado são usados para verificar o critério escolhido.'), h('p', { class: 'nota' }, 'Focos de calor não comprovam incêndio, dano, autoria ou infração.')));
   }
   if (municipios) corpo.append(h('p', { id: 'lente-ressalva-contagem', class: 'ressalva-contagem' }, RESSALVA_CONTAGEM));
+  if (r.destaques.length) corpo.append(h('h3', { class: 'painel-subtitulo' }, municipios ? 'Municípios encontrados' : 'Lugares encontrados'));
   if (r.ordenacao) corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, `Lista ${r.ordenacao.rotulo}.`));
   else if (r.destaques.length) {
     corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, r.lente === 'persistencia'

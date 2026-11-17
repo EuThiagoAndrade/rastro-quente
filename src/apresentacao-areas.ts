@@ -211,11 +211,6 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
     h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, 'Lugar selecionado'),
     h('p', { class: 'criterio' }, `Este lugar teve ${fmtNumero(d.evidencia.valor)} ${d.evidencia.valor === 1 ? 'foco registrado' : 'focos registrados'} dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`),
     h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'),
-    h('section', { class: 'criterio', 'data-tipo': 'sobreposicao', 'aria-label': 'Critério: sobreposição com áreas protegidas' },
-      h('h4', {}, `Sobreposição · ${ROTULO_CLASSE[r.classe]}`),
-      h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
-      h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '),
-        `${deteccoes(d.evidencia.valor)} da janela dentro de ${ROTULO_CLASSE[r.classe]} (registros principais; pertencimento calculado com o polígono integral).`)),
     h('ul', { class: 'lista-simples areas-citadas', id: 'lente-areas', 'aria-label': 'Áreas da classe com detecção nesta célula' }, ...d.areas.map((a) => itemArea(a, m))),
     h('p', { id: 'lente-contornos', class: 'ajuda', role: 'status', 'data-contornos': ctx.contornos }, TEXTO_CONTORNOS[ctx.contornos]),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
@@ -231,6 +226,10 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
   corpo.append(caixaRessalvas(h('p', { id: 'lente-aviso-dominio' }, LIMITACOES_SOBREPOSICAO[0] ?? '')),
     detalhesEvidencia(d.id_destaque, d.evidencia.deteccoes.length, tabelaEvidencia(d, ctx, m)),
     h('details', { class: 'detalhes' }, h('summary', {}, 'Ver localização e detalhes técnicos'),
+      h('section', { 'data-tipo': 'sobreposicao', 'aria-label': 'Critério: sobreposição com áreas protegidas' },
+        h('h4', {}, `Sobreposição · ${ROTULO_CLASSE[r.classe]}`),
+        h('p', { id: 'lente-motivo' }, h('strong', {}, 'Motivo: '), d.motivo),
+        h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${deteccoes(d.evidencia.valor)} da janela dentro de ${ROTULO_CLASSE[r.classe]} (registros principais; pertencimento calculado com o polígono integral).`)),
       ficha([['Célula 0,05°', idCelula(d)], ['Detecções da evidência', fmtNumero(d.evidencia.valor)], ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', bordas(d)]]),
       metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo })));
   return corpo;
@@ -246,7 +245,8 @@ export function renderResultadoSobreposicao(
   corpo.replaceChildren();
   rotularAbaDestaques(r.destaques.length);
   renderResumoLente({ titulo: 'Sobreposição com áreas protegidas', nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
-  if (r.estado === 'com_destaques') corpo.append(h('p', { class: 'criterio' }, `${fmtNumero(r.destaques.length)} lugares tiveram focos dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`), h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'));
+  if (r.estado === 'com_destaques') $('resumo-lente').append(h('p', { class: 'resposta-painel' }, `${fmtNumero(r.destaques.length)} lugares tiveram focos dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`), h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'));
+  if (r.estado === 'com_destaques') corpo.append(h('section', { class: 'painel-secao' }, h('h3', {}, 'Como ler este resultado'), h('p', { class: 'nota' }, 'Cada lugar reúne focos registrados dentro da classe de área protegida escolhida. Toque em um lugar para conhecer as áreas e os registros.')), h('h3', { class: 'painel-subtitulo' }, 'Lugares encontrados'));
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
   );

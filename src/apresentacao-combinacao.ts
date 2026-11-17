@@ -170,7 +170,8 @@ export function renderResultadoCombinacao(
   const n = r.estado === 'com_celulas' ? r.celulas.length : 0;
   rotularAbaDestaques(n);
   renderResumoLente({ titulo: 'Combinação de lentes', nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
-  if (r.estado === 'com_celulas') corpo.append(h('p', { class: 'criterio' }, `${fmtNumero(n)} lugares foram destacados ${r.operador === 'e' ? 'por todos os critérios escolhidos' : 'por pelo menos um dos critérios escolhidos'}.`), h('p', { class: 'nota' }, 'Toque em um lugar para entender quais critérios o destacaram.'));
+  if (r.estado === 'com_celulas') $('resumo-lente').append(h('p', { class: 'resposta-painel' }, `${fmtNumero(n)} lugares foram destacados ${r.operador === 'e' ? 'por todos os critérios escolhidos' : 'por pelo menos um dos critérios escolhidos'}.`), h('p', { class: 'nota' }, 'Toque em um lugar para entender quais critérios o destacaram.'));
+  if (r.estado === 'com_celulas') corpo.append(h('section', { class: 'painel-secao' }, h('h3', {}, 'Como ler este resultado'), h('p', { class: 'nota' }, 'Cada lugar reúne os resultados das lentes escolhidas. Toque em um lugar para ver quais critérios o destacaram.')), h('h3', { class: 'painel-subtitulo' }, 'Lugares encontrados'));
   // Cabeçalho: sempre a configuração do resultado, nunca a do formulário (R1-7).
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),

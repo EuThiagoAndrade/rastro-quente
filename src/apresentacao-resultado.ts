@@ -92,8 +92,7 @@ export function renderResumoLente(r: ResumoLente | null): void {
   const perguntas: Record<string, string> = { 'Concentração': 'Onde há mais focos acumulados?', 'Recorrência': 'Onde os focos voltam em meses diferentes no mesmo lugar?', 'Persistência': 'Onde os focos seguem dia após dia, sem pausa?', 'Sobreposição com áreas protegidas': 'Quais focos caem dentro de áreas protegidas?', 'Combinação de lentes': 'Onde mais de uma lente aponta para o mesmo lugar?' };
   alvo.replaceChildren(
     h('p', { class: 'nota' }, perguntas[r.titulo] ?? 'O que foi encontrado no período escolhido?'),
-    h('div', { class: 'nota' }, r.nome),
-    h('div', { class: 'numero', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),
+    h('div', { class: 'so-leitor', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),
     h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)}`));
 }
 

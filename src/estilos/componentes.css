@@ -1716,5 +1716,12 @@ tr.selecionada td {
 /* Leitura da recorrência: números e rótulos continuam visíveis sem depender da cor. */
 .meses-focos { display: grid; grid-template-columns: repeat(auto-fit, minmax(4.5rem, 1fr)); gap: .4rem; padding: 0; margin: .75rem 0; list-style: none; }
 .meses-focos li { display: flex; flex-direction: column; align-items: center; text-align: center; padding: .4rem; border: 1px solid var(--contorno-suave); border-radius: .4rem; background: var(--superficie); }
-.meses-focos li.meses-focos__com-registro { background: var(--escolha-suave); }
+.meses-focos li.meses-focos__com-registro { background: #9a4105; border-color: #9a4105; color: #fff; }
 .meses-focos li span { font-size: .875rem; }
+
+/* Painel direito: pergunta, resposta e blocos de leitura, conforme o esboço. */
+.resumo-lente { margin: .35rem 0 1rem; padding: 0; border: 0; background: transparent; }
+.resumo-lente > .nota:first-child { margin: 0 0 .75rem; color: var(--texto-suave); }
+.resposta-painel { margin: .7rem 0 0; padding: .8rem; border-radius: var(--raio-pequeno); background: var(--escolha-suave); font-size: 1rem; }
+.painel-secao { margin: .8rem 0; padding-top: .8rem; border-top: 1px solid var(--contorno-suave); }
+.painel-secao h3, .painel-secao h4, .painel-subtitulo { margin: 0 0 .25rem; font-size: 1rem; }
