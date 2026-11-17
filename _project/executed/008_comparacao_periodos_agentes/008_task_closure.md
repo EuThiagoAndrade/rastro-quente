@@ -7,7 +7,7 @@
 > **Issue:** `— (encerramento documental, sem issue própria)`
 > **Plano:** `_project/executed/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `chore/cycle-008-closure`
-> **PR:** —
+> **PR:** [#89](https://github.com/EuThiagoAndrade/rastro-quente/pull/89)
 > **Integração:** `Pendente`
 > **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** encerramento previsto na aprovação humana do plano v3 ("aprovo o plano do ciclo 008", 2026-11-15); "Continue o ciclo 008" em 2026-11-17
@@ -52,7 +52,7 @@ Não se aplica.
 - [x] Mover plano, tasks e relatório para `_project/executed/008_comparacao_periodos_agentes/` e aplicar o encerramento prospectivo; task da issue #81 reconciliada com a PR #88.
 - [x] Atualizar `cycles.md`, README, KB-003, `.agent/lessons_learned.md` e os caminhos em `docs/runbook.md`, ADR-011 e KB-007. A ideação mantém o caminho histórico.
 - [x] Executar o validador de governança e `git diff --check`; revisar diff e privacidade.
-- [ ] Publicar a PR de encerramento.
+- [x] Publicar a PR de encerramento ([PR #89](https://github.com/EuThiagoAndrade/rastro-quente/pull/89)).
 
 ## Evidências
 
