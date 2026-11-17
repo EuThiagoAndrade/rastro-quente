@@ -10,7 +10,7 @@ import { adulterarJwt, assinarJwt, lerJwt, sqlAdmin, statusLocal } from '../banc
 import { CONTAS, cadastrarRp, criarConta, removerConta, revogarRp, tokenDe } from '../../tests/e2e/contas.mjs';
 import { IDENTIDADE, SQL_LIMPEZA, sqlFixture, sqlVersaoNova } from '../../tests/e2e/fixture.mjs';
 import { tratarExplicar } from '../../servidor/explicar.ts';
-import { executarFerramenta, LIMITE_DETALHE } from '../../servidor/ferramentas.ts';
+import { executarFerramenta, LIMITE_DETALHE, SEM_MUNICIPIOS } from '../../servidor/ferramentas.ts';
 import { ErroHttp } from '../../servidor/resposta.ts';
 import { criarCliente, POST, GET } from '../../api/explicar.ts';
 import { corpoInteracao, criarGemini, LIMITE_ENVIO_BYTES } from '../../servidor/gemini.ts';
@@ -344,6 +344,11 @@ test('ferramentas: catálogo fechado, argumentos presos ao pedido e detalhe pagi
   assert.equal(dm.alcance, 'municípios do recorte do pedido');
   assert.deepEqual(dm.lados.map((l) => l.municipios.map((m) => m.municipio)), [['Município Alfa (9900001)'], ['Município Beta (9900002)']]);
   assert.equal(dm.lados[0].municipios[0].texto, '8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)');
+  assert.ok(dm.lados.every((l) => !('sem_municipios' in l)));
+  // Issue #81: períodos no estado sem lente não têm destaques; o lado declara que não houve município a conferir.
+  const ds = await executarFerramenta({ ...ctx, pedido: { ...ctx.pedido, recorte: { tipo: 'periodos', a: { inicio: '2026-10-01', fim: '2026-10-10' }, b: { inicio: '2026-10-11', fim: '2026-10-20' }, municipio: null, lente: null } } }, 'consultar_disponibilidade');
+  assert.deepEqual(ds.lados.map((l) => l.municipios.length), [0, 0]);
+  assert.ok(ds.lados.every((l) => l.sem_municipios === SEM_MUNICIPIOS));
   deps = depsPadrao();
 });
 

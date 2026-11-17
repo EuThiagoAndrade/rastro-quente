@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
+  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, janelaDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
 } from '../../servidor/agentes.ts';
 import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES, SOBRECARGA } from '../../servidor/gemini.ts';
 import { Orcamento } from '../../servidor/orcamento.ts';
@@ -248,6 +248,36 @@ test('conferência pelo mesmo item (município, unidade ou lado), nunca pela evi
   assert.equal(normalizarReferencia('E2.lados[0].municipios[0] (Município Alfa (9900001))', indice), 'E2.lados[0].municipios[0]');
   assert.equal(normalizarReferencia('E1.dados.itens.itens[1] (Beta)', indice), 'E1.itens.itens[1]');
   assert.equal(normalizarReferencia('E9.lados[0] (x)', indice), 'E9.lados[0] (x)');
+});
+
+test('janela do ancestral mais próximo vale para as datas (issue #81), sem trazer números de outro lado', () => {
+  // Formato da evidência real observada em produção (Colniza), com a janela no lado e fora do item do município.
+  const lado = (l, inicio, fim, s, i) => ({ lado: l, janela: { inicio, fim }, municipios: [{ municipio: 'Colniza (5103254)', texto: `${s} de 92 dias sem evidência de lacuna, ${i} com incidência indeterminada`, por_classe: { sem_evidencia_de_lacuna: s, incidencia_indeterminada: i, lacuna_conhecida: 0 } }] });
+  const disp = { lados: [lado('A', '2026-08-01', '2026-10-31', 72, 20), lado('B', '2026-01-01', '2026-04-02', 77, 15), { lado: 'C', janela: { inicio: '2026-05-01', fim: '2026-05-10' }, municipios: [], sem_municipios: 'Nenhum município a conferir neste lado.' }] };
+  const mun = { janela: { inicio: '2026-08-01', fim: '2026-10-31' }, a: { municipio: 'Colniza (5103254)', focos: 824 }, b: { municipio: 'Paranatinga (5106307)', focos: 330 } };
+  const indice = indexar([{ id: 'E1', ferramenta: 'consultar_disponibilidade', dados: disp }, { id: 'E2', ferramenta: 'comparar_municipios', dados: mun }]);
+  const ok = (texto, ...referencias) => conferirAfirmacao({ texto, referencias }, indice);
+  assert.equal(janelaDe('E1.lados[0].municipios[0]', indice), 'E1.lados[0].janela');
+  assert.equal(janelaDe('E2.a.focos', indice), 'E2.janela');
+  // Antes rejeitadas por "data divergente"; agora aceitas.
+  assert.equal(ok('De 2026-08-01 a 2026-10-31, Colniza (5103254) teve 72 de 92 dias sem evidência de lacuna.', 'E1.lados[0].municipios[0]'), null);
+  assert.equal(ok('De 2026-08-01 a 2026-10-31, Colniza teve 824 detecções.', 'E2.a'), null);
+  // Continuam rejeitadas: janela do outro lado, número do outro lado, conta do modelo, data por extenso.
+  assert.equal(ok('De 2026-01-01 a 2026-04-02, Colniza teve 72 dias sem evidência de lacuna.', 'E1.lados[0].municipios[0]'), 'data divergente');
+  assert.equal(ok('Colniza teve 72 dias sem evidência de lacuna em A e 77 em B.', 'E1.lados[0].municipios[0]'), 'número divergente');
+  assert.equal(ok('Colniza teve 824 detecções e Paranatinga 330.', 'E2.a'), 'número divergente');
+  assert.equal(ok('Colniza teve 5 dias a mais em B.', 'E1.lados[0].municipios[0]', 'E1.lados[1].municipios[0]'), 'número divergente');
+  assert.equal(ok('Entre 1º de agosto e 31 de outubro de 2026, Colniza teve 72 dias.', 'E1.lados[0].municipios[0]'), 'número divergente');
+  // A janela vale só para datas: o mês "08" ou o dia "31" não admitem números soltos.
+  assert.equal(ok('Colniza teve 8 dias de lacuna.', 'E1.lados[0].municipios[0]'), 'número divergente');
+  // Comparação citando os dois lados, como pedem as instruções.
+  assert.equal(ok('Colniza teve 824 detecções e Paranatinga 330.', 'E2.a', 'E2.b'), null);
+  assert.equal(ok('Colniza teve 72 dias sem evidência de lacuna em A e 77 em B.', 'E1.lados[0].municipios[0]', 'E1.lados[1].municipios[0]'), null);
+  // Lado sem municípios: a frase que só declara isso confere.
+  assert.equal(ok('No lado C não houve município a conferir.', 'E1.lados[2].sem_municipios'), null);
+  // Instruções novas presentes nos papéis que escrevem afirmações.
+  for (const p of ['lentes', 'disponibilidade', 'sintese']) assert.match(INSTRUCOES[p], /nunca chame detecções de destaques/);
+  assert.match(INSTRUCOES.disponibilidade, /sem_municipios/);
 });
 
 test('saída fora do formato do subagente: falha só dele; síntese inválida mantém as análises conferidas', async () => {

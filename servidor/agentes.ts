@@ -122,6 +122,12 @@ const COMUM = [
   'Detecções de calor e sobreposições não comprovam incêndio, dano, autoria ou infração. Não atribua causa, autoria, responsabilidade, propriedade nem faça previsão.',
   'Zero detecção não é ausência de fogo; disponibilidade não comprova cobertura.',
   'Identificadores e caminhos de evidência (E1, E1.a.total...) vão só em "referencias", nunca no texto das afirmações.',
+  // Issue #81 (verificação hospedada): leituras erradas observadas com dados reais.
+  'Em comparações, "total" e "focos" são números de detecções e "unidades" é o número de destaques da lente: nunca chame detecções de destaques.',
+  'A comparação vai sempre de A para B: "entrou" está destacado em B e não em A; "saiu" está destacado em A e não em B.',
+  '"Cobertura" e "disponibilidade" referem-se aos dados de detecção, nunca à cobertura do solo.',
+  'Escreva datas só no formato AAAA-MM-DD, como nas evidências.',
+  'Uma afirmação que compare A e B cita em "referencias" os campos dos dois lados.',
 ].join('\n');
 
 export const INSTRUCOES: Record<'principal' | 'sintese' | Subagente, string> = {
@@ -145,6 +151,7 @@ export const INSTRUCOES: Record<'principal' | 'sintese' | Subagente, string> = {
     'Chame consultar_disponibilidade e depois descreva só o que as evidências recebidas mostram, por município, sem agregar municípios.',
     'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho usado. Ao nomear um município, cite o item inteiro do município em cada lado (por exemplo E1.lados[0].municipios[0] e E1.lados[1].municipios[0]), que inclui nome, código e texto.',
     'Copie números e textos exatamente como estão nas evidências. Declare o alcance: não diga que examinou o estado inteiro se a evidência disser o contrário.',
+    'Um lado com "sem_municipios" não teve município a conferir: diga só isso, citando esse campo; não conclua que faltam dados.',
     COMUM,
   ].join('\n'),
   sintese: [
@@ -287,19 +294,23 @@ export function conferirAfirmacao(a: Afirmacao, indice: ReadonlyMap<string, Valo
   if (/[<>]|https?:|www\./i.test(texto)) return 'HTML ou link';
   if (!a.referencias.length) return 'sem referência';
   const valores: Valor[] = [];
+  // Datas da janela do ancestral: valem só para conferir datas, nunca como números (o mês "08" não admite "8 dias").
+  const datasJanela: string[] = [];
   for (const ref of a.referencias) {
     const v = valoresDe(indice, ref);
     if (!v.length) return 'referência inexistente';
     valores.push(...v);
     const item = itemDe(ref, indice);
     if (item) valores.push(...valoresDe(indice, item));
+    const janela = janelaDe(ref, indice);
+    if (janela) datasJanela.push(String(indice.get(`${janela}.inicio`)), String(indice.get(`${janela}.fim`)));
   }
   const textos = valores.filter((v) => v !== null).map((v) => String(v).toLowerCase());
   // Datas (AAAA-MM-DD ou DD/MM/AAAA) têm de constar nas evidências referenciadas.
   let resto = texto;
   for (const m of texto.matchAll(/\b(\d{4}-\d{2}-\d{2})\b|\b(\d{2})\/(\d{2})\/(\d{4})\b/g)) {
     const iso = m[1] ?? `${m[4]}-${m[3]}-${m[2]}`;
-    if (!textos.some((t) => t.includes(iso))) return 'data divergente';
+    if (!textos.some((t) => t.includes(iso)) && !datasJanela.includes(iso)) return 'data divergente';
     resto = resto.replace(m[0], ' ');
   }
   // Números: cada um igual a um número das evidências referenciadas (pt-BR "1.234" e "12,5" aceitos).
@@ -342,6 +353,20 @@ export function itemDe(ref: string, indice: ReadonlyMap<string, Valor>): string 
   }
   const lado = /^E\d+\.[ab](?=[.[]|$)/.exec(ref)?.[0];
   return lado && indice.has(`${lado}.janela.inicio`) ? lado : null;
+}
+
+/**
+ * Janela do ancestral mais próximo de um caminho, inclusive a própria evidência (decisão do responsável de
+ * 2026-11-17, issue #81): `E1.lados[0].municipios[0]` → `E1.lados[0].janela`; `E1.a` de municípios → `E1.janela`.
+ * Na conferência, só o início e o fim dessa janela passam a valer, para a frase poder situar o período.
+ */
+export function janelaDe(ref: string, indice: ReadonlyMap<string, Valor>): string | null {
+  const partes = [...ref.matchAll(/^E\d+|\.[A-Za-z_][A-Za-z0-9_]*|\[\d+\]/g)].map((m) => m[0]);
+  for (let n = partes.length; n >= 1; n -= 1) {
+    const p = `${partes.slice(0, n).join('')}.janela`;
+    if (indice.has(`${p}.inicio`) && indice.has(`${p}.fim`)) return p;
+  }
+  return null;
 }
 
 /** Saída estruturada (texto JSON) → afirmações conferidas; formato fora do esquema é saída inválida. */
