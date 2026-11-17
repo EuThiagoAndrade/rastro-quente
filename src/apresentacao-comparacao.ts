@@ -282,7 +282,7 @@ export function renderComparacaoPeriodos(c: ComparacaoTemporal, ctx: ContextoCom
       corpo.push(h('details', { class: 'detalhes', id: `comparacao-fatos-${l}` },
         h('summary', {}, `Destaques observados em ${rotulos[l]}: ${fmtNumero(u.length)}`),
         h('ul', { class: 'lista-simples' }, ...u.slice(0, ITENS_POR_PAGINA).map((x) => h('li', {}, nomeUnidade(x.unidade)))),
-        u.length > ITENS_POR_PAGINA ? h('p', { class: 'nota' }, `Mostrando ${ITENS_POR_PAGINA} de ${fmtNumero(u.length)}; a lista completa está na aba Destaques e no mapa de cada lado.`) : null));
+        u.length > ITENS_POR_PAGINA ? h('p', { class: 'nota' }, `Mostrando ${ITENS_POR_PAGINA} de ${fmtNumero(u.length)}; a lista completa está na aba Lentes e no mapa de cada lado.`) : null));
     }
   }
   corpo.push(secaoDisponibilidade(ctx, m), caixa('Ressalvas', c.ressalvas, 'comparacao-ressalvas'), metadadosComparacao(ctx));

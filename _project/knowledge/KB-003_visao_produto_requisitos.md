@@ -100,6 +100,12 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - **Verificação em produção (2026-11-16 e 2026-11-17):** os agentes foram demonstrados com o Gemini real no domínio hospedado; acesso anônimo, recusa e cancelamento foram conferidos. A qualidade das respostas foi insuficiente com dados reais (análises rejeitadas e leituras erradas que passaram na conferência) e foi corrigida pelo pacote da issue #81, sem reverificação exaustiva em produção. A outra conta autenticada (C2) não foi verificada em produção. Detalhes em [008_validation_agentes.md](../executed/008_comparacao_periodos_agentes/008_validation_agentes.md).
 - **Limite de produto:** a conferência garante números, não o sentido das frases. Hoje os agentes acrescentam acesso e leitura, não informação nova em relação aos destaques. O responsável decidiu rever o escopo deles depois do ciclo 008.
 
+### Rótulos das lentes e espaço do mapa do ciclo 009
+
+- **Lentes identificadas:** rótulo "Lentes" na coluna de filtros, seção "Seleção" (antes "Lente de seleção") e aba de resultado "Lentes", com o título da opção ativa.
+- **Centro simplificado:** abaixo do mapa, só a série; total, sensibilidade, versão, disponibilidade geral e avisos do mapa saíram da tela principal por decisão do responsável. A sensibilidade, a versão e as limitações continuam em "Sobre os dados"; a disponibilidade, na explicação de cada destaque e na comparação. Um recorte com zero detecções, sem lente e sem comparação, não mostra a disponibilidade.
+- **Métodos:** sem mudança em lentes, comparação, agentes ou leituras.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -113,6 +119,7 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - Ciclo `006`: [plano](../executed/006_areas_protegidas_reais/006_plan.md), [conferência](../executed/006_areas_protegidas_reais/006_research_conferencia_areas.md), [encerramento](../executed/006_areas_protegidas_reais/006_task_closure.md), [KB-006](KB-006_areas_protegidas.md) e [ADR-008](../decisions/ADR-008_persistencia_areas_protegidas.md). As entregas foram integradas nas PRs #53 a #56; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 - Ciclo `007`: [plano](../executed/007_interface_base/007_plan.md), [encerramento](../executed/007_interface_base/007_task_closure.md), `DESIGN.md`, [ADR-009](../decisions/ADR-009_interface_base.md) e [ADR-010](../decisions/ADR-010_mapa_base_terceiros.md). As entregas foram integradas nas PRs #65 a #69, com as correções da issue #71 (PR #72); verificação hospedada aprovada em 2026-11-15.
 - Ciclo `008`: [plano](../executed/008_comparacao_periodos_agentes/008_plan.md), [relatório de validação](../executed/008_comparacao_periodos_agentes/008_validation_agentes.md), [encerramento](../executed/008_comparacao_periodos_agentes/008_task_closure.md), [KB-007](KB-007_comparacao_territorial.md) e [ADR-011](../decisions/ADR-011_funcao_explicacao_servidor.md). As entregas foram integradas nas PRs #82, #83, #85, #86, #87 e #88. A verificação hospedada foi executada, com C2 não executado e C9 parcial.
+- Ciclo `009`: [plano](../executed/009_rotulos_lentes_espaco_mapa/009_plan.md) e [task da issue #91](../executed/009_rotulos_lentes_espaco_mapa/009_task_issue-91.md); `DESIGN.md` e emendas dos ADR-007, ADR-009 e ADR-011.
 
 ## Histórico
 
@@ -127,3 +134,4 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 | 2026-11-14 | `006` | Contexto de áreas protegidas reais (CNUC/FUNAI), camada territorial, lente de sobreposição e persistência sob RLS; verificação hospedada dispensada |
 | 2026-11-15 | `007` | Interface base da V13 com `DESIGN.md`, lentes no recorte, densidade, série, "Lista de focos", painéis do mapa e mapa-base de satélite da Esri; verificação hospedada aprovada |
 | 2026-11-17 | `008` | Comparação determinística de períodos e municípios, função autenticada no servidor, agente principal e dois subagentes Gemini, painel de perguntas e verificação hospedada com o pacote de confiabilidade; escopo dos agentes a rever |
+| 2026-11-17 | `009` | Rótulos das lentes, aba "Lentes" e centro só com a série, sem mudança de método |

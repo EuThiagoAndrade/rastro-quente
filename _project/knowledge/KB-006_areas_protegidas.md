@@ -42,7 +42,7 @@ O script `npm run conferir:areas` reavalia os anéis crus por número de voltas 
 
 ### Camada na interface
 
-A camada é aberta só por pedido ("Mostrar áreas protegidas") e lê a visão geral pelo leitor T25 (KB-005), uma vez por sessão e carga. As três classes têm cor, traço e hachura próprios, descritos em texto na legenda, sem ordem entre elas. A legenda e o cartão de Proveniência citam fonte, retrato, data e condições de uso, e a legenda avisa que áreas de outros estados sem detecção desta carga não aparecem. O contorno real é baixado só por área: pelo botão "Ver contorno real" de uma área selecionada ou ao abrir uma célula da lente (uma requisição por área). A geometria exibida nunca define pertencimento. A medição da visão geral e do maior contorno real está na task da issue #52 e no relatório do ciclo.
+A camada é aberta só por pedido ("Mostrar áreas protegidas") e lê a visão geral pelo leitor T25 (KB-005), uma vez por sessão e carga. As três classes têm cor, traço e hachura próprios, descritos em texto na legenda, sem ordem entre elas. A legenda e o cartão de Proveniência citam fonte, retrato, data e condições de uso, e a legenda avisa que áreas de outros estados sem detecção desta carga não aparecem. Desde o ciclo `009` (issue #91), essa legenda (classes com a contagem, aviso e atribuição) fica dentro da "Legenda" do mapa, e não mais abaixo dele. O contorno real é baixado só por área: pelo botão "Ver contorno real" de uma área selecionada ou ao abrir uma célula da lente (uma requisição por área). A geometria exibida nunca define pertencimento. A medição da visão geral e do maior contorno real está na task da issue #52 e no relatório do ciclo.
 
 ## Fontes
 
@@ -57,3 +57,4 @@ A camada é aberta só por pedido ("Mostrar áreas protegidas") e lê a visão g
 | 2026-11-12 | `006` | Fontes, regras de pertencimento, apresentação, proveniência e limites locais da issue #49. |
 | 2026-11-13 | `006` | Conferência dos descritores de codificação declarados nos ZIPs fixados. |
 | 2026-11-14 | `006` | Item 4 (issue #52): camada na interface, legenda, atribuição e contorno real sob demanda. |
+| 2026-11-17 | `009` | Issue #91: legenda, aviso e atribuição das áreas dentro da "Legenda" do mapa. |

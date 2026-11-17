@@ -91,8 +91,10 @@
           </details>
 
           <input type="radio" name="l-lente" value="nenhuma" checked hidden aria-hidden="true" tabindex="-1" />
+          <!-- Ciclo 009 (BL-017): o rótulo "Lentes" agrupa Seleção, Contexto territorial e Cruzar critérios. -->
+          <h3 id="t-lentes" class="rotulo-secao rotulo-lentes">Lentes</h3>
           <details id="secao-lente" class="secao" data-secao-lente>
-            <summary>Lente de seleção <span class="marca-ativa">ativa</span></summary>
+            <summary>Seleção <span class="marca-ativa">ativa</span></summary>
             <p id="filtros-escopo" class="escopo-lente"></p>
             <label class="opcao-lente"><span class="linha"><input type="radio" name="l-lente" value="concentracao" /> Concentração</span>
               <span class="pergunta">Onde há mais focos acumulados?</span>
@@ -175,7 +177,7 @@
         <!-- Centro: onde (mapa). -->
         <section class="mapa-cartao" aria-labelledby="t-mapa">
           <h2 id="t-mapa" class="so-leitor">Mapa</h2>
-          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Destaques são a alternativa em texto." tabindex="-1"></div>
+          <div id="mapa" class="mapa" role="region" aria-label="Mapa das detecções. A Lista de focos e a aba Lentes são a alternativa em texto." tabindex="-1"></div>
           <!-- Comparação (ciclo 008): qual lado o mapa mostra, sobre o próprio mapa. -->
           <p id="mapa-lado" class="flutuante mapa-lado" role="status" hidden></p>
           <!-- "Mapa" e "Camadas" (issue #71): painéis recolhíveis lado a lado, no alto à direita. -->
@@ -218,11 +220,8 @@
               <li><span class="legenda__amostra legenda__amostra--selecao" aria-hidden="true"></span> Selecionada (tracejado azul claro)</li>
               <li id="legenda-areas" class="legenda-densidade" hidden>
                 <span>Áreas protegidas (contexto territorial)</span>
-                <span class="escala-densidade">
-                  <span data-classe-mapa="protecao_integral"><span class="legenda__amostra legenda__amostra--protecao_integral" aria-hidden="true"></span>Proteção integral (contínuo verde)</span>
-                  <span data-classe-mapa="uso_sustentavel"><span class="legenda__amostra legenda__amostra--uso_sustentavel" aria-hidden="true"></span>Uso sustentável (tracejado lilás)</span>
-                  <span data-classe-mapa="terra_indigena"><span class="legenda__amostra legenda__amostra--terra_indigena" aria-hidden="true"></span>Terra indígena (pontilhado rosa)</span>
-                </span>
+                <!-- Ciclo 009: classes com a contagem, aviso e atribuição da KB-006, gerados com a camada. -->
+                <div id="areas-legenda"></div>
               </li>
               <li id="legenda-densidade" class="legenda-densidade" hidden>
                 <span>Detecções por célula: contagem, não gravidade</span>
@@ -238,10 +237,18 @@
           </details>
         </section>
 
-        <!-- Centro, abaixo do mapa: estado, série e disponibilidade (e, até o item 2, os registros). -->
+        <!-- Centro, abaixo do mapa (ciclo 009): estado, área selecionada, "Lista de focos" e a série. -->
         <div class="rodape-mapa">
           <div id="estado-consulta" role="status"></div>
           <p id="aviso-fundo" class="aviso-fundo" role="status" hidden></p>
+          <!-- Alternativa em texto do mapa, só para leitor de tela: contagem de pontos e registro selecionado. -->
+          <div class="so-leitor">
+            <p id="mapa-contagem" role="status"></p>
+            <p id="mapa-selecao" role="status"></p>
+          </div>
+          <div id="mapa-areas" data-estado-areas="oculta">
+            <div id="areas-selecao" class="cartao area-selecionada" hidden></div>
+          </div>
           <section id="lista-focos" class="cartao lista-focos" aria-labelledby="t-lista-focos" hidden>
             <div class="lista-focos__cabeca">
               <h2 id="t-lista-focos" class="rotulo-secao" tabindex="-1">Lista de focos</h2>
@@ -249,40 +256,22 @@
             </div>
             <div id="lista-focos-corpo"></div>
           </section>
-          <section class="cartao" aria-labelledby="t-no-mapa">
-            <h2 id="t-no-mapa" class="rotulo-secao">No mapa</h2>
-            <p id="mapa-contagem" class="nota" role="status"></p>
-            <p id="mapa-selecao" class="selecao" role="status"></p>
-            <p id="mapa-aviso" class="nota" hidden></p>
-            <p id="mapa-erro" class="aviso-estado" role="status" hidden></p>
-            <div id="mapa-areas" data-estado-areas="oculta">
-              <div id="areas-estado" role="status"></div>
-              <div id="areas-legenda" hidden></div>
-              <div id="areas-selecao" class="painel-lente" hidden></div>
-            </div>
-          </section>
-          <section class="cartao" aria-labelledby="t-resumo">
-            <h2 id="t-resumo" class="rotulo-secao" tabindex="-1">Detecções no período (dias GMT)</h2>
-            <div id="resumo-corpo"></div>
+          <section id="cartao-serie" class="cartao cartao-serie" aria-label="Detecções no período (dias GMT)">
             <div id="serie-corpo"></div>
-          </section>
-          <section class="cartao disponibilidade-cartao" aria-labelledby="t-disp">
-            <h2 id="t-disp" class="rotulo-secao" tabindex="-1">Disponibilidade dos dados</h2>
-            <div id="disp-corpo"></div>
           </section>
         </div>
 
-        <!-- Direita: a resposta, em duas abas (Destaques e Municípios). -->
+        <!-- Direita: a resposta, em abas (Lentes, Municípios e, com comparação, Comparação). -->
         <aside id="resultado" class="coluna coluna--porque porque" aria-label="Resultado">
           <div class="abas" role="tablist" aria-label="Resultado">
-            <button type="button" role="tab" id="aba-destaques" aria-selected="false" aria-controls="cartao-lentes" tabindex="-1">Destaques</button>
+            <button type="button" role="tab" id="aba-destaques" aria-selected="false" aria-controls="cartao-lentes" tabindex="-1">Lentes</button>
             <button type="button" role="tab" id="aba-municipios" aria-selected="true" aria-controls="painel-municipios">Municípios</button>
             <button type="button" role="tab" id="aba-comparacao" aria-selected="false" aria-controls="painel-comparacao" tabindex="-1" hidden>Comparação</button>
           </div>
           <section id="cartao-lentes" class="painel-aba" role="tabpanel" aria-labelledby="aba-destaques" data-estado-lente="nenhuma" hidden>
             <div id="lente-estado" role="status"></div>
             <div id="vista-lista" class="vista">
-              <h2 id="t-destaques" tabindex="-1">Destaques</h2>
+              <h2 id="t-destaques" tabindex="-1">Lentes</h2>
               <div id="resumo-lente" class="resumo-lente" hidden></div>
               <div id="lente-corpo"></div>
               <div id="lente-vazio" class="vazio">
@@ -355,10 +344,10 @@
       <h2 id="t-aviso" class="dialogo__titulo">Como ler esta tela</h2>
       <div class="passo"><b>1</b><div><strong>O que estou olhando.</strong> Em Consulta, escolha período e município: o mapa, a série e os municípios seguem esse filtro, e as lentes também. O satélite e as fontes aparecem no topo.</div></div>
       <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Mapa", escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"), abra a "Lista de focos" ou enquadre os dados; com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
-      <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Destaques e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
+      <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Lentes e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <div class="passo"><b>5</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as perguntas prontas e o texto livre usam o que está na tela (recorte, lente, destaque aberto ou comparação) e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
-      <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. Totais e séries usam <strong>dia GMT</strong>; a sensibilidade em America/Cuiaba é um campo separado. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
+      <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. A série usa <strong>dia GMT</strong>. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
     </dialog>
 

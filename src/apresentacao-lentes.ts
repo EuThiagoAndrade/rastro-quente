@@ -225,7 +225,7 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
   const municipios = r.lente === 'concentracao';
   rotularAbaDestaques(r.destaques.length);
   renderResumoLente({
-    nome: TITULO_LENTE[r.lente], quantidade: r.destaques.length, unidade: municipios ? 'municipio' : 'celula', janela: r.janela,
+    titulo: TITULO_LENTE[r.lente], nome: TITULO_LENTE[r.lente], quantidade: r.destaques.length, unidade: municipios ? 'municipio' : 'celula', janela: r.janela,
     ordem: municipios ? 'por contagem; não é ranking' : 'norte→sul, oeste→leste; não é ranking',
     municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });

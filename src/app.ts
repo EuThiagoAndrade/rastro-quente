@@ -3,8 +3,8 @@
 // da lente. Nenhum dado de consulta é gravado em armazenamento; a memória de recortes (T6) vive só em variáveis
 // desta página e sai junto com a sessão, o acesso ou a versão.
 import {
-  $, mostrarErroFiltro, mostrarErroMapa, renderAcesso, renderAvisoMapa, renderContagemMapa,
-  renderDisponibilidade, renderEstadoConsulta, renderFiltros, renderProveniencia, renderRecorte, renderResumo,
+  $, mostrarErroFiltro, renderAcesso, renderContagemMapa,
+  renderEstadoConsulta, renderFiltros, renderProveniencia, renderRecorte,
   renderConcentracaoDisponivel, renderLegendaDensidade, renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
 } from './apresentacao.ts';
 import {
@@ -200,8 +200,14 @@ const mapaAmpliado = (): boolean => document.body.classList.contains('mapa-ampli
 /** `data-estado-limites` em `#conteudo` (M5, T14): `desligado`, `carregando`, `completo` ou `erro`. */
 const estadoLimites = (e: 'desligado' | 'carregando' | 'completo' | 'erro'): void => { $('conteudo').dataset['estadoLimites'] = e; };
 
-/** Lente marcada nos rádios das seções de lente (Lente de seleção, Contexto territorial, Cruzar critérios). */
+/** Lente marcada nos rádios das seções de lente (Seleção, Contexto territorial, Cruzar critérios). */
 const lenteEscolhida = (): string => document.querySelector<HTMLInputElement>('input[name="l-lente"]:checked')?.value ?? 'nenhuma';
+
+/** Título da aba Lentes pela opção marcada (ciclo 009, BL-017), também antes de haver resultado. */
+const TITULO_OPCAO: Record<string, string> = {
+  concentracao: 'Concentração', recorrencia: 'Recorrência', persistencia: 'Persistência',
+  sobreposicao: 'Sobreposição com áreas protegidas', combinacao: 'Combinação de lentes',
+};
 
 const marcarNenhuma = (): void => {
   const e = document.querySelector<HTMLInputElement>('input[name="l-lente"][value="nenhuma"]');
@@ -470,7 +476,6 @@ class Controlador {
       $<HTMLSelectElement>('cmp-municipio-b').replaceChildren(new Option('Escolha…', ''), ...municipios.map((m) => new Option(m.nome, String(m.codigo))));
       renderTopo(carga, prov.fontes);
       renderProveniencia(carga, prov.fontes, prov.malhas);
-      renderAvisoMapa(prov.malhas);
       $<HTMLInputElement>('f-inicio').value = this.dados.janela.inicio;
       $<HTMLInputElement>('f-fim').value = this.dados.janela.fim;
       $<HTMLSelectElement>('f-periodo').value = 'ano';
@@ -524,8 +529,6 @@ class Controlador {
     limparResultados();
     renderContagemMapa({ tipo: 'nenhum' }, 0);
     this.fecharListaFocos(false);
-    renderAvisoMapa([]);
-    mostrarErroMapa(null);
     mostrarErroFiltro(null);
     // Camadas voltam ao padrão: limites e detecções ligados, densidade desligada.
     for (const [id, v] of [['c-limites', true], ['c-pontos', true], ['c-densidade', false]] as const) $<HTMLInputElement>(id).checked = v;
@@ -733,7 +736,6 @@ class Controlador {
     this.totalDensidade = null;
     renderLegendaDensidade(marcado('c-densidade'), null, 0);
     renderSelecao(null, null);
-    mostrarErroMapa(null);
     renderContagemMapa({ tipo: 'carregando', lidos: 0, total: 0 }, 0);
     this.mostrarListaFocos();
     this.estado({ tipo: 'carregando' });
@@ -749,11 +751,8 @@ class Controlador {
         return;
       }
       this.resultado = { filtro, resumo, disponibilidade };
-      const nome = this.nomeMunicipio(filtro.municipio);
       this.estado(resumo.principal.total === 0 ? { tipo: 'zero' } : { tipo: 'ocioso' });
-      renderResumo(resumo, nome);
       renderSerie(resumo);
-      renderDisponibilidade(disponibilidade, nome);
       this.mostrarMunicipios();
       // M1 (T14): filtros, cartão da série e municípios prontos, independentemente de pontos, limites e geometria.
       $('conteudo').dataset['estadoPainel'] = 'pronto';
@@ -835,7 +834,7 @@ class Controlador {
     this.resultado = null;
     this.pontos = 'erro';
     this.mapa?.limparTudo();
-    for (const id of ['resumo-corpo', 'serie-corpo', 'disp-corpo', 'municipios-corpo']) $(id).replaceChildren();
+    for (const id of ['serie-corpo', 'municipios-corpo']) $(id).replaceChildren();
     renderContagemMapa({ tipo: 'erro' }, 0);
     this.mostrarListaFocos();
     this.estado({
@@ -971,6 +970,8 @@ class Controlador {
 
   private estadoLente(e: EstadoLente): void {
     renderEstadoLente(e, this.manipuladoresLente());
+    // Sem resumo (calculando, janela insuficiente, falha), o título ainda diz qual opção está ativa.
+    if ($('resumo-lente').hidden) $('t-destaques').textContent = TITULO_OPCAO[lenteEscolhida()] ?? 'Lentes';
   }
 
   /** Invalida o cálculo em curso e limpa lista, camada, explicação e (se pedido) a memória de recortes. */
@@ -2043,6 +2044,7 @@ class Controlador {
     renderPerguntas(e, {
       tentarDeNovo: () => { const u = this.ultimaPergunta; if (u) void this.perguntarAgora(u.tipo, u.livre); },
       abrirDetalhamento: (f) => this.abrirDetalhamento(f),
+      temDetalhamento: (f) => this.temDetalhamento(f),
     });
   }
 
@@ -2065,14 +2067,20 @@ class Controlador {
     $('cmp-municipio-b').focus();
   }
 
+  /**
+   * Há detalhamento determinístico na tela para a evidência? Fora da comparação, a disponibilidade não tem mais
+   * cartão próprio (ciclo 009, D2): a evidência fica só no painel de perguntas.
+   */
+  private temDetalhamento(f: Ferramenta): boolean {
+    if (f === 'ler_detalhes') return false;
+    if (f === 'consultar_disponibilidade') return this.comparacao !== null;
+    return true;
+  }
+
   /** Leva ao detalhamento determinístico da evidência, que continua completo na tela. */
   private abrirDetalhamento(f: Ferramenta): void {
     if (f === 'explicar_selecao') abrirAba('destaques', true);
     else if (f === 'comparar_periodos' || f === 'comparar_municipios' || (f === 'consultar_disponibilidade' && this.comparacao)) abrirAba('comparacao', true);
-    else if (f === 'consultar_disponibilidade') {
-      $('t-disp').scrollIntoView({ block: 'nearest' });
-      $('t-disp').focus();
-    }
   }
 
   /**
@@ -2264,7 +2272,7 @@ class Controlador {
     $<HTMLInputElement>('c-areas').checked = false;
     renderLegendaAreas(null, []);
     renderAreaSelecionada(null, () => {});
-    renderEstadoAreas({ tipo: 'oculta' }, () => {});
+    renderEstadoAreas({ tipo: 'oculta' });
   }
 
   private async alternarAreas(): Promise<void> {
@@ -2276,7 +2284,7 @@ class Controlador {
     this.geracaoAreas++;
     this.mapa?.definirAreas([]);
     renderLegendaAreas(null, []);
-    renderEstadoAreas({ tipo: 'oculta' }, () => {});
+    renderEstadoAreas({ tipo: 'oculta' });
     if (!this.sobreposicao?.selecionado) {
       this.mapa?.definirContornos([]);
       this.areaSelecionada = null;
@@ -2293,16 +2301,15 @@ class Controlador {
     const g = this.geracaoSessao;
     const ga = ++this.geracaoAreas;
     const atual = () => g === this.geracaoSessao && ga === this.geracaoAreas;
-    const tentar = () => void this.mostrarAreas();
     let camada = this.camadaAreas;
     if (camada?.carga !== dados.carga.id) {
-      renderEstadoAreas({ tipo: 'carregando' }, tentar);
+      renderEstadoAreas({ tipo: 'carregando' });
       try {
         const lido = await lerAreas(fontesAreas(this.sessao.cliente), dados.carga.id, atual, true);
         if (!lido || !atual()) return;
         if (lido.estado === 'sem_camada') {
           caixa.checked = false;
-          renderEstadoAreas({ tipo: 'sem_camada' }, tentar);
+          renderEstadoAreas({ tipo: 'sem_camada' });
           return;
         }
         camada = { carga: dados.carga.id, areas: lido.areas };
@@ -2310,7 +2317,7 @@ class Controlador {
       } catch (e) {
         if (!atual() || this.erroDaLente(e, 'geometria') === 'global') return;
         caixa.checked = false;
-        renderEstadoAreas(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' }, tentar);
+        renderEstadoAreas(e instanceof ErroLente ? { tipo: 'leitura_inconsistente', motivo: e.message } : { tipo: 'falha' });
         return;
       }
     }
@@ -2319,7 +2326,7 @@ class Controlador {
     const porClasse: Record<ClasseArea, number> = { protecao_integral: 0, uso_sustentavel: 0, terra_indigena: 0 };
     for (const a of areas) porClasse[a.classe] += 1;
     renderLegendaAreas(porClasse, dados.fontes);
-    renderEstadoAreas({ tipo: 'visivel', total: areas.length }, tentar);
+    renderEstadoAreas({ tipo: 'visivel', total: areas.length });
   }
 
   /** Toque numa área da camada: mostra os dados dela; o contorno real só vem pelo botão. */
@@ -2370,7 +2377,6 @@ class Controlador {
       if (this.todosOsLimites) await this.carregarLimites(null, atual);
       else if (alvo !== null) await this.carregarLimites(alvo, atual);
       if (!atual()) return;
-      mostrarErroMapa(null);
     } catch (e) {
       if (!atual()) return;
       estadoLimites('erro');
@@ -2382,7 +2388,6 @@ class Controlador {
         this.tratarErroGlobal(e);
         return;
       }
-      mostrarErroMapa('Limites municipais indisponíveis agora; os pontos e os números continuam válidos.');
     }
     this.desenharLimites();
   }
@@ -2458,7 +2463,6 @@ class Controlador {
         await this.carregarLimites(null, atual);
       }
       if (!atual()) return;
-      mostrarErroMapa(null);
     } catch (e) {
       if (!atual()) return;
       this.todosOsLimites = false;
@@ -2468,7 +2472,6 @@ class Controlador {
         this.tratarErroGlobal(e);
         return;
       }
-      mostrarErroMapa('Limites municipais indisponíveis agora; os pontos e os números continuam válidos.');
     }
     this.desenharLimites();
   }

@@ -10,7 +10,7 @@ export async function entrar(page, nome, { esperar = 'dados' } = {}) {
   await page.locator('#l-email').fill(emailDe(nome));
   await page.locator('#l-senha').fill(await senhaDe(nome));
   await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
-  if (esperar === 'dados') await expect(page.locator('#total-principal')).toBeVisible();
+  if (esperar === 'dados') await expect(page.locator('#serie')).toBeAttached();
   else if (esperar) await expect(page.locator(`#acesso[data-estado="${esperar}"]`)).toBeVisible();
 }
 
@@ -48,7 +48,7 @@ export async function consultar(page, { municipio, inicio, fim } = {}) {
 }
 
 /**
- * Marca a lente no rádio da sua seção (Lente de seleção, Contexto territorial ou Cruzar critérios). Como na V13, não há
+ * Marca a lente no rádio da sua seção (Seleção, Contexto territorial ou Cruzar critérios). Como na V13, não há
  * "Nenhuma lente" visível: a lente sai por "Limpar tudo" (que também volta período e município ao padrão).
  */
 export async function escolherLente(page, valor) {

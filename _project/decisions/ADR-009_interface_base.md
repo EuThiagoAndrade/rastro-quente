@@ -40,7 +40,16 @@ O ADR-007 fixou a interface do protótipo com o mapa mostrando exatamente a pág
 
 **Saída da tabela de registros e "Lista de focos" (A5, T21).** A tabela paginada sai na mesma PR em que chegam todos os pontos. O botão "Lista de focos", no grupo de ferramentas do mapa, abre abaixo do mapa (decisão do responsável), sem cobri-lo, a lista textual dos registros principais do recorte, lida da leitura completa (sem nova consulta): dia e hora GMT, município, latitude, longitude e identificador, na ordem por dia e hora, em páginas locais de 50. Cada linha é um botão: Enter ou Espaço marca o ponto com o anel de seleção e anuncia o registro na região de status; Esc ou "Fechar" devolvem o foco ao botão. Tocar num ponto abre um balão com todos os registros daquela coordenada; o balão traz também a posição na borda, a divergência do INPE e o ID da fonte, que eram colunas da tabela.
 
-## Consequências
+## Emenda — ciclo `009` (2026-11-17)
+
+Decisões do responsável no ciclo `009` (plano `009`, D1 a D5; issue #91, BL-017). Os parágrafos acima ficam como histórico; onde divergirem, vale esta emenda.
+
+- **Abaixo do mapa:** saem os cartões "No mapa", "Detecções no período (dias GMT)" e "Disponibilidade dos dados". Fica a série, num cartão sem título visível. A frase de "Série do período" "a disponibilidade fica no cartão próprio" deixa de valer: zero continua nunca apresentado como lacuna, e a disponibilidade aparece na explicação de cada destaque e na aba "Comparação", não mais num cartão geral. Num recorte com zero detecções, sem lente e sem comparação, ela não aparece na tela.
+- **Leitura completa (T7):** sem mudança. Resumo, disponibilidade e registros continuam lidos e conferidos juntos; o painel fica pronto com a série e a aba Municípios.
+- **Coluna de resultado:** a aba "Destaques · N" passa a "Lentes · N", e o título do resultado é a opção ativa ("Concentração", "Recorrência", "Persistência", "Sobreposição com áreas protegidas" ou "Combinação de lentes"), também sem resultado. Ids e atributos (`#aba-destaques`, `#t-destaques`) não mudam.
+- **Áreas protegidas:** a contagem por classe, o aviso e a atribuição (KB-006) ficam na "Legenda" do mapa; os dados da área clicada, num cartão abaixo do mapa só enquanto há área selecionada. A camada não mostra texto de estado nem "Tentar de novo": numa falha a caixa fica desmarcada, e religá-la tenta de novo. O mesmo vale para a falha dos limites.
+- **Alternativa em texto do mapa:** a contagem de pontos e o registro selecionado continuam em `role="status"`, só para leitor de tela.
+
 
 ### Positivas
 

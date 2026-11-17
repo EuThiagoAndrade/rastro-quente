@@ -161,14 +161,14 @@ test('layout (V13): uma coluna no celular (filtros, mapa, série, resultado); tr
   // T17: em tela estreita as seções começam fechadas; recolhida, a Consulta não mostra resumo (issue #71).
   await expect(page.locator('#secao-consulta')).not.toHaveAttribute('open', '');
   await expect(page.locator('#secao-consulta summary')).toHaveText('Consulta');
-  const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
+  const [filtros, mapa, resultado, serie] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('#cartao-serie')];
   expect(mapa.w).toBeGreaterThan(390 * 0.9);
   expect(filtros.y).toBeLessThan(mapa.y);
   expect(mapa.y).toBeLessThan(serie.y);
   expect(serie.y).toBeLessThan(resultado.y);
 
   await page.setViewportSize({ width: 1440, height: 900 });
-  const [f2, m2, r2, s2] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('section[aria-labelledby="t-resumo"]')];
+  const [f2, m2, r2, s2] = [await caixa('#filtros'), await caixa('.mapa-cartao'), await caixa('#resultado'), await caixa('#cartao-serie')];
   expect(m2.x).toBeGreaterThan(f2.x + f2.w - 1);
   expect(r2.x).toBeGreaterThan(m2.x + m2.w - 1);
   expect(m2.w).toBeGreaterThan(r2.w);
@@ -193,7 +193,7 @@ test('ampliação do texto a 200% e reflow em 320 px não cortam conteúdo nem a
     expect(a.cortados, `${rotulo}: cortado`).toEqual([]);
     // A função continua: consultar um município e ver o resultado.
     await consultar(page, { municipio: 9900002 });
-    await expect(page.locator('#total-principal')).toHaveText('30');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '30');
     await page.screenshot({ path: `test-results/zoom-${w}-${escala.replace('%', '')}.png`, fullPage: true });
     await page.evaluate(() => { document.documentElement.style.fontSize = ''; });
     await page.getByRole('button', { name: 'Sair' }).click();
@@ -253,7 +253,7 @@ test('foco visível e fluxo só por teclado', async ({ page }) => {
   await page.locator('#f-municipio').focus();
   await page.keyboard.press('ArrowDown');
   await expect(page.locator('#f-municipio')).toHaveValue('9900001');
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   // Seção recolhível por teclado: Enter no título abre e fecha.
   await page.locator('#secao-lente summary').focus();
   await page.keyboard.press('Enter');

@@ -1,41 +1,31 @@
-// Consulta do RP: GMT, sensibilidade Cuiabá (100/102), município, zero, todos os pontos (T7) e "Lista de focos" (T21),
-// disponibilidade D1, texto sem marcação, respostas fora de ordem, geometria sob demanda, seleção, proveniência.
+// Consulta do RP: GMT, município, zero, todos os pontos (T7) e "Lista de focos" (T21), texto sem marcação, respostas
+// fora de ordem, geometria sob demanda, seleção, proveniência. Ciclo 009: sem os cartões "No mapa", "Detecções no
+// período" e "Disponibilidade dos dados" abaixo do mapa; fica só a série (D2, D4, D5).
 import { test, expect } from '@playwright/test';
 import { cadastrarRp } from './contas.mjs';
-import { abrirBalao, abrirListaFocos, abrirOpcoesMapa, alternarCamada, consultar, entrar, escolherLente, numero, observarRest, selecionarFoco } from './ajuda.mjs';
-import { MUNICIPIOS, XSS_AVISO, XSS_ID } from './fixture.mjs';
+import { abrirBalao, abrirListaFocos, abrirOpcoesMapa, alternarCamada, consultar, entrar, escolherLente, observarRest, selecionarFoco } from './ajuda.mjs';
+import { MUNICIPIOS, XSS_ID } from './fixture.mjs';
 
 test.describe.configure({ mode: 'serial' });
 test.beforeAll(() => cadastrarRp());
 
-const AVISO_SIMPLIFICACAO = 'Limites simplificados para visualização; contagens usam a malha integral. Pontos próximos à divisa podem aparentar outro pertencimento.';
-
-test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', async ({ page }) => {
+test('100 GMT na série; o envelope da sensibilidade fica fora e não há cartões de resumo abaixo do mapa', async ({ page }) => {
   await entrar(page, 'rp');
-  expect(await numero(page, 'total-principal')).toBe('100');
-  expect(await numero(page, 'sens-total')).toBe('102');
-  expect(await numero(page, 'sens-diferenca')).toBe('+2');
-  const principal = await numero(page, 'principal-intervalo');
-  expect(principal).toContain('2026-10-01 00:00 GMT');
-  expect(principal).toContain('2026-11-01 00:00 GMT');
-  const sens = await numero(page, 'sens-intervalo');
-  expect(sens).toContain('America/Cuiaba');
-  expect(sens).toContain('2026-10-01 04:00 GMT');
-  expect(sens).toContain('2026-11-01 04:00 GMT');
-  await expect(page.getByText('Total principal — GMT')).toBeVisible();
-  await expect(page.getByText('Sensibilidade — America/Cuiaba')).toBeVisible();
+  expect(await page.locator('#serie').getAttribute('data-total')).toBe('100');
   await expect(page.locator('#f-periodo')).toHaveValue('ano');
   await expect(page.locator('#periodo-resumo')).toHaveText('01/10/2026 a 31/10/2026 · 31 dias GMT');
   await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
   await expect(page.locator('#f-fim')).toHaveValue('2026-10-31');
-  // T18: total principal e sensibilidade ficam no cartão da série, no centro, acima das barras.
-  const cartaoSerie = page.locator('section[aria-labelledby="t-resumo"]');
-  await expect(page.getByRole('heading', { name: 'Detecções no período (dias GMT)' })).toBeVisible();
-  await expect(cartaoSerie.locator('#total-principal')).toHaveText('100');
-  await expect(cartaoSerie.locator('#sens-total')).toHaveText('102');
+  // Ciclo 009 (D4): só a série fica abaixo do mapa, sem título visível nem total, sensibilidade ou versão.
+  const cartaoSerie = page.getByRole('region', { name: 'Detecções no período (dias GMT)' });
   await expect(cartaoSerie.locator('#serie')).toBeVisible();
   await expect(cartaoSerie.locator('#serie')).toHaveAttribute('data-total', '100');
-  await expect(page.locator('#versao-consultada')).toContainText('Última atualização (publicação)');
+  await expect(page.getByRole('heading', { name: 'Detecções no período (dias GMT)' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'No mapa' })).toHaveCount(0);
+  await expect(page.getByRole('heading', { name: 'Disponibilidade dos dados' })).toHaveCount(0);
+  for (const id of ['total-principal', 'sens-total', 'versao-consultada', 'disp-corpo', 'mapa-aviso', 'mapa-erro', 'areas-estado']) {
+    await expect(page.locator(`#${id}`)).toHaveCount(0);
+  }
 
   // Nenhum registro do envelope aparece na "Lista de focos" (duas páginas locais de 50).
   await abrirListaFocos(page);
@@ -54,19 +44,17 @@ test('100 GMT e 102 em America/Cuiaba (+2): o envelope fica fora do principal', 
   expect(dias.reduce((a, b) => a + b, 0)).toBe(100);
 });
 
-test('por município: total, sensibilidade e diferença independentes', async ({ page }) => {
+test('por município: total da série independente', async ({ page }) => {
   await entrar(page, 'rp');
-  const esperado = [[MUNICIPIOS.alfa, '60', '57', '−3'], [MUNICIPIOS.beta, '30', '35', '+5'], [MUNICIPIOS.gama, '10', '10', '0']];
-  for (const [m, total, sens, dif] of esperado) {
+  const esperado = [[MUNICIPIOS.alfa, '60'], [MUNICIPIOS.beta, '30'], [MUNICIPIOS.gama, '10']];
+  for (const [m, total] of esperado) {
     await consultar(page, { municipio: m.codigo });
-    await expect(page.locator('#resumo-escopo')).toContainText(m.nome);
-    await expect(page.locator('#total-principal')).toHaveText(total);
-    expect(await numero(page, 'sens-total')).toBe(sens);
-    expect(await numero(page, 'sens-diferenca')).toBe(dif);
+    await expect(page.locator('#filtros-escopo')).toContainText(m.nome);
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', total);
   }
   // Todo o estado volta a somar 100 nos municípios (aba Municípios, T11): por detecções e por nome.
   await consultar(page, { municipio: null });
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.locator('#aba-municipios')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('[data-ordem="deteccoes"]')).toHaveAttribute('aria-pressed', 'true');
   expect(await page.locator('#lista-municipios .nome').evaluateAll((l) => l.map((x) => x.firstChild.textContent)))
@@ -77,12 +65,12 @@ test('por município: total, sensibilidade e diferença independentes', async ({
   await expect(page.locator('[data-ordem="nome"]')).toBeFocused();
   // Tocar num município filtra a tela e mostra o cartão (T11).
   await page.locator('#lista-municipios button[data-codigo="9900003"]').click();
-  await expect(page.locator('#total-principal')).toHaveText('10');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '10');
   await expect(page.locator('#cartao-focos')).toHaveText('10');
   await expect(page.locator('#cartao-celulas')).toHaveAttribute('data-estado', 'completo');
   await expect(page.locator('#cartao-destacadas')).toHaveText('—');
   await page.getByRole('button', { name: 'Ver todo Mato Grosso' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
 });
 
 test('zero detecções é um estado próprio, sem afirmar ausência de fogo', async ({ page }) => {
@@ -90,7 +78,9 @@ test('zero detecções é um estado próprio, sem afirmar ausência de fogo', as
   await consultar(page, { municipio: MUNICIPIOS.gama.codigo, inicio: '2026-10-20', fim: '2026-10-31' });
   await expect(page.locator('#estado-consulta')).toHaveAttribute('data-estado', 'zero');
   await expect(page.locator('#estado-consulta')).toContainText('não comprova ausência de fogo');
-  await expect(page.locator('#total-principal')).toHaveText('0');
+  // Ciclo 009 (C3): sem o cartão, o estado zero não aponta para a disponibilidade.
+  await expect(page.locator('#estado-consulta')).not.toContainText('disponibilidade');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '0');
   await expect(page.locator('#mapa-contagem')).toContainText('todas as 0 detecções');
   await abrirListaFocos(page);
   await expect(page.locator('#lista-focos-info')).toHaveText('Nenhum foco neste recorte.');
@@ -118,50 +108,10 @@ test('T7: todos os pontos do recorte no mapa e a "Lista de focos" paginada, por 
   await expect(page.locator('#lista-focos-info')).toBeFocused();
   await expect(page.locator('#focos-proxima')).toBeDisabled();
   expect(rest.length, 'a lista usa a leitura completa, sem nova consulta').toBe(antes);
-  expect(await numero(page, 'total-principal')).toBe('100');
+  expect(await page.locator('#serie').getAttribute('data-total')).toBe('100');
   await page.keyboard.press('Escape');
   await expect(page.locator('#lista-focos')).toBeHidden();
   await expect(page.locator('#botao-lista-focos')).toBeFocused();
-});
-
-test('disponibilidade D1: três classes com motivo, histórico e "cobertura não comprovada"', async ({ page }) => {
-  await entrar(page, 'rp');
-  const disp = page.locator('#disp-corpo');
-  await expect(disp).toContainText('Cobertura não comprovada');
-  await expect(disp).toContainText('município-dia GMT');
-  const classe = (c) => disp.locator(`#disp-classes [data-classe="${c}"] .classe__valor`);
-  await expect(classe('lacuna_conhecida')).toHaveText('2');
-  await expect(classe('incidencia_indeterminada')).toHaveText('3');
-  await expect(classe('sem_evidencia_de_lacuna')).toHaveText('88');
-  const alcance = (a) => disp.locator(`#disp-alcance [data-alcance="${a}"] .classe__valor`);
-  await expect(alcance('verificado')).toHaveText('91');
-  await expect(alcance('parcial')).toHaveText('1');
-  await expect(alcance('indisponivel')).toHaveText('1');
-  await expect(disp).toContainText('Visão estadual');
-
-  // X (Alfa): lacuna conhecida; depois, sem evidência de lacuna em histórico verificado.
-  await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  const linhasAlfa = disp.locator('tbody tr');
-  await expect(linhasAlfa).toHaveCount(31);
-  await expect(linhasAlfa.nth(0)).toContainText('Lacuna conhecida');
-  await expect(linhasAlfa.nth(0)).toContainText('aviso cobre municipio');
-  await expect(linhasAlfa.nth(2)).toContainText('Sem evidência de lacuna');
-  await expect(linhasAlfa.nth(2)).toContainText('Histórico verificado');
-  await expect(linhasAlfa.nth(2)).toContainText('sem aviso incidente');
-
-  // Y (Beta): incidência indeterminada, e o dia 3 com histórico ausente é outro caso.
-  await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
-  const linhasBeta = disp.locator('tbody tr');
-  await expect(linhasBeta.nth(0)).toContainText('Incidência indeterminada');
-  await expect(linhasBeta.nth(0)).toContainText('aviso parcial no municipio');
-  await expect(linhasBeta.nth(2)).toContainText('Incidência indeterminada');
-  await expect(linhasBeta.nth(2)).toContainText('Histórico indisponível');
-  await expect(linhasBeta.nth(2)).toContainText('historico ausente ou incompleto');
-  await expect(linhasBeta.nth(3)).toContainText('Sem evidência de lacuna');
-
-  // Z (Gama): sem evidência, com o último dia de histórico parcial.
-  await consultar(page, { municipio: MUNICIPIOS.gama.codigo });
-  await expect(disp.locator('tbody tr').nth(30)).toContainText('Histórico parcial');
 });
 
 test('valores da fonte são texto: nenhuma marcação é executada', async ({ page }) => {
@@ -171,8 +121,7 @@ test('valores da fonte são texto: nenhuma marcação é executada', async ({ pa
   await expect(balao).toContainText(XSS_ID);
   expect(await balao.locator('img').count()).toBe(0);
   await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
-  await expect(page.locator('#disp-corpo')).toContainText(XSS_AVISO);
-  expect(await page.locator('#disp-corpo script').count()).toBe(0);
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '30');
   expect(await page.evaluate(() => window.__xss)).toBeUndefined();
   // Registros sem id na fonte são declarados, não inventados.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
@@ -199,11 +148,10 @@ test('respostas fora de ordem: a última consulta vence', async ({ page }) => {
   });
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
   await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
-  await expect(page.locator('#total-principal')).toHaveText('30');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '30');
   await page.waitForTimeout(2500);
-  await expect(page.locator('#total-principal')).toHaveText('30');
-  await expect(page.locator('#resumo-escopo')).toContainText('Município Beta');
-  await expect(page.locator('#disp-corpo')).toContainText('Município Beta');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '30');
+  await expect(page.locator('#filtros-escopo')).toContainText('Município Beta');
 });
 
 test('limites municipais ligados por padrão (T10): o estado inteiro depois do painel, uma vez, sem bloquear a consulta', async ({ page }) => {
@@ -220,7 +168,7 @@ test('limites municipais ligados por padrão (T10): o estado inteiro depois do p
 
   // Município escolhido: já está no conjunto, destacado; nada é baixado de novo.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
+  await expect(page.locator('#filtros-escopo')).toContainText('Município Alfa');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 3');
   expect(geometria()).toHaveLength(1);
 
@@ -230,7 +178,7 @@ test('limites municipais ligados por padrão (T10): o estado inteiro depois do p
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'desligado');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 1');
   await consultar(page, { municipio: null });
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 0');
 
   // Religada: volta da memória, sem novo pedido.
@@ -238,17 +186,15 @@ test('limites municipais ligados por padrão (T10): o estado inteiro depois do p
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'completo');
   await expect(page.locator('#mapa-contagem')).toContainText('Limites municipais carregados: 3');
   expect(geometria()).toHaveLength(1);
-  await expect(page.locator('#mapa-aviso')).toHaveText(AVISO_SIMPLIFICACAO);
 });
 
-test('falha só nos limites: estado de erro próprio, pontos e números continuam', async ({ page }) => {
+test('falha só nos limites: camada desmarcada sem aviso (ciclo 009, D5), pontos e números continuam', async ({ page }) => {
   await page.route((u) => u.pathname.endsWith('/rest/v1/municipios') && (u.searchParams.get('select') ?? '').includes('geometria_exibicao'),
     (route) => route.fulfill({ status: 500, json: { code: 'XX000', message: 'falha' } }));
   await entrar(page, 'rp');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-limites', 'erro');
-  await expect(page.locator('#mapa-erro')).toHaveText('Limites municipais indisponíveis agora; os pontos e os números continuam válidos.');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.locator('#c-limites')).not.toBeChecked();
 });
 
@@ -295,9 +241,9 @@ test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a l
   await entrar(page, 'rp');
   await consultar(page, { inicio: '2026-10-20' });
   await expect(page.locator('#filtros-escopo')).toContainText('Todo Mato Grosso');
-  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-20 00:00 GMT');
+  await expect(page.locator('#filtros-escopo')).toContainText('2026-10-20 a 2026-10-31');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'pronto');
-  const total = await numero(page, 'total-principal');
+  const total = await page.locator('#serie').getAttribute('data-total');
   const rest = observarRest(page);
   await consultar(page, { fim: '2026-10-10' });
   await expect(page.locator('#f-erro')).toBeVisible();
@@ -305,7 +251,7 @@ test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a l
   await expect(page.locator('#f-erro')).toContainText('não pode ser depois do fim');
   await expect(page.locator('#f-inicio')).toHaveAttribute('aria-invalid', 'true');
   await expect(page.locator('#f-mostrando')).toHaveText('Mostrando Todo Mato Grosso · 2026-10-20 a 2026-10-31: o período digitado ainda não foi aplicado.');
-  await expect(page.locator('#total-principal')).toHaveText(total);
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', total);
   await consultar(page, { inicio: '2026-09-01' });
   await expect(page.locator('#f-erro')).toContainText('dentro da janela');
   await page.waitForTimeout(300);
@@ -313,11 +259,11 @@ test('T16: intervalo inválido mantém o recorte aplicado, sem consulta, com a l
   // Com o período inválido, o município ainda se aplica, no período aplicado.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
   await expect(page.locator('#filtros-escopo')).toContainText('Município Alfa');
-  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
+  await expect(page.locator('#filtros-escopo')).toContainText('Município Alfa');
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-31' });
   await expect(page.locator('#f-erro')).toBeHidden();
   await expect(page.locator('#f-mostrando')).toBeHidden();
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
 });
 
 test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tudo" volta ao padrão', async ({ page }) => {
@@ -337,9 +283,9 @@ test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tud
   await consultar(page, { inicio: '2026-10-25' });
   await expect(page.locator('#intervalo')).toBeVisible();
   await consultar(page, { inicio: '2026-10-02' });
-  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
+  await expect(page.locator('#filtros-escopo')).toContainText('2026-10-02 a 2026-10-31');
   await page.waitForTimeout(2500);
-  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-02 00:00 GMT');
+  await expect(page.locator('#filtros-escopo')).toContainText('2026-10-02 a 2026-10-31');
   await expect(page.locator('#periodo-resumo')).toHaveText('02/10/2026 a 31/10/2026 · 30 dias GMT');
   await expect(page.locator('#filtros-escopo')).toContainText('Todo Mato Grosso');
   await page.unrouteAll({ behavior: 'ignoreErrors' });
@@ -347,7 +293,7 @@ test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tud
   await page.locator('#f-periodo').selectOption('u1');
   await expect(page.locator('#intervalo')).toBeHidden();
   await expect(page.locator('#f-inicio')).toHaveValue('2026-10-01');
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
 
   await consultar(page, { municipio: MUNICIPIOS.beta.codigo });
   await escolherLente(page, 'recorrencia');
@@ -357,7 +303,7 @@ test('T16: seletor de período (V13), resposta atrasada descartada e "Limpar tud
   await expect(page.locator('#f-municipio')).toHaveValue('');
   await expect(page.locator('input[name="l-lente"][value="nenhuma"]')).toBeChecked();
   await expect(page.locator('#secao-lente .marca-ativa')).toBeHidden();
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.getByRole('button', { name: 'Limpar tudo' })).toBeDisabled();
   await expect(page.locator('#filtros-escopo')).toHaveText('Uma lente por vez · Todo Mato Grosso · 2026-10-01 a 2026-10-31');
 });

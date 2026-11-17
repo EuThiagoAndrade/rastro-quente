@@ -43,48 +43,34 @@ export type EstadoAreas =
   | { tipo: 'leitura_inconsistente'; motivo: string }
   | { tipo: 'falha' };
 
-function textoEstadoAreas(e: EstadoAreas): string {
-  switch (e.tipo) {
-    case 'oculta': return '';
-    case 'carregando': return 'Carregando áreas protegidas…';
-    case 'visivel': return `Áreas protegidas no mapa: ${fmtNumero(e.total)} (contorno simplificado; toque numa área para ver os dados dela).`;
-    case 'sem_camada': return `Camada indisponível: ${TEXTO_SEM_CAMADA}.`;
-    case 'leitura_inconsistente': return `Leitura inconsistente das áreas protegidas (${e.motivo}). Nenhuma área foi exibida; tente de novo.`;
-    case 'falha': return 'Áreas protegidas indisponíveis agora; os pontos e os números continuam válidos. Tente de novo.';
-  }
-}
-
-export function renderEstadoAreas(e: EstadoAreas, tentarDeNovo: () => void): void {
-  const alvo = $('areas-estado');
+/**
+ * Estado da camada (ciclo 009, D5): só o atributo `data-estado-areas`, sem texto nem botão; numa falha ou sem
+ * camada, a caixa da camada fica desmarcada e religá-la tenta de novo.
+ */
+export function renderEstadoAreas(e: EstadoAreas): void {
   $('mapa-areas').dataset['estadoAreas'] = e.tipo;
-  const texto = textoEstadoAreas(e);
-  alvo.replaceChildren(...(texto ? [h('p', { class: e.tipo === 'carregando' || e.tipo === 'visivel' ? 'ajuda' : 'aviso-estado' }, texto)] : []));
-  if (e.tipo === 'falha' || e.tipo === 'leitura_inconsistente') {
-    const b = h('button', { type: 'button', id: 'botao-areas-tentar', class: 'botao botao--secundario' }, 'Tentar de novo');
-    b.addEventListener('click', tentarDeNovo);
-    alvo.append(h('div', { class: 'acoes' }, b));
-  }
 }
 
-/** Legenda em texto das três classes, com a contagem exibida, a atribuição e o aviso de T19. */
+/**
+ * Legenda das três classes no item de áreas da "Legenda" do mapa (ciclo 009, C2), com a contagem exibida, o aviso
+ * de T19 e a atribuição da KB-006.
+ */
 export function renderLegendaAreas(porClasse: Record<ClasseArea, number> | null, fontes: Fonte[]): void {
   const alvo = $('areas-legenda');
   // As classes também entram na "Legenda" do mapa enquanto a camada está ligada (issue #71, BL-012).
   $('legenda-areas').hidden = !porClasse;
   if (!porClasse) {
     alvo.replaceChildren();
-    alvo.hidden = true;
     return;
   }
-  alvo.hidden = false;
   alvo.replaceChildren(
-    h('ul', { class: 'legenda', 'aria-label': 'Legenda das áreas protegidas' },
+    h('ul', { class: 'legenda', 'aria-label': 'Classes das áreas protegidas' },
       ...CLASSES_AREA.map((c) => h('li', { 'data-classe': c },
         h('span', { class: `legenda__amostra legenda__amostra--${c}`, 'aria-hidden': 'true' }),
         `${ROTULO_CLASSE[c][0]?.toUpperCase()}${ROTULO_CLASSE[c].slice(1)} (${SINAL_CLASSE[c]}): ${fmtNumero(porClasse[c])} ${porClasse[c] === 1 ? 'área' : 'áreas'}`))),
-    h('p', { class: 'ajuda', id: 'areas-aviso' },
+    h('p', { class: 'legenda__nota', id: 'areas-aviso' },
       'Áreas de outros estados que entram em Mato Grosso só aparecem quando contêm detecção desta carga. Não entram RPPN, terras indígenas em estudo e zonas de amortecimento. O contorno é simplificado (até cerca de 550 m); a classificação usa o polígono integral. Estar dentro de uma área protegida não indica infração, autoria nem situação fundiária.'),
-    h('ul', { class: 'lista-simples', id: 'areas-atribuicao', 'aria-label': 'Atribuição das áreas protegidas' },
+    h('ul', { class: 'lista-simples legenda__nota', id: 'areas-atribuicao', 'aria-label': 'Atribuição das áreas protegidas' },
       ...fontesDeAreas(fontes).map((f) => h('li', {}, textoAtribuicaoArea(f)))),
   );
 }
@@ -261,7 +247,7 @@ export function renderResultadoSobreposicao(
   const corpo = $('lente-corpo');
   corpo.replaceChildren();
   rotularAbaDestaques(r.destaques.length);
-  renderResumoLente({ nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  renderResumoLente({ titulo: 'Sobreposição com áreas protegidas', nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
     h('p', { id: 'lente-escopo', class: 'ajuda' },

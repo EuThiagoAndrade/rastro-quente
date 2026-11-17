@@ -18,8 +18,10 @@ export type EstadoPerguntas =
 
 export interface ManipuladoresPerguntas {
   tentarDeNovo(): void;
-  /** Leva ao detalhamento determinístico que sustenta a evidência (aba Destaques ou Comparação). */
+  /** Leva ao detalhamento determinístico que sustenta a evidência (aba Lentes ou Comparação). */
   abrirDetalhamento(ferramenta: Ferramenta): void;
+  /** Há detalhamento na tela para a ferramenta? A disponibilidade só tem fora do painel na comparação (ciclo 009). */
+  temDetalhamento(ferramenta: Ferramenta): boolean;
 }
 
 const PAPEL: Record<Subagente | 'principal', string> = {
@@ -107,13 +109,13 @@ function blocoEvidencias(evidencias: Map<string, EvidenciaRecebida>, m: Manipula
   if (!evidencias.size) return null;
   return h('details', { class: 'perguntas__bloco', id: 'perguntas-evidencias' },
     h('summary', {}, `Evidências das ferramentas (${evidencias.size})`),
-    h('p', { class: 'nota' }, 'Resultados das ferramentas determinísticas, calculados no servidor com os mesmos módulos desta tela. O detalhamento completo continua nas abas.'),
+    h('p', { class: 'nota' }, 'Resultados das ferramentas determinísticas, calculados no servidor com os mesmos módulos desta tela. O detalhamento continua nas abas Lentes e Comparação; a disponibilidade fora da comparação fica só nestas evidências.'),
     ...[...evidencias].map(([id, e]) => {
       const abrir = h('button', { type: 'button', class: 'botao botao--secundario botao--compacto' }, 'Ver o detalhamento na tela');
       abrir.addEventListener('click', () => m.abrirDetalhamento(e.ferramenta));
       return h('details', { class: 'evidencia', 'data-evidencia': id },
         h('summary', {}, `${id} · ${NOME_FERRAMENTA[e.ferramenta]} · ${PAPEL[e.papel]}`),
-        e.ferramenta === 'ler_detalhes' ? null : abrir,
+        m.temDetalhamento(e.ferramenta) ? abrir : null,
         h('pre', { class: 'evidencia__dados', tabindex: '0', 'aria-label': `Dados da evidência ${id}` }, JSON.stringify(e.dados, null, 2)));
     }));
 }

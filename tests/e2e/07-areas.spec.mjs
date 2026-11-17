@@ -93,7 +93,7 @@ async function semRanking(page, seletor) {
 test('camada sob demanda: nada na abertura; legenda em texto, atribuição, área selecionada e contorno real de uma área', async ({ page }) => {
   const req = observarAreas(page);
   await entrar(page, 'rp');
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   // Nenhuma leitura de áreas na abertura (ADR-007, T24).
   expect([...req.geral, ...req.lente, ...req.real, ...req.vinculos]).toEqual([]);
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'oculta');
@@ -104,14 +104,16 @@ test('camada sob demanda: nada na abertura; legenda em texto, atribuição, áre
   await alternarCamada(page, 'c-areas');
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'visivel');
   await expect(botao).toBeChecked();
-  await expect(page.locator('#areas-estado')).toContainText('Áreas protegidas no mapa: 4 (contorno simplificado');
+  // Ciclo 009 (C2, D5): sem texto de estado; classes, aviso e atribuição ficam na "Legenda" do mapa.
+  await expect(page.locator('#areas-estado')).toHaveCount(0);
   await expect(page.locator('#areas-legenda li[data-classe]')).toHaveText([
     'Proteção integral (contorno contínuo verde, hachura inclinada para a direita): 1 área',
     'Uso sustentável (contorno tracejado lilás, hachura inclinada para a esquerda): 1 área',
     'Terra indígena (contorno pontilhado rosa, hachura vertical): 2 áreas',
   ]);
   await expect(page.locator('#legenda-areas')).not.toHaveAttribute('hidden', '');
-  await expect(page.locator('#legenda-areas [data-classe-mapa]')).toHaveText(['Proteção integral (contínuo verde)', 'Uso sustentável (tracejado lilás)', 'Terra indígena (pontilhado rosa)']);
+  await expect(page.locator('#legenda-areas #areas-aviso')).toContainText('não indica infração, autoria nem situação fundiária');
+  await expect(page.locator('#legenda-areas #areas-atribuicao li')).toHaveCount(2);
   await expect(page.locator('#areas-aviso')).toContainText('Áreas de outros estados que entram em Mato Grosso só aparecem quando contêm detecção desta carga.');
   await expect(page.locator('#areas-atribuicao')).toContainText('FUNAI: retrato funai-ficticio, obtido em 2026-11-12 12:00 GMT; fonte fictícia de terras indígenas, reprodução com citação');
   await expect(areasNoMapa(page)).toHaveCount(4);
@@ -256,7 +258,7 @@ test('uso sustentável: destaque na janela inteira e "sem destaques" de 01 a 03/
   await expect(page.locator('#lente-areas .ressalvas-area')).toHaveCount(0);
 
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-03' });
-  await expect(page.locator('#total-principal')).toBeVisible();
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', /\d+/);
   await aplicar(page, 'uso_sustentavel');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'sem_destaques');
   await expect(page.locator('#lente-sem-destaques')).toHaveText('Nenhuma célula com detecção dentro de uso sustentável nesta janela. Isso não indica ausência de focos nem de risco.');
@@ -291,8 +293,11 @@ test('leitura inconsistente (contagem divergente nos vínculos), falha da fonte 
   await alternarCamada(page, 'c-areas');
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'leitura_inconsistente');
   await expect(areasNoMapa(page)).toHaveCount(0);
+  // Ciclo 009 (C5): sem botão "Tentar de novo"; a caixa fica desmarcada e religá-la tenta de novo.
+  await expect(page.locator('#c-areas')).not.toBeChecked();
+  await expect(page.locator('#botao-areas-tentar')).toHaveCount(0);
   await page.unrouteAll({ behavior: 'ignoreErrors' });
-  await page.locator('#botao-areas-tentar').click();
+  await alternarCamada(page, 'c-areas');
   await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'visivel');
 
   await page.route('**/rest/v1/areas?*', (route) => route.fulfill({ status: 503, json: { message: 'indisponivel' } }));
@@ -427,7 +432,7 @@ test('versão substituída (linha da carga oculta e outra vigente): estado próp
   await expect(page.locator('#c-areas')).not.toBeChecked();
   await page.unrouteAll({ behavior: 'ignoreErrors' });
   await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   await aplicar(page, 'terra_indigena');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
 });
@@ -501,7 +506,7 @@ test('carga sem camada (totais nulos): estado próprio na lente e na camada, sem
   try {
     const req = observarAreas(page);
     await entrar(page, 'rp');
-    await expect(page.locator('#total-principal')).toHaveText('100');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
     await expect(page.locator('#proveniencia-areas')).toHaveCount(0);
     await aplicar(page, 'terra_indigena');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'sem_camada');
@@ -510,7 +515,6 @@ test('carga sem camada (totais nulos): estado próprio na lente e na camada, sem
     await expect(itens(page)).toHaveCount(0);
     await alternarCamada(page, 'c-areas');
     await expect(page.locator('#mapa-areas')).toHaveAttribute('data-estado-areas', 'sem_camada');
-    await expect(page.locator('#areas-estado')).toHaveText('Camada indisponível: esta versão dos dados não tem a camada de áreas protegidas.');
     await expect(page.locator('#c-areas')).not.toBeChecked();
     expect([...req.geral, ...req.lente, ...req.real, ...req.vinculos]).toEqual([]);
   } finally {
