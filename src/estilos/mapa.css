@@ -97,6 +97,10 @@
   background: repeating-linear-gradient(90deg, var(--area-indigena) 0 2px, var(--mapa-fundo) 2px 6px);
 }
 
-#mapa-areas .legenda {
-  flex-direction: column;
+/* Ciclo 009 (C2): aviso e atribuição das áreas protegidas dentro da "Legenda" do mapa, em letra menor. */
+.legenda__nota {
+  max-width: 24rem;
+  margin: 0.2rem 0 0;
+  color: var(--texto-suave);
+  font-size: var(--t-pequeno);
 }

@@ -83,7 +83,7 @@ async function semRanking(page) {
 
 test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa e painel por critério com a união', async ({ page }) => {
   await entrar(page, 'rp');
-  await expect(page.locator('#total-principal')).toHaveText('161');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '161');
   // O grupo de escolha só aparece com a opção "Combinação de lentes"; abre com Concentração, Recorrência e "e" (V13).
   await expect(page.locator('#lente-combinacao')).toBeHidden();
   await expect(page.locator('input[name="l-comb"][value="concentracao"]')).toBeChecked();
@@ -116,7 +116,7 @@ test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa 
   await semRanking(page);
 
   // Explicação: um bloco por critério, na ordem canônica, com o destaque original, motivo, evidência e ressalvas.
-  await expect(page.locator('#aba-destaques')).toHaveText('Destaques · 1');
+  await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 1');
   await abrirDestaque(page, 0);
   await expect(page.locator('#lente-operador')).toContainText('Operador "e": a célula entrou porque todas as lentes escolhidas');
   await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', `combinacao:e:concentracao+recorrencia+persistencia:celula_005:${X}`);
@@ -226,7 +226,7 @@ test('T16: a configuração vale ao mudar e recalcula; resposta antiga não apar
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'incompleta');
   await expect(itens(page)).toHaveCount(0);
   await expect(page.locator('#lente-painel')).toHaveCount(0);
-  await expect(page.locator('#aba-destaques')).toHaveText('Destaques');
+  await expect(page.locator('#aba-destaques')).toHaveText('Lentes');
   await escolher(page, ['recorrencia', 'concentracao'], 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(await rotulos(page)).toEqual([
@@ -401,7 +401,7 @@ test('versão substituída (carga indisponível) na disponibilidade: estado pró
   const paginas = [];
   page.on('request', (q) => { if (q.url().includes('/rpc/consultar_deteccoes') && JSON.parse(q.postData() ?? '{}').p_limite === 1000) paginas.push(q); });
   await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('161');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '161');
   await combinar(page, TRES, 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(paginas.length).toBeGreaterThan(0);

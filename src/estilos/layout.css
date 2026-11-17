@@ -141,7 +141,8 @@ body:has(#acesso:not([hidden])) .rodape {
 .mapa-cartao {
   grid-column: 2;
   grid-row: 1;
-  height: 520px;
+  /* Ciclo 009: mais alto com o espaço dos cartões retirados (era 520 px). */
+  height: 600px;
 }
 
 .rodape-mapa {
@@ -198,7 +199,8 @@ body:has(#acesso:not([hidden])) .rodape {
   .rodape-mapa {
     grid-column: 2;
     grid-row: 2;
-    max-height: 38dvh;
+    /* Ciclo 009: só a série e, quando abertos, a área selecionada e a "Lista de focos" (era 38dvh). */
+    max-height: 30dvh;
     overflow: auto;
   }
 
@@ -245,13 +247,13 @@ body:has(#acesso:not([hidden])) .rodape {
     height: auto;
   }
 
-  /* Ampliado (issue #71, BL-013): o mapa ocupa a altura da tela; abaixo dele ficam só o aviso do fundo e a
-     "Lista de focos", quando abertos. */
+  /* Ampliado (issue #71, BL-013): o mapa ocupa a altura da tela; abaixo dele ficam só o aviso do fundo, a área
+     selecionada (ciclo 009) e a "Lista de focos", quando abertos, e o texto só para leitor de tela do mapa. */
   .mapa-ampliado .grade {
     grid-template-rows: minmax(0, 1fr) auto;
   }
 
-  .mapa-ampliado .rodape-mapa > :not(#aviso-fundo, #lista-focos) {
+  .mapa-ampliado .rodape-mapa > :not(#aviso-fundo, #lista-focos, #mapa-areas, .so-leitor) {
     display: none;
   }
 
@@ -308,7 +310,8 @@ body:has(#acesso:not([hidden])) .rodape {
 
   .mapa-cartao {
     order: 1;
-    height: 440px;
+    /* Ciclo 009: era 440 px. */
+    height: 480px;
   }
 
   .mapa-ampliado .mapa-cartao {

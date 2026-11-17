@@ -48,7 +48,10 @@ O plano pede uma interface estática (Vite + TypeScript, `@supabase/supabase-js`
 
 A abertura (sem geometria, sessão já guardada) levou de 2,1 a 2,4 s e 85 KB brutos em 20 requisições (10 de dados, 10 preflights), nas três qualidades. Os tempos de município incluem as três consultas de dados em paralelo (138 KB brutos) além da geometria.
 
-## Consequências
+## Emenda — ciclo `009` (2026-11-17)
+
+Por decisão do responsável no ciclo `009` (plano `009`, D4 e D5; issue #91): o total principal, a sensibilidade America/Cuiaba (inclusive o estado "sensibilidade pendente") e a versão consultada deixam de aparecer abaixo do mapa. A sensibilidade continua calculada pela consulta e descrita em "Sobre os dados". O aviso de simplificação dos limites também sai da tela principal; a limitação continua em "Sobre os dados" ("Os limites do mapa podem ser uma representação simplificada…"). Os demais estados não mudam.
+
 
 ### Positivas
 

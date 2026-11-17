@@ -49,12 +49,14 @@ export function ligarAbas(aoAbrir: (aba: Aba) => void = () => {}): void {
   }
 }
 
-/** Rótulo da aba: "Destaques · N" com um resultado; "Destaques" sem lente ou sem resultado. */
+/** Rótulo da aba: "Lentes · N" com um resultado; "Lentes" sem lente ou sem resultado (ciclo 009). */
 export function rotularAbaDestaques(n: number | null): void {
-  $('aba-destaques').textContent = n === null ? 'Destaques' : `Destaques · ${fmtNumero(n)}`;
+  $('aba-destaques').textContent = n === null ? 'Lentes' : `Lentes · ${fmtNumero(n)}`;
 }
 
 export interface ResumoLente {
+  /** Título do resultado na aba Lentes: a opção ativa (ciclo 009, BL-017). */
+  titulo: string;
   nome: string;
   quantidade: number;
   unidade: 'celula' | 'municipio';
@@ -82,11 +84,11 @@ export function renderResumoLente(r: ResumoLente | null): void {
   alvo.hidden = r === null;
   if (!r) {
     alvo.replaceChildren();
-    $('t-destaques').textContent = 'Destaques';
+    $('t-destaques').textContent = 'Lentes';
     return;
   }
   const plural = r.unidade === 'celula' ? (r.quantidade === 1 ? 'célula' : 'células') : (r.quantidade === 1 ? 'município' : 'municípios');
-  $('t-destaques').textContent = r.unidade === 'celula' ? 'Células destacadas' : 'Municípios destacados';
+  $('t-destaques').textContent = r.titulo;
   alvo.replaceChildren(
     h('div', { class: 'nota' }, r.nome),
     h('div', { class: 'numero', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),

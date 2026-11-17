@@ -26,7 +26,7 @@ const celulas = (page) => page.locator('#comparacao-corpo table').first().locato
 test('dois períodos: A é o recorte aplicado, B de mesma duração; números lado a lado e B − A', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
-  await expect(page.locator('#total-principal')).toHaveText('55');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
   await modo(page, 'periodos');
   await expect(page.locator('#aba-comparacao')).toBeVisible();
   await expect(page.locator('#aba-comparacao')).toHaveAttribute('aria-selected', 'true');
@@ -39,7 +39,7 @@ test('dois períodos: A é o recorte aplicado, B de mesma duração; números la
   await expect(page.locator('#comparacao-conclusao')).toHaveAttribute('data-conclusao', 'conclusiva');
   await expect(page.locator('#comparacao-ressalvas')).toContainText('entrar ou sair não indica mudança real');
   // O mapa, a série e os municípios continuam em A.
-  await expect(page.locator('#total-principal')).toHaveText('55');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
   await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
 });
 
@@ -78,7 +78,7 @@ test('lente nos dois lados: unidades classificadas, evidências por lado e mapa 
   await expect(page.locator('#mapa-lado')).toContainText('lado A');
   // A aba Destaques continua com a lente comum, no recorte A.
   await page.locator('#aba-destaques').click();
-  await expect(page.locator('#aba-destaques')).toHaveText('Destaques · 3');
+  await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 3');
 });
 
 test('sem unidades destacadas nos dois lados, a aba diz isso em vez de uma lista vazia', async ({ page }) => {
@@ -111,7 +111,7 @@ test('lado estadual sem detecções: confere todos os municípios antes de concl
 test('dois municípios: A é o da Consulta; contagens, dias e diferença; contexto estadual em seção própria', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { municipio: 9900001 });
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   await modo(page, 'municipios');
   await expect(page.locator('#cmp-a-municipio')).toHaveText('A: Município Alfa, o município da Consulta.');
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'incompleta');

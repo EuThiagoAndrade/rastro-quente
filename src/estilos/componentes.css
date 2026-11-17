@@ -1134,6 +1134,17 @@ tr.selecionada td {
   margin-bottom: 0;
 }
 
+/* Ciclo 009 (D3): dados da área protegida clicada, só enquanto há uma área selecionada. */
+.area-selecionada h3 {
+  margin: 0 0 0.35rem;
+  font-size: var(--t-medio);
+}
+
+/* Ciclo 009 (C7): rótulo "Lentes" antes de Seleção, Contexto territorial e Cruzar critérios. */
+.rotulo-lentes {
+  margin-top: 0.9rem;
+}
+
 /* Resultado (direita), referência V13: abas Destaques e Municípios, lista ↔ explicação, cartão do município. */
 .porque h2 {
   margin: 0 0 0.25rem;

@@ -1,13 +1,10 @@
 // Apresentação: monta o DOM a partir do estado. Todo valor vindo da fonte (nomes, ids, motivos, avisos,
 // URLs) entra por textContent, nunca como marcação. Sem dados ilustrativos: sem dado, só estado vazio.
-import {
-  AVISO_SIMPLIFICACAO, fmtBytes, fmtDataHoraGmt, fmtDiferenca, fmtIntervaloGmt, fmtNumero, humanizar,
-  ROTULO_ALCANCE, ROTULO_CLASSE,
-} from './formato.ts';
+import { fmtBytes, fmtDataHoraGmt, fmtIntervaloGmt, fmtNumero } from './formato.ts';
 import { resumoPeriodo, textoPeriodo, textoRecorte, type Janela } from './recorte.ts';
 import { montarSerie, rotuloBarra, type BarraSerie } from './serie.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
-import type { CargaDetalhe, ClasseDisponibilidade, Disponibilidade, Fonte, Malha, MunicipioItem, Resumo } from './tipos.ts';
+import type { CargaDetalhe, Fonte, Malha, MunicipioItem, Resumo } from './tipos.ts';
 
 type Filho = Node | string | null | undefined | false;
 
@@ -211,7 +208,7 @@ export type EstadoConsulta =
 
 const TEXTO_ESTADO: Record<Exclude<EstadoConsulta['tipo'], 'ocioso'>, string> = {
   carregando: 'Consultando…',
-  zero: 'Nenhuma detecção neste recorte (total 0). Zero detecções não comprova ausência de fogo nem cobertura; veja a disponibilidade.',
+  zero: 'Nenhuma detecção neste recorte (total 0). Zero detecções não comprova ausência de fogo nem cobertura.',
   versao_substituida: 'A versão de dados consultada foi substituída por outra. Recarregue a versão vigente para continuar; os resultados antigos foram removidos.',
   fonte_indisponivel: 'Fonte de dados indisponível. Isso não indica ausência de detecções; os resultados anteriores foram removidos. Tente novamente.',
   entrada_invalida: 'A consulta foi recusada: confira o município e as datas.',
@@ -235,34 +232,6 @@ export function renderEstadoConsulta(e: EstadoConsulta, aoRecarregar: () => void
     b.addEventListener('click', aoRepetir);
     alvo.append(h('div', { class: 'acoes' }, b));
   }
-}
-
-function numeroCartao(titulo: string, id: string, valor: string, ...extras: Filho[]): HTMLElement {
-  return h('div', { class: 'numero' }, h('dt', {}, titulo), h('dd', { class: 'numero__valor', id }, valor),
-    ...extras.map((x) => h('dd', { class: 'etiqueta' }, x)));
-}
-
-export function renderResumo(r: Resumo, municipioNome: string | null): void {
-  const corpo = $('resumo-corpo');
-  limpar(corpo);
-  const s = r.sensibilidade;
-  const sensib: HTMLElement = s.completa && s.total !== null && s.diferenca !== null
-    ? numeroCartao('Sensibilidade — America/Cuiaba', 'sens-total', fmtNumero(s.total),
-      h('span', {}, 'Diferença para o total GMT: ', h('strong', { id: 'sens-diferenca' }, fmtDiferenca(s.diferenca))),
-      h('span', { id: 'sens-intervalo' }, `Intervalo (${s.fuso}): ${fmtIntervaloGmt(s.intervalo.inicio, s.intervalo.fim)}`))
-    : numeroCartao('Sensibilidade — America/Cuiaba', 'sens-total', 'Pendente',
-      h('span', { id: 'sens-pendencia' }, 'Fonte de fronteira incompleta para este intervalo: sem valor calculado. Não é zero e não é um valor parcial.'),
-      h('span', { id: 'sens-intervalo' }, `Intervalo (${s.fuso}): ${fmtIntervaloGmt(s.intervalo.inicio, s.intervalo.fim)}`));
-  corpo.append(
-    h('p', { id: 'resumo-escopo', class: 'ajuda' }, municipioNome ? `Município: ${municipioNome}` : 'Escopo: todo o estado de Mato Grosso'),
-    h('dl', { class: 'numeros' },
-      numeroCartao('Total principal — GMT', 'total-principal', fmtNumero(r.principal.total),
-        h('span', { id: 'principal-intervalo' }, `Intervalo (GMT): ${fmtIntervaloGmt(r.principal.intervalo.inicio, r.principal.intervalo.fim)}`)),
-      sensib),
-    h('p', { class: 'ajuda' }, 'A sensibilidade é um campo separado: registros além do fim do período GMT entram só nela e não aparecem no mapa, na lista de focos, na série nem no total principal.'),
-    h('p', { id: 'versao-consultada', class: 'ajuda' },
-      `Versão consultada: carga nº ${r.carga.id} · ${r.carga.satelite} · janela ${fmtIntervaloGmt(r.carga.janela_gmt.inicio, r.carga.janela_gmt.fim)} · Última atualização (publicação): ${fmtDataHoraGmt(r.carga.publicada_em)}`),
-  );
 }
 
 // --- Série e municípios -----------------------------------------------------------------------------
@@ -325,49 +294,7 @@ export function renderLegendaDensidade(visivel: boolean, total: number | null, c
   }
 }
 
-// --- Disponibilidade --------------------------------------------------------------------------------
-
-const CLASSES: ClasseDisponibilidade[] = ['lacuna_conhecida', 'incidencia_indeterminada', 'sem_evidencia_de_lacuna'];
-
-export function renderDisponibilidade(d: Disponibilidade, nomeMunicipio: string | null): void {
-  const corpo = $('disp-corpo');
-  limpar(corpo);
-  corpo.append(
-    h('p', {}, h('strong', {}, 'Cobertura não comprovada. '), 'Nenhuma classe comprova cobertura plena nem ausência de fogo; a disponibilidade é separada da presença de detecção.'),
-    h('p', { class: 'ajuda' }, nomeMunicipio === null
-      ? `Visão estadual em ${d.unidade}, por classe. Não existe um status único para Mato Grosso.`
-      : `Município: ${nomeMunicipio}. Unidade: ${d.unidade}.`),
-    h('div', { id: 'disp-classes', class: 'blocos' },
-      ...CLASSES.map((c) => h('div', { class: `bloco classe classe--${c}`, 'data-classe': c },
-        h('span', { class: 'classe__simbolo', 'aria-hidden': 'true' }, ROTULO_CLASSE[c].simbolo),
-        h('span', { class: 'classe__nome' }, ROTULO_CLASSE[c].rotulo),
-        h('strong', { class: 'classe__valor' }, fmtNumero(d.municipio_dias_por_classe[c] ?? 0))))),
-    h('div', { id: 'disp-alcance', class: 'blocos' },
-      ...(['verificado', 'parcial', 'indisponivel'] as const).map((a) => h('div', { class: 'bloco', 'data-alcance': a },
-        h('span', { class: 'classe__nome' }, ROTULO_ALCANCE[a]),
-        h('strong', { class: 'classe__valor' }, fmtNumero(d.municipio_dias_por_alcance[a] ?? 0))))),
-  );
-  if (d.dias) {
-    corpo.append(h('details', { class: 'detalhes', open: true }, h('summary', {}, `Dias do município (${d.dias.length})`),
-      tabela('Disponibilidade por dia GMT', ['Dia (GMT)', 'Classe', 'Histórico', 'Motivos e avisos'],
-        d.dias.map((x) => [
-          x.dia,
-          h('span', { class: `classe classe--${x.classe}`, 'data-classe': x.classe }, h('span', { 'aria-hidden': 'true' }, `${ROTULO_CLASSE[x.classe].simbolo} `), ROTULO_CLASSE[x.classe].rotulo),
-          ROTULO_ALCANCE[x.alcance_historico],
-          h('span', {}, [...x.motivos.map(humanizar), ...x.avisos.map((a) => `aviso: ${a}`), x.aviso_textual ?? ''].filter(Boolean).join('; ')),
-        ]), 'Tabela de disponibilidade do município')));
-  }
-}
-
 // --- Mapa (textos de apoio) ---------------------------------------------------------------------------
-
-export function renderAvisoMapa(malhas: Malha[]): void {
-  const e = $('mapa-aviso');
-  const exib = malhas.find((m) => m.uso === 'exibicao');
-  const simplificado = !!exib && exib.qualidade !== 'maxima';
-  e.hidden = !simplificado;
-  e.textContent = simplificado ? AVISO_SIMPLIFICACAO : '';
-}
 
 /** Pontos no mapa (T7): todos os do recorte, depois da leitura completa; nunca parcial. */
 export type EstadoPontos =
@@ -389,12 +316,6 @@ export function renderSelecao(r: RegistroLente | null, nome: string | null): voi
   $('mapa-selecao').textContent = r
     ? `Selecionado: ${fmtDataHoraGmt(r.data_hora_gmt)} · ${nome ?? r.municipio_codigo} · ${r.latitude.toFixed(5)}, ${r.longitude.toFixed(5)} · identificador ${r.id_tecnico}`
     : '';
-}
-
-export function mostrarErroMapa(texto: string | null): void {
-  const e = $('mapa-erro');
-  e.hidden = texto === null;
-  e.textContent = texto ?? '';
 }
 
 // --- Proveniência --------------------------------------------------------------------------------------
@@ -446,7 +367,7 @@ export function renderProveniencia(c: CargaDetalhe, fontes: Fonte[], malhas: Mal
 }
 
 export function limparResultados(): void {
-  for (const id of ['resumo-corpo', 'serie-corpo', 'disp-corpo', 'municipios-corpo', 'estado-consulta', 'lista-focos-corpo']) {
+  for (const id of ['serie-corpo', 'municipios-corpo', 'estado-consulta', 'lista-focos-corpo']) {
     const e = document.getElementById(id);
     if (e) limpar(e);
   }

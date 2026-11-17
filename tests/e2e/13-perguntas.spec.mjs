@@ -18,7 +18,7 @@ const etapas = (page) => page.locator('#perguntas-etapas li');
 
 async function compararPeriodos(page) {
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
-  await expect(page.locator('#total-principal')).toHaveText('55');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
   await abrirSecao(page, 'secao-comparar');
   await page.locator('input[name="c-modo"][value="periodos"]').check();
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'pronta');
@@ -58,6 +58,8 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
   await expect(page.locator('.resposta-ia .referencias').first()).toContainText('(comparação de períodos)');
   // Evidências por identificador e o caminho de volta ao detalhamento determinístico.
   await page.locator('#perguntas-evidencias > summary').click();
+  // Ciclo 009 (C4): fora da comparação, a disponibilidade fica só nas evidências do painel.
+  await expect(page.locator('#perguntas-evidencias > .nota')).toContainText('a disponibilidade fora da comparação fica só nestas evidências');
   const e1 = page.locator('.evidencia').filter({ hasText: 'comparação de períodos' });
   await e1.locator('summary').click();
   await expect(e1.locator('pre')).toContainText('"total": 55');
@@ -71,7 +73,7 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
   expect(pedidos[0].headers()['authorization']).toMatch(/^Bearer /);
   expect(pedidos[0].headers()['accept']).toBe('application/x-ndjson');
   // A pergunta não mudou os filtros nem a comparação.
-  await expect(page.locator('#total-principal')).toHaveText('55');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'pronta');
 });
 
@@ -102,13 +104,19 @@ test('"Por que esta célula foi destacada?" usa o destaque aberto; outro destaqu
 test('"Há lacunas nos dados?" no município da Consulta: só o subagente de disponibilidade tem ferramenta', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { municipio: 9900001, inicio: '2026-10-01', fim: '2026-10-10' });
-  await expect(page.locator('#total-principal')).toHaveText('29');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '29');
   await page.locator('#pergunta-lacunas').click();
   await expect(painel(page)).toHaveAttribute('data-estado-perguntas', 'resposta');
   // A escolha do principal é validada: a delegação sem ferramenta para este recorte aparece recusada, como ocorreu.
   await expect(etapas(page)).toContainText(['Delegação ao subagente de lentes e evidências recusada: não se aplica a este recorte']);
   await expect(etapas(page)).toContainText(['Ferramenta executada: disponibilidade por município (evidência E1)']);
   await expect(page.locator('#perguntas-estado')).toHaveText('Resposta completa.');
+  // Ciclo 009 (D2, C4): sem comparação, a disponibilidade não tem cartão; a evidência não oferece atalho para a tela.
+  await page.locator('#perguntas-evidencias > summary').click();
+  const e1 = page.locator('.evidencia[data-evidencia="E1"]');
+  await e1.locator('summary').click();
+  await expect(e1.locator('pre')).toBeVisible();
+  await expect(e1.getByRole('button', { name: 'Ver o detalhamento na tela' })).toHaveCount(0);
 });
 
 test('"Comparar municípios" abre o seletor do município B; o texto livre usa a comparação calculada', async ({ page }) => {
@@ -116,7 +124,7 @@ test('"Comparar municípios" abre o seletor do município B; o texto livre usa a
   await expect(page.locator('#acao-comparar-municipios')).toBeDisabled();
   await expect(page.locator('#acao-comparar-municipios-motivo')).toHaveText('Escolha um município na Consulta para ser o A.');
   await consultar(page, { municipio: 9900001, inicio: '2026-10-01', fim: '2026-10-10' });
-  await expect(page.locator('#total-principal')).toHaveText('29');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '29');
   await page.locator('#acao-comparar-municipios').click();
   await expect(page.locator('#secao-comparar')).toHaveAttribute('open', '');
   await expect(page.locator('input[name="c-modo"][value="municipios"]')).toBeChecked();
@@ -203,7 +211,7 @@ test('sem IA: estado claro no painel; consulta, lentes e comparação continuam 
   await expect(page.locator('#comparacao-corpo table').first().locator('tbody tr').first().locator('td')).toHaveText(['Detecções (total principal)', '55', '43', '−12']);
   await escolherLente(page, 'concentracao');
   await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'completo');
-  await expect(page.locator('#total-principal')).toHaveText('55');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
 });
 
 test('teclado e leitor de tela: pergunta pelo teclado, estado anunciado e foco preservado', async ({ page }) => {

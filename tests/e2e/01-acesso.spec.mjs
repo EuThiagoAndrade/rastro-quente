@@ -90,7 +90,7 @@ test('RP: primeiro login sem cadastro é negado; depois do cadastro lê os dados
 
   cadastrarRp(); // administração externa, pelo UUID
   await page.reload();
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await expect(page.locator('#sessao-estado')).toHaveText('Sessão autorizada');
   await expect(page.locator('#acesso')).toBeHidden();
 });
@@ -101,7 +101,7 @@ test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
   await page.getByRole('button', { name: 'Sair' }).click();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toContainText('Você saiu');
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
   await expect(page.locator('#conteudo')).toBeHidden();
   for (const id of ['#topo-chips', '#botao-sobre', '#botao-como-ler']) await expect(page.locator(id)).toBeHidden();
   await expect(page.locator('#topo-chips li')).toHaveCount(0);
@@ -120,7 +120,7 @@ test('Logout limpa a tela, o estado e a sessão guardada', async ({ page }) => {
   // Recarregar não restaura nada.
   await page.reload();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
 });
 
 test('Resposta atrasada não repovoa a tela depois do logout', async ({ page }) => {
@@ -133,7 +133,7 @@ test('Resposta atrasada não repovoa a tela depois do logout', async ({ page }) 
   await page.getByRole('button', { name: 'Sair' }).click();
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toBeVisible();
   await page.waitForTimeout(2500);
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
   await expect(page.locator('#conteudo')).toBeHidden();
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
 });
@@ -145,7 +145,7 @@ test('Revogação: a consulta seguinte vira acesso negado e a tela é limpa', as
     await consultar(page, { municipio: 9900002 });
     await expect(page.locator('#acesso[data-estado="negado"]')).toBeVisible();
     await expect(page.locator('#conteudo')).toBeHidden();
-    await expect(page.locator('#total-principal')).toHaveCount(0);
+    await expect(page.locator('#serie')).toHaveCount(0);
     expect(await page.locator('body').innerText()).not.toMatch(DADO);
   } finally {
     cadastrarRp();
@@ -160,7 +160,7 @@ test('Sessão expirada é um estado próprio e remove os dados', async ({ page }
   await consultar(page, { municipio: 9900001 });
   await expect(page.locator('#acesso[data-estado="anonimo"]')).toContainText('Sua sessão expirou');
   await expect(page.locator('#conteudo')).toBeHidden();
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
   expect(await page.locator('body').innerText()).not.toMatch(DADO);
   await expect(page.getByRole('button', { name: 'Entrar com o Google' })).toBeVisible();
 });
@@ -173,7 +173,7 @@ test('Fonte indisponível (HTTP 503 e falha de rede) é distinta de zero e de ac
   await expect(estado).toHaveAttribute('data-estado', 'fonte_indisponivel');
   await expect(estado).toContainText('Fonte de dados indisponível');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'erro');
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
   await expect(page.locator('#acesso')).toBeHidden();
 
   // Sem botão "Consultar" (T16): a mesma consulta se repete por "Tentar novamente".
@@ -184,7 +184,7 @@ test('Fonte indisponível (HTTP 503 e falha de rede) é distinta de zero e de ac
 
   await page.unroute('**/rest/v1/rpc/consultar_resumo');
   await page.getByRole('button', { name: 'Tentar novamente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   await expect(estado).toHaveAttribute('data-estado', 'ocioso');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-painel', 'pronto');
 });
@@ -192,7 +192,7 @@ test('Fonte indisponível (HTTP 503 e falha de rede) é distinta de zero e de ac
 test('Armazenamento: nenhum dado de consulta em localStorage, sessionStorage, Cache ou IndexedDB', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { municipio: 9900001 });
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   const guardado = await page.evaluate(async () => {
     const pares = [];
     for (const [nome, s] of [['local', localStorage], ['sessao', sessionStorage]]) {

@@ -88,7 +88,7 @@ async function medirQualidade(browser, qualidade, cargaId) {
   await page.locator('#l-email').fill(EMAIL);
   await page.locator('#l-senha').fill(senhaRp);
   await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
-  await page.locator('#total-principal').waitFor();
+  await page.locator('#serie').waitFor({ state: 'attached' });
 
   await cdp.send('Network.emulateNetworkConditions', REDE);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
@@ -98,7 +98,7 @@ async function medirQualidade(browser, qualidade, cargaId) {
   c.zerar();
   let t0 = performance.now();
   await page.reload();
-  await page.locator('#total-principal').waitFor({ timeout: 120_000 });
+  await page.locator('#serie').waitFor({ state: 'attached', timeout: 120_000 });
   r.abertura = { ms: Math.round(performance.now() - t0), ...c.resumo() };
 
   // 2. Navegação a um município (geometria de um município): o de mais detecções e o de maior geometria.
@@ -109,7 +109,7 @@ async function medirQualidade(browser, qualidade, cargaId) {
   r.municipio = {};
   for (const [nome, codigo] of Object.entries(alvos)) {
     await page.reload();
-    await page.locator('#total-principal').waitFor({ timeout: 120_000 });
+    await page.locator('#serie').waitFor({ state: 'attached', timeout: 120_000 });
     // Plano 007 (T16): sem botão "Consultar"; o município se aplica ao mudar (seção Consulta fechada em tela estreita).
     if ((await page.locator('#secao-consulta').getAttribute('open')) === null) await page.locator('#secao-consulta > summary').click();
     c.zerar();
@@ -122,7 +122,7 @@ async function medirQualidade(browser, qualidade, cargaId) {
 
   // 3. Conjunto de limites do estado, por pedido do usuário.
   await page.reload();
-  await page.locator('#total-principal').waitFor({ timeout: 120_000 });
+  await page.locator('#serie').waitFor({ state: 'attached', timeout: 120_000 });
   c.zerar();
   t0 = performance.now();
   await page.getByRole('button', { name: 'Mostrar limites municipais' }).click();
@@ -147,7 +147,7 @@ async function medirAreas(browser, cargaId) {
   await page.locator('#l-email').fill(EMAIL);
   await page.locator('#l-senha').fill(senhaRp);
   await page.getByRole('button', { name: 'Entrar com e-mail e senha' }).click();
-  await page.locator('#total-principal').waitFor({ timeout: 120_000 });
+  await page.locator('#serie').waitFor({ state: 'attached', timeout: 120_000 });
   await cdp.send('Network.emulateNetworkConditions', REDE);
   await cdp.send('Emulation.setCPUThrottlingRate', { rate: CPU });
   const finais = ['visivel', 'sem_camada', 'falha', 'leitura_inconsistente'];

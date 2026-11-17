@@ -168,7 +168,7 @@ export function renderResultadoCombinacao(
   corpo.replaceChildren();
   const n = r.estado === 'com_celulas' ? r.celulas.length : 0;
   rotularAbaDestaques(n);
-  renderResumoLente({ nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  renderResumoLente({ titulo: 'Combinação de lentes', nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
   // Cabeçalho: sempre a configuração do resultado, nunca a do formulário (R1-7).
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),

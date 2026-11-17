@@ -57,10 +57,10 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-estado')).toContainText(/Lente concluída em \d+,\d s/);
   await expect(itens(page)).toHaveCount(3);
-  // T15: aba "Destaques · N" com municípios e a ressalva de contagem absoluta junto do resultado.
-  await expect(page.locator('#aba-destaques')).toHaveText('Destaques · 3');
+  // T15 e ciclo 009: aba "Lentes · N", título da opção ativa e a ressalva de contagem absoluta junto do resultado.
+  await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 3');
   await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
-  await expect(page.locator('#t-destaques')).toHaveText('Municípios destacados');
+  await expect(page.locator('#t-destaques')).toHaveText('Concentração');
   await expect(page.locator('#resumo-lente-numero')).toHaveText('3 municípios');
   await expect(page.locator('#lente-ressalva-contagem')).toHaveText('Contagem absoluta favorece municípios grandes; a ordem não indica prioridade, gravidade nem risco.');
   expect(await itens(page).locator('.botao-nome').allInnerTexts())
@@ -102,8 +102,8 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   // "Consultar este município" aplica o filtro; com município, a concentração não se aplica (ciclo 007, T4): a lente
   // volta a "nenhuma" e a aba vai para Municípios.
   await page.getByRole('button', { name: 'Consultar este município' }).click();
-  await expect(page.locator('#resumo-escopo')).toContainText('Município Alfa');
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#filtros-escopo')).toContainText('Município Alfa');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   await expect(page.locator('input[name="l-lente"][value="nenhuma"]')).toBeChecked();
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'nenhuma');
   await expect(page.locator('#aba-municipios')).toHaveAttribute('aria-selected', 'true');
@@ -113,7 +113,7 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
 test('T4: com município (Gama), a concentração fica desabilitada com o texto de A2, também na combinação', async ({ page }) => {
   await entrar(page, 'rp');
   await consultar(page, { municipio: MUNICIPIOS.gama.codigo });
-  await expect(page.locator('#total-principal')).toHaveText('10');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '10');
   await abrirSecao(page, 'secao-lente');
   await expect(page.locator('input[name="l-lente"][value="concentracao"]')).toBeDisabled();
   await expect(page.locator('#concentracao-indisponivel')).toHaveText('Compara municípios: disponível só com Todo Mato Grosso');
@@ -130,7 +130,7 @@ test('concorrência: aplicação antiga retida não aparece depois da nova (duas
   await entrar(page, 'rp');
   // Primeiro cálculo na janela 01–10/10, retido no resumo da lente.
   await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
-  await expect(page.locator('#principal-intervalo')).toContainText('2026-10-11 00:00 GMT');
+  await expect(page.locator('#filtros-escopo')).toContainText('2026-10-01 a 2026-10-10');
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
   const r = await reter(page, 'consultar_resumo');
   await aplicar(page);
@@ -254,7 +254,7 @@ test('R2-1: carga indisponível no resumo de uma segunda aplicação limpa lente
   const paginas = [];
   page.on('request', (q) => { if (q.url().includes('/rpc/consultar_deteccoes') && JSON.parse(q.postData() ?? '{}').p_limite === 1000) paginas.push(q); });
   await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(paginas.length).toBeGreaterThan(0);
@@ -320,7 +320,7 @@ test.describe('recorrência', () => {
   test('recorte municipal (ciclo 007, item 4): em Alfa a célula de divisa perde o destaque; em Beta, nenhum destaque', async ({ page }) => {
     await entrar(page, 'rp');
     await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-    await expect(page.locator('#total-principal')).toHaveText('25');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '25');
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     // Só a célula B (3 meses, 23 detecções, toda de Alfa); a célula A tem só ago e set em Alfa (out é de Beta).
@@ -342,7 +342,7 @@ test.describe('recorrência', () => {
 
   test('células com 3 meses GMT, ordem por célula sem ranking, cobertura por união e evidência paginada', async ({ page }) => {
     await entrar(page, 'rp');
-    await expect(page.locator('#total-principal')).toHaveText('35');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '35');
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
@@ -449,7 +449,7 @@ test.describe('persistência', () => {
 
   test('sequências por célula, ordem por início sem ranking, ressalvas por classe (D15, T7) e de borda (T4)', async ({ page }) => {
     await entrar(page, 'rp');
-    await expect(page.locator('#total-principal')).toHaveText('17');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '17');
     await aplicar(page, 'persistencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);

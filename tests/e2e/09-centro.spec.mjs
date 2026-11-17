@@ -32,7 +32,7 @@ test('densidade: começa desligada; ligada, legenda "contagem, não gravidade" e
 
   // Segue o recorte aplicado: Alfa tem 60.
   await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
   await expect(legenda).toHaveAttribute('data-total', '60');
 
   // Desligar esconde a legenda; "Detecções individuais" desliga os pontos sem mudar os números.
@@ -40,7 +40,7 @@ test('densidade: começa desligada; ligada, legenda "contagem, não gravidade" e
   await expect(legenda).toBeHidden();
   await alternarCamada(page, 'c-pontos');
   await expect(page.locator('#c-pontos')).not.toBeChecked();
-  await expect(page.locator('#total-principal')).toHaveText('60');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '60');
 });
 
 test('série diária: 31 barras na janela de 31 dias e 6 num intervalo de 6 dias, somando o total principal', async ({ page }) => {
@@ -54,7 +54,7 @@ test('série diária: 31 barras na janela de 31 dias e 6 num intervalo de 6 dias
   await consultar(page, { inicio: '2026-10-05', fim: '2026-10-10' });
   await expect(page.locator('#periodo-resumo')).toContainText('6 dias GMT');
   await expect(serie(page).locator('.serie__barra')).toHaveCount(6);
-  const total = await page.locator('#total-principal').innerText();
+  const total = await page.locator('#serie').getAttribute('data-total');
   await expect(serie(page)).toHaveAttribute('data-total', total);
   expect(String(await somaBarras(page))).toBe(total);
 });
@@ -94,7 +94,7 @@ test.describe('série mensal (fixture de agosto a outubro/2026)', () => {
 
   test('janela inteira: 3 barras mensais sem mês parcial; 15/08 a 14/10: agosto e outubro com *', async ({ page }) => {
     await entrar(page, 'rp');
-    await expect(page.locator('#total-principal')).toHaveText('35');
+    await expect(page.locator('#serie')).toHaveAttribute('data-total', '35');
     await expect(serie(page)).toHaveAttribute('data-unidade', 'mes');
     await expect(serie(page).locator('.serie__barra')).toHaveCount(3);
     await expect(serie(page).locator('.serie__rotulo')).toHaveText(['ago', 'set', 'out']);
@@ -107,7 +107,7 @@ test.describe('série mensal (fixture de agosto a outubro/2026)', () => {
     await expect(serie(page).locator('.serie__rotulo')).toHaveText(['ago*', 'set', 'out*']);
     await expect(serie(page).locator('.serie__barra.parcial')).toHaveCount(2);
     await expect(page.locator('#serie-legenda')).toContainText('* mês parcial: só os dias do período.');
-    const total = await page.locator('#total-principal').innerText();
+    const total = await page.locator('#serie').getAttribute('data-total');
     await expect(serie(page)).toHaveAttribute('data-total', total);
     expect(String(await somaBarras(page))).toBe(total);
     // A tabela é a alternativa em texto, com o mês parcial escrito.

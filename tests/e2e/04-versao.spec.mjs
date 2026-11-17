@@ -9,7 +9,7 @@ import { sqlVersaoNova } from './fixture.mjs';
 test('versão substituída: resultados antigos saem e a vigente é carregada sem mistura', async ({ page }) => {
   cadastrarRp();
   await entrar(page, 'rp');
-  await expect(page.locator('#total-principal')).toHaveText('100');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
   const cargaAntiga = sqlAdmin("select id from public.cargas where identidade like 'eeee%1';");
 
   sqlAdmin(sqlVersaoNova()); // publicação nova, versão antiga retirada
@@ -18,18 +18,15 @@ test('versão substituída: resultados antigos saem e a vigente é carregada sem
   const estado = page.locator('#estado-consulta');
   await expect(estado).toHaveAttribute('data-estado', 'versao_substituida');
   await expect(estado).toContainText('foi substituída');
-  await expect(page.locator('#total-principal')).toHaveCount(0);
+  await expect(page.locator('#serie')).toHaveCount(0);
   await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'erro');
   await expect(page.locator('#lista-focos-itens')).toHaveCount(0);
-  await expect(page.locator('#disp-corpo table')).toHaveCount(0);
   expect(await page.locator('body').innerText()).not.toMatch(/INPE-/);
 
   await page.getByRole('button', { name: 'Carregar a versão vigente' }).click();
-  await expect(page.locator('#total-principal')).toHaveText('1');
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '1');
   await expect(page.locator('#f-inicio')).toHaveValue('2026-09-01');
   await expect(page.locator('#f-fim')).toHaveValue('2026-09-01');
-  await expect(page.locator('#versao-consultada')).not.toContainText(`carga nº ${cargaAntiga} `);
+  await expect(page.locator('#versao-dados')).not.toContainText(new RegExp(`nº ${cargaAntiga}(\D|$)`));
   await expect(page.locator('#f-municipio option')).toHaveCount(2); // todo o estado + Alfa
-  await expect(page.locator('#sens-pendencia')).toBeVisible(); // sem envelope: pendência explícita, não zero
-  await expect(page.locator('#sens-total')).toHaveText('Pendente');
 });

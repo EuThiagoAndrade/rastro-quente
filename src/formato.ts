@@ -56,9 +56,6 @@ export const ROTULO_DIVERGENCIA: Record<string, string> = {
   inpe_outro_municipio: 'INPE atribui outro município',
 };
 
-export const AVISO_SIMPLIFICACAO =
-  'Limites simplificados para visualização; contagens usam a malha integral. Pontos próximos à divisa podem aparentar outro pertencimento.';
-
 /** Último dia GMT inclusivo de uma janela com fim exclusivo (00:00Z do dia seguinte). */
 export function ultimoDiaGmt(fimExclusivoIso: string): string {
   const t = new Date(fimExclusivoIso).getTime() - 1;
