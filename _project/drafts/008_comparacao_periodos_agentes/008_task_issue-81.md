@@ -99,6 +99,8 @@ Não se aplica.
 - **Execução conjunta.** O agente não entra com conta Google. Os casos com sessão (C2 a C8, C10) são feitos pelo responsável na própria sessão; o agente faz as sondagens anônimas (C1 e verificação desligada) e registra as evidências.
 - **`.env.example`.** As variáveis `RQ_*` ficam documentadas no runbook, e não no exemplo, pelo mesmo motivo registrado na issue #79 (o teste do bundle trata linha vazia seguida de outra como valor).
 
+- **Correção de confiabilidade e escopo dos agentes (decisão do responsável, 2026-11-17).** Questionado sobre o que os agentes acrescentam em relação à aba Destaques, o agente avaliou: hoje acrescentam acesso e leitura (pergunta em linguagem natural, duas leituras juntas, recusa), não informação nova, porque G1 os limita a reescrever as evidências. Decisão literal: "Vamos Fechar o ciclo 008 como planejado. com o pacote mínimo de confiabilidade (1 a 3). Contudo não vamos depois de implementado. Fazer testes exaustivos. Pois vamos depois mudar o escopo desses agentes." O pacote entra numa PR adicional desta issue: (1) instruções dos agentes, com detecções × destaques, sentido A → B, cobertura dos dados, datas AAAA-MM-DD e citação dos dois lados em frases comparativas; (2) a conferência admite também as datas da janela do ancestral mais próximo da referência citada, e só elas; (3) a evidência de disponibilidade declara explicitamente o lado sem municípios a conferir. Depois do deploy, nenhuma rodada exaustiva em produção. A mudança de escopo dos agentes fica para decisão futura, fora deste ciclo.
+
 ## Encerramento
 
 Não se aplica.

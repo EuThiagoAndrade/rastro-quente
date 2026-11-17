@@ -278,6 +278,7 @@ const linhaMunicipio = (ctx: Contexto, x: ReturnType<typeof disponibilidadePorMu
 });
 
 const NOTA_DISPONIBILIDADE = 'Disponibilidade não comprova cobertura; cada município tem as próprias classes, sem agregação.';
+export const SEM_MUNICIPIOS = 'Nenhum município a conferir neste lado: sem destaques (sem lente aplicada ou lente sem destaques). Isto não indica falta de dados.';
 
 function textoZero(z: ConferenciaZero): string | null {
   if (z.estado === 'nao_necessaria') return null;
@@ -344,6 +345,8 @@ async function consultarDisponibilidadeF(ctx: Contexto): Promise<unknown> {
     lados: lados.map((l) => ({
       lado: l.lado, janela: l.janela,
       municipios: disponibilidadePorMunicipio(l.codigos, l.janela, l.disp).map((x) => linhaMunicipio(ctx, x)),
+      // Issue #81: lista vazia por alcance (sem destaques) foi lida pelo modelo como falta de dados.
+      ...(l.codigos.length ? {} : { sem_municipios: SEM_MUNICIPIOS }),
       ...(textoZero(l.zero) ? { conferencia_sem_deteccoes: textoZero(l.zero) } : {}),
     })),
     nota: NOTA_DISPONIBILIDADE,
