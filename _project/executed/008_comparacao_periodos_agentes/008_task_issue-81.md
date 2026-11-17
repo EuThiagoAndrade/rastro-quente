@@ -2,13 +2,13 @@
 
 > **Ciclo:** `008`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `chore`
 > **Issue:** `#81`
-> **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md`
+> **Plano:** `_project/executed/008_comparacao_periodos_agentes/008_plan.md`
 > **Branch:** `chore/issue-81`
 > **PR:** [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (preparação, integrada; não fecha a issue); [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) (correção, relatório e reconciliação; fecha a issue)
-> **Integração:** PR 1 (#87) por squash `f0599c5` em `main` (2026-11-16); PR 2 (#88) pendente
+> **Integração:** PR 1 (#87) por squash `f0599c5` (2026-11-16) e PR 2 (#88) por squash `c520ce0` (2026-11-17) em `main`; issue #81 fechada
 > **Autorização inicial:** "autorizo a implementação da issue #81" em 2026-11-16
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-16
@@ -76,7 +76,7 @@ Não se aplica.
 - [x] Decisões do responsável sobre o fechamento (2026-11-17): C2 "Registrar como não executado"; C9 "Registrar como parcial"; publicação "Uma PR só, fecha a issue" (correção, relatório e reconciliação juntos, sem reverificação exaustiva em produção).
 - [x] Pacote de confiabilidade 1 a 3 implementado e testado localmente; relatório `008_validation_agentes.md` redigido.
 - [x] PR 2 [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) aberta, com `Closes #81`.
-- [ ] Checks remotos e merge aprovado da PR #88.
+- [x] Checks remotos verdes (3/3) e merge aprovado ("Aprovo o merge", em resposta à pergunta "Aprova o merge da PR #88 quando os checks ficarem verdes?", 2026-11-17), squash `c520ce0`; issue #81 fechada como concluída. Conferido no GitHub durante o encerramento.
 
 ## Evidências
 
@@ -92,7 +92,7 @@ Não se aplica.
 | PR 2 — `npm run test:api` | 14/14 (`sem_municipios` na comparação estadual sem lente) |
 | PR 2 — `typecheck`, `typecheck:servidor`, `build`, `test:interface` | Sem erros; 218/218 |
 | PR 2 — governança | `validate-governance.test.mjs` 55/55; validador 0 erros; `git diff --check` sem achados |
-| Checks remotos | PR 1 (#87): verdes ("Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E"); PR 2 pendente |
+| Checks remotos | PR 1 (#87) e PR 2 (#88): verdes ("Validate governance", "Database RLS and query contract", "Interface typecheck, build and E2E") |
 | Verificação hospedada | Ver [008_validation_agentes.md](008_validation_agentes.md): desligada conforme; C1, C4, C6 e C8 conformes; C3 e C7 demonstram o principal e os dois subagentes, com os achados (a) a (f); C2 não executado e C9 parcial, por decisão do responsável |
 
 ## Revisão da correção
@@ -116,10 +116,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 008 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #88 (https://github.com/EuThiagoAndrade/rastro-quente/pull/88); relatório 008_validation_agentes.md
-Diga: "aprovo o merge da PR #88"
+Situação: Concluído — ciclo 008 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

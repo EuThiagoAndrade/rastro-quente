@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-15"
+last_updated: "2026-11-17"
 origin_cycle: "000"
 ---
 
@@ -91,6 +91,15 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - **Mapa-base (ADR-010):** satélite e nomes da Esri com a chave restrita ao domínio, "Sem fundo" sempre disponível e troca automática em falha. A Esri recebe só a região vista e a origem do site; nenhum número depende do fundo.
 - **Verificação em produção:** executada em 2026-11-15 com todos os itens aprovados (satélite, "Sem fundo" sem novos pedidos, município, lente, célula e CSP). A leitura direta do cabeçalho `Referer` não foi possível; a política de referência e a aceitação da chave restrita foram conferidas.
 
+### Comparação e agentes do ciclo 008
+
+- **Comparação sem IA (KB-007):** dois períodos de mesma duração no mesmo recorte, ou dois municípios no mesmo período, com a mesma lente nos dois lados (`comparacao-008-v1`). Entrou, saiu e permaneceu nos destaques observados vão de A para B; zero, ausência e disponibilidade ficam separados; nada é ajustado para caber.
+- **Função no servidor (ADR-011):** `/api/explicar` sob o JWT e a RLS do responsável, com um catálogo fechado de ferramentas determinísticas que releem e recalculam os dados no servidor. A chave do Gemini só existe no servidor.
+- **Agentes:** um principal e dois subagentes (lentes e evidências; disponibilidade) com chamadas próprias ao Gemini e no máximo 6 chamadas por pergunta. A conferência descarta as afirmações cujos números, datas ou classificações não constem nas evidências citadas. Perguntas de autoria, propriedade, previsão ou dados pessoais são recusadas com texto fixo.
+- **Painel:** "Perguntar sobre a tela", com perguntas prontas, texto livre, etapas reais em fluxo, cancelamento e descarte quando a seleção muda.
+- **Verificação em produção (2026-11-16 e 2026-11-17):** os agentes foram demonstrados com o Gemini real no domínio hospedado; acesso anônimo, recusa e cancelamento foram conferidos. A qualidade das respostas foi insuficiente com dados reais (análises rejeitadas e leituras erradas que passaram na conferência) e foi corrigida pelo pacote da issue #81, sem reverificação exaustiva em produção. A outra conta autenticada (C2) não foi verificada em produção. Detalhes em [008_validation_agentes.md](../executed/008_comparacao_periodos_agentes/008_validation_agentes.md).
+- **Limite de produto:** a conferência garante números, não o sentido das frases. Hoje os agentes acrescentam acesso e leitura, não informação nova em relação aos destaques. O responsável decidiu rever o escopo deles depois do ciclo 008.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -103,6 +112,7 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - Ciclo `005`: [plano](../executed/005_combinacao_criterios_selecao/005_plan.md), [conferência e medição](../executed/005_combinacao_criterios_selecao/005_research_conferencia_combinacao.md) e [encerramento](../executed/005_combinacao_criterios_selecao/005_task_closure.md). As entregas foram integradas nas PRs #44 e #45; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 - Ciclo `006`: [plano](../executed/006_areas_protegidas_reais/006_plan.md), [conferência](../executed/006_areas_protegidas_reais/006_research_conferencia_areas.md), [encerramento](../executed/006_areas_protegidas_reais/006_task_closure.md), [KB-006](KB-006_areas_protegidas.md) e [ADR-008](../decisions/ADR-008_persistencia_areas_protegidas.md). As entregas foram integradas nas PRs #53 a #56; a verificação hospedada foi dispensada pelo responsável e não gerou resultados de produção.
 - Ciclo `007`: [plano](../executed/007_interface_base/007_plan.md), [encerramento](../executed/007_interface_base/007_task_closure.md), `DESIGN.md`, [ADR-009](../decisions/ADR-009_interface_base.md) e [ADR-010](../decisions/ADR-010_mapa_base_terceiros.md). As entregas foram integradas nas PRs #65 a #69, com as correções da issue #71 (PR #72); verificação hospedada aprovada em 2026-11-15.
+- Ciclo `008`: [plano](../executed/008_comparacao_periodos_agentes/008_plan.md), [relatório de validação](../executed/008_comparacao_periodos_agentes/008_validation_agentes.md), [encerramento](../executed/008_comparacao_periodos_agentes/008_task_closure.md), [KB-007](KB-007_comparacao_territorial.md) e [ADR-011](../decisions/ADR-011_funcao_explicacao_servidor.md). As entregas foram integradas nas PRs #82, #83, #85, #86, #87 e #88. A verificação hospedada foi executada, com C2 não executado e C9 parcial.
 
 ## Histórico
 
@@ -116,3 +126,4 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 | 2026-11-12 | `005` | Combinação explicável por interseção ou união; desvio de desempenho local aceito; verificação hospedada dispensada, sem resultados de produção |
 | 2026-11-14 | `006` | Contexto de áreas protegidas reais (CNUC/FUNAI), camada territorial, lente de sobreposição e persistência sob RLS; verificação hospedada dispensada |
 | 2026-11-15 | `007` | Interface base da V13 com `DESIGN.md`, lentes no recorte, densidade, série, "Lista de focos", painéis do mapa e mapa-base de satélite da Esri; verificação hospedada aprovada |
+| 2026-11-17 | `008` | Comparação determinística de períodos e municípios, função autenticada no servidor, agente principal e dois subagentes Gemini, painel de perguntas e verificação hospedada com o pacote de confiabilidade; escopo dos agentes a rever |

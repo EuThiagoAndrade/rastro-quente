@@ -94,7 +94,7 @@ Controles na seção "Comparar" dos filtros, resultado na aba "Comparação" e r
 
 ## Fontes
 
-Sem fonte externa. Autoridades locais: plano `_project/drafts/008_comparacao_periodos_agentes/008_plan.md` (v3), KB-004 (contagem principal e disponibilidade) e KB-005 (lentes e cobertura).
+Sem fonte externa. Autoridades locais: plano `_project/executed/008_comparacao_periodos_agentes/008_plan.md` (v3), KB-004 (contagem principal e disponibilidade) e KB-005 (lentes e cobertura).
 
 ## Histórico
 

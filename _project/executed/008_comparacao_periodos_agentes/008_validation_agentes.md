@@ -2,7 +2,7 @@
 
 > **Ciclo:** `008`
 > **Issue:** `#81`
-> **Plano:** `_project/drafts/008_comparacao_periodos_agentes/008_plan.md` (v3), T6 e T9
+> **Plano:** `_project/executed/008_comparacao_periodos_agentes/008_plan.md` (v3), T6 e T9
 > **Task:** [008_task_issue-81.md](008_task_issue-81.md)
 > **Período da verificação:** 2026-11-16 e 2026-11-17
 > **Autorização de produção:** "Autorizo", em resposta à pergunta "Autoriza a verificação em produção do ciclo 008?" (2026-11-16)

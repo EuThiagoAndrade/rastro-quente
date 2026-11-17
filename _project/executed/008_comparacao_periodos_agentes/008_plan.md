@@ -1,10 +1,10 @@
 # Plano de Implementação — Comparação de períodos e agentes de explicação
 
 > **Ciclo:** `008`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-15
-> **Última atualização:** 2026-11-16
+> **Última atualização:** 2026-11-17
 > **Tipo:** `feature`
 > **Prioridade:** `P2`
 > **Nível:** `completo`
@@ -420,8 +420,8 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#77](https://github.com/EuThiagoAndrade/rastro-quente/issues/77) (item 1), [#78](https://github.com/EuThiagoAndrade/rastro-quente/issues/78) (item 2), [#79](https://github.com/EuThiagoAndrade/rastro-quente/issues/79) (item 3), [#80](https://github.com/EuThiagoAndrade/rastro-quente/issues/80) (item 4), [#81](https://github.com/EuThiagoAndrade/rastro-quente/issues/81) (item 5), criadas em 2026-11-15 |
-| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), squash `b6525a2` integrada em 2026-11-15; [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82) (item 1, squash `49592f2` integrada em 2026-11-16); [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83) (item 2, squash `cdc4fc5`); [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85) (item 3, squash `80af104`); [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86) (item 4, squash `831ee8e`); [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (item 5, preparação, squash `f0599c5`); [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) (item 5, correção e relatório, aberta, fecha a issue) |
-| Branch(es) | chore/cycle-008-plan (documental); feature/issue-77 (item 1, task [008_task_issue-77.md](008_task_issue-77.md)); feature/issue-78 (item 2, task [008_task_issue-78.md](008_task_issue-78.md)); feature/issue-79 (item 3, task [008_task_issue-79.md](008_task_issue-79.md)); feature/issue-80 (item 4, task [008_task_issue-80.md](008_task_issue-80.md)); chore/issue-81 (item 5, preparação, task [008_task_issue-81.md](008_task_issue-81.md)) |
+| PR(s) | [#76 — plano documental](https://github.com/EuThiagoAndrade/rastro-quente/pull/76), squash `b6525a2` integrada em 2026-11-15; [#82](https://github.com/EuThiagoAndrade/rastro-quente/pull/82) (item 1, squash `49592f2` integrada em 2026-11-16); [#83](https://github.com/EuThiagoAndrade/rastro-quente/pull/83) (item 2, squash `cdc4fc5`); [#85](https://github.com/EuThiagoAndrade/rastro-quente/pull/85) (item 3, squash `80af104`); [#86](https://github.com/EuThiagoAndrade/rastro-quente/pull/86) (item 4, squash `831ee8e`); [#87](https://github.com/EuThiagoAndrade/rastro-quente/pull/87) (item 5, preparação, squash `f0599c5`); [#88](https://github.com/EuThiagoAndrade/rastro-quente/pull/88) (item 5, correção e relatório, squash `c520ce0`, fechou a issue); PR de encerramento (branch chore/cycle-008-closure) |
+| Branch(es) | chore/cycle-008-plan (documental); feature/issue-77 (item 1, task [008_task_issue-77.md](008_task_issue-77.md)); feature/issue-78 (item 2, task [008_task_issue-78.md](008_task_issue-78.md)); feature/issue-79 (item 3, task [008_task_issue-79.md](008_task_issue-79.md)); feature/issue-80 (item 4, task [008_task_issue-80.md](008_task_issue-80.md)); chore/issue-81 (item 5, PRs #87 e #88, task [008_task_issue-81.md](008_task_issue-81.md), relatório [008_validation_agentes.md](008_validation_agentes.md)); chore/cycle-008-closure (encerramento, task [008_task_closure.md](008_task_closure.md)) |
 | Destino após conclusão | `_project/executed/008_comparacao_periodos_agentes/008_plan.md` |
 
 
@@ -429,15 +429,25 @@ Fontes públicas consultadas em 2026-11-15; capacidades documentadas não compro
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 008 (completo)
-Quem: Responsável
-Conferir: Checks e diff da PR #88 (https://github.com/EuThiagoAndrade/rastro-quente/pull/88)
-Diga: "aprovo o merge da PR #88"
+Situação: Concluído — ciclo 008 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
-### Publicação documental — 2026-11-15 (vigente)
+### Encerramento — 2026-11-17 (vigente)
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + atualizar_docs + encerramento + c520ce0`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: itens 1 a 5 integrados (PRs #82, #83, #85, #86, #87 e #88), issues #77 a #81 fechadas / encerramento prospectivo na branch chore/cycle-008-closure, PR aguardando merge
+- `result`: `executed`
+- `evidence`: PRs integradas acima; [008_validation_agentes.md](008_validation_agentes.md); task [008_task_closure.md](008_task_closure.md)
+- `blockers`: merge da PR de encerramento, com checks verdes e aprovação específica
+
+### Histórico — publicação documental, 2026-11-15
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 008 + publicar_plano + 008_plan + v3`
@@ -667,9 +677,15 @@ Sem rodada 3 executada nem veredito novo. A condição de saída é Aguardando r
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
-- **Lições comprovadas:** —
+- **Data de conclusão:** 2026-11-17 (prospectiva; efetiva no merge da PR de encerramento).
+- **Entregue:** comparação determinística de períodos e municípios (item 1, KB-007); função autenticada na Vercel com ferramentas determinísticas (item 2, ADR-011); agente principal e dois subagentes Gemini com conferência das evidências (item 3); painel de perguntas com fluxo de etapas reais (item 4); runbook, configuração hospedada, verificação T9 em produção e pacote de confiabilidade (item 5, [relatório](008_validation_agentes.md)).
+- **Desvios:**
+  - modelo trocado de `gemini-3.8-flash` para `gemini-3.1-flash-lite` (indisponível com 503; decisão do responsável, issue #79);
+  - função única `delegar`, conferência pelo mesmo item e repetição única em 503 (decisões do responsável, issue #79);
+  - na issue #81, a verificação hospedada mostrou a análise de disponibilidade rejeitada em 4 de 6 execuções com dados reais e leituras erradas que passaram na conferência (detecções chamadas de destaques, sentido A → B invertido, lista vazia lida como falta de dados). Foram corrigidas pelo pacote 1 a 3, sem reverificação exaustiva em produção (decisão do responsável);
+  - C2 (outra conta em produção) não executado e C9 parcial, por decisão do responsável;
+  - avaliação de valor: os agentes acrescentam acesso e leitura, não informação nova em relação à aba Destaques. O responsável decidiu rever o escopo dos agentes depois do ciclo.
+- **Lições comprovadas:** uma conferência de afirmações validada só com fixture fictícia não garante o comportamento com o formato e a escala dos dados reais. Validar com a evidência real (formato e volume) antes de declarar o aceite; ver `.agent/lessons_learned.md`.
 
 ## Referência do bootstrap
 
