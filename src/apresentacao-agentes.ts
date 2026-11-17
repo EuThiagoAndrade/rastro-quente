@@ -108,7 +108,7 @@ function blocoAnalises(analises: Analise[], evidencias: Map<string, EvidenciaRec
 function blocoEvidencias(evidencias: Map<string, EvidenciaRecebida>, m: ManipuladoresPerguntas): HTMLElement | null {
   if (!evidencias.size) return null;
   return h('details', { class: 'perguntas__bloco', id: 'perguntas-evidencias' },
-    h('summary', {}, `Evidências das ferramentas (${evidencias.size})`),
+    h('summary', {}, `Informações usadas na resposta (${evidencias.size})`),
     h('p', { class: 'nota' }, 'Resultados das ferramentas determinísticas, calculados no servidor com os mesmos módulos desta tela. O detalhamento continua nas abas Lentes e Comparação; a disponibilidade fora da comparação fica só nestas evidências.'),
     ...[...evidencias].map(([id, e]) => {
       const abrir = h('button', { type: 'button', class: 'botao botao--secundario botao--compacto' }, 'Ver o detalhamento na tela');
@@ -204,13 +204,13 @@ export function renderPerguntas(e: EstadoPerguntas, m: ManipuladoresPerguntas): 
       estado.textContent = `${ESTADO[r.estado]}.`;
       corpo.replaceChildren(...presentes(
         titulo,
-        etapas(e.etapas),
         h('div', { class: 'resposta-ia', 'data-estado-resposta': r.estado },
           h('p', { class: 'resposta-ia__estado' }, ESTADO[r.estado]),
           r.geradoPorIa ? h('p', { class: 'marca-ia' }, h('span', { class: 'marca-ia__etiqueta' }, 'Gerado por IA'), ' ', r.aviso) : null,
           r.notas.length ? h('div', { class: 'aviso-estado notas-ia' }, ...r.notas.map((n) => h('p', {}, n))) : null,
           r.afirmacoes.length ? afirmacoes(r.afirmacoes, r.evidencias) : null,
           lista(r.limites, 'Limites da resposta')),
+        h('details', { class: 'perguntas__bloco' }, h('summary', {}, 'Como a resposta foi preparada'), etapas(e.etapas)),
         blocoAnalises(r.analises, r.evidencias),
         blocoEvidencias(r.evidencias, m),
         blocoExecucao(r.execucao),

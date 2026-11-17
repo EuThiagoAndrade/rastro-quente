@@ -256,7 +256,10 @@ export function renderComparacaoPeriodos(c: ComparacaoTemporal, ctx: ContextoCom
   const rotulos: Record<Lado, string> = { A: `A · ${textoJanela(c.a.janela)}`, B: `B · ${textoJanela(c.b.janela)}` };
   const conclusiva = c.conclusao.estado === 'conclusiva';
   const corpo: (HTMLElement | null)[] = [
+    h('p', { class: 'ajuda' }, 'O que mudou entre os dois períodos?'),
+    h('p', { class: 'criterio', id: 'comparacao-resumo' }, `Foram registrados ${fmtNumero(c.a.total)} focos no período A e ${fmtNumero(c.b.total)} no período B.${conclusiva && c.diferencaTotal !== null ? ` Diferença de B em relação a A: ${fmtDiferenca(c.diferencaTotal)} focos.` : ' A diferença aguarda a conclusão da comparação.'}`),
     h('p', { class: 'nota', id: 'comparacao-descricao' }, `Dois períodos de ${fmtNumero(c.validacao.dias)} dias GMT no mesmo recorte${ctx.lente ? `, lente ${ctx.lente}` : ', sem lente (só contagens)'}. A é o período aplicado na Consulta.`),
+    h('p', { class: 'nota' }, 'Escolha A ou B para mostrar no mapa os focos e destaques de cada lado.'),
     botoesMapa(ctx.mapa, { A: 'A', B: 'B' }, m.mostrarNoMapa),
     h('p', { class: 'nota', id: 'comparacao-lados' }, `${rotulos.A} · ${rotulos.B}`),
     tabelaNumeros(rotulos, [
@@ -268,7 +271,7 @@ export function renderComparacaoPeriodos(c: ComparacaoTemporal, ctx: ContextoCom
     conclusaoTexto(c.conclusao, ctx.progressoZero),
   ];
   if (ctx.lente && conclusiva) {
-    corpo.push(h('p', { id: 'comparacao-contagem' }, `Entrou: ${fmtNumero(c.contagem.entrou)} · Saiu: ${fmtNumero(c.contagem.saiu)} · Permaneceu: ${fmtNumero(c.contagem.permaneceu)}`));
+    corpo.push(h('h3', {}, 'O que mudou nos lugares destacados?'), h('p', { class: 'nota' }, 'Compare os lugares encontrados pela lente nos dois períodos.'), h('p', { id: 'comparacao-contagem' }, `${fmtNumero(c.contagem.entrou)} apareceram só em B · ${fmtNumero(c.contagem.saiu)} só em A · ${fmtNumero(c.contagem.permaneceu)} nos dois períodos`));
     const inicio = ctx.pagina * ITENS_POR_PAGINA;
     corpo.push(h('ul', { class: 'destaques', id: 'comparacao-itens' }, ...c.itens.slice(inicio, inicio + ITENS_POR_PAGINA).map((i) => itemUnidade(
       i.chave, i.unidade, ROTULO_CLASSIFICACAO[i.classificacao], ctx.abertas.has(i.chave),
@@ -294,7 +297,11 @@ export function renderComparacaoMunicipios(c: ComparacaoMunicipal, ctx: Contexto
   const conclusiva = c.conclusao.estado === 'conclusiva';
   const d = c.diferenca;
   const corpo: (HTMLElement | null)[] = [
+    h('p', { class: 'ajuda' }, 'Como os registros dos dois municípios se comparam?'),
+    h('p', { class: 'criterio', id: 'comparacao-resumo' }, `${c.a.nome} teve ${fmtNumero(c.a.numeros.focos)} focos e ${c.b.nome} teve ${fmtNumero(c.b.numeros.focos)} focos.${conclusiva && d ? ` Diferença de B em relação a A: ${fmtDiferenca(d.focos)} focos.` : ' A diferença aguarda a conclusão da comparação.'}`),
+    h('p', { class: 'nota' }, 'Municípios podem ter tamanhos e características diferentes. A contagem de focos, sozinha, não indica gravidade.'),
     h('p', { class: 'nota', id: 'comparacao-descricao' }, `Dois municípios no período ${textoJanela(c.janela)}${ctx.lente ? `, lente ${ctx.lente} calculada em cada município` : ', sem lente (só contagens)'}. A é o município da Consulta.`),
+    h('p', { class: 'nota' }, 'Escolha A ou B para mostrar no mapa os focos e destaques de cada lado.'),
     botoesMapa(ctx.mapa, { A: 'A', B: 'B' }, m.mostrarNoMapa),
     h('p', { class: 'nota', id: 'comparacao-lados' }, `${rotulos.A} · ${rotulos.B}`),
     tabelaNumeros(rotulos, [

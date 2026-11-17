@@ -92,8 +92,8 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await page.getByText('Dias que contam contra (2)').click();
   expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'lacuna_conhecida']);
   await expect(page.locator('#lente-dias')).toContainText('2026-10-01: Lacuna conhecida');
-  // "← Voltar aos destaques": a lista volta e o foco vai ao item aberto.
-  await page.getByRole('button', { name: 'Voltar aos destaques' }).click();
+  // "← Voltar aos lugares": a lista volta e o foco vai ao item aberto.
+  await page.getByRole('button', { name: 'Voltar aos lugares' }).click();
   await expect(page.locator('#vista-lista')).toBeVisible();
   await expect(itens(page).first().locator('.botao-nome')).toBeFocused();
   // Reabre a explicação para consultar o município.
@@ -312,9 +312,9 @@ test.describe('recorrência', () => {
   });
 
   const ROTULOS_JANELA_INTEIRA = [
-    'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 meses GMT (3 detecções)',
-    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 meses GMT (23 detecções)',
-    'Célula -11.65 a -11.60 · -54.55 a -54.50 — 3 meses GMT (3 detecções)',
+    'Lugar 1 — 3 meses GMT (3 focos)',
+    'Lugar 2 — 3 meses GMT (23 focos)',
+    'Lugar 3 — 3 meses GMT (3 focos)',
   ];
 
   test('recorte municipal (ciclo 007, item 4): em Alfa a célula de divisa perde o destaque; em Beta, nenhum destaque', async ({ page }) => {
@@ -324,7 +324,7 @@ test.describe('recorrência', () => {
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     // Só a célula B (3 meses, 23 detecções, toda de Alfa); a célula A tem só ago e set em Alfa (out é de Beta).
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([ROTULOS_JANELA_INTEIRA[1]]);
+    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(['Lugar 1 — 3 meses GMT (23 focos)']);
     await expect(page.locator('#resumo-lente-recorte')).toContainText('calculada só com os focos de Município Alfa');
     await expect(page.locator('#lente-limitacoes')).toContainText('Células na divisa podem perder destaque, porque só contam os focos de Município Alfa.');
     await abrirDestaque(page, 0);
@@ -351,7 +351,7 @@ test.describe('recorrência', () => {
       '91 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
       '92 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
     ]);
-    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#lente-ordenacao')).toContainText('lugares com focos em mais meses');
     await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 meses GMT distintos');
     await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
     await expect(page.locator('#lente-limitacoes')).toContainText('A cobertura da célula usa os municípios das detecções');
@@ -359,7 +359,7 @@ test.describe('recorrência', () => {
 
     // Célula na divisa: municípios usados na cobertura (D13) e os dois dias que contam contra, com a classe.
     await abrirDestaque(page, 0);
-    await expect(page.locator('#t-explicacao')).toHaveText('Por que esta célula?');
+    await expect(page.locator('#t-explicacao')).toHaveText('Por que este lugar aparece?');
     await expect(page.locator('#lente-ficha')).toContainText('c-230_-1120');
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'recorrencia:celula_005:c-230_-1120');
     await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 meses GMT distintos na janela: ago/2026, set/2026 e out/2026.');
@@ -368,6 +368,11 @@ test.describe('recorrência', () => {
     expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'incidencia_indeterminada']);
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
     await expect(page.locator('#lente-evidencia-tabela tbody tr')).toHaveCount(3);
+    await expect(page.locator('.meses-focos li')).toHaveCount(3);
+    await expect(page.locator('.meses-focos')).toContainText('ago/2026');
+    await expect(page.locator('.meses-focos')).toContainText('set/2026');
+    await expect(page.locator('.meses-focos')).toContainText('out/2026');
+    await expect(page.locator('#lente-painel')).toContainText('Faltou alguma informação?');
 
     // Evidência paginada na célula com 23 detecções.
     await abrirDestaque(page, 1);
@@ -384,8 +389,8 @@ test.describe('recorrência', () => {
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([
-      'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 meses GMT (3 detecções)',
-      'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 meses GMT (16 detecções)',
+      'Lugar 1 — 3 meses GMT (3 focos)',
+      'Lugar 2 — 3 meses GMT (16 focos)',
     ]);
     expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
       '60 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
@@ -419,7 +424,7 @@ test.describe('recorrência', () => {
     r.soltar();
     await page.waitForTimeout(500);
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#lente-ordenacao')).toContainText('lugares com focos em mais meses');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
   });
 });
@@ -440,10 +445,10 @@ test.describe('persistência', () => {
   });
 
   const ROTULOS = [
-    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 dias GMT seguidos, 01/10/2026 a 03/10/2026 (3 detecções)',
-    'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 dias GMT seguidos, 10/10/2026 a 12/10/2026 (3 detecções)',
-    'Célula -11.55 a -11.50 · -56.50 a -56.45 — 4 dias GMT seguidos, 20/10/2026 a 23/10/2026 (5 detecções)',
-    'Célula -11.65 a -11.60 · -54.55 a -54.50 — 3 dias GMT seguidos, 29/10/2026 a 31/10/2026 (3 detecções)',
+    'Lugar 1 — 4 dias GMT seguidos, 20/10/2026 a 23/10/2026 (5 focos)',
+    'Lugar 2 — 3 dias GMT seguidos, 01/10/2026 a 03/10/2026 (3 focos)',
+    'Lugar 3 — 3 dias GMT seguidos, 10/10/2026 a 12/10/2026 (3 focos)',
+    'Lugar 4 — 3 dias GMT seguidos, 29/10/2026 a 31/10/2026 (3 focos)',
   ];
   const textosRessalvas = (page) => page.locator('#lente-ressalvas > li').evaluateAll((l) => l.map((x) => x.firstChild.textContent));
 
@@ -455,24 +460,23 @@ test.describe('persistência', () => {
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
     expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
       '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
+      '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
       '28 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
       '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
-      '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
     ]);
-    await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
-    await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#lente-ordenacao')).toContainText('maiores sequências');
     await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 dias GMT consecutivos');
     await expect(page.locator('#lente-parametros')).toContainText('só um dia sem detecção na célula interrompe');
     await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
     expect(await cartao(page).innerText()).not.toMatch(/\bcoberto\b/i);
 
     // Primeira sequência: toca o início da janela (T4).
-    await abrirDestaque(page, 0);
+    await abrirDestaque(page, 1);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-01');
     expect(await textosRessalvas(page)).toEqual(['sequência no limite da janela; pode ser mais longa']);
 
     // Célula na divisa: a classe da célula no dia 11 é lacuna conhecida, com a classe e os motivos de cada município.
-    await abrirDestaque(page, 1);
+    await abrirDestaque(page, 2);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-230_-1120:2026-10-10');
     await expect(page.locator('#lente-motivo')).toContainText('Detecções em 3 dias GMT consecutivos na célula, de 10/10/2026 a 12/10/2026.');
     await expect(page.locator('#lente-evidencia')).toContainText('dias GMT: 10/10/2026, 11/10/2026, 12/10/2026');
@@ -489,7 +493,7 @@ test.describe('persistência', () => {
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–3 de 3 detecções da evidência.');
 
     // Segunda sequência da mesma célula de 01–03 (T6): destaque próprio, sem ressalva.
-    await abrirDestaque(page, 2);
+    await abrirDestaque(page, 0);
     await expect(page.locator('#lente-painel')).toHaveAttribute('data-destaque', 'persistencia:celula_005:c-231_-1130:2026-10-20');
     await expect(page.locator('#lente-ressalvas')).toHaveCount(0);
     await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–5 de 5 detecções da evidência.');
@@ -530,7 +534,7 @@ test.describe('persistência', () => {
     r.soltar();
     await page.waitForTimeout(500);
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-    await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
+    await expect(page.locator('#lente-ordenacao')).toContainText('maiores sequências');
     expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
   });
 });

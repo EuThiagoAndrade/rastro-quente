@@ -25,9 +25,9 @@ test.afterAll(() => {
 const K = 'c-231_-1130';
 const L = 'c-229_-1113';
 const M = 'c-233_-1091';
-const ROTULO_K = `Célula ${K} (-11.55 a -11.50 · -56.50 a -56.45) — 2 detecções dentro de Parque Fictício Um`;
-const ROTULO_L = `Célula ${L} (-11.45 a -11.40 · -55.65 a -55.60) — 1 detecção dentro de Reserva Fictícia Dois`;
-const ROTULO_M = `Célula ${M} (-11.65 a -11.60 · -54.55 a -54.50) — 3 detecções dentro de Terra Indígena Fictícia Alfa; Terra Indígena Fictícia Beta`;
+const ROTULO_K = `Lugar 1 — 2 focos dentro de Parque Fictício Um`;
+const ROTULO_L = `Lugar 1 — 1 foco dentro de Reserva Fictícia Dois`;
+const ROTULO_M = `Lugar 1 — 3 focos dentro de Terra Indígena Fictícia Alfa; Terra Indígena Fictícia Beta`;
 const MOTIVO_M = 'Motivo: 2 de 3 detecções desta célula dentro da Terra Indígena Fictícia Alfa (fase: Regularizada); 1 de 3 detecções desta célula dentro da Terra Indígena Fictícia Beta (fase: Declarada)';
 const SEM_CAMADA = 'Esta versão dos dados não tem a camada de áreas protegidas.';
 

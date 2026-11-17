@@ -87,12 +87,14 @@ export function renderResumoLente(r: ResumoLente | null): void {
     $('t-destaques').textContent = 'Lentes';
     return;
   }
-  const plural = r.unidade === 'celula' ? (r.quantidade === 1 ? 'célula' : 'células') : (r.quantidade === 1 ? 'município' : 'municípios');
+  const plural = r.unidade === 'celula' ? (r.quantidade === 1 ? 'lugar' : 'lugares') : (r.quantidade === 1 ? 'município' : 'municípios');
   $('t-destaques').textContent = r.titulo;
+  const perguntas: Record<string, string> = { 'Concentração': 'Onde há mais focos acumulados?', 'Recorrência': 'Onde os focos voltam em meses diferentes no mesmo lugar?', 'Persistência': 'Onde os focos seguem dia após dia, sem pausa?', 'Sobreposição com áreas protegidas': 'Quais focos caem dentro de áreas protegidas?', 'Combinação de lentes': 'Onde mais de uma lente aponta para o mesmo lugar?' };
   alvo.replaceChildren(
+    h('p', { class: 'nota' }, perguntas[r.titulo] ?? 'O que foi encontrado no período escolhido?'),
     h('div', { class: 'nota' }, r.nome),
     h('div', { class: 'numero', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),
-    h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} · ${r.ordem}`));
+    h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)}`));
 }
 
 /** Mostra a explicação de um destaque (ou volta à lista, com `null`). */
@@ -168,6 +170,7 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
   $('t-municipios').textContent = comMunicipio ? 'Município no período' : 'Municípios no período';
   if (comMunicipio) {
     corpo.replaceChildren(
+      h('p', { class: 'ajuda' }, 'O que foi registrado neste município?'),
       h('p', { class: 'nota', id: 'mun-explica' }, `Números calculados só com os focos de ${ctx.nomeMunicipio ?? 'município'} no período. As lentes também usam só esses focos.`),
       cartaoMunicipio(ctx, m));
     return;
@@ -204,7 +207,8 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
     b.addEventListener('click', () => m.escolher(l.codigo));
     return h('li', {}, b);
   }));
-  corpo.replaceChildren(h('p', { class: 'nota', id: 'mun-explica' }, explica), ordem);
+  const resumo = linhas.length ? `No período, ${fmtNumero(linhas.length)} municípios tiveram focos registrados. ${fmtNumero(ctx.resumo.principal.total)} focos foram registrados no total.` : 'Nenhum município teve focos registrados neste período.';
+  corpo.replaceChildren(h('p', { class: 'ajuda' }, 'Em quais municípios foram registrados mais focos?'), h('p', { class: 'criterio', id: 'municipios-resumo' }, resumo), h('p', { class: 'nota' }, 'A lista mostra os focos registrados no período. Municípios maiores podem reunir mais registros; a contagem não indica, por si só, maior gravidade.'), h('p', { class: 'nota', id: 'mun-explica' }, explica), ordem);
   if (porCelula) corpo.append(h('p', { class: 'nota', id: 'mun-regra' }, 'Uma célula destacada conta em cada município com detecção nela.'));
   corpo.append(lista);
 }

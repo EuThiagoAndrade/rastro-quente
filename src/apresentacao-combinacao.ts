@@ -169,6 +169,7 @@ export function renderResultadoCombinacao(
   const n = r.estado === 'com_celulas' ? r.celulas.length : 0;
   rotularAbaDestaques(n);
   renderResumoLente({ titulo: 'Combinação de lentes', nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  if (r.estado === 'com_celulas') corpo.append(h('p', { class: 'criterio' }, `${fmtNumero(n)} lugares foram destacados ${r.operador === 'e' ? 'por todos os critérios escolhidos' : 'por pelo menos um dos critérios escolhidos'}.`), h('p', { class: 'nota' }, 'Toque em um lugar para entender quais critérios o destacaram.'));
   // Cabeçalho: sempre a configuração do resultado, nunca a do formulário (R1-7).
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),
@@ -192,9 +193,9 @@ export function renderResultadoCombinacao(
     corpo.append(h('p', { id: 'lente-celulas-info', class: 'ajuda', tabindex: '-1' },
       `Células ${fmtNumero(de + 1)} a ${fmtNumero(de + visiveis.length)} de ${fmtNumero(total)}.`));
     const lista = h('ol', { class: 'destaques lista-celulas', id: 'lente-destaques', start: String(de + 1), 'aria-label': 'Células da combinação (alternativa em texto ao mapa)' });
-    for (const c of visiveis) {
+    for (const [indice, c] of visiveis.entries()) {
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': c.id_combinado, 'aria-pressed': String(c.id_combinado === selecionado) },
-        `Célula ${c.unidade.id} (${bordas(c)}) — lentes: ${nomesDosCriterios(c)}`);
+        `Lugar ${fmtNumero(de + indice + 1)} — lentes: ${nomesDosCriterios(c)}`);
       b.addEventListener('click', () => m.selecionar(c.id_combinado));
       lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': c.cobertura.estado }, textoCobertura(c.cobertura))));
     }
@@ -211,5 +212,5 @@ export function renderResultadoCombinacao(
   }
   corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
   const escolhida = r.estado === 'com_celulas' ? r.celulas.find((c) => c.id_combinado === selecionado) : undefined;
-  mostrarExplicacao(escolhida ? painelCelula(r, escolhida, ctx, m) : null, 'Por que esta célula?');
+  mostrarExplicacao(escolhida ? painelCelula(r, escolhida, ctx, m) : null, 'Por que este lugar aparece?');
 }

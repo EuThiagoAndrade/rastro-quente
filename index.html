@@ -280,7 +280,7 @@
               </div>
             </div>
             <div id="vista-explicacao" class="vista" hidden>
-              <button type="button" class="botao-voltar" id="botao-voltar"><span aria-hidden="true">←</span> Voltar aos destaques</button>
+              <button type="button" class="botao-voltar" id="botao-voltar"><span aria-hidden="true">←</span> Voltar aos lugares</button>
               <h2 id="t-explicacao">Por que este destaque?</h2>
               <p class="nota">Motivo, evidência, disponibilidade e ressalvas, juntos.</p>
               <div id="lente-explicacao"></div>
@@ -298,15 +298,19 @@
           <!-- Perguntas (ciclo 008, item 4): agentes sobre o que está na tela; etapas reais e evidências. -->
           <section id="painel-perguntas" class="perguntas" aria-labelledby="t-perguntas" data-estado-perguntas="ociosa" aria-busy="false">
             <h2 id="t-perguntas" class="rotulo-secao" tabindex="-1">Perguntar sobre a tela</h2>
-            <p class="nota">Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação. As respostas são geradas por IA e podem conter erros.</p>
+            <p class="nota">Quer ajuda para entender o que aparece na tela? A inteligência artificial usa a seleção atual para responder. Confira as informações: a resposta pode conter erros.</p>
             <div class="perguntas__prontas" role="group" aria-label="Perguntas prontas">
-              <button id="pergunta-destaque" type="button" class="botao pergunta" data-pergunta="destaque" aria-describedby="pergunta-destaque-motivo">Por que esta célula foi destacada?</button>
+              <button id="pergunta-destaque" type="button" class="botao pergunta" data-pergunta="destaque" aria-describedby="pergunta-destaque-motivo">Por que este lugar aparece?</button>
+              <p class="nota">Entenda quais registros fizeram este lugar aparecer.</p>
               <p id="pergunta-destaque-motivo" class="nota pergunta__motivo" hidden></p>
               <button id="pergunta-periodos" type="button" class="botao pergunta" data-pergunta="periodos" aria-describedby="pergunta-periodos-motivo">O que mudou entre estes períodos?</button>
+              <p class="nota">Veja o que mudou entre os dois períodos selecionados.</p>
               <p id="pergunta-periodos-motivo" class="nota pergunta__motivo" hidden></p>
-              <button id="pergunta-lacunas" type="button" class="botao pergunta" data-pergunta="lacunas" aria-describedby="pergunta-lacunas-motivo">Há lacunas nos dados?</button>
+              <button id="pergunta-lacunas" type="button" class="botao pergunta" data-pergunta="lacunas" aria-describedby="pergunta-lacunas-motivo">Faltou algum dado?</button>
+              <p class="nota">Confira o que sabemos sobre a disponibilidade dos dados.</p>
               <p id="pergunta-lacunas-motivo" class="nota pergunta__motivo" hidden></p>
               <button id="acao-comparar-municipios" type="button" class="botao pergunta pergunta--acao" aria-describedby="acao-comparar-municipios-motivo">Comparar municípios</button>
+              <p class="nota">Abra a comparação para escolher outro município.</p>
               <p id="acao-comparar-municipios-motivo" class="nota pergunta__motivo" hidden></p>
             </div>
             <form id="form-pergunta" class="perguntas__livre" novalidate>

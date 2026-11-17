@@ -61,7 +61,7 @@ test('lente nos dois lados: unidades classificadas, evidências por lado e mapa 
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'pronta');
   await expect(page.locator('#comparacao-descricao')).toContainText('lente Concentração');
   // Os três municípios da fixture têm detecções nos dois períodos: todos ficam entre os destacados (menos de 10).
-  await expect(page.locator('#comparacao-contagem')).toHaveText('Entrou: 0 · Saiu: 0 · Permaneceu: 3');
+  await expect(page.locator('#comparacao-contagem')).toHaveText('0 apareceram só em B · 0 só em A · 3 nos dois períodos');
   const itens = page.locator('#comparacao-itens > li');
   await expect(itens).toHaveCount(3);
   await expect(itens.nth(0).locator('summary')).toHaveText('Município Alfa (9900001) — permaneceu nos destaques observados');

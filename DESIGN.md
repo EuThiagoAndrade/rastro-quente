@@ -93,6 +93,12 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - **Rodapé de domínio:** fixo no fim da tela, com a primeira frase em destaque (`--aviso-borda`); no celular, só a primeira frase.
 - **Barra de rolagem:** nas colunas e abaixo do mapa, só aparece ao passar o mouse ou com o foco dentro.
 
+### Clareza do painel de resultados (issue #94)
+
+- O resumo das lentes traz a pergunta que a opção responde; nas lentes de recorrência, persistência e concentração, a resposta usa os valores determinísticos já calculados. Lugares da recorrência e sequências da persistência são listados pelo valor do critério, em ordem decrescente; empates preservam a ordem original. A ordem não significa gravidade ou risco.
+- No detalhe de recorrência, quando todos os registros da evidência estão disponíveis, os meses do período são apresentados com contagens em uma grade textual adaptável. Meses parciais são identificados; números e rótulos permanecem legíveis sem depender da cor. A disponibilidade distingue pendência, falha, dias com atenção e ausência de lacuna conhecida, sem afirmar cobertura.
+- Municípios e comparação começam com a pergunta e um resumo. Uma diferença comparativa só é apresentada quando a conclusão existente a permite. O painel de perguntas explica o propósito de cada ação e apresenta a resposta antes das etapas, que continuam acessíveis em detalhes recolhíveis. As perguntas continuam usando a seleção aplicada, sem alterar filtros.
+
 ## Layout
 
 - **Topo:** marca à esquerda; chips; botões de ícone; estado da sessão e "Sair".

@@ -124,12 +124,13 @@ function rotuloUnidade(d: Destaque): string {
 /** "2026-10-12" → "12/10/2026". */
 export const dataBr = (dia: string): string => `${dia.slice(8, 10)}/${dia.slice(5, 7)}/${dia.slice(0, 4)}`;
 
-function rotuloDestaque(lente: TipoLente, d: Destaque): string {
+function rotuloDestaque(lente: TipoLente, d: Destaque, posicao: number): string {
   const deteccoes = `${fmtNumero(d.evidencia.deteccoes.length)} detecções`;
   const datas = d.evidencia.datas;
   const valor = lente === 'recorrencia' ? `${fmtNumero(d.evidencia.valor)} meses GMT (${deteccoes})`
     : lente === 'persistencia' ? `${fmtNumero(d.evidencia.valor)} dias GMT seguidos, ${dataBr(datas[0] ?? '')} a ${dataBr(datas.at(-1) ?? '')} (${deteccoes})`
       : deteccoes;
+  if (d.unidade.tipo === 'celula_005') return `Lugar ${posicao} — ${valor.replace('detecções', 'focos')}`;
   return d.ordem ? `${d.ordem}. ${rotuloUnidade(d)} — ${valor}` : `${rotuloUnidade(d)} — ${valor}`;
 }
 
@@ -169,11 +170,12 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
   const n = d.evidencia.deteccoes.length;
   const u = d.unidade;
   const corpo = h('div', { id: 'lente-painel', class: 'painel-lente', 'data-destaque': d.id_destaque },
-    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, rotuloUnidade(d)),
-    ficha(u.tipo === 'municipio'
-      ? [['Município', u.nome], ['Código IBGE', String(u.codigo)], ['Detecções da evidência', fmtNumero(n)], ['Posição na lista', d.ordem ? `${d.ordem}º, por contagem` : '—']]
-      : [['Célula 0,05°', u.id], ['Detecções da evidência', fmtNumero(n)],
-        ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', `${u.sul} a ${u.norte} · ${u.oeste} a ${u.leste}`]]),
+    h('h3', { tabindex: '-1', id: 'lente-painel-titulo' }, u.tipo === 'municipio' ? u.nome : 'Lugar selecionado'),
+    h('p', { class: 'criterio' }, lente === 'recorrencia'
+      ? `Este lugar teve focos em ${fmtNumero(d.evidencia.valor)} meses diferentes. A Recorrência destaca lugares com focos em pelo menos 3 meses.`
+      : lente === 'persistencia' ? `Este lugar teve focos em ${fmtNumero(d.evidencia.valor)} dias seguidos. A Persistência destaca sequências de pelo menos 3 dias.`
+        : `Este município teve ${fmtNumero(n)} focos no período e foi destacado pela quantidade de registros.`),
+    h('p', { class: 'nota' }, 'Por que este lugar aparece?'),
     h('p', { class: 'nota' }, `Destacado por: ${TITULO_LENTE[lente]}.`),
     h('section', { class: 'criterio', 'data-lente': lente, 'aria-label': `Critério: ${TITULO_LENTE[lente]}` },
       h('h4', {}, TITULO_LENTE[lente]),
@@ -181,6 +183,27 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
       h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(n)} detecções (registros principais da janela)${datas.length ? `; ${rotuloDatas}: ${datas.join(', ')}` : ''}.`)),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
   );
+  const explicacaoDisponibilidade = c.estado === 'pendente' ? 'A disponibilidade dos dados ainda está sendo verificada.'
+    : c.estado === 'falha' ? 'Não foi possível verificar a disponibilidade dos dados para este lugar.'
+      : c.demais_dias.length ? `Em ${fmtNumero(c.demais_dias.length)} dias houve lacuna conhecida ou informação incerta. Pode ter havido focos não registrados nesses dias.`
+        : 'Não foi identificada lacuna nos dias avaliados. Isso não garante que todos os focos foram detectados.';
+  corpo.insertBefore(h('section', { class: 'criterio' }, h('h4', {}, 'Faltou alguma informação?'), h('p', { class: 'nota' }, 'A disponibilidade ajuda a entender o que pode ter ficado de fora.'), h('p', {}, explicacaoDisponibilidade)), corpo.querySelector('#lente-cobertura'));
+  if (lente === 'recorrencia' && r.janela.meses) {
+    const contagens = new Map<string, number>();
+    for (const id of d.evidencia.deteccoes) {
+      const registro = ctx.registros.get(id);
+      if (registro) { const mes = registro.data_hora_gmt.slice(0, 7); contagens.set(mes, (contagens.get(mes) ?? 0) + 1); }
+    }
+    if (d.evidencia.deteccoes.every((id) => ctx.registros.has(id))) {
+      corpo.insertBefore(h('section', { class: 'criterio', 'aria-label': 'Focos por mês' },
+        h('h4', {}, 'Em quais meses houve focos?'),
+        h('p', { class: 'nota' }, 'A lista mostra quantos focos foram registrados em cada mês do período.'),
+        h('ul', { class: 'meses-focos' }, ...r.janela.meses.map((mes) => {
+          const total = contagens.get(mes.mes) ?? 0;
+          return h('li', { class: total ? 'meses-focos__com-registro' : '' }, h('strong', {}, fmtNumero(total)), h('span', {}, `${rotuloMes(mes.mes)}${mes.parcial ? ' (parcial)' : ''}`));
+        }))), corpo.querySelector('#lente-cobertura'));
+    }
+  }
   if (u.tipo === 'celula_005') {
     corpo.append(h('p', { id: 'lente-municipios', class: 'nota' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
       `${c.municipios.map((x) => nomeMunicipio(x, ctx.nomes)).join('; ')}. São os municípios das detecções da célula na janela; um dia só conta como sem evidência de lacuna se todos estiverem assim.`));
@@ -215,7 +238,13 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
   } else {
     corpo.append(detalhesEvidencia(d.id_destaque, n, tabelaEvidencia(d, ctx, m)));
   }
-  corpo.append(metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+  corpo.append(h('details', { class: 'detalhes' }, h('summary', {}, 'Ver localização e detalhes técnicos'),
+    ficha(u.tipo === 'municipio'
+      ? [['Município', u.nome], ['Código IBGE', String(u.codigo)], ['Detecções da evidência', fmtNumero(n)], ['Posição na lista', d.ordem ? `${d.ordem}º, por contagem` : '—']]
+      : [['Célula 0,05°', u.id], ['Detecções da evidência', fmtNumero(n)],
+        ['Município(s)', c.municipios.map((x) => ctx.nomes.get(x) ?? String(x)).join('; ')], ['Limites', `${u.sul} a ${u.norte} · ${u.oeste} a ${u.leste}`]]),
+    metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo })));
+
   return corpo;
 }
 
@@ -229,18 +258,26 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     ordem: municipios ? 'por contagem; não é ranking' : 'norte→sul, oeste→leste; não é ranking',
     municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });
+  if (r.estado === 'com_destaques') {
+    const maior = Math.max(...r.destaques.map((d) => d.evidencia.valor));
+    const escopo = r.recorte.tipo === 'municipio' ? `Em ${ctx.nomes.get(r.recorte.municipio) ?? 'o município escolhido'}` : 'Em Mato Grosso';
+    const frase = r.lente === 'recorrencia' ? `${escopo}, ${fmtNumero(r.destaques.length)} lugares tiveram focos em pelo menos 3 meses diferentes. O maior número observado foi ${fmtNumero(maior)} meses.` : r.lente === 'persistencia' ? `${escopo}, ${fmtNumero(r.destaques.length)} sequências tiveram focos em pelo menos 3 dias seguidos. A maior durou ${fmtNumero(maior)} dias.` : `${escopo}, ${fmtNumero(r.destaques.length)} municípios foram destacados pela quantidade de focos registrados.`;
+    corpo.append(h('p', { class: 'criterio', id: 'lente-resposta' }, frase), h('p', { class: 'nota' }, 'Focos de calor não comprovam incêndio, dano, autoria ou infração.'));
+  }
   if (municipios) corpo.append(h('p', { id: 'lente-ressalva-contagem', class: 'ressalva-contagem' }, RESSALVA_CONTAGEM));
   if (r.ordenacao) corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, `Lista ${r.ordenacao.rotulo}.`));
   else if (r.destaques.length) {
     corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, r.lente === 'persistencia'
-      ? 'Lista pela data de início da sequência e depois pela ordem das células, de norte a sul e de oeste a leste; não é ranking.'
-      : 'Lista na ordem das células, de norte a sul e de oeste a leste; não é ranking.'));
+      ? 'Primeiro, as maiores sequências de dias com focos. Toque em um lugar para entender o resultado.'
+      : 'Primeiro, os lugares com focos em mais meses. Toque em um lugar para entender o resultado.'));
+    corpo.append(h('p', { class: 'nota' }, 'A ordem mostra o valor do critério; não mede gravidade ou risco.'));
   }
   for (const o of r.observacoes) corpo.append(h('p', { class: 'ajuda lente-observacao' }, o));
   if (r.destaques.length) {
     const lista = h('ol', { class: 'destaques lista-celulas', id: 'lente-destaques', 'aria-label': 'Destaques da lente (alternativa em texto ao mapa)' });
-    for (const d of r.destaques) {
-      const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloDestaque(r.lente, d));
+    const ordenados = municipios ? r.destaques : [...r.destaques].sort((a, b) => b.evidencia.valor - a.evidencia.valor);
+    for (const [indice, d] of ordenados.entries()) {
+      const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloDestaque(r.lente, d, indice + 1));
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
       lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': d.cobertura.estado }, textoCobertura(d.cobertura))));
     }
@@ -253,5 +290,5 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'),
     h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
-  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, municipios ? 'Por que este município?' : 'Por que esta célula?');
+  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, municipios ? 'Por que este município?' : 'Por que este lugar aparece?');
 }

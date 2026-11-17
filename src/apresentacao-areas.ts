@@ -155,10 +155,6 @@ const idCelula = (d: DestaqueSobreposicao): string => (d.unidade.tipo === 'celul
 
 const deteccoes = (n: number): string => `${fmtNumero(n)} ${n === 1 ? 'detecção' : 'detecções'}`;
 
-/** Rótulo da célula na lista: posição, detecções vinculadas e as áreas, sem número de áreas. */
-const rotuloCelula = (d: DestaqueSobreposicao): string =>
-  `Célula ${idCelula(d)} (${bordas(d)}) — ${deteccoes(d.evidencia.valor)} dentro de ${d.areas.map(nomeArea).join('; ')}`;
-
 function itemArea(a: AreaSobreposicao, m: ManipuladoresSobreposicao): HTMLElement {
   const b = h('button', { type: 'button', class: 'botao botao--secundario botao-area', 'data-chave': a.chave }, `Ver dados e contorno de ${nomeArea(a)}`);
   b.addEventListener('click', () => m.selecionarArea(a));
@@ -248,6 +244,7 @@ export function renderResultadoSobreposicao(
   corpo.replaceChildren();
   rotularAbaDestaques(r.destaques.length);
   renderResumoLente({ titulo: 'Sobreposição com áreas protegidas', nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  if (r.estado === 'com_destaques') corpo.append(h('p', { class: 'criterio' }, `${fmtNumero(r.destaques.length)} lugares tiveram focos dentro de áreas de ${ROTULO_CLASSE[r.classe]}.`), h('p', { class: 'nota' }, 'Estar dentro de uma área protegida não comprova infração, autoria ou situação fundiária.'));
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
     h('p', { id: 'lente-escopo', class: 'ajuda' },
@@ -268,8 +265,8 @@ export function renderResultadoSobreposicao(
     corpo.append(h('p', { id: 'lente-celulas-info', class: 'ajuda', tabindex: '-1' },
       `Células ${fmtNumero(de + 1)} a ${fmtNumero(de + visiveis.length)} de ${fmtNumero(total)}.`));
     const lista = h('ol', { class: 'destaques lista-celulas', id: 'lente-destaques', start: String(de + 1), 'aria-label': 'Células da sobreposição (alternativa em texto ao mapa)' });
-    for (const d of visiveis) {
-      const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloCelula(d));
+    for (const [indice, d] of visiveis.entries()) {
+      const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, `Lugar ${fmtNumero(de + indice + 1)} — ${fmtNumero(d.evidencia.valor)} ${d.evidencia.valor === 1 ? 'foco' : 'focos'} dentro de ${d.areas.map(nomeArea).join('; ')}`);
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
       lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': d.cobertura.estado }, textoCobertura(d.cobertura))));
     }
@@ -286,5 +283,5 @@ export function renderResultadoSobreposicao(
   }
   corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
-  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que esta célula?');
+  mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que este lugar aparece?');
 }

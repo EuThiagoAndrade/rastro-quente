@@ -24,9 +24,9 @@ const TRES = ['concentracao', 'recorrencia', 'persistencia'];
 const X = 'c-221_-1140';
 const Y = 'c-221_-1138';
 const Z = 'c-223_-1140';
-const ROTULO_X = 'Célula c-221_-1140 (-11.05 a -11.00 · -57.00 a -56.95) — lentes: concentração, recorrência, persistência';
-const ROTULO_Y = 'Célula c-221_-1138 (-11.05 a -11.00 · -56.90 a -56.85) — lentes: concentração, persistência';
-const ROTULO_Z = 'Célula c-223_-1140 (-11.15 a -11.10 · -57.00 a -56.95) — lentes: concentração, recorrência';
+const ROTULO_X = 'Lugar 1 — lentes: concentração, recorrência, persistência';
+const ROTULO_Y = 'Lugar 2 — lentes: concentração, persistência';
+const ROTULO_Z = 'Lugar 3 — lentes: concentração, recorrência';
 const COBERTURA_151 = '151 de 153 dias sem evidência de lacuna (cobertura não comprovada)';
 const SEM_E = 'Nenhuma célula destacada por todas as lentes escolhidas nesta janela. Isso não indica ausência de focos nem de risco.';
 const SEM_OU = 'Nenhuma célula destacada por qualquer das lentes escolhidas nesta janela. Isso não indica ausência de focos nem de risco.';
@@ -162,7 +162,7 @@ test('"as três, ou": 147 células em 3 páginas, sequências da persistência e
   await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 147.');
   await expect(itens(page)).toHaveCount(50);
   expect((await rotulos(page)).slice(0, 4)).toEqual([ROTULO_X, ROTULO_Y, ROTULO_Z,
-    'Célula c-231_-1140 (-11.55 a -11.50 · -57.00 a -56.95) — lentes: concentração']);
+    'Lugar 4 — lentes: concentração']);
   await expect(page.locator('#lente-mapa-info')).toContainText('Mapa: 147 células desenhadas');
   await expect(page.locator('#lente-configuracao')).toContainText('concentração ou recorrência ou persistência (operador ou: células destacadas por pelo menos uma das lentes escolhidas)');
   await expect(page.locator('#lente-limitacoes')).toContainText('Combinar critérios com "ou" amplia a seleção, sem torná-la mais verdadeira');
@@ -230,8 +230,8 @@ test('T16: a configuração vale ao mudar e recalcula; resposta antiga não apar
   await escolher(page, ['recorrencia', 'concentracao'], 'e');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(await rotulos(page)).toEqual([
-    'Célula c-221_-1140 (-11.05 a -11.00 · -57.00 a -56.95) — lentes: concentração, recorrência',
-    ROTULO_Z,
+    'Lugar 1 — lentes: concentração, recorrência',
+    'Lugar 2 — lentes: concentração, recorrência',
   ]);
   await expect(page.locator('#lente-mapa-info')).toContainText('Mapa: 2 células desenhadas');
 });
