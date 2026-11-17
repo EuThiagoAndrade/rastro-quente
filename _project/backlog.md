@@ -216,7 +216,7 @@ Com um único usuário, o custo da atualização manual é baixo, então a urgê
 
 > **Criado em:** `2026-11-10`
 > **Atualizado em:** `2026-11-17`
-> **Estado:** `Disponível`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -255,17 +255,19 @@ flowchart TD
 
 ### Encaminhamentos
 
+- ciclo 007 — 2026-11-15 — explicação de "Por que esta célula foi destacada?", com motivo, evidências e ressalvas já calculados, inclusive na combinação
 - ciclo 008 — 2026-11-17 — comparação direta de dois períodos e proposta de agentes (agente principal, dois subagentes, função no servidor e modelo de linguagem)
 
 ### Restante
 
-- Explicação de "Por que esta célula foi destacada?", com motivo, evidências e ressalvas já calculados: entregue pelo ciclo 007, mas sem retorno registrado nesta fila.
+—
 
 ### Registro
 
 - 2026-11-10 — Pedido explícito de guardar a necessidade; captura local.
 - 2026-11-14 — Pedido explícito de registrar na fila a proposta de explicação das lentes selecionadas no mapa. O item foi detalhado com o caso de comparação entre períodos, as funções dos subagentes e o diagrama da interação.
 - 2026-11-17 — Pedido explícito de registrar o retorno do ciclo 008, depois da integração do encerramento em main. Encaminhadas a comparação de dois períodos e a proposta de agentes; o item continua Disponível pela parcela da explicação da célula.
+- 2026-11-17 — Pedido explícito de registrar também o retorno do ciclo 007, integrado em main em 2026-11-15. Encaminhada a explicação da célula; com as duas parcelas, o item passa a Encaminhado.
 
 ## BL-010 — Mapa-base: travamento ao trocar de fundo e falha parcial do satélite
 
