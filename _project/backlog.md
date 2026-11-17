@@ -470,8 +470,8 @@ A ordem e o tamanho da faixa não indicam prioridade, gravidade nem risco, como 
 ## BL-017 — Rótulos das lentes e espaço do mapa
 
 > **Criado em:** `2026-11-15`
-> **Atualizado em:** `2026-11-15`
-> **Estado:** `Disponível`
+> **Atualizado em:** `2026-11-17`
+> **Estado:** `Encaminhado`
 
 ### Problema e benefício esperado
 
@@ -488,7 +488,7 @@ A relação entre as opções de lentes à esquerda e os resultados à direita n
 
 ### Encaminhamentos
 
-—
+- ciclo 009 — 2026-11-17 — item inteiro
 
 ### Restante
 
@@ -497,6 +497,7 @@ A relação entre as opções de lentes à esquerda e os resultados à direita n
 ### Registro
 
 - 2026-11-15 — Pedido explícito de guardar em um único item as mudanças de identificação das lentes, simplificação da área do mapa e atualização pontual de “Como ler esta tela”; captura local.
+- 2026-11-17 — Pedido explícito de registrar a conclusão do item após o merge da PR #92 (ciclo 009, issue #91), integrada em main (`9e9b3f2`). Item inteiro encaminhado; o item passa a Encaminhado.
 
 ## BL-018 — Biomas de Mato Grosso no mapa e na análise de focos de calor
 
