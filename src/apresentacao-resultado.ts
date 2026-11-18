@@ -2,10 +2,11 @@
 // explicação com "Voltar aos destaques", resumo da lente, cartão do município, lista estadual ordenável e a
 // "Lista de focos" (T21). Todo valor da fonte entra por textContent.
 import { $, h, tabela } from './apresentacao.ts';
-import { fmtDataHoraGmt, fmtNumero, larguraProporcional, ROTULO_CLASSE, ROTULO_DIVERGENCIA } from './formato.ts';
+import { fmtDataHoraGmt, fmtNumero, ROTULO_CLASSE, ROTULO_DIVERGENCIA } from './formato.ts';
 import { textoCobertura } from './lentes/cobertura.ts';
 import type { Cobertura, RegistroLente } from './lentes/contrato.ts';
-import { linhaCelulasDestacadas, listaMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
+import { linhaCelulasDestacadas, listaMunicipios, maioresMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
+import { resumoPeriodo } from './recorte.ts';
 import type { Registro, Resumo } from './tipos.ts';
 
 export type Aba = 'destaques' | 'municipios' | 'comparacao';
@@ -353,6 +354,7 @@ export const explicacaoAberta = (): boolean => !$('vista-explicacao').hidden;
 export interface ContextoMunicipios {
   resumo: Resumo;
   nomeMunicipio: string | null;
+  detalhe: { codigo: number; mapa: 'ocioso' | 'carregando' | 'exibido' | 'ausente' | 'falha' } | null;
   ordem: OrdemMunicipios;
   ativos: DestaquesAtivos | null;
   nomeLente: string | null;
@@ -365,11 +367,15 @@ export interface ContextoMunicipios {
 export interface ManipuladoresMunicipios {
   escolher(codigo: number | null): void;
   ordenar(ordem: OrdemMunicipios): void;
+  inspecionar(codigo: number): void;
+  voltar(): void;
+  mostrarNoMapa(): void;
+  verDestaques(): void;
 }
 
 const ROTULO_ORDEM: Record<OrdemMunicipios, string> = { deteccoes: 'Detecções', destaques: 'Destaques da lente', nome: 'Nome' };
 
-function cartaoMunicipio(ctx: ContextoMunicipios, m: ManipuladoresMunicipios): HTMLElement {
+function cartaoMunicipio(ctx: ContextoMunicipios): HTMLElement {
   const leitura = ctx.leitura;
   const n = numerosMunicipio(ctx.resumo, Array.isArray(leitura) ? leitura : null);
   const celulas = leitura === 'carregando' ? 'carregando' : leitura === 'erro' ? 'indisponível' : fmtNumero(n.celulas ?? 0);
@@ -382,11 +388,8 @@ function cartaoMunicipio(ctx: ContextoMunicipios, m: ManipuladoresMunicipios): H
     dl.append(h('dt', {}, ctx.nomeLente ? `Células destacadas (${ctx.nomeLente})` : 'Células destacadas'),
       h('dd', { id: 'cartao-destacadas' }, linha.valor, linha.nota ? h('span', { class: 'cartao-mun__nota' }, linha.nota) : null));
   }
-  const voltar = h('button', { type: 'button', id: 'botao-todo-estado', class: 'botao botao--secundario' }, 'Ver todo Mato Grosso');
-  voltar.addEventListener('click', () => m.escolher(null));
-  return h('div', { class: 'cartao-mun', id: 'cartao-municipio' }, h('h3', {}, ctx.nomeMunicipio ?? ''), dl,
-    leitura === 'erro' ? h('p', { class: 'aviso-estado' }, 'A leitura dos registros do recorte falhou; as células com foco não foram contadas. Os demais números continuam válidos.') : null,
-    voltar);
+  return h('div', { class: 'cartao-mun', id: 'cartao-municipio' }, h('h3', { class: 'so-leitor' }, ctx.nomeMunicipio ?? ''), dl,
+    leitura === 'erro' ? h('p', { class: 'aviso-estado' }, 'A leitura dos registros do recorte falhou; as células com foco não foram contadas. Os demais números continuam válidos.') : null);
 }
 
 export function renderMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios): void {
@@ -400,20 +403,84 @@ export function renderMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunici
   if (seletor) corpo.querySelector<HTMLElement>(seletor)?.focus();
 }
 
+function detalheMunicipio(ctx: ContextoMunicipios, m: ManipuladoresMunicipios): void {
+  const corpo = $('municipios-corpo');
+  const codigo = ctx.resumo.municipio ?? ctx.detalhe?.codigo;
+  const municipal = ctx.resumo.municipio !== null;
+  const linha = listaMunicipios(ctx.resumo.principal.por_municipio, ctx.ordem, ctx.ativos, ctx.registrosLente).find((l) => l.codigo === codigo);
+  const nome = municipal ? ctx.nomeMunicipio : linha?.nome;
+  if (!nome || codigo === undefined) return;
+  const voltar = h('button', { type: 'button', id: municipal ? 'botao-todo-estado' : 'municipio-voltar', class: 'botao botao--secundario' },
+    municipal ? 'Ver todo Mato Grosso' : '← Voltar aos municípios');
+  voltar.addEventListener('click', () => municipal ? m.escolher(null) : m.voltar());
+  const titulo = h('h3', { id: 'municipio-detalhe-titulo', tabindex: '-1' }, nome);
+  const total = municipal ? ctx.resumo.principal.total : linha?.total ?? 0;
+  const resposta = h('p', { class: 'lente-resposta' }, 'Foram registrados ', h('strong', {}, `${fmtNumero(total)} focos`), ` em ${nome} no período escolhido.`);
+  if (ctx.ativos?.unidade === 'celula') {
+    const n = municipal ? linhaCelulasDestacadas(ctx.ativos)?.valor ?? '—' : fmtNumero(linha?.celulas ?? 0);
+    resposta.append(' Na lente ', h('strong', {}, ctx.nomeLente ?? 'selecionada'), ', ', h('strong', {}, `${n} células`),
+      municipal ? ' atendem ao critério neste recorte.' : ' dos destaques estaduais têm detecção deste município.');
+  } else if (ctx.ativos?.unidade === 'municipio') {
+    resposta.append(linha?.destacado ? ' O município aparece nos destaques da concentração estadual.' : ' O município está fora dos destaques da concentração estadual.');
+  }
+  corpo.replaceChildren(voltar, titulo,
+    h('p', { class: 'lente-pergunta' }, 'O que foi registrado neste município?'), resposta, periodoMunicipios(ctx));
+  const explicacao = blocoLente('Como interpretar?', 'A quantidade de focos e os lugares destacados respondem a perguntas diferentes.');
+  explicacao.append(h('p', { class: 'nota', id: 'mun-explica' }, municipal
+    ? `Números calculados só com os focos de ${nome} no período. As lentes também usam só esses focos.`
+    : 'Os focos são registros do município no período. A participação nos destaques estaduais não equivale à lente refeita só com esses focos. Uma célula pode reunir vários focos e contar em mais de um município.'),
+    h('p', { class: 'nota' }, 'Focos de calor não comprovam incêndio, dano, autoria ou infração.'));
+  corpo.append(explicacao);
+  const mapa = h('button', { id: 'municipio-mostrar-mapa', type: 'button', class: 'botao botao--primario', 'aria-disabled': String(ctx.detalhe?.mapa === 'carregando') }, 'Mostrar no mapa');
+  mapa.addEventListener('click', m.mostrarNoMapa);
+  const estado = ctx.detalhe?.mapa ?? 'ocioso';
+  const mensagens = { ocioso: '', carregando: 'Carregando a geometria do município…', exibido: 'Município localizado no mapa. Os filtros foram preservados.', ausente: 'Geometria do município indisponível nesta carga.', falha: 'Não foi possível carregar a geometria. Tente novamente.' };
+  const acoes = h('div', { class: 'lente-acoes' }, cartaoAcao(mapa, 'Veja onde fica o município, sem alterar filtros, camadas ou seleção.'),
+    h('p', { id: 'municipio-mapa-estado', class: 'nota', role: 'status', 'data-estado': estado }, mensagens[estado]));
+  const destaques = h('button', { id: 'municipio-ver-destaques', type: 'button', class: 'botao botao--secundario' }, 'Ver destaques');
+  destaques.addEventListener('click', m.verDestaques);
+  acoes.append(cartaoAcao(destaques, municipal
+    ? `Abre Lentes no recorte aplicado de ${nome}.`
+    : 'Abre Lentes no resultado de todo Mato Grosso. Para o resultado municipal, use “Consultar município” antes. Concentração só existe no estado.'));
+  if (!municipal) {
+    const consultar = h('button', { id: 'municipio-consultar', type: 'button', class: 'botao botao--secundario' }, 'Consultar município');
+    consultar.addEventListener('click', () => m.escolher(codigo));
+    acoes.append(cartaoAcao(consultar, `Aplica ${nome} à consulta, ao mapa e às lentes compatíveis. Mantém o período.`));
+  }
+  if (!municipal) {
+    const lista = h('button', { type: 'button', class: 'botao botao--secundario', id: 'municipio-ver-todos' }, 'Ver todos os municípios');
+    lista.addEventListener('click', m.voltar);
+    acoes.append(cartaoAcao(lista, 'Volte à lista para comparar os números com outros municípios.'));
+  }
+  const tecnicos = detalhesTecnicos(
+    h('p', {}, `Código municipal: ${codigo}. Carga nº ${ctx.resumo.carga.id}. Satélite: ${ctx.resumo.carga.satelite}. Datas em GMT. Grade T1 de 0,05°.`),
+    h('p', {}, 'A geometria de exibição pode ser simplificada; ela não altera as contagens. Fontes, versão e limitações completas estão em “Sobre os dados”, no topo.'));
+  if (municipal) tecnicos.append(cartaoMunicipio(ctx));
+  else {
+    const dados = h('dl', { id: 'municipio-estadual-numeros', class: 'definicoes' },
+      h('dt', {}, 'Detecções no período'), h('dd', {}, fmtNumero(total)));
+    if (ctx.ativos?.unidade === 'celula') dados.append(h('dt', {}, `Células em destaques estaduais (${ctx.nomeLente ?? 'lente'})`), h('dd', {}, fmtNumero(linha?.celulas ?? 0)));
+    if (ctx.ativos?.unidade === 'municipio') dados.append(h('dt', {}, 'Participação na concentração estadual'), h('dd', {}, linha?.destacado ? 'Município destacado' : 'Fora dos destaques'));
+    tecnicos.append(dados, h('p', { class: 'nota' }, 'Dias com detecção e células com foco ficam disponíveis ao consultar o município.'));
+  }
+  corpo.append(acoes, tecnicos);
+}
+
+function periodoMunicipios(ctx: ContextoMunicipios): HTMLElement {
+  return h('p', { class: 'nota', id: 'municipios-periodo' }, `${ctx.resumo.municipio === null ? 'Todo Mato Grosso' : ctx.nomeMunicipio ?? 'Município'} · ${resumoPeriodo(ctx.resumo.periodo)}`);
+}
+
 function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios): void {
   const corpo = $('municipios-corpo');
   const comMunicipio = ctx.resumo.municipio !== null;
-  $('t-municipios').textContent = comMunicipio ? 'Município no período' : 'Municípios no período';
-  if (comMunicipio) {
-    corpo.replaceChildren(
-      h('p', { class: 'nota', id: 'mun-explica' }, `Números calculados só com os focos de ${ctx.nomeMunicipio ?? 'município'} no período. As lentes também usam só esses focos.`),
-      cartaoMunicipio(ctx, m));
+  $('t-municipios').textContent = comMunicipio ? 'Município no período' : 'Focos por município';
+  $('t-municipios').classList.toggle('so-leitor', comMunicipio || ctx.detalhe !== null);
+  if (comMunicipio || ctx.detalhe) {
+    detalheMunicipio(ctx, m);
     return;
   }
   const linhas = listaMunicipios(ctx.resumo.principal.por_municipio, ctx.ordem, ctx.ativos, ctx.registrosLente);
   const porCelula = ctx.ordem === 'destaques' && ctx.ativos?.unidade === 'celula';
-  const valor = (l: (typeof linhas)[number]) => (porCelula ? (l.celulas ?? 0) : l.total);
-  const max = Math.max(1, ...linhas.map(valor));
   const explica = `${fmtNumero(linhas.length)} ${linhas.length === 1 ? 'município' : 'municípios'} com detecção no período (todo o estado). `
     + (ctx.ordem === 'nome' ? 'Em ordem alfabética.'
       : ctx.ordem === 'destaques'
@@ -421,7 +488,7 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
           : ctx.ativos.unidade === 'municipio' ? `Os destacados pela lente "${ctx.nomeLente ?? ''}" primeiro, na ordem do resultado; depois os demais, por detecções.`
             : `Ordenado pelo número de células destacadas pela lente "${ctx.nomeLente ?? ''}".`)
         : 'Ordenado pela contagem de detecções.')
-    + ' Toque num município para filtrar a tela. A ordem não indica prioridade, gravidade nem risco.';
+    + ' Toque num município para ver os detalhes, sem alterar os filtros. A ordem não indica prioridade, gravidade nem risco.';
   const ordem = h('div', { class: 'ordem', role: 'group', 'aria-label': 'Ordenar por' },
     ...(['deteccoes', 'destaques', 'nome'] as const).map((o) => {
       const b = h('button', { type: 'button', 'data-ordem': o, 'aria-pressed': String(ctx.ordem === o) }, ROTULO_ORDEM[o]);
@@ -430,21 +497,38 @@ function desenharMunicipios(ctx: ContextoMunicipios, m: ManipuladoresMunicipios)
     }));
   const lista = h('ol', { class: 'lista-mun', id: 'lista-municipios' }, ...linhas.map((l, i) => {
     const detalhe = [
-      porCelula ? `${fmtNumero(l.total)} detecções` : null,
+      porCelula ? `${fmtNumero(l.total)} focos` : null,
       !porCelula && l.celulas !== null ? `${fmtNumero(l.celulas)} ${l.celulas === 1 ? 'célula destacada' : 'células destacadas'}` : null,
       l.destacado ? 'destacado pela concentração' : null,
     ].filter(Boolean).join(' · ');
+    const numero = h('span', { class: 'num' }, porCelula ? `${fmtNumero(l.celulas ?? 0)} ${(l.celulas ?? 0) === 1 ? 'célula' : 'células'}` : fmtNumero(l.total));
     const b = h('button', { type: 'button', class: 'botao-municipio', 'data-codigo': String(l.codigo), 'aria-pressed': 'false' },
-      h('span', { class: 'pos' }, ctx.ordem === 'nome' ? '' : `${i + 1}.`),
-      h('span', { class: 'nome' }, l.nome, detalhe ? h('span', { class: 'sub-nome' }, detalhe) : null,
-        ctx.ordem !== 'nome' ? barraProporcional(larguraProporcional(valor(l), max)) : null),
-      h('span', { class: 'num' }, porCelula ? `${fmtNumero(l.celulas ?? 0)} ${(l.celulas ?? 0) === 1 ? 'célula' : 'células'}` : fmtNumero(l.total)));
-    b.addEventListener('click', () => m.escolher(l.codigo));
+      h('span', { class: 'pos' }, ctx.ordem === 'nome' ? '' : `${i + 1}º · `),
+      h('span', { class: 'nome' }, l.nome),
+      h('span', { class: 'sub-nome' }, numero, porCelula ? '' : ' focos', detalhe ? ` · ${detalhe}` : ''));
+    b.addEventListener('click', () => m.inspecionar(l.codigo));
     return h('li', {}, b);
   }));
-  corpo.replaceChildren(h('p', { class: 'nota', id: 'mun-explica' }, explica), ordem);
-  if (porCelula) corpo.append(h('p', { class: 'nota', id: 'mun-regra' }, 'Uma célula destacada conta em cada município com detecção nela.'));
-  corpo.append(lista);
+  const maiores = maioresMunicipios(linhas);
+  const maior = maiores[0]?.total ?? 0;
+  const resposta = h('p', { class: 'lente-resposta', id: 'municipios-resposta' }, linhas.length
+    ? 'No período escolhido, foram registrados ' : 'Nenhuma detecção neste período em Mato Grosso.');
+  if (linhas.length) {
+    resposta.append(h('strong', {}, `${fmtNumero(ctx.resumo.principal.total)} focos`), ` em ${fmtNumero(linhas.length)} ${linhas.length === 1 ? 'município' : 'municípios'}. `,
+      h('strong', {}, maiores.map((l) => l.nome).join(', ')), maiores.length > 1 ? ' tiveram a maior contagem: ' : ' teve a maior contagem: ',
+      h('strong', {}, `${fmtNumero(maior)} focos`), maiores.length > 1 ? ' em cada município (empate).' : '.');
+  } else resposta.append(' Isso não comprova ausência de fogo nem cobertura.');
+  const explicacao = blocoLente('O que essa lista mostra?', 'Veja a quantidade de focos registrada em cada município.');
+  explicacao.append(h('p', { class: 'nota' }, 'Municípios maiores podem acumular mais focos; isso, sozinho, não mostra onde a situação é mais grave.'));
+  const encontrados = blocoLente('Municípios encontrados', 'Toque em um município para ver seus números e encontrá-lo no mapa.');
+  encontrados.append(lista);
+  const ordenar = h('div', { class: 'lente-acao' }, ordem, h('p', {}, 'Encontre um município pelo nome ou compare as contagens e a participação nos destaques da lente.'));
+  const tecnicos = detalhesTecnicos(h('p', { class: 'nota', id: 'mun-explica' }, explica),
+    h('p', { class: 'nota' }, `Carga nº ${ctx.resumo.carga.id} · ${ctx.resumo.carga.satelite}. Cada foco é um registro no período GMT. Fontes, versão e limitações estão em “Sobre os dados”.`));
+  tecnicos.querySelector('summary')!.textContent = 'Entender a contagem e ver detalhes';
+  if (porCelula) tecnicos.append(h('p', { class: 'nota', id: 'mun-regra' }, 'Uma célula destacada conta em cada município com detecção nela.'));
+  corpo.replaceChildren(h('p', { class: 'lente-pergunta' }, 'Em quais municípios foram registrados mais focos?'),
+    resposta, periodoMunicipios(ctx), explicacao, encontrados, h('div', { class: 'lente-acoes' }, ordenar), tecnicos);
 }
 
 // --- Lista de focos (T21) ---------------------------------------------------------------------------------
@@ -570,15 +654,4 @@ export function metadados(r: { carga: { id: number; identidade: string }; janela
     $('botao-sobre').click();
   });
   return h('details', { class: 'detalhes', id: 'lente-detalhes-tecnicos' }, h('summary', { id: 'lente-metadados-resumo' }, 'Ver detalhes técnicos e limitações'), dados, fonte);
-}
-
-/**
- * Barra proporcional ao valor (DESIGN.md, aba Municípios), sem barra para zero. A largura vai pelo CSSOM: a CSP (`style-src 'self'`)
- * bloqueia o atributo `style` em linha, o que deixava todas as barras do mesmo tamanho (issue #71, BL-016).
- */
-function barraProporcional(largura: number | null): HTMLElement | null {
-  if (largura === null) return null;
-  const barra = h('span', { class: 'barra' });
-  barra.style.width = `${largura}%`;
-  return barra;
 }

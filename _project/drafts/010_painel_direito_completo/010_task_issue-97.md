@@ -2,13 +2,13 @@
 
 > **Ciclo:** `010`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#97`
 > **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-97`
 > **PR:** [#101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101)
-> **Integração:** `Pendente`
+> **Integração:** PR #101 integrada em 2026-11-18 (conferida no GitHub na implementação da issue #98)
 > **Autorização inicial:** "autorizo a implementação da issue #97" em 2026-11-18
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-18
@@ -86,13 +86,23 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 010 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101)
-Diga: "aprovo o merge da PR #101"
+Situação: Pronto para continuar — ciclo 010 (completo)
+Quem: Qualquer ferramenta, a pedido do responsável
+Conferir: —
+Diga: "continue o ciclo 010"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97/reconciliacao + ce09a2efe8a4d11cdb0623f45a6c2b3981d11431`
+- `effect_class`: `local_mutation`
+- `state_before` / `state_after`: task aguardando integração / task concluída após confirmar PR #101 integrada.
+- `result`: `already_executed_and_reconciled`
+- `evidence`: [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101) com `merged: true`, consultada no MCP GitHub Docker em 2026-11-18; próxima implementação autorizada na task #98.
+- `blockers`: nenhum.
+
+### Histórico — implementação e publicação
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97 + 9e30e6e21e0882294e0ee92481df4c5f50bf84cc`
@@ -101,4 +111,6 @@ Diga: "aprovo o merge da PR #101"
 - `state_after`: layout da aba Lentes corrigido conforme solicitação humana; PR #101 atualizada.
 - `result`: `executed`
 - `evidence`: [issue #97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97), commit de implementação `948f675` e [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101).
-- `blockers`: conclusão bem-sucedida dos checks e aprovação específica para integrar.
+- `blockers`: nenhum; integração da PR #101 reconciliada por leitura do GitHub em 2026-11-18.
+
+Reconciliação na implementação da issue #98: task concluída; o próximo passo autorizado é o item 2, registrado na task #98. O histórico de implementação acima permanece preservado.

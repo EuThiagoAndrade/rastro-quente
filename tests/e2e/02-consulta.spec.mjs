@@ -63,8 +63,10 @@ test('por município: total da série independente', async ({ page }) => {
   await expect(page.locator('#mun-explica')).toContainText('não indica prioridade, gravidade nem risco');
   await page.locator('[data-ordem="nome"]').click();
   await expect(page.locator('[data-ordem="nome"]')).toBeFocused();
-  // Tocar num município filtra a tela e mostra o cartão (T11).
+  // Inspecionar preserva o estado; consultar aplica o município explicitamente (ciclo 010).
   await page.locator('#lista-municipios button[data-codigo="9900003"]').click();
+  await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
+  await page.locator('#municipio-consultar').click();
   await expect(page.locator('#serie')).toHaveAttribute('data-total', '10');
   await expect(page.locator('#cartao-focos')).toHaveText('10');
   await expect(page.locator('#cartao-celulas')).toHaveAttribute('data-estado', 'completo');

@@ -51,6 +51,15 @@ Decisões do responsável no ciclo `009` (plano `009`, D1 a D5; issue #91, BL-01
 - **Alternativa em texto do mapa:** a contagem de pontos e o registro selecionado continuam em `role="status"`, só para leitor de tela.
 
 
+## Emenda — navegação municipal do ciclo `010` (2026-11-18)
+
+Item 2 do plano `010` v2 aprovado e integrado na PR #96, issue #98 autorizada pelo responsável em 2026-11-18. Onde houver divergência na descrição da aba Municípios, vale esta emenda.
+
+- Abrir uma linha estadual inspeciona o município sem aplicar o filtro. O detalhe guarda apenas código e estado da geometria. Usa o total do resumo estadual e a participação na lente ativa; uma célula pode contribuir em mais de um município com detecção nela. Dias com detecção e células T1 distintas só aparecem no recorte municipal aplicado, por `numerosMunicipio`.
+- “Mostrar no mapa” reutiliza a geometria na memória ou chama `lerLimites` para o código na carga vigente, inclusive com camada desligada. `enquadrarMunicipio` calcula os limites da geometria para a câmera, sem desenhar nem modificar camadas, seleção ou filtros. Carregamento, ausência e falha ficam no detalhe. Retorno de detalhe encerrado ou de outra geração de consulta ou sessão não altera a tela ou a memória.
+- “Consultar município” passa pela aplicação normal do formulário. “Ver todo Mato Grosso” restaura explicitamente o estado. “Ver destaques” abre Lentes com o escopo aplicado identificado; a inspeção estadual não transforma participação em resultado de lente municipal. A concentração continua exclusiva do estado.
+- Voltar à lista restaura a ordenação, a rolagem da coluna e o foco na linha acionadora. Troca de recorte, carga ou sessão limpa o detalhe transitório. Inspecionar, voltar e enquadrar não alteram `chaveContexto` nem descartam perguntas e respostas do agente; aplicar filtro reutiliza a invalidação vigente. Nenhum método, fonte, leitura de registros ou contrato de acesso muda.
+
 ### Positivas
 
 - O mapa deixa de declarar visualização parcial: mostra o recorte inteiro, com a mesma leitura que a lente usa.

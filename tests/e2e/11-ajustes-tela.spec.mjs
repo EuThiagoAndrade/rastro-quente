@@ -14,13 +14,12 @@ test('computador: a página tem a altura da tela, sem espaço depois do rodapé'
   expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(900);
 });
 
-test('aba Municípios: a barra é proporcional ao número', async ({ page }) => {
+test('aba Municípios: nome e contagem agrupados em cada linha, conforme proposta do ciclo 010', async ({ page }) => {
   await entrar(page, 'rp');
   await page.locator('#aba-municipios').click();
   await expect(page.locator('#lista-municipios .num')).toHaveText(['60', '30', '10']);
-  const larguras = await page.locator('#lista-municipios .barra').evaluateAll((l) => l.map((b) => b.getBoundingClientRect().width));
-  expect(larguras[1] / larguras[0]).toBeCloseTo(0.5, 1);
-  expect(larguras[2] / larguras[0]).toBeCloseTo(1 / 6, 1);
+  await expect(page.locator('#lista-municipios .sub-nome')).toHaveText(['60 focos', '30 focos', '10 focos']);
+  await expect(page.locator('#lista-municipios .barra')).toHaveCount(0);
 });
 
 test('mapa ampliado ocupa a altura da tela', async ({ page }) => {

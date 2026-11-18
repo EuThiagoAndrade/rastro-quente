@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { chaveRecorte, MAX_RECORTES, MemoriaRecortes } from '../../src/memoria.ts';
-import { celulasDistintas, linhaCelulasDestacadas, listaMunicipios, numerosMunicipio } from '../../src/municipios.ts';
+import { celulasDistintas, linhaCelulasDestacadas, listaMunicipios, maioresMunicipios, numerosMunicipio } from '../../src/municipios.ts';
 import { lerRegistros, LIMITE_PAGINA } from '../../src/lentes/carregar.ts';
 import { recorrencia } from '../../src/lentes/recorrencia.ts';
 import { persistencia } from '../../src/lentes/persistencia.ts';
@@ -201,4 +201,11 @@ test('evidência da recorrência agrupa somente os IDs do destaque por mês GMT 
   ]);
   assert.equal(evidenciaMensal(janela, ['a', 'ausente'], registros), null);
   assert.equal(evidenciaMensal(janela, ['a', 'fora'], registros), null);
+});
+
+test('Municípios: maior contagem preserva empates e não atribui maior a lista vazia', () => {
+  const linhas = listaMunicipios([{ codigo: A, nome: 'Alfa', total: 7 }, { codigo: B, nome: 'Beta', total: 7 }, { codigo: 9100003, nome: 'Gama', total: 2 }], 'nome', null, []);
+  assert.deepEqual(maioresMunicipios(linhas).map((l) => l.nome), ['Alfa', 'Beta']);
+  assert.deepEqual(maioresMunicipios([]), []);
+  assert.deepEqual(linhas.map((l) => l.total), [7, 7, 2]);
 });

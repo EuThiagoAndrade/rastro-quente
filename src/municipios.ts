@@ -114,3 +114,9 @@ export function listaMunicipios(
   }
   return linhas.sort((a, b) => (b.celulas ?? 0) - (a.celulas ?? 0) || porTotal(a, b));
 }
+
+/** Maior contagem absoluta com todos os empates, preservando a ordem da lista. */
+export function maioresMunicipios(linhas: readonly LinhaMunicipio[]): LinhaMunicipio[] {
+  const maior = linhas.reduce((n, l) => Math.max(n, l.total), 0);
+  return linhas.filter((l) => l.total > 0 && l.total === maior);
+}
