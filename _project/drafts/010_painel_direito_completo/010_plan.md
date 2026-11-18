@@ -225,7 +225,7 @@ Gates locais dependem do ambiente de teste já definido pelo projeto. A revisão
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
+| PR(s) | [#96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96) — publicação documental |
 | Branch(es) | `chore/cycle-010-plan` |
 | Destino após conclusão | `_project/executed/010_painel_direito_completo/010_plan.md` |
 
@@ -233,13 +233,24 @@ Gates locais dependem do ambiente de teste já definido pelo projeto. A revisão
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 010"
+Situação: Aguardando merge — ciclo 010 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96)
+Diga: "aprovo o merge da PR #96"
 ```
 
 ## Handoff de saída
+
+- `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + publicar_plano + 010_plan + v2`
+- `effect_class`: `remote_mutation`
+- `state_before`: plano v2 aprovado e publicação documental autorizada.
+- `state_after`: PR documental #96 aberta; ciclo em `Planejamento`, aguardando merge.
+- `result`: `executed`
+- `evidence`: [PR #96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96), da branch `chore/cycle-010-plan` para `main`.
+- `blockers`: checks verdes e aprovação específica para integrar.
+
+### Histórico — aprovação do plano v2
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + aprovar_plano + 010_plan + v2`
