@@ -59,15 +59,24 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55 passaram. |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos. Revisão manual de G1–G4 e staging seletivo. |
 | `git diff --check` e `git diff --cached --check` | Passaram. |
+| Acabamento visual final | Casos focais das specs 03, 05, 06 e 07 passaram, incluindo 6 combinações de largura/tema, meses parciais, duas sequências na mesma célula, selos, evidência e contornos. O último ajuste de ordem dos blocos foi conferido nas capturas e no fluxo do preview. |
 | Checks remotos | Acompanhamento nos [checks da PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101/checks). |
 
 ## Revisão da correção
 
 Não se aplica.
 
+## Ajuste visual solicitado pelo responsável
+
+Em 2026-11-18, o responsável determinou que o layout reproduza a proposta aprovada e autorizou a correção com “Faça isso!”. A primeira implementação preservou excessivamente o layout anterior. A correção usa composição, hierarquia, blocos, meses visuais e cartões de ação da referência. Permanecem as adaptações analíticas expressas no plano, os dados reais da consulta e os requisitos de acessibilidade.
+
+Conferência visual realizada lado a lado com o HTML em lista e detalhe de recorrência, com largura equivalente. Capturas isoladas do componente ficam em `local/revisao-97/`, ignorado pelo Git. Conferidos também celular de 390 px e tema escuro, abertura dos focos e retorno à linha. O preview local usa dados fictícios e permanece disponível para revisão humana.
+
 ## Decisões incidentais e desvios
 
-Parâmetros do método e proveniência ficam em blocos recolhíveis. As limitações permanecem no corpo da lista, inclusive no estado de janela insuficiente. A evidência de concentração passou a usar a mesma paginação dos destaques por célula.
+Parâmetros e limitações ficam recolhíveis como na proposta. No detalhe, um único bloco técnico reúne proveniência, ficha, critérios, disponibilidade por classe, ressalvas e evidência paginada. “Ver os N focos” abre o bloco e leva à evidência. A disponibilidade resumida usa exclusivamente os dias da unidade selecionada.
+
+A proposta é reproduzida com os dados da consulta e as adaptações já aprovadas no plano: ordem original das células, sequências separadas de células, meses GMT tocados pela janela e cobertura por unidade. O texto de apoio usa mínimo de 0,875 rem, os controles mantêm 44 px e os números nos quadrados laranja usam texto escuro para contraste.
 
 ## Encerramento
 
@@ -89,7 +98,7 @@ Diga: "aprovo o merge da PR #101"
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97 + 9e30e6e21e0882294e0ee92481df4c5f50bf84cc`
 - `effect_class`: `remote_mutation`
 - `state_before`: plano aprovado e issue aberta.
-- `state_after`: implementação validada e PR #101 aberta.
+- `state_after`: layout da aba Lentes corrigido conforme solicitação humana; PR #101 atualizada.
 - `result`: `executed`
 - `evidence`: [issue #97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97), commit de implementação `948f675` e [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101).
 - `blockers`: conclusão bem-sucedida dos checks e aprovação específica para integrar.

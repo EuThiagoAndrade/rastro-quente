@@ -129,6 +129,8 @@ export async function abrirDestaque(page, n) {
   if (await page.locator('#vista-explicacao').isVisible()) await page.locator('#botao-voltar').click();
   await page.locator('#lente-destaques > li').nth(n).locator('.botao-nome').click();
   await expect(page.locator('#vista-explicacao')).toBeVisible();
+  await page.locator('#lente-disponibilidade-detalhes').evaluate((e) => { e.open = true; });
+  await page.locator('#lente-detalhes-tecnicos').evaluate((e) => { e.open = true; });
   const evidencia = page.locator('#lente-evidencia-detalhes');
   if ((await evidencia.count()) && (await evidencia.getAttribute('open')) === null) {
     await evidencia.locator(':scope > summary').click();

@@ -5,8 +5,8 @@
 import { $, h } from './apresentacao.ts';
 import { dataBr, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
-  mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
+  comporListaLente, comporDetalheLente, acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
+  etiquetaCobertura, mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
   rotularAbaDestaques, tabelaPaginadaEvidencia, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
@@ -141,8 +141,9 @@ function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoC
         `${dia.dia}: ${ROTULO_CLASSE[dia.classe].rotulo}`,
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
-  corpo.append(acoesDestaque(c.id_combinado, m.mostrarNoMapa), caixaRessalvas(null), detalhesEvidencia(c.id_combinado, c.evidencia.deteccoes.length, tabelaUniao(c, ctx, m)),
+  corpo.append(acoesDestaque(c.id_combinado, c.evidencia.deteccoes.length, m.mostrarNoMapa), caixaRessalvas(null), detalhesEvidencia(c.id_combinado, c.evidencia.deteccoes.length, tabelaUniao(c, ctx, m)),
     metadados({ carga: r.carga, janela: r.janela, versao: `${r.versao_combinacao} sobre ${r.versao_metodo}` }));
+  comporDetalheLente(corpo, `Esta célula reúne ${fmtNumero(c.evidencia.deteccoes.length)} focos na evidência das lentes ${nomesDosCriterios(c)}. Operador aplicado: ${r.operador}.`, 'Por que este lugar aparece na combinação?', cob);
   return corpo;
 }
 
@@ -161,7 +162,7 @@ export function renderResultadoCombinacao(
     pergunta: `Quais células atendem à combinação ${descreverLentes(r.lentes, r.operador)}?`,
     resposta: r.estado === 'indisponivel'
       ? 'A combinação está indisponível nesta janela.'
-      : 'Células que atendem ao operador e aos critérios escolhidos.',
+      : 'Atenderam ao operador e aos critérios escolhidos.',
     quantidade: r.estado === 'indisponivel' ? null : n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking',
     municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });
@@ -188,7 +189,7 @@ export function renderResultadoCombinacao(
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': c.id_combinado, 'aria-pressed': String(c.id_combinado === selecionado) },
         `Célula ${c.unidade.id} (${bordas(c)}) — lentes: ${nomesDosCriterios(c)}`);
       b.addEventListener('click', () => m.selecionar(c.id_combinado));
-      lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': c.cobertura.estado }, textoCobertura(c.cobertura))));
+      lista.append(h('li', {}, b, etiquetaCobertura(c.cobertura)));
     }
     corpo.append(lista, resumoMaiorValor(r.celulas.map((c) => c.evidencia.deteccoes.length), 'detecções na união por célula'),
       h('p', { id: 'lente-mapa-info', class: 'ajuda' },
@@ -207,6 +208,7 @@ export function renderResultadoCombinacao(
     h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [
       h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)]))),
     h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  comporListaLente(corpo, 'Os critérios escolhidos são aplicados às mesmas células. O operador “e” exige todas as lentes. O operador “ou” reúne as células destacadas por pelo menos uma.');
   const escolhida = r.estado === 'com_celulas' ? r.celulas.find((c) => c.id_combinado === selecionado) : undefined;
   mostrarExplicacao(escolhida ? painelCelula(r, escolhida, ctx, m) : null, 'Por que esta célula?');
 }

@@ -33,7 +33,7 @@ const SEM_OU = 'Nenhuma célula destacada por qualquer das lentes escolhidas nes
 
 const cartao = (page) => page.locator('#cartao-lentes');
 const itens = (page) => page.locator('#lente-destaques > li');
-const rotulos = (page) => itens(page).locator('.botao-nome').allInnerTexts();
+const rotulos = (page) => itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')));
 const corpoRpc = (route) => JSON.parse(route.request().postData() ?? '{}');
 
 async function escolher(page, lentes, operador = 'e') {
@@ -94,7 +94,8 @@ test('"as três, e": cabeçalho da configuração aplicada, uma célula no mapa 
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-estado')).toContainText(/Combinação concluída em \d+,\d s\./);
   expect(await rotulos(page)).toEqual([ROTULO_X]);
-  await expect(itens(page).locator('.etiqueta')).toHaveText([COBERTURA_151]);
+  await expect(itens(page).locator('.etiqueta')).toHaveText(['2 dias precisam de atenção']);
+  await expect(itens(page).locator('.etiqueta')).toHaveAttribute('aria-label', COBERTURA_151);
   await expect(page.locator('#lente-configuracao')).toHaveText(
     'Combinação aplicada: concentração e recorrência e persistência (operador e: células destacadas por todas as lentes escolhidas).');
   await expect(page.locator('#lente-escopo')).toContainText('2026-06-01 a 2026-10-31');
@@ -274,7 +275,8 @@ test('cobertura não verificada: falha na disponibilidade de um município, sele
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
   await expect(page.locator('#lente-estado')).toContainText('a cobertura de algumas células não foi verificada');
   await expect(page.locator('#lente-celulas-info')).toHaveText('Células 1 a 50 de 147.');
-  await expect(itens(page).nth(0).locator('.etiqueta')).toHaveText(COBERTURA_151);
+  await expect(itens(page).nth(0).locator('.etiqueta')).toHaveText('2 dias precisam de atenção');
+  await expect(itens(page).nth(0).locator('.etiqueta')).toHaveAttribute('aria-label', COBERTURA_151);
   await expect(itens(page).nth(1).locator('.etiqueta')).toHaveText('cobertura não verificada: fonte indisponível');
   await abrirDestaque(page, 1);
   const ressalvas = await page.locator('#lente-painel .ressalvas-destaque > li').allInnerTexts();

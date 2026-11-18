@@ -33,7 +33,7 @@ const SEM_CAMADA = 'Esta versão dos dados não tem a camada de áreas protegida
 
 const cartao = (page) => page.locator('#cartao-lentes');
 const itens = (page) => page.locator('#lente-destaques > li');
-const rotulos = (page) => itens(page).locator('.botao-nome').allInnerTexts();
+const rotulos = (page) => itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')));
 const areasNoMapa = (page) => page.locator('#mapa path[data-chave]');
 const contornosNoMapa = (page) => page.locator('#mapa .leaflet-areas-pane path:not([data-chave])');
 
@@ -223,7 +223,8 @@ test('proteção integral: motivo, ressalvas de polígono estimado e de borda, c
   await aplicar(page, 'protecao_integral');
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   expect(await rotulos(page)).toEqual([ROTULO_K]);
-  await expect(itens(page).locator('.etiqueta')).toHaveText(['30 de 31 dias sem evidência de lacuna (cobertura não comprovada)']);
+  await expect(itens(page).locator('.etiqueta')).toHaveText(['1 dia precisa de atenção']);
+  await expect(itens(page).locator('.etiqueta')).toHaveAttribute('aria-label', '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)');
   for (const p of ['proteção integral', 'pelo menos 1 detecção principal da janela dentro de área da classe, com a borda incluída',
     'calculado na carga com o polígono integral da fonte']) {
     await expect(page.locator('#lente-parametros')).toContainText(p);

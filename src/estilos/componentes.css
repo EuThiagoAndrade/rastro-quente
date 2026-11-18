@@ -1740,3 +1740,241 @@ tr.selecionada td {
   white-space: pre-wrap;
   overflow-wrap: anywhere;
 }
+
+
+/* Ciclo 010, issue 97. Composição do painel de lentes aprovada no esboço. */
+#cartao-lentes {
+  font-family: 'Segoe UI', Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.45;
+}
+
+#cartao-lentes h2,
+#cartao-lentes #lente-painel-titulo {
+  font-size: 1.15rem;
+  margin: 0 0 2px;
+}
+
+#cartao-lentes .resumo-lente {
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+}
+
+#cartao-lentes .lente-pergunta {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  font-weight: 400;
+  margin: 0 0 10px;
+}
+
+#cartao-lentes .lente-resposta {
+  font-size: 1.02rem;
+  background: var(--escolha-suave);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 10px;
+}
+
+#cartao-lentes .lente-resposta strong {
+  font-size: inherit;
+  line-height: inherit;
+  background: none;
+  border: 0;
+  padding: 0;
+}
+
+#cartao-lentes .lente-bloco {
+  border-top: 1px solid var(--contorno-suave);
+  padding-top: 10px;
+  margin-top: 12px;
+}
+
+#cartao-lentes .lente-bloco-titulo {
+  font-size: 0.92rem;
+  font-weight: 700;
+  margin: 0;
+}
+
+#cartao-lentes .lente-bloco-para {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+  margin: 0 0 6px;
+}
+
+#cartao-lentes .nota,
+#cartao-lentes .ajuda {
+  font-size: 0.875rem;
+}
+
+#cartao-lentes .lista-celulas {
+  list-style: none;
+  margin: 8px 0;
+  padding: 0;
+}
+
+#cartao-lentes .lista-celulas > li {
+  border-top: 1px solid var(--contorno-suave);
+  padding: 7px 0;
+}
+
+#cartao-lentes .lista-celulas .botao-nome {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  color: var(--link);
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+#cartao-lentes .lista-celulas .botao-nome:hover {
+  text-decoration: underline;
+}
+
+#cartao-lentes .lista-celulas .etiqueta {
+  font-size: 0.875rem;
+  font-weight: 400;
+  padding: 0;
+  color: var(--texto-suave);
+}
+
+#cartao-lentes .lente-acoes {
+  display: grid;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+#cartao-lentes .lente-acao {
+  border: 1px solid var(--contorno-suave);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#cartao-lentes .lente-acao p {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+#cartao-lentes .lente-acao button {
+  min-height: 44px;
+  border-radius: 8px;
+  font: inherit;
+}
+
+#cartao-lentes .lente-meses {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(46px, 1fr));
+  gap: 3px;
+  margin: 8px 0 2px;
+  padding: 0;
+  list-style: none;
+}
+
+#cartao-lentes .lente-meses li {
+  text-align: center;
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+}
+
+#cartao-lentes .lente-mes {
+  display: block;
+  height: 22px;
+  border-radius: 3px;
+  background: var(--superficie-suave);
+  border: 1px solid var(--contorno-suave);
+  margin-bottom: 2px;
+  line-height: 20px;
+  font-weight: 700;
+}
+
+#cartao-lentes .lente-mes--com-focos {
+  background: var(--deteccao);
+  border-color: var(--deteccao);
+  color: var(--mapa-fundo);
+}
+
+#cartao-lentes .criterio {
+  border: 0;
+  padding: 8px 10px;
+  border-radius: 8px;
+}
+
+#cartao-lentes .botao-voltar {
+  margin: 0 0 8px;
+}
+
+#cartao-lentes details {
+  font-size: 0.875rem;
+  margin: 8px 0;
+}
+
+#cartao-lentes .ressalvas {
+  border: 0;
+  border-left: 3px solid var(--aviso-borda);
+  border-radius: 4px;
+  padding: 6px 10px;
+}
+
+#cartao-lentes .lista-celulas .botao-nome small {
+  display: block;
+  font-weight: 400;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+#cartao-lentes .lente-meses li {
+  position: relative;
+}
+
+#cartao-lentes .lente-acao .botao {
+  border: 1px solid var(--contorno);
+  padding: 6px 12px;
+  margin: 4px 6px 0 0;
+  background: var(--superficie);
+  color: var(--texto);
+}
+
+#cartao-lentes .lente-acao .botao--primario {
+  background: var(--escolha);
+  color: var(--sobre-escolha);
+  border-color: var(--escolha);
+}
+
+#cartao-lentes .lente-alerta {
+  color: var(--classe-indeterminada);
+  font-size: 0.875rem;
+  margin: 4px 0;
+}
+
+#cartao-lentes .detalhes > summary {
+  display: list-item;
+  list-style-position: inside;
+  min-height: 44px;
+  padding-block: 10px;
+  color: var(--link);
+  font-weight: 600;
+}
+
+#cartao-lentes .lista-celulas > li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(70px, 100px);
+  align-items: start;
+  gap: 8px;
+}
+
+#cartao-lentes .lista-celulas .lente-selo {
+  border-radius: 999px;
+  padding: 2px 8px;
+  background: var(--linha-selecionada);
+  color: var(--classe-sem-evidencia);
+}
+
+#cartao-lentes .lista-celulas .lente-selo[data-atencao='true'] {
+  background: var(--aviso-fundo);
+  color: var(--aviso-texto);
+}

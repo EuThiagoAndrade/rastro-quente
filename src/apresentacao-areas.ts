@@ -6,8 +6,8 @@ import { $, h, textoAtribuicaoArea } from './apresentacao.ts';
 import { CELULAS_POR_PAGINA, paginaValida } from './apresentacao-combinacao.ts';
 import { linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
-  mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
+  comporListaLente, comporDetalheLente, acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
+  etiquetaCobertura, mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
   rotularAbaDestaques, tabelaPaginadaEvidencia, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
@@ -221,9 +221,10 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
   corpo.append(caixaRessalvas(h('p', { id: 'lente-aviso-dominio' }, LIMITACOES_SOBREPOSICAO[0] ?? '')),
-    acoesDestaque(d.id_destaque, m.mostrarNoMapa),
+    acoesDestaque(d.id_destaque, d.evidencia.deteccoes.length, m.mostrarNoMapa),
     detalhesEvidencia(d.id_destaque, d.evidencia.deteccoes.length, tabelaEvidencia(d, ctx, m)),
     metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+  comporDetalheLente(corpo, `Este lugar teve ${fmtNumero(d.evidencia.deteccoes.length)} focos vinculados a áreas de ${ROTULO_CLASSE[r.classe]}. ${d.motivo}`, 'Por que este lugar aparece na lista?', c);
   return corpo;
 }
 
@@ -241,7 +242,7 @@ export function renderResultadoSobreposicao(
     pergunta: `Onde há detecções vinculadas a áreas de ${ROTULO_CLASSE[r.classe]}?`,
     resposta: r.estado === 'sem_camada'
       ? 'A camada de áreas protegidas está indisponível nesta carga.'
-      : 'Células com detecções vinculadas a áreas da classe selecionada.',
+      : 'Tiveram focos vinculados a áreas da classe selecionada.',
     quantidade: r.estado === 'sem_camada' ? null : r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking',
     municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });
@@ -265,7 +266,7 @@ export function renderResultadoSobreposicao(
     for (const d of visiveis) {
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloCelula(d));
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
-      lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': d.cobertura.estado }, textoCobertura(d.cobertura))));
+      lista.append(h('li', {}, b, etiquetaCobertura(d.cobertura)));
     }
     corpo.append(lista, resumoMaiorValor(r.destaques.map((d) => d.evidencia.deteccoes.length), 'detecções vinculadas por célula'),
       h('p', { id: 'lente-mapa-info', class: 'ajuda' },
@@ -283,6 +284,7 @@ export function renderResultadoSobreposicao(
       `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
     h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)]))),
     h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  comporListaLente(corpo, 'Os focos registrados ficam dentro dos limites das áreas disponíveis na base. Toque em um lugar para ver os focos e as áreas relacionadas.');
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
   mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que esta célula?');
 }

@@ -3,6 +3,7 @@
 // "Lista de focos" (T21). Todo valor da fonte entra por textContent.
 import { $, h, tabela } from './apresentacao.ts';
 import { fmtDataHoraGmt, fmtNumero, larguraProporcional, ROTULO_CLASSE, ROTULO_DIVERGENCIA } from './formato.ts';
+import { textoCobertura } from './lentes/cobertura.ts';
 import type { Cobertura, RegistroLente } from './lentes/contrato.ts';
 import { linhaCelulasDestacadas, listaMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import type { Registro, Resumo } from './tipos.ts';
@@ -95,11 +96,133 @@ export function renderResumoLente(r: ResumoLente | null): void {
   const unidade = r.unidade === 'celula' ? (n === 1 ? 'célula' : 'células') : (n === 1 ? 'município' : 'municípios');
   const numero = n === null ? null : celulas === undefined ? `${fmtNumero(n)} ${unidade}`
     : `${fmtNumero(n)} ${n === 1 ? 'sequência' : 'sequências'} em ${fmtNumero(celulas)} ${celulas === 1 ? 'célula' : 'células'}`;
+  const recorte = r.municipio === null ? 'todo Mato Grosso' : r.municipio;
+  const periodo = `entre ${dataBr(r.janela.inicio)} e ${dataBr(r.janela.fim)} (GMT)`;
+  const frase = n === 1 && celulas === undefined
+    ? r.resposta.replace('Tiveram', 'Teve').replace('Foram destacados', 'Foi destacado').replace('Atenderam', 'Atendeu')
+    : r.resposta;
+  const resposta = h('p', { class: 'lente-resposta' },
+    n === null ? r.resposta : n === 0
+      ? `Nenhum destaque atingiu o critério no período escolhido. ${r.resposta}`
+      : `Em ${recorte}, `);
+  if (n !== null && n > 0) {
+    resposta.append(h('strong', { id: 'resumo-lente-numero' }, numero ?? ''), ` ${frase.charAt(0).toLowerCase()}${frase.slice(1).replace(/\.$/, '')} ${periodo}.`);
+  } else if (numero !== null) {
+    resposta.prepend(h('strong', { id: 'resumo-lente-numero' }, numero), '. ');
+  }
   alvo.replaceChildren(
-    h('p', { class: 'lente-pergunta' }, r.pergunta),
-    ...(numero === null ? [] : [h('div', { class: 'numero', id: 'resumo-lente-numero' }, numero)]),
-    h('p', {}, r.resposta),
-    h('p', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} (GMT) · ${r.ordem}`));
+    h('p', { class: 'lente-pergunta' }, r.pergunta), resposta,
+    h('p', { class: 'so-leitor', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${periodo}`));
+
+}
+
+export function blocoLente(titulo: string, ajuda: string, ...conteudo: HTMLElement[]): HTMLElement {
+  return h('section', { class: 'lente-bloco' }, h('h3', { class: 'lente-bloco-titulo' }, titulo),
+    h('p', { class: 'lente-bloco-para' }, ajuda), ...conteudo);
+}
+
+export function cartaoAcao(botao: HTMLButtonElement, explicacao: string): HTMLElement {
+  return h('div', { class: 'lente-acao' }, botao, h('p', {}, explicacao));
+}
+
+/** Agrupa a lista e os dados técnicos na mesma composição da proposta aprovada. */
+export function comporListaLente(corpo: HTMLElement, explicacao: string): void {
+  const lista = corpo.querySelector<HTMLOListElement>('#lente-destaques');
+  const tecnicos = corpo.querySelector<HTMLDetailsElement>('details[data-tecnico]');
+  const limitacoes = corpo.querySelector<HTMLElement>('#lente-limitacoes');
+  const tituloLimitacoes = limitacoes?.previousElementSibling;
+  if (limitacoes && tecnicos) {
+    if (tituloLimitacoes) tecnicos.append(tituloLimitacoes);
+    tecnicos.append(limitacoes);
+  }
+  const maior = corpo.querySelector<HTMLElement>('[data-maior-valor]');
+  if (maior) $('resumo-lente').querySelector('.lente-resposta')?.append(' ', maior);
+  const entende = blocoLente('O que isso quer dizer?', 'Entenda o resultado antes de escolher um lugar.',
+    h('p', { class: 'nota' }, explicacao),
+    h('p', { class: 'nota' }, h('strong', {}, 'Focos de calor não comprovam incêndio, dano ou responsável.')));
+  corpo.prepend(entende);
+  if (lista) {
+    for (const botao of lista.querySelectorAll<HTMLButtonElement>('button[data-id]')) {
+      const texto = botao.textContent ?? '';
+      botao.setAttribute('aria-label', texto);
+      const partes = texto.split(' — ');
+      const metrica = partes[1] ?? '';
+      const unidade = partes[0] ?? '';
+      const celula = unidade.startsWith('Célula ');
+      const titulo = celula ? `Lugar — ${metrica.split(' (')[0]}` : texto;
+      botao.replaceChildren(h('strong', {}, titulo));
+      if (celula) botao.append(h('small', {}, unidade));
+      const parenteses = metrica.indexOf(' (');
+      if (parenteses >= 0) botao.append(h('small', {}, metrica.slice(parenteses + 2).replace(/\)$/, '')));
+    }
+    const bloco = blocoLente('Lugares encontrados', 'Toque em um lugar para entender por que ele aparece.');
+    lista.before(bloco);
+    bloco.append(lista);
+    const ordem = corpo.querySelector<HTMLElement>('#lente-ordenacao');
+    if (ordem) bloco.append(ordem);
+  } else {
+    entende.hidden = true;
+  }
+  for (const botao of corpo.querySelectorAll<HTMLButtonElement>('.acoes > button')) {
+    if (botao.textContent === 'Alterar o período') botao.parentElement?.replaceWith(
+      cartaoAcao(botao, 'Escolha outras datas para fazer uma nova consulta.'));
+  }
+}
+
+/** A explicação abre com a resposta, seguida da evidência visual e da disponibilidade. */
+export function comporDetalheLente(corpo: HTMLElement, resposta: string, pergunta: string, dadosCobertura: Cobertura): void {
+  const titulo = corpo.querySelector<HTMLElement>('#lente-painel-titulo');
+  if (!titulo) return;
+  const primeiraFrase = resposta.indexOf('. ');
+  const textoResposta = h('p', { class: 'lente-resposta' },
+    h('strong', {}, primeiraFrase < 0 ? resposta : resposta.slice(0, primeiraFrase + 1)),
+    primeiraFrase < 0 ? '' : resposta.slice(primeiraFrase + 1));
+  titulo.after(h('p', { class: 'lente-pergunta' }, pergunta), textoResposta);
+  const ficha = corpo.querySelector<HTMLElement>('#lente-ficha');
+  const metadados = corpo.querySelector<HTMLDetailsElement>('#lente-detalhes-tecnicos');
+  if (ficha && metadados) {
+    const municipio = [...ficha.querySelectorAll('div')].find((item) => item.querySelector('dt')?.textContent === 'Município(s)')?.querySelector('dd')?.textContent;
+    if (municipio) titulo.textContent = `Lugar em ${municipio}`;
+    metadados.append(ficha);
+  }
+  const cobertura = corpo.querySelector<HTMLElement>('#lente-cobertura');
+  if (cobertura) {
+    const bloco = blocoLente('Faltou alguma informação?', 'Veja se há dias que podem afetar este resultado.');
+    bloco.id = 'lente-disponibilidade';
+    cobertura.before(bloco);
+    const classes = corpo.querySelector<HTMLElement>('.lente-classes');
+    const detalhes = h('details', { class: 'detalhes', id: 'lente-disponibilidade-detalhes' },
+      h('summary', {}, 'Ver disponibilidade por classe e município'));
+    const municipios = corpo.querySelector<HTMLElement>('#lente-municipios');
+    const dias = corpo.querySelector<HTMLElement>('#lente-dias')?.closest('details');
+    if (dadosCobertura.estado === 'completa') {
+      const n = dadosCobertura.demais_dias.length;
+      bloco.append(h('p', { class: n ? 'lente-alerta' : 'nota' },
+        n
+          ? `Em ${fmtNumero(n)} ${n === 1 ? 'dia houve' : 'dias houve'} falta de dados ou incerteza nesta unidade. Pode ter havido focos não registrados nesses dias.`
+          : 'Nenhum dia com lacuna conhecida ou incidência indeterminada nesta unidade. Mesmo assim, não há garantia de que todos os focos foram detectados.'));
+      detalhes.append(cobertura);
+    } else {
+      bloco.append(cobertura);
+    }
+    if (classes) detalhes.append(classes);
+    if (municipios) detalhes.append(municipios);
+    if (dias) detalhes.append(dias);
+    if (metadados) metadados.append(detalhes);
+  }
+  const criterios = [...corpo.querySelectorAll<HTMLElement>(':scope > .criterio')];
+  if (criterios.length === 1 && metadados) metadados.append(criterios[0]!);
+  const meses = corpo.querySelector<HTMLElement>('#lente-meses')?.closest('section');
+  const disponibilidade = corpo.querySelector<HTMLElement>('#lente-disponibilidade');
+  if (meses && disponibilidade) disponibilidade.before(meses);
+  const destacadaPor = [...corpo.querySelectorAll<HTMLElement>(':scope > p')].find((p) => p.textContent?.startsWith('Destacado por:'));
+  if (destacadaPor && metadados) metadados.append(destacadaPor);
+  const ressalvas = corpo.querySelector<HTMLElement>('#lente-caixa-ressalvas');
+  if (ressalvas && metadados) metadados.append(ressalvas);
+  const evidencia = corpo.querySelector<HTMLElement>('#lente-evidencia-detalhes');
+  if (evidencia && metadados) metadados.querySelector('summary')?.after(evidencia);
+  const tituloVista = $('t-explicacao');
+  tituloVista.classList.add('so-leitor');
 }
 
 export function acaoPeriodo(): HTMLButtonElement {
@@ -110,6 +233,15 @@ export function acaoPeriodo(): HTMLButtonElement {
     (periodo.value === 'personalizado' ? $('f-inicio') : periodo).focus();
   });
   return b;
+}
+
+export function etiquetaCobertura(c: Cobertura): HTMLElement {
+  const texto = c.estado === 'completa'
+    ? c.demais_dias.length === 0 ? 'sem lacuna conhecida'
+      : `${fmtNumero(c.demais_dias.length)} ${c.demais_dias.length === 1 ? 'dia precisa' : 'dias precisam'} de atenção`
+    : textoCobertura(c);
+  return h('span', { class: 'etiqueta lente-selo', 'data-cobertura': c.estado,
+    'data-atencao': String(c.estado !== 'completa' || c.demais_dias.length > 0), 'aria-label': textoCobertura(c) }, texto);
 }
 
 export function resumoClassesDaCobertura(c: Cobertura): HTMLElement | null {
@@ -131,17 +263,17 @@ export function resumoClassesDaCobertura(c: Cobertura): HTMLElement | null {
 export function resumoMaiorValor(valores: readonly number[], medida: string): HTMLElement {
   const maior = valores.reduce((n, valor) => Math.max(n, valor), 0);
   const empatados = valores.filter((valor) => valor === maior).length;
-  return h('p', { class: 'nota' },
+  return h('span', { 'data-maior-valor': 'true' },
     `Maior valor observado: ${fmtNumero(maior)} ${medida}${empatados > 1 ? ` (${fmtNumero(empatados)} destaques empatados)` : ''}.`);
 }
 
 export function detalhesTecnicos(...conteudo: HTMLElement[]): HTMLElement {
-  return h('details', { class: 'detalhes' }, h('summary', {}, 'Parâmetros do método'), ...conteudo);
+  return h('details', { class: 'detalhes', 'data-tecnico': 'true' }, h('summary', {}, 'Ver detalhes técnicos e limitações'), ...conteudo);
 }
 
-export function acoesDestaque(id: string, mostrarNoMapa: (id: string) => Promise<boolean>): HTMLElement {
-  const mapa = h('button', { id: 'lente-mostrar-mapa', type: 'button', class: 'botao botao--secundario' }, 'Mostrar no mapa');
-  const focos = h('button', { id: 'lente-ver-focos', type: 'button', class: 'botao botao--secundario', 'aria-controls': 'lente-evidencia-detalhes' }, 'Ver os focos');
+export function acoesDestaque(id: string, n: number, mostrarNoMapa: (id: string) => Promise<boolean>): HTMLElement {
+  const mapa = h('button', { id: 'lente-mostrar-mapa', type: 'button', class: 'botao botao--primario' }, 'Mostrar no mapa');
+  const focos = h('button', { id: 'lente-ver-focos', type: 'button', class: 'botao botao--secundario', 'aria-controls': 'lente-evidencia-detalhes' }, n === 1 ? 'Ver o foco' : `Ver os ${fmtNumero(n)} focos`);
   const estado = h('p', { class: 'aviso-estado', role: 'status', hidden: true });
   mapa.addEventListener('click', async () => {
     estado.hidden = await mostrarNoMapa(id);
@@ -149,11 +281,14 @@ export function acoesDestaque(id: string, mostrarNoMapa: (id: string) => Promise
   });
   focos.addEventListener('click', () => {
     const evidencia = $<HTMLDetailsElement>('lente-evidencia-detalhes');
+    $<HTMLDetailsElement>('lente-detalhes-tecnicos').open = true;
     evidencia.open = true;
     evidenciaAberta.add(id);
     $('lente-evidencia-info').focus();
   });
-  return h('div', {}, h('div', { class: 'acoes lente-acoes' }, mapa, focos), estado);
+  return h('div', { class: 'lente-acoes' },
+    cartaoAcao(mapa, 'Localize este lugar no mapa para ver onde ele fica.'),
+    cartaoAcao(focos, 'Confira os registros que explicam por que este lugar foi destacado.'), estado);
 }
 
 const EVIDENCIA_POR_PAGINA = 20;
@@ -196,8 +331,10 @@ export function mostrarExplicacao(painel: HTMLElement | null, titulo = 'Por que 
     const mesmoDestaque = anterior?.dataset['destaque'] === painel.dataset['destaque'];
     const foco = mesmoDestaque && ativo instanceof HTMLElement && alvo.contains(ativo) ? ativo.id : '';
     if (mesmoDestaque) {
-      const detalhes = painel.querySelector<HTMLDetailsElement>('#lente-detalhes-tecnicos');
-      if (detalhes) detalhes.open = alvo.querySelector<HTMLDetailsElement>('#lente-detalhes-tecnicos')?.open ?? false;
+      for (const id of ['lente-detalhes-tecnicos', 'lente-disponibilidade-detalhes']) {
+        const detalhes = painel.querySelector<HTMLDetailsElement>(`#${id}`);
+        if (detalhes) detalhes.open = alvo.querySelector<HTMLDetailsElement>(`#${id}`)?.open ?? false;
+      }
     }
     alvo.replaceChildren(painel);
     if (foco) document.getElementById(foco)?.focus({ preventScroll: true });
@@ -432,7 +569,7 @@ export function metadados(r: { carga: { id: number; identidade: string }; janela
     dialogo.addEventListener('close', () => fonte.focus({ preventScroll: true }), { once: true });
     $('botao-sobre').click();
   });
-  return h('details', { class: 'detalhes', id: 'lente-detalhes-tecnicos' }, h('summary', { id: 'lente-metadados-resumo' }, 'Metadados e proveniência'), dados, fonte);
+  return h('details', { class: 'detalhes', id: 'lente-detalhes-tecnicos' }, h('summary', { id: 'lente-metadados-resumo' }, 'Ver detalhes técnicos e limitações'), dados, fonte);
 }
 
 /**
