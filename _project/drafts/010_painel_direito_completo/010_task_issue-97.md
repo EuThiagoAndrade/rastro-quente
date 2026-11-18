@@ -95,7 +95,7 @@ Diga: "continue o ciclo 010"
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97/reconciliacao + 5e45fcc010cd44f1113aa6bce14198e8668197a1`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97/reconciliacao + ce09a2efe8a4d11cdb0623f45a6c2b3981d11431`
 - `effect_class`: `local_mutation`
 - `state_before` / `state_after`: task aguardando integração / task concluída após confirmar PR #101 integrada.
 - `result`: `already_executed_and_reconciled`
