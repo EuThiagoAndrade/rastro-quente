@@ -66,6 +66,8 @@ export interface Mapa {
   fecharBalao(): void;
   definirLimites(limites: Limite[], selecionado: number | null): void;
   limparLimites(): void;
+  /** Só câmera: não desenha nem modifica camadas ou seleção. */
+  enquadrarMunicipio(limite: Limite): boolean;
   limparTudo(): void;
   selecionarRegistro(id: string | null): boolean;
   enquadrar(): void;
@@ -335,6 +337,13 @@ export function criarMapa(elemento: HTMLElement): Mapa {
         const b = camada.getBounds();
         if (b.isValid() && (selecionado === null || escolhido)) limitesBounds = limitesBounds ? limitesBounds.extend(b) : b;
       }
+    },
+    enquadrarMunicipio(limite) {
+      const b = L.geoJSON(limite.geometria_exibicao as never).getBounds();
+      if (!b.isValid()) return false;
+      mapa.invalidateSize();
+      mapa.fitBounds(b, { padding: [24, 24], maxZoom: 11, animate: false });
+      return true;
     },
     limparLimites() {
       camadaLimites.clearLayers();

@@ -1978,3 +1978,55 @@ tr.selecionada td {
   background: var(--aviso-fundo);
   color: var(--aviso-texto);
 }
+
+/* Ciclo 010, issue 98: mesma hierarquia de pergunta, resposta e ações das lentes. */
+#painel-municipios h2,
+#municipio-detalhe-titulo {
+  font-size: 1.15rem;
+  margin-bottom: 2px;
+}
+
+#municipio-detalhe-titulo { margin-top: 12px; }
+#painel-municipios .lente-pergunta {
+  color: var(--texto-suave);
+  font-size: 0.9rem;
+  margin: 0 0 10px;
+}
+
+#painel-municipios .lente-resposta {
+  background: var(--escolha-suave);
+  border-radius: 8px;
+  padding: 10px 12px;
+  margin: 0 0 10px;
+  font-size: 1.02rem;
+}
+
+#painel-municipios .lente-bloco {
+  border-top: 1px solid var(--contorno-suave);
+  padding-top: 10px;
+  margin-top: 12px;
+}
+
+#painel-municipios .lente-bloco-titulo { font-size: 0.92rem; margin: 0; }
+#painel-municipios .lente-bloco-para {
+  color: var(--texto-suave);
+  font-size: 0.875rem;
+  margin: 0 0 6px;
+}
+
+#painel-municipios .lente-acoes { display: grid; gap: 10px; margin-top: 12px; }
+#painel-municipios .lente-acao {
+  border: 1px solid var(--contorno-suave);
+  border-radius: 8px;
+  padding: 10px;
+}
+
+#painel-municipios .lente-acao p {
+  margin: 4px 0 0;
+  font-size: 0.875rem;
+  color: var(--texto-suave);
+}
+
+#municipio-estadual-numeros { font-size: 0.9rem; }
+#municipio-mapa-estado:empty { display: none; }
+#municipio-mostrar-mapa[aria-disabled="true"] { opacity: 0.65; cursor: wait; }

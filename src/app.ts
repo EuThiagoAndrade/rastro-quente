@@ -251,6 +251,8 @@ class Controlador {
   private selecionado: string | null = null;
   private paginaFocos = 0;
   private ordemMunicipios: OrdemMunicipios = 'deteccoes';
+  private detalheMunicipio: { codigo: number; mapa: 'ocioso' | 'carregando' | 'exibido' | 'ausente' | 'falha' } | null = null;
+  private rolagemMunicipios = 0;
   private mapa: Mapa | null = null;
   /** Mapa-base (T12): chave pública do build e fundo escolhido; sem chave, só "Sem fundo". */
   private readonly chaveEsri = lerChaveEsri(import.meta.env);
@@ -513,6 +515,7 @@ class Controlador {
   private limparTudo(): void {
     this.geracaoSessao++;
     this.geracaoConsulta++;
+    this.detalheMunicipio = null;
     this.usuarioAutorizado = false;
     this.dados = null;
     this.resultado = null;
@@ -725,6 +728,8 @@ class Controlador {
     }
     const g = this.geracaoSessao;
     const c = ++this.geracaoConsulta;
+    this.detalheMunicipio = null;
+    $('municipios-corpo').replaceChildren();
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
     // Novo recorte A: a comparação em curso é descartada e refeita depois da leitura (T7).
     this.cancelarComparacao();
@@ -810,6 +815,7 @@ class Controlador {
   }
 
   private aoFalharConsulta(e: unknown): void {
+    this.detalheMunicipio = null;
     const tipo: TipoErro | 'inconsistente' = e instanceof ErroLente ? 'inconsistente' : e instanceof ErroConsulta ? e.tipo : 'fonte_indisponivel';
     if (tipo === 'acesso_negado' || tipo === 'sessao_expirada' || tipo === 'sem_publicacao') {
       this.tratarErroGlobal(e);
@@ -935,17 +941,66 @@ class Controlador {
     const r = this.resultado;
     if (!r || !this.dados) return;
     const ativos = this.destaquesAtivos();
+    if (r.filtro.municipio !== null && this.detalheMunicipio?.codigo !== r.filtro.municipio) {
+      this.detalheMunicipio = { codigo: r.filtro.municipio, mapa: 'ocioso' };
+    }
     renderMunicipios({
+      detalhe: this.detalheMunicipio,
       resumo: r.resumo, nomeMunicipio: this.nomeMunicipio(r.filtro.municipio), ordem: this.ordemMunicipios,
       ativos: ativos?.ativos ?? null, nomeLente: ativos?.nome ?? null, registrosLente: ativos?.registros ?? [], leitura: this.pontos,
     }, {
       escolher: (codigo) => this.escolherMunicipio(codigo),
+      inspecionar: (codigo) => {
+        this.rolagemMunicipios = $('resultado').scrollTop;
+        this.detalheMunicipio = { codigo, mapa: 'ocioso' };
+        this.mostrarMunicipios();
+        $('municipio-detalhe-titulo').focus();
+      },
+      voltar: () => {
+        const codigo = this.detalheMunicipio?.codigo;
+        this.detalheMunicipio = null;
+        this.mostrarMunicipios();
+        $('resultado').scrollTop = this.rolagemMunicipios;
+        document.querySelector<HTMLElement>(`#lista-municipios button[data-codigo="${codigo}"]`)?.focus({ preventScroll: true });
+      },
+      mostrarNoMapa: () => void this.mostrarMunicipioNoMapa(),
+      verDestaques: () => {
+        abrirAba('destaques');
+        $('t-destaques').focus();
+      },
       ordenar: (ordem) => {
         this.ordemMunicipios = ordem;
         this.mostrarMunicipios();
         document.querySelector<HTMLElement>(`[data-ordem="${ordem}"]`)?.focus();
       },
     });
+  }
+
+  /** Câmera independente das camadas e do recorte; retorno tardio nunca repõe detalhe encerrado. */
+  private async mostrarMunicipioNoMapa(): Promise<void> {
+    const detalhe = this.detalheMunicipio;
+    const dados = this.dados;
+    if (!detalhe || !dados || detalhe.mapa === 'carregando') return;
+    const g = this.geracaoSessao;
+    const c = this.geracaoConsulta;
+    const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta && this.detalheMunicipio === detalhe;
+    detalhe.mapa = 'carregando';
+    this.mostrarMunicipios();
+    try {
+      await this.carregarLimites(detalhe.codigo, atual);
+      if (!atual()) return;
+      const limite = this.limites.get(detalhe.codigo);
+      detalhe.mapa = limite && this.mapa?.enquadrarMunicipio(limite) ? 'exibido' : 'ausente';
+    } catch (e) {
+      if (!atual() || this.erroDaLente(e, 'geometria') === 'global') return;
+      detalhe.mapa = 'falha';
+    }
+    if (!atual()) return;
+    this.mostrarMunicipios();
+    if (detalhe.mapa === 'exibido' && !window.matchMedia('(min-width: 1180px) and (min-height: 700px)').matches) {
+      $('mapa').focus({ preventScroll: true });
+      $('mapa').scrollIntoView({ block: 'center' });
+    }
   }
 
   // --- Lentes de seleção (plano 004) -----------------------------------------------------------------
