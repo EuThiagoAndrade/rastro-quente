@@ -1218,6 +1218,39 @@ tr.selecionada td {
   line-height: 1.1;
 }
 
+.resumo-lente .lente-pergunta {
+  font-weight: 600;
+}
+
+.resumo-lente p {
+  margin: 0.3rem 0;
+}
+
+.lente-classes {
+  display: grid;
+  gap: 0.35rem;
+  font-size: var(--t-pequeno);
+}
+
+.lente-classes > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.lente-classes dd {
+  margin: 0;
+  white-space: nowrap;
+}
+
+.lente-acoes {
+  margin-block: 0.75rem;
+}
+
+#lente-metadados dd {
+  overflow-wrap: anywhere;
+}
+
 .ressalva-contagem {
   margin: 0.5rem 0;
   padding: 0.5rem 0.65rem;
@@ -1258,11 +1291,6 @@ tr.selecionada td {
   padding: 1.5rem 0.5rem;
   color: var(--texto-suave);
   text-align: center;
-}
-
-.vazio .grande {
-  font-size: 2rem;
-  opacity: 0.8;
 }
 
 .botao-voltar {

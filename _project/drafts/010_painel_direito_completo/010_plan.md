@@ -1,7 +1,7 @@
 # Plano de Implementação — Painel direito completo
 
 > **Ciclo:** `010`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-18
 > **Última atualização:** 2026-11-18
@@ -224,7 +224,7 @@ Gates locais dependem do ambiente de teste já definido pelo projeto. A revisão
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
+| Issue(s) | [#97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97) |
 | PR(s) | [#96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96) — publicação documental |
 | Branch(es) | `chore/cycle-010-plan` |
 | Destino após conclusão | `_project/executed/010_painel_direito_completo/010_plan.md` |

@@ -62,6 +62,7 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#t-destaques')).toHaveText('Concentração');
   await expect(page.locator('#resumo-lente-numero')).toHaveText('3 municípios');
+  await expect(page.locator('#resumo-lente')).toContainText('Quais municípios concentram mais detecções?');
   await expect(page.locator('#lente-ressalva-contagem')).toHaveText('Contagem absoluta favorece municípios grandes; a ordem não indica prioridade, gravidade nem risco.');
   expect(await itens(page).locator('.botao-nome').allInnerTexts())
     .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
@@ -89,6 +90,11 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#lente-ressalvas')).toContainText('Contagem absoluta favorece municípios grandes');
   await expect(page.locator('#lente-motivo')).toContainText('60 detecções na janela');
   await expect(page.locator('#lente-evidencia')).toContainText('60 detecções');
+  await page.getByRole('button', { name: 'Mostrar no mapa' }).click();
+  await expect(page.locator('#vista-explicacao')).toBeVisible();
+  await page.getByRole('button', { name: 'Ver os focos' }).click();
+  await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–20 de 60 detecções da evidência.');
+  await expect(page.locator('#lente-evidencia-info')).toBeFocused();
   await page.getByText('Dias que contam contra (2)').click();
   expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'lacuna_conhecida']);
   await expect(page.locator('#lente-dias')).toContainText('2026-10-01: Lacuna conhecida');
@@ -393,6 +399,11 @@ test.describe('recorrência', () => {
     ]);
     await expect(page.locator('#lente-corpo')).toContainText('A janela toca 3 meses GMT: ago/2026 (parcial), set/2026 e out/2026 (parcial).');
     await abrirDestaque(page, 0);
+    await expect(page.locator('#lente-meses > li')).toHaveText([
+      'ago/2026 (parcial) · 1 detecção',
+      'set/2026 · 1 detecção',
+      'out/2026 (parcial) · 1 detecção',
+    ]);
     expect(await page.locator('#lente-ressalvas > li').allInnerTexts()).toEqual([
       'inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)',
       'inclui mês parcial: out/2026 (janela de 01/10 a 14/10)',
@@ -405,6 +416,10 @@ test.describe('recorrência', () => {
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'janela_insuficiente');
     await expect(page.locator('#lente-estado')).toContainText('A janela toca 2 meses GMT; a recorrência exige pelo menos 3.');
+    await page.getByRole('button', { name: 'Alterar o período' }).click();
+    await expect(page.locator('#secao-consulta')).toHaveAttribute('open', '');
+    await expect(page.locator('#f-inicio')).toBeFocused();
+    await expect(page.locator('#f-inicio')).toHaveValue('2026-08-15');
     await expect(itens(page)).toHaveCount(0);
     await expect(page.locator('#lente-limitacoes')).toBeVisible();
   });
@@ -461,6 +476,8 @@ test.describe('persistência', () => {
     ]);
     await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
     await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#resumo-lente-numero')).toHaveText('4 sequências em 3 células');
+    await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 4');
     await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 dias GMT consecutivos');
     await expect(page.locator('#lente-parametros')).toContainText('só um dia sem detecção na célula interrompe');
     await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
@@ -500,6 +517,11 @@ test.describe('persistência', () => {
       'sequência no limite da janela; pode ser mais longa',
       'inclui dia indeterminado (30/10)',
     ]);
+
+    // Sem a detecção de Beta na divisa nem a sequência de Gama, só restam as duas sequências de Alfa em Q.
+    await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
+    await expect(page.locator('#resumo-lente-numero')).toHaveText('2 sequências em 1 célula');
+    await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 2');
   });
 
   test('falha da disponibilidade de um município: ressalvas de disponibilidade não verificadas, seleção mantida', async ({ page }) => {

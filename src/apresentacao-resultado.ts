@@ -1,9 +1,9 @@
 // Coluna de resultado (plano 007, item 2): abas Destaques e Municípios (padrão de abas acessível), lista ↔
 // explicação com "Voltar aos destaques", resumo da lente, cartão do município, lista estadual ordenável e a
 // "Lista de focos" (T21). Todo valor da fonte entra por textContent.
-import { $, h } from './apresentacao.ts';
-import { fmtDataHoraGmt, fmtNumero, larguraProporcional, ROTULO_DIVERGENCIA } from './formato.ts';
-import type { RegistroLente } from './lentes/contrato.ts';
+import { $, h, tabela } from './apresentacao.ts';
+import { fmtDataHoraGmt, fmtNumero, larguraProporcional, ROTULO_CLASSE, ROTULO_DIVERGENCIA } from './formato.ts';
+import type { Cobertura, RegistroLente } from './lentes/contrato.ts';
 import { linhaCelulasDestacadas, listaMunicipios, numerosMunicipio, type DestaquesAtivos, type OrdemMunicipios } from './municipios.ts';
 import type { Registro, Resumo } from './tipos.ts';
 
@@ -57,8 +57,10 @@ export function rotularAbaDestaques(n: number | null): void {
 export interface ResumoLente {
   /** Título do resultado na aba Lentes: a opção ativa (ciclo 009, BL-017). */
   titulo: string;
-  nome: string;
-  quantidade: number;
+  pergunta: string;
+  resposta: string;
+  quantidade: number | null;
+  celulasDaPersistencia?: number;
   unidade: 'celula' | 'municipio';
   janela: { inicio: string; fim: string };
   ordem: string;
@@ -87,19 +89,118 @@ export function renderResumoLente(r: ResumoLente | null): void {
     $('t-destaques').textContent = 'Lentes';
     return;
   }
-  const plural = r.unidade === 'celula' ? (r.quantidade === 1 ? 'célula' : 'células') : (r.quantidade === 1 ? 'município' : 'municípios');
   $('t-destaques').textContent = r.titulo;
+  const n = r.quantidade;
+  const celulas = r.celulasDaPersistencia;
+  const unidade = r.unidade === 'celula' ? (n === 1 ? 'célula' : 'células') : (n === 1 ? 'município' : 'municípios');
+  const numero = n === null ? null : celulas === undefined ? `${fmtNumero(n)} ${unidade}`
+    : `${fmtNumero(n)} ${n === 1 ? 'sequência' : 'sequências'} em ${fmtNumero(celulas)} ${celulas === 1 ? 'célula' : 'células'}`;
   alvo.replaceChildren(
-    h('div', { class: 'nota' }, r.nome),
-    h('div', { class: 'numero', id: 'resumo-lente-numero' }, `${fmtNumero(r.quantidade)} ${plural}`),
-    h('div', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} · ${r.ordem}`));
+    h('p', { class: 'lente-pergunta' }, r.pergunta),
+    ...(numero === null ? [] : [h('div', { class: 'numero', id: 'resumo-lente-numero' }, numero)]),
+    h('p', {}, r.resposta),
+    h('p', { class: 'nota', id: 'resumo-lente-recorte' }, `${r.municipio === null ? 'em todo Mato Grosso' : `calculada só com os focos de ${r.municipio}`} · ${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} (GMT) · ${r.ordem}`));
+}
+
+export function acaoPeriodo(): HTMLButtonElement {
+  const b = h('button', { type: 'button', class: 'botao botao--secundario' }, 'Alterar o período');
+  b.addEventListener('click', () => {
+    $<HTMLDetailsElement>('secao-consulta').open = true;
+    const periodo = $<HTMLSelectElement>('f-periodo');
+    (periodo.value === 'personalizado' ? $('f-inicio') : periodo).focus();
+  });
+  return b;
+}
+
+export function resumoClassesDaCobertura(c: Cobertura): HTMLElement | null {
+  if (c.estado !== 'completa') return null;
+  const contagens = {
+    sem_evidencia_de_lacuna: c.dias_sem_evidencia_de_lacuna,
+    lacuna_conhecida: 0,
+    incidencia_indeterminada: 0,
+  };
+  for (const dia of c.demais_dias) contagens[dia.classe] += 1;
+  const classes = ['sem_evidencia_de_lacuna', 'lacuna_conhecida', 'incidencia_indeterminada'] as const;
+  return h('dl', { class: 'lente-classes', 'aria-label': 'Dias GMT por classe de disponibilidade' },
+    ...classes.map((classe) => {
+      const n = contagens[classe];
+      return h('div', {}, h('dt', {}, ROTULO_CLASSE[classe].rotulo), h('dd', {}, `${fmtNumero(n)} ${n === 1 ? 'dia GMT' : 'dias GMT'}`));
+    }));
+}
+
+export function resumoMaiorValor(valores: readonly number[], medida: string): HTMLElement {
+  const maior = valores.reduce((n, valor) => Math.max(n, valor), 0);
+  const empatados = valores.filter((valor) => valor === maior).length;
+  return h('p', { class: 'nota' },
+    `Maior valor observado: ${fmtNumero(maior)} ${medida}${empatados > 1 ? ` (${fmtNumero(empatados)} destaques empatados)` : ''}.`);
+}
+
+export function detalhesTecnicos(...conteudo: HTMLElement[]): HTMLElement {
+  return h('details', { class: 'detalhes' }, h('summary', {}, 'Parâmetros do método'), ...conteudo);
+}
+
+export function acoesDestaque(id: string, mostrarNoMapa: (id: string) => Promise<boolean>): HTMLElement {
+  const mapa = h('button', { id: 'lente-mostrar-mapa', type: 'button', class: 'botao botao--secundario' }, 'Mostrar no mapa');
+  const focos = h('button', { id: 'lente-ver-focos', type: 'button', class: 'botao botao--secundario', 'aria-controls': 'lente-evidencia-detalhes' }, 'Ver os focos');
+  const estado = h('p', { class: 'aviso-estado', role: 'status', hidden: true });
+  mapa.addEventListener('click', async () => {
+    estado.hidden = await mostrarNoMapa(id);
+    estado.textContent = estado.hidden ? '' : 'Geometria do destaque indisponível no mapa.';
+  });
+  focos.addEventListener('click', () => {
+    const evidencia = $<HTMLDetailsElement>('lente-evidencia-detalhes');
+    evidencia.open = true;
+    evidenciaAberta.add(id);
+    $('lente-evidencia-info').focus();
+  });
+  return h('div', {}, h('div', { class: 'acoes lente-acoes' }, mapa, focos), estado);
+}
+
+const EVIDENCIA_POR_PAGINA = 20;
+
+export function tabelaPaginadaEvidencia(
+  ids: readonly string[],
+  ctx: { registros: Map<string, RegistroLente>; nomes: Map<number, string>; paginaEvidencia: number },
+  mudarPagina: (pagina: number) => void,
+  titulo: string,
+  coluna?: { nome: string; valor(id: string): string },
+  uniao = false,
+): HTMLElement {
+  const total = ids.length;
+  const paginas = Math.max(1, Math.ceil(total / EVIDENCIA_POR_PAGINA));
+  const pagina = Math.min(Math.max(0, ctx.paginaEvidencia), paginas - 1);
+  const de = pagina * EVIDENCIA_POR_PAGINA;
+  const linhas = ids.slice(de, de + EVIDENCIA_POR_PAGINA).map((id) => {
+    const r = ctx.registros.get(id);
+    const campos = r
+      ? [fmtDataHoraGmt(r.data_hora_gmt), `${ctx.nomes.get(r.municipio_codigo) ?? 'município'} (${r.municipio_codigo})`, String(r.latitude), String(r.longitude)]
+      : ['—', '—', '—', '—'];
+    return [...campos, ...(coluna ? [coluna.valor(id)] : []), id];
+  });
+  const anterior = h('button', { type: 'button', id: 'evidencia-anterior', class: 'botao botao--secundario', disabled: pagina === 0 }, 'Detecções anteriores');
+  const proxima = h('button', { type: 'button', id: 'evidencia-proxima', class: 'botao botao--secundario', disabled: pagina >= paginas - 1 }, 'Próximas detecções');
+  anterior.addEventListener('click', () => mudarPagina(pagina - 1));
+  proxima.addEventListener('click', () => mudarPagina(pagina + 1));
+  return h('div', { id: 'lente-evidencia-tabela' },
+    h('p', { id: 'lente-evidencia-info', class: 'ajuda', tabindex: '-1' }, `Mostrando ${fmtNumero(total === 0 ? 0 : de + 1)}–${fmtNumero(de + linhas.length)} de ${fmtNumero(total)} detecções da evidência${uniao ? ' em união' : ''}.`),
+    tabela(titulo, ['Data e hora (GMT)', 'Município', 'Latitude', 'Longitude', ...(coluna ? [coluna.nome] : []), 'ID técnico'], linhas, 'Tabela de detecções da evidência'),
+    h('div', { class: 'acoes' }, anterior, proxima));
 }
 
 /** Mostra a explicação de um destaque (ou volta à lista, com `null`). */
 export function mostrarExplicacao(painel: HTMLElement | null, titulo = 'Por que este destaque?'): void {
   const alvo = $('lente-explicacao');
   if (painel) {
+    const ativo = document.activeElement;
+    const anterior = alvo.querySelector<HTMLElement>('#lente-painel');
+    const mesmoDestaque = anterior?.dataset['destaque'] === painel.dataset['destaque'];
+    const foco = mesmoDestaque && ativo instanceof HTMLElement && alvo.contains(ativo) ? ativo.id : '';
+    if (mesmoDestaque) {
+      const detalhes = painel.querySelector<HTMLDetailsElement>('#lente-detalhes-tecnicos');
+      if (detalhes) detalhes.open = alvo.querySelector<HTMLDetailsElement>('#lente-detalhes-tecnicos')?.open ?? false;
+    }
     alvo.replaceChildren(painel);
+    if (foco) document.getElementById(foco)?.focus({ preventScroll: true });
     $('t-explicacao').textContent = titulo;
   } else {
     alvo.replaceChildren();
@@ -311,20 +412,27 @@ export function esquecerEvidencias(): void {
 /** "Ver as N detecções que sustentam o destaque": evidência recolhível, que lembra se estava aberta. */
 export function detalhesEvidencia(id: string, n: number, conteudo: HTMLElement): HTMLElement {
   const d = h('details', { class: 'detalhes', id: 'lente-evidencia-detalhes', open: evidenciaAberta.has(id) },
-    h('summary', {}, n === 1 ? 'Ver a detecção que sustenta o destaque' : `Ver as ${fmtNumero(n)} detecções que sustentam o destaque`),
+    h('summary', { id: 'lente-evidencia-resumo' }, n === 1 ? 'Ver a detecção que sustenta o destaque' : `Ver as ${fmtNumero(n)} detecções que sustentam o destaque`),
     conteudo);
-  d.addEventListener('toggle', () => { if (d.open) evidenciaAberta.add(id); else evidenciaAberta.delete(id); });
+  d.addEventListener('toggle', () => { if (!d.isConnected) return; if (d.open) evidenciaAberta.add(id); else evidenciaAberta.delete(id); });
   return d;
 }
 
 /** Metadados curtos ao fim da explicação. */
 export function metadados(r: { carga: { id: number; identidade: string }; janela: { inicio: string; fim: string }; versao: string }): HTMLElement {
   const item = (t: string, v: string) => [h('dt', {}, t), h('dd', {}, v)];
-  return h('dl', { class: 'metadados', id: 'lente-metadados' },
+  const dados = h('dl', { class: 'metadados', id: 'lente-metadados' },
     ...item('Pertencimento', 'calculado com o polígono integral; o mapa é só exibição'),
-    ...item('Versão', `carga nº ${r.carga.id} · identidade ${r.carga.identidade.slice(0, 4)}…${r.carga.identidade.slice(-4)}`),
+    ...item('Versão', `carga nº ${r.carga.id} · identidade ${r.carga.identidade}`),
     ...item('Período', `${dataBr(r.janela.inicio)} a ${dataBr(r.janela.fim)} (dias GMT)`),
     ...item('Método', r.versao));
+  const fonte = h('button', { id: 'lente-proveniencia', type: 'button', class: 'botao botao--secundario' }, 'Sobre os dados');
+  fonte.addEventListener('click', () => {
+    const dialogo = $<HTMLDialogElement>('dialogo-sobre');
+    dialogo.addEventListener('close', () => fonte.focus({ preventScroll: true }), { once: true });
+    $('botao-sobre').click();
+  });
+  return h('details', { class: 'detalhes', id: 'lente-detalhes-tecnicos' }, h('summary', { id: 'lente-metadados-resumo' }, 'Metadados e proveniência'), dados, fonte);
 }
 
 /**

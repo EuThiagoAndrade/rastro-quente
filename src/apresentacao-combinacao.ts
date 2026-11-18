@@ -2,10 +2,12 @@
 // lista paginada de células, painel por critério (um item por destaque original) com cobertura da célula e
 // evidência em união, e limitações. Ordem fixa pela posição da célula; nenhum número de lentes, pontuação ou
 // ordem por critério (T13). Todo valor entra por textContent. Nunca "coberto".
-import { $, h, tabela } from './apresentacao.ts';
-import { dataBr, EVIDENCIA_POR_PAGINA, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
+import { $, h } from './apresentacao.ts';
+import { dataBr, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
+  acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
+  mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
+  rotularAbaDestaques, tabelaPaginadaEvidencia, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
 import {
@@ -14,7 +16,7 @@ import {
 } from './lentes/combinacao.ts';
 import type { Janela, RegistroLente, TipoLente } from './lentes/contrato.ts';
 import { rotuloMes } from './lentes/recorrencia.ts';
-import { fmtDataHoraGmt, fmtNumero, ROTULO_CLASSE } from './formato.ts';
+import { fmtNumero, ROTULO_CLASSE } from './formato.ts';
 
 /** Células por página da lista (Q9): a união das três chega a 1.116 células na janela inteira. */
 export const CELULAS_POR_PAGINA = 50;
@@ -50,6 +52,7 @@ export interface ContextoCombinacao {
 
 export interface ManipuladoresCombinacao {
   selecionar(id: string): void;
+  mostrarNoMapa(id: string): Promise<boolean>;
   pagina(pagina: number): void;
   paginaEvidencia(pagina: number): void;
 }
@@ -110,26 +113,10 @@ function tabelaUniao(c: CelulaCombinada, ctx: ContextoCombinacao, m: Manipulador
       }
     }
   }
-  const total = c.evidencia.deteccoes.length;
-  const paginas = Math.max(1, Math.ceil(total / EVIDENCIA_POR_PAGINA));
-  const pagina = Math.min(Math.max(0, ctx.paginaEvidencia), paginas - 1);
-  const de = pagina * EVIDENCIA_POR_PAGINA;
-  const ids = c.evidencia.deteccoes.slice(de, de + EVIDENCIA_POR_PAGINA);
-  const linhas = ids.map((id) => {
-    const lentes = LENTES_CANONICAS.filter((l) => sustenta.get(id)?.includes(l)).map((l) => NOME_LENTE[l]).join(', ');
-    const r = ctx.registros.get(id);
-    return r
-      ? [fmtDataHoraGmt(r.data_hora_gmt), nomeMunicipio(r.municipio_codigo, ctx.nomes), String(r.latitude), String(r.longitude), lentes, id]
-      : ['—', '—', '—', '—', lentes, id];
-  });
-  const anterior = h('button', { type: 'button', id: 'evidencia-anterior', class: 'botao botao--secundario', disabled: pagina === 0 }, 'Detecções anteriores');
-  const proxima = h('button', { type: 'button', id: 'evidencia-proxima', class: 'botao botao--secundario', disabled: pagina >= paginas - 1 }, 'Próximas detecções');
-  anterior.addEventListener('click', () => m.paginaEvidencia(pagina - 1));
-  proxima.addEventListener('click', () => m.paginaEvidencia(pagina + 1));
-  return h('div', { id: 'lente-evidencia-tabela' },
-    h('p', { id: 'lente-evidencia-info', class: 'ajuda', tabindex: '-1' }, `Mostrando ${fmtNumero(total === 0 ? 0 : de + 1)}–${fmtNumero(de + ids.length)} de ${fmtNumero(total)} detecções da evidência em união.`),
-    tabela('Detecções da evidência da célula, em união', ['Data e hora (GMT)', 'Município', 'Latitude', 'Longitude', 'Lentes', 'ID técnico'], linhas, 'Tabela de detecções da evidência da célula'),
-    h('div', { class: 'acoes' }, anterior, proxima));
+  return tabelaPaginadaEvidencia(c.evidencia.deteccoes, ctx, m.paginaEvidencia, 'Detecções da evidência da célula, em união', {
+    nome: 'Lentes',
+    valor: (id) => LENTES_CANONICAS.filter((l) => sustenta.get(id)?.includes(l)).map((l) => NOME_LENTE[l]).join(', '),
+  }, true);
 }
 
 function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoCombinacao, m: ManipuladoresCombinacao): HTMLElement {
@@ -144,6 +131,7 @@ function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoC
       : `Operador "ou": basta uma das lentes escolhidas (${descreverLentes(r.lentes, 'ou')}); estas a destacaram: ${nomesDosCriterios(c)}.`),
     ...c.criterios.map((x) => blocoCriterio(x, c, r.janela, ctx.nomes)),
     h('p', { id: 'lente-cobertura', 'data-cobertura': cob.estado }, h('strong', {}, 'Disponibilidade da célula: '), textoCobertura(cob)),
+    resumoClassesDaCobertura(cob),
     h('p', { id: 'lente-municipios' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
       `${cob.municipios.map((x) => nomeMunicipio(x, ctx.nomes)).join('; ')}. São os municípios de todas as detecções da célula na janela, inclusive os que nenhuma lente usou; um dia só conta como sem evidência de lacuna se todos estiverem assim.`),
   );
@@ -153,7 +141,7 @@ function painelCelula(r: ResultadoCombinacao, c: CelulaCombinada, ctx: ContextoC
         `${dia.dia}: ${ROTULO_CLASSE[dia.classe].rotulo}`,
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
-  corpo.append(caixaRessalvas(null), detalhesEvidencia(c.id_combinado, c.evidencia.deteccoes.length, tabelaUniao(c, ctx, m)),
+  corpo.append(acoesDestaque(c.id_combinado, m.mostrarNoMapa), caixaRessalvas(null), detalhesEvidencia(c.id_combinado, c.evidencia.deteccoes.length, tabelaUniao(c, ctx, m)),
     metadados({ carga: r.carga, janela: r.janela, versao: `${r.versao_combinacao} sobre ${r.versao_metodo}` }));
   return corpo;
 }
@@ -168,21 +156,25 @@ export function renderResultadoCombinacao(
   corpo.replaceChildren();
   const n = r.estado === 'com_celulas' ? r.celulas.length : 0;
   rotularAbaDestaques(n);
-  renderResumoLente({ titulo: 'Combinação de lentes', nome: `Combinação: ${descreverLentes(r.lentes, r.operador)}`, quantidade: n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  renderResumoLente({
+    titulo: 'Combinação de lentes',
+    pergunta: `Quais células atendem à combinação ${descreverLentes(r.lentes, r.operador)}?`,
+    resposta: r.estado === 'indisponivel'
+      ? 'A combinação está indisponível nesta janela.'
+      : 'Células que atendem ao operador e aos critérios escolhidos.',
+    quantidade: r.estado === 'indisponivel' ? null : n, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking',
+    municipio: municipioDoRecorte(r.recorte, ctx.nomes),
+  });
   // Cabeçalho: sempre a configuração do resultado, nunca a do formulário (R1-7).
   corpo.append(
     h('p', { id: 'lente-configuracao' }, h('strong', {}, 'Combinação aplicada: '),
       `${descreverLentes(r.lentes, r.operador)} (operador ${DESCRICAO_OPERADOR[r.operador]}).`),
-    h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
-    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [
-      h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, ORDEM_FIXA),
   );
   if (r.estado === 'indisponivel') {
     corpo.append(h('ul', { class: 'lista-simples', id: 'lente-indisponibilidade' }, ...r.indisponibilidade.map((x) => h('li', {}, `${x.texto}.`))));
   } else if (r.estado === 'sem_celulas') {
-    corpo.append(h('p', { id: 'lente-sem-celulas', class: 'ajuda' }, textoSemCelulas(r.operador)));
+    corpo.append(h('p', { id: 'lente-sem-celulas', class: 'ajuda' }, textoSemCelulas(r.operador)), h('div', { class: 'acoes' }, acaoPeriodo()));
   } else {
     const total = r.celulas.length;
     const pagina = paginaValida(ctx.pagina, total);
@@ -198,7 +190,7 @@ export function renderResultadoCombinacao(
       b.addEventListener('click', () => m.selecionar(c.id_combinado));
       lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': c.cobertura.estado }, textoCobertura(c.cobertura))));
     }
-    corpo.append(lista,
+    corpo.append(lista, resumoMaiorValor(r.celulas.map((c) => c.evidencia.deteccoes.length), 'detecções na união por célula'),
       h('p', { id: 'lente-mapa-info', class: 'ajuda' },
         `Mapa: ${fmtNumero(ctx.noMapa)} ${ctx.noMapa === 1 ? 'célula desenhada' : 'células desenhadas'} como retângulos de 0,05° na camada de destaques. Esta lista é a alternativa em texto ao mapa.`));
     if (paginas > 1) {
@@ -209,7 +201,12 @@ export function renderResultadoCombinacao(
       corpo.append(h('div', { class: 'acoes' }, anterior, proxima));
     }
   }
-  corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  corpo.append(detalhesTecnicos(
+    h('p', { id: 'lente-escopo', class: 'ajuda' },
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · combinação ${r.versao_combinacao} sobre o método ${r.versao_metodo}.`),
+    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [
+      h('dt', {}, `${p.origem === 'combinacao' ? 'Combinação' : TITULO_LENTE[p.origem]} — ${p.nome}`), h('dd', {}, p.valor)]))),
+    h('h3', { class: 'rotulo-secao' }, 'Limitações da combinação'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
   const escolhida = r.estado === 'com_celulas' ? r.celulas.find((c) => c.id_combinado === selecionado) : undefined;
   mostrarExplicacao(escolhida ? painelCelula(r, escolhida, ctx, m) : null, 'Por que esta célula?');
 }
