@@ -8,7 +8,7 @@ import {
   renderConcentracaoDisponivel, renderLegendaDensidade, renderSelecao, renderSerie, renderTopo, limparResultados, type Acesso, type EstadoConsulta, type EstadoPontos,
 } from './apresentacao.ts';
 import {
-  limparCorpoLente, renderEstadoLente, renderResultadoLente, TITULO_LENTE, type EstadoLente, type ManipuladoresLente,
+  evidenciaMensal, limparCorpoLente, renderEstadoLente, renderResultadoLente, TITULO_LENTE, type EstadoLente, type ManipuladoresLente,
 } from './apresentacao-lentes.ts';
 import {
   CELULAS_POR_PAGINA, paginaValida, renderResultadoCombinacao, type ManipuladoresCombinacao,
@@ -958,6 +958,7 @@ class Controlador {
         else void this.aplicarLente();
       },
       selecionar: (id) => this.selecionarDestaque(id),
+      mostrarNoMapa: (id) => this.mostrarDestaqueNoMapa(id),
       consultarMunicipio: (codigo) => this.escolherMunicipio(codigo),
       paginaEvidencia: (pagina) => {
         if (!this.lente) return;
@@ -1054,6 +1055,20 @@ class Controlador {
     this.atualizarPerguntas();
   }
 
+  private async mostrarDestaqueNoMapa(id: string): Promise<boolean> {
+    const atual = () => (this.lente?.selecionado ?? this.combinacao?.selecionado ?? this.sobreposicao?.selecionado) === id;
+    if (this.mapaComB) {
+      await this.restaurarMapaA();
+      renderLadoNoMapa(null);
+    }
+    if (!atual() || !this.mapa?.selecionarDestaque(id)) return false;
+    if (!window.matchMedia('(min-width: 1180px) and (min-height: 700px)').matches) {
+      $('mapa').focus({ preventScroll: true });
+      $('mapa').scrollIntoView({ block: 'center' });
+    }
+    return true;
+  }
+
   /** Antes de abrir uma explicação: guarda a rolagem da lista e mostra a aba Destaques. */
   private prepararExplicacao(): void {
     // Abrir um destaque reduz o mapa ampliado, para a explicação aparecer (T17).
@@ -1146,6 +1161,7 @@ class Controlador {
     const inicio = performance.now();
     let resultado: ResultadoLente;
     let mem: LeituraRecorte;
+    let porId: Map<string, RegistroLente>;
     try {
       const lido = await this.lerParaLente(pedido, atual);
       if (!lido) return;
@@ -1154,6 +1170,11 @@ class Controlador {
         carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: pedido.janela,
         registros: mem.registros, totalResumo: mem.totalResumo, nomes: dados.nomes, recorte: recorteDe(pedido.municipio),
       });
+      porId = new Map(mem.registros.map((x) => [x.id_tecnico, x]));
+      if (resultado.lente === 'recorrencia' && resultado.destaques.some((d) =>
+        evidenciaMensal(resultado.janela, d.evidencia.deteccoes, porId) === null)) {
+        throw new ErroLente('a evidência das células não corresponde aos meses GMT da janela');
+      }
     } catch (e) {
       if (!atual() || this.erroDaLente(e, 'pagina') === 'global') return;
       this.mapa?.limparDestaques();
@@ -1166,7 +1187,7 @@ class Controlador {
     const disponibilidade = new Map(mem.disponibilidade);
     this.lente = {
       pedido, resultado: qualificar(resultado, disponibilidade), selecionado: null, paginaEvidencia: 0,
-      porId: new Map(mem.registros.map((x) => [x.id_tecnico, x])),
+      porId,
     };
     this.mostrarLente();
     this.mostrarMunicipios();
@@ -1262,6 +1283,7 @@ class Controlador {
   private manipuladoresCombinacao(): ManipuladoresCombinacao {
     return {
       selecionar: (id) => this.selecionarCelula(id),
+      mostrarNoMapa: (id) => this.mostrarDestaqueNoMapa(id),
       pagina: (pagina) => {
         if (!this.combinacao) return;
         this.combinacao.pagina = paginaValida(pagina, this.combinacao.resultado.celulas.length);
@@ -1395,6 +1417,7 @@ class Controlador {
   private manipuladoresSobreposicao(): ManipuladoresSobreposicao {
     return {
       selecionar: (id) => this.selecionarCelulaSobreposicao(id),
+      mostrarNoMapa: (id) => this.mostrarDestaqueNoMapa(id),
       pagina: (pagina) => {
         if (!this.sobreposicao) return;
         this.sobreposicao.pagina = paginaValida(pagina, this.sobreposicao.resultado.destaques.length);
@@ -1638,13 +1661,13 @@ class Controlador {
   }
 
   /** Volta o mapa ao recorte aplicado (lado A): pontos e destaques da lente comum. */
-  private restaurarMapaA(): void {
+  private async restaurarMapaA(): Promise<void> {
     if (!this.mapaComB) return;
     this.mapaComB = false;
     this.mapa?.fecharBalao();
     if (Array.isArray(this.pontos)) this.mapa?.definirPontos(this.pontos);
     this.mapa?.limparDestaques();
-    if (this.lente) void this.desenharDestaques(this.lente.resultado, () => !this.mapaComB).catch(() => {});
+    if (this.lente) await this.desenharDestaques(this.lente.resultado, () => !this.mapaComB).catch(() => {});
     else if (this.combinacao) this.mapa?.definirDestaques(this.combinacao.resultado.celulas.map((c) => ({ id: c.id_combinado, retangulo: retangulo(c.unidade) })));
     else if (this.sobreposicao) {
       this.mapa?.definirDestaques(this.sobreposicao.resultado.destaques.flatMap((d): DestaqueMapa[] => (d.unidade.tipo === 'celula_005' ? [{ id: d.id_destaque, retangulo: retangulo(d.unidade) }] : [])));
@@ -1655,7 +1678,7 @@ class Controlador {
   private cancelarComparacao(): void {
     this.geracaoComparacao++;
     this.comparacao = null;
-    this.restaurarMapaA();
+    void this.restaurarMapaA();
     renderLadoNoMapa(null);
     if (modoComparacao() !== 'nenhuma') this.estadoComparacao({ tipo: 'carregando', etapa: 'registros', feitos: 0, total: 0 });
     this.atualizarPerguntas();

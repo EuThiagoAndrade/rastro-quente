@@ -9,6 +9,7 @@ import { lerRegistros, LIMITE_PAGINA } from '../../src/lentes/carregar.ts';
 import { recorrencia } from '../../src/lentes/recorrencia.ts';
 import { persistencia } from '../../src/lentes/persistencia.ts';
 import { combinar } from '../../src/lentes/combinacao.ts';
+import { evidenciaMensal } from '../../src/apresentacao-lentes.ts';
 
 const A = 9100001;
 const B = 9100002;
@@ -178,4 +179,26 @@ test('RC-12 (cálculo): 12 municípios com o 9º e o 10º empatados com o 11º �
   assert.equal(r.destaques.length, 11);
   assert.deepEqual(r.observacoes, ['11 municípios por empate no 10º lugar.']);
   assert.deepEqual(r.destaques.map((d) => d.evidencia.valor), [12, 11, 10, 9, 8, 7, 6, 5, 4, 4, 4]);
+});
+
+test('evidência da recorrência agrupa somente os IDs do destaque por mês GMT e inclui mês sem registro', () => {
+  const janela = { inicio: '2026-07-15', fim: '2026-10-06' };
+  const dados = [
+    ['a', '2026-07-15T12:00:00Z'],
+    ['b', '2026-08-01T00:10:00Z'],
+    ['c', '2026-08-21T12:00:00Z'],
+    ['outra-celula', '2026-09-01T12:00:00Z'],
+    ['d', '2026-10-06T12:00:00Z'],
+    ['fora', '2026-10-07T00:00:00Z'],
+  ];
+  const registros = new Map(dados.map(([id, instante]) => [id, reg(id, A, instante, -11.52, -56.48)]));
+  const meses = evidenciaMensal(janela, ['a', 'b', 'c', 'd'], registros);
+  assert.deepEqual(meses.map(({ mes, parcial, deteccoes }) => [mes, parcial, deteccoes]), [
+    ['2026-07', true, 1],
+    ['2026-08', false, 2],
+    ['2026-09', false, 0],
+    ['2026-10', true, 1],
+  ]);
+  assert.equal(evidenciaMensal(janela, ['a', 'ausente'], registros), null);
+  assert.equal(evidenciaMensal(janela, ['a', 'fora'], registros), null);
 });

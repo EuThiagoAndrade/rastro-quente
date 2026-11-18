@@ -2,11 +2,13 @@
 // selecionada com o botão do contorno real, e o resultado da lente de sobreposição (lista paginada de células,
 // painel com o motivo por área, evidência paginada, ressalvas, cobertura e limitações). Ordem fixa pela posição
 // da célula; nenhuma ordem, intensidade ou número por classe ou por área. Todo valor entra por textContent.
-import { $, h, tabela, textoAtribuicaoArea } from './apresentacao.ts';
+import { $, h, textoAtribuicaoArea } from './apresentacao.ts';
 import { CELULAS_POR_PAGINA, paginaValida } from './apresentacao-combinacao.ts';
-import { EVIDENCIA_POR_PAGINA, linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
+import { linhaMunicipio, nomeMunicipio } from './apresentacao-lentes.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
+  comporListaLente, comporDetalheLente, acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, ficha, metadados,
+  etiquetaCobertura, mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
+  rotularAbaDestaques, tabelaPaginadaEvidencia, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import { textoCobertura } from './lentes/cobertura.ts';
@@ -15,7 +17,7 @@ import {
   CLASSES_AREA, LIMITACOES_SOBREPOSICAO, nomeArea, ROTULO_CLASSE, TEXTO_SEM_CAMADA, textoSemDestaques,
   type AreaSobreposicao, type DestaqueSobreposicao, type ResultadoSobreposicao,
 } from './lentes/sobreposicao.ts';
-import { fmtDataHoraGmt, fmtNumero, ROTULO_CLASSE as ROTULO_DISPONIBILIDADE } from './formato.ts';
+import { fmtNumero, ROTULO_CLASSE as ROTULO_DISPONIBILIDADE } from './formato.ts';
 import type { Fonte } from './tipos.ts';
 
 /** Descrição textual do sinal de cada classe no mapa (a cor nunca é o único sinal). */
@@ -143,6 +145,7 @@ export interface ContextoSobreposicao {
 
 export interface ManipuladoresSobreposicao {
   selecionar(id: string): void;
+  mostrarNoMapa(id: string): Promise<boolean>;
   pagina(pagina: number): void;
   paginaEvidencia(pagina: number): void;
   selecionarArea(a: AreaSobreposicao): void;
@@ -172,26 +175,10 @@ function itemArea(a: AreaSobreposicao, m: ManipuladoresSobreposicao): HTMLElemen
 }
 
 function tabelaEvidencia(d: DestaqueSobreposicao, ctx: ContextoSobreposicao, m: ManipuladoresSobreposicao): HTMLElement {
-  const total = d.evidencia.deteccoes.length;
-  const paginas = Math.max(1, Math.ceil(total / EVIDENCIA_POR_PAGINA));
-  const pagina = Math.min(Math.max(0, ctx.paginaEvidencia), paginas - 1);
-  const de = pagina * EVIDENCIA_POR_PAGINA;
-  const ids = d.evidencia.deteccoes.slice(de, de + EVIDENCIA_POR_PAGINA);
-  const linhas = ids.map((id) => {
-    const areas = d.areas.filter((a) => a.deteccoes.includes(id)).map(nomeArea).join('; ');
-    const r = ctx.registros.get(id);
-    return r
-      ? [fmtDataHoraGmt(r.data_hora_gmt), nomeMunicipio(r.municipio_codigo, ctx.nomes), String(r.latitude), String(r.longitude), areas, id]
-      : ['—', '—', '—', '—', areas, id];
+  return tabelaPaginadaEvidencia(d.evidencia.deteccoes, ctx, m.paginaEvidencia, 'Detecções da evidência da célula', {
+    nome: 'Áreas',
+    valor: (id) => d.areas.filter((a) => a.deteccoes.includes(id)).map(nomeArea).join('; '),
   });
-  const anterior = h('button', { type: 'button', id: 'evidencia-anterior', class: 'botao botao--secundario', disabled: pagina === 0 }, 'Detecções anteriores');
-  const proxima = h('button', { type: 'button', id: 'evidencia-proxima', class: 'botao botao--secundario', disabled: pagina >= paginas - 1 }, 'Próximas detecções');
-  anterior.addEventListener('click', () => m.paginaEvidencia(pagina - 1));
-  proxima.addEventListener('click', () => m.paginaEvidencia(pagina + 1));
-  return h('div', { id: 'lente-evidencia-tabela' },
-    h('p', { id: 'lente-evidencia-info', class: 'ajuda', tabindex: '-1' }, `Mostrando ${fmtNumero(total === 0 ? 0 : de + 1)}–${fmtNumero(de + ids.length)} de ${fmtNumero(total)} detecções da evidência.`),
-    tabela('Detecções da evidência da célula', ['Data e hora (GMT)', 'Município', 'Latitude', 'Longitude', 'Áreas', 'ID técnico'], linhas, 'Tabela de detecções da evidência da célula'),
-    h('div', { class: 'acoes' }, anterior, proxima));
 }
 
 const TEXTO_CONTORNOS: Record<EstadoContorno, string> = {
@@ -223,6 +210,7 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
     h('ul', { class: 'lista-simples areas-citadas', id: 'lente-areas', 'aria-label': 'Áreas da classe com detecção nesta célula' }, ...d.areas.map((a) => itemArea(a, m))),
     h('p', { id: 'lente-contornos', class: 'ajuda', role: 'status', 'data-contornos': ctx.contornos }, TEXTO_CONTORNOS[ctx.contornos]),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
+    resumoClassesDaCobertura(c),
     h('p', { id: 'lente-municipios' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
       `${c.municipios.map((x) => nomeMunicipio(x, ctx.nomes)).join('; ')}. São os municípios de todas as detecções da célula na janela; um dia só conta como sem evidência de lacuna se todos estiverem assim.`),
   );
@@ -233,8 +221,10 @@ function painel(r: ResultadoSobreposicao, d: DestaqueSobreposicao, ctx: Contexto
         h('ul', {}, ...dia.municipios.map((x) => h('li', {}, linhaMunicipio(x, ctx.nomes)))))))));
   }
   corpo.append(caixaRessalvas(h('p', { id: 'lente-aviso-dominio' }, LIMITACOES_SOBREPOSICAO[0] ?? '')),
+    acoesDestaque(d.id_destaque, d.evidencia.deteccoes.length, m.mostrarNoMapa),
     detalhesEvidencia(d.id_destaque, d.evidencia.deteccoes.length, tabelaEvidencia(d, ctx, m)),
     metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+  comporDetalheLente(corpo, `Este lugar teve ${fmtNumero(d.evidencia.deteccoes.length)} focos vinculados a áreas de ${ROTULO_CLASSE[r.classe]}. ${d.motivo}`, 'Por que este lugar aparece na lista?', c);
   return corpo;
 }
 
@@ -247,17 +237,22 @@ export function renderResultadoSobreposicao(
   const corpo = $('lente-corpo');
   corpo.replaceChildren();
   rotularAbaDestaques(r.destaques.length);
-  renderResumoLente({ titulo: 'Sobreposição com áreas protegidas', nome: `Sobreposição · ${ROTULO_CLASSE[r.classe]}`, quantidade: r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking', municipio: municipioDoRecorte(r.recorte, ctx.nomes) });
+  renderResumoLente({
+    titulo: 'Sobreposição com áreas protegidas',
+    pergunta: `Onde há detecções vinculadas a áreas de ${ROTULO_CLASSE[r.classe]}?`,
+    resposta: r.estado === 'sem_camada'
+      ? 'A camada de áreas protegidas está indisponível nesta carga.'
+      : 'Tiveram focos vinculados a áreas da classe selecionada.',
+    quantidade: r.estado === 'sem_camada' ? null : r.destaques.length, unidade: 'celula', janela: r.janela, ordem: 'norte→sul, oeste→leste; não é ranking',
+    municipio: municipioDoRecorte(r.recorte, ctx.nomes),
+  });
   corpo.append(
     h('p', { id: 'lente-classe' }, h('strong', {}, 'Classe aplicada: '), `${ROTULO_CLASSE[r.classe]}.`),
-    h('p', { id: 'lente-escopo', class: 'ajuda' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
-    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
   );
   if (r.estado === 'sem_camada') {
     corpo.append(h('p', { id: 'lente-sem-camada', class: 'aviso-estado' }, `${TEXTO_SEM_CAMADA[0]?.toUpperCase()}${TEXTO_SEM_CAMADA.slice(1)}.`));
   } else if (r.estado === 'sem_destaques') {
-    corpo.append(h('p', { id: 'lente-sem-destaques', class: 'ajuda' }, textoSemDestaques(r.classe)));
+    corpo.append(h('p', { id: 'lente-sem-destaques', class: 'ajuda' }, textoSemDestaques(r.classe)), h('div', { class: 'acoes' }, acaoPeriodo()));
   } else {
     corpo.append(h('p', { id: 'lente-ordenacao', class: 'etiqueta' }, 'Lista na ordem das células, de norte a sul e de oeste a leste; não é ranking.'));
     const total = r.destaques.length;
@@ -271,9 +266,9 @@ export function renderResultadoSobreposicao(
     for (const d of visiveis) {
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloCelula(d));
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
-      lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': d.cobertura.estado }, textoCobertura(d.cobertura))));
+      lista.append(h('li', {}, b, etiquetaCobertura(d.cobertura)));
     }
-    corpo.append(lista,
+    corpo.append(lista, resumoMaiorValor(r.destaques.map((d) => d.evidencia.deteccoes.length), 'detecções vinculadas por célula'),
       h('p', { id: 'lente-mapa-info', class: 'ajuda' },
         `Mapa: ${fmtNumero(ctx.noMapa)} ${ctx.noMapa === 1 ? 'célula desenhada' : 'células desenhadas'} como retângulos de 0,05° na camada de destaques. Esta lista é a alternativa em texto ao mapa.`));
     if (paginas > 1) {
@@ -284,7 +279,12 @@ export function renderResultadoSobreposicao(
       corpo.append(h('div', { class: 'acoes' }, anterior, proxima));
     }
   }
-  corpo.append(h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  corpo.append(detalhesTecnicos(
+    h('p', { id: 'lente-escopo', class: 'ajuda' },
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
+    h('dl', { class: 'definicoes', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)]))),
+    h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'), h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  comporListaLente(corpo, 'Os focos registrados ficam dentro dos limites das áreas disponíveis na base. Toque em um lugar para ver os focos e as áreas relacionadas.');
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
   mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, 'Por que esta célula?');
 }

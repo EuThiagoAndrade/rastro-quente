@@ -55,7 +55,7 @@ export interface DestaqueMapa {
 
 export interface Mapa {
   definirDestaques(itens: DestaqueMapa[]): void;
-  selecionarDestaque(id: string | null): void;
+  selecionarDestaque(id: string | null): boolean;
   limparDestaques(): void;
   enquadrarDestaques(): void;
   aoSelecionarDestaque(f: (id: string) => void): void;
@@ -273,12 +273,14 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       if (destaqueSelecionado !== null) destaques.get(destaqueSelecionado)?.setStyle(estiloDestaque(false));
       destaqueSelecionado = null;
       const c = id === null ? undefined : destaques.get(id);
-      if (!c || id === null) return;
+      if (!c || id === null) return false;
       destaqueSelecionado = id;
       c.setStyle(estiloDestaque(true));
       c.bringToFront();
       const b = c.getBounds();
-      if (b.isValid()) mapa.fitBounds(b, { padding: [24, 24], maxZoom: 11, animate: false });
+      if (!b.isValid()) return false;
+      mapa.fitBounds(b, { padding: [24, 24], maxZoom: 11, animate: false });
+      return true;
     },
     limparDestaques() {
       camadaDestaques.clearLayers();

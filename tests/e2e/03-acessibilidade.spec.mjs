@@ -110,6 +110,8 @@ for (const [w, h, esquema] of VIEWPORTS) {
     // A aba Destaques com uma lista e a explicação aberta também passam pela auditoria.
     await escolherLente(page, 'concentracao');
     await expect(page.locator('#cartao-lentes')).toHaveAttribute('data-estado-lente', 'completo');
+    await page.locator('#t-destaques').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/lente-lista-${w}x${h}-${esquema}.png`, fullPage: true });
     await page.locator('#lente-destaques .botao-nome').first().click();
     await expect(page.locator('#vista-explicacao')).toBeVisible();
     const x = await page.evaluate(auditoriaNaPagina);
@@ -117,6 +119,8 @@ for (const [w, h, esquema] of VIEWPORTS) {
     expect(x.alvos, 'explicação: alvos').toEqual([]);
     expect(x.transborda, 'explicação: fora da janela').toEqual([]);
     expect(x.fontes, 'explicação: texto abaixo de 0.875rem').toEqual([]);
+    await page.locator('#t-explicacao').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/lente-detalhe-${w}x${h}-${esquema}.png`, fullPage: true });
     // Ciclo 008, item 4: o painel de perguntas com uma resposta (provedor simulado) e os blocos abertos.
     await page.locator('#pergunta-destaque').click();
     await expect(page.locator('#painel-perguntas')).toHaveAttribute('data-estado-perguntas', 'resposta');

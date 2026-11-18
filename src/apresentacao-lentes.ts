@@ -2,18 +2,17 @@
 // painel de motivo e evidência, e limitações. Todo valor entra por textContent. Nunca "coberto".
 // Os estados da combinação (plano 005, T11) dividem o mesmo cartão e o mesmo `data-estado-lente`.
 // Desde o plano 007 (item 2), a lista fica na aba Destaques e o painel abre na vista de explicação (V13).
-import { $, h, tabela } from './apresentacao.ts';
+import { $, h } from './apresentacao.ts';
 import {
-  caixaRessalvas, detalhesEvidencia, esquecerEvidencias, ficha, metadados, mostrarExplicacao, municipioDoRecorte, renderResumoLente, rotularAbaDestaques, textoRecorteLente,
+  cartaoAcao, blocoLente, comporListaLente, comporDetalheLente, acaoPeriodo, acoesDestaque, caixaRessalvas, detalhesEvidencia, detalhesTecnicos, esquecerEvidencias, ficha, metadados,
+  etiquetaCobertura, mostrarExplicacao, municipioDoRecorte, renderResumoLente, resumoClassesDaCobertura, resumoMaiorValor,
+  rotularAbaDestaques, tabelaPaginadaEvidencia, textoRecorteLente,
 } from './apresentacao-resultado.ts';
 import { ressalvasDeClasse, textoCobertura } from './lentes/cobertura.ts';
 import { textoSemCelulas } from './lentes/combinacao.ts';
-import type { Destaque, DiaRestritivo, RegistroLente, ResultadoLente, TipoLente } from './lentes/contrato.ts';
-import { rotuloMes } from './lentes/recorrencia.ts';
-import { fmtDataHoraGmt, fmtNumero, humanizar, ROTULO_CLASSE } from './formato.ts';
-
-/** Detecções da evidência de célula por página do painel. */
-export const EVIDENCIA_POR_PAGINA = 20;
+import type { Destaque, DiaRestritivo, Janela, RegistroLente, ResultadoLente, TipoLente } from './lentes/contrato.ts';
+import { mesesDaJanela, rotuloMes } from './lentes/recorrencia.ts';
+import { fmtNumero, humanizar, ROTULO_CLASSE } from './formato.ts';
 
 /** O que o painel precisa além do resultado: nomes, registros em memória e a página da evidência. */
 export interface ContextoLente {
@@ -48,6 +47,7 @@ export type EstadoLente =
 export interface ManipuladoresLente {
   tentarDeNovo(): void;
   selecionar(id: string): void;
+  mostrarNoMapa(id: string): Promise<boolean>;
   consultarMunicipio(codigo: number): void;
   paginaEvidencia(pagina: number): void;
 }
@@ -87,8 +87,9 @@ export function renderEstadoLente(e: EstadoLente, m: ManipuladoresLente): void {
   // Sem lente, o estado vazio da aba (V13) diz o que fazer; o texto do estado fica só para o leitor de tela.
   // Tom de aviso só para o que pede atenção; conclusões e progresso ficam em texto de apoio.
   const calmo = ['carregando', 'incompleta', 'completo', 'sem_destaques', 'sem_celulas_em_comum', 'sem_celulas_destacadas'].includes(e.tipo);
-  const classe = e.tipo === 'nenhuma' ? 'so-leitor' : calmo ? 'ajuda' : 'aviso-estado';
+  const classe = ['nenhuma', 'completo', 'sem_destaques', 'sem_celulas_em_comum', 'sem_celulas_destacadas'].includes(e.tipo) ? 'so-leitor' : calmo ? 'ajuda' : 'aviso-estado';
   alvo.replaceChildren(h('p', { class: classe }, textoEstado(e)));
+  if (e.tipo === 'janela_insuficiente' || e.tipo === 'indisponivel') alvo.append(cartaoAcao(acaoPeriodo(), 'Escolha outras datas para fazer uma nova consulta.'));
   $('lente-vazio').hidden = e.tipo !== 'nenhuma';
   if (e.tipo === 'falha' || e.tipo === 'leitura_inconsistente' || e.tipo === 'cobertura_nao_verificada') {
     const b = h('button', { type: 'button', id: 'botao-lente-tentar', class: 'botao botao--secundario' }, 'Tentar de novo');
@@ -133,27 +134,18 @@ function rotuloDestaque(lente: TipoLente, d: Destaque): string {
   return d.ordem ? `${d.ordem}. ${rotuloUnidade(d)} — ${valor}` : `${rotuloUnidade(d)} — ${valor}`;
 }
 
-/** Tabela paginada das detecções que sustentam um destaque de célula, declarando "N de M". */
-function tabelaEvidencia(d: Destaque, ctx: ContextoLente, m: ManipuladoresLente): HTMLElement {
-  const total = d.evidencia.deteccoes.length;
-  const paginas = Math.max(1, Math.ceil(total / EVIDENCIA_POR_PAGINA));
-  const pagina = Math.min(Math.max(0, ctx.paginaEvidencia), paginas - 1);
-  const de = pagina * EVIDENCIA_POR_PAGINA;
-  const ids = d.evidencia.deteccoes.slice(de, de + EVIDENCIA_POR_PAGINA);
-  const linhas = ids.map((id) => {
-    const r = ctx.registros.get(id);
-    return r
-      ? [fmtDataHoraGmt(r.data_hora_gmt), nomeMunicipio(r.municipio_codigo, ctx.nomes), String(r.latitude), String(r.longitude), id]
-      : ['—', '—', '—', '—', id];
-  });
-  const anterior = h('button', { type: 'button', id: 'evidencia-anterior', class: 'botao botao--secundario', disabled: pagina === 0 }, 'Detecções anteriores');
-  const proxima = h('button', { type: 'button', id: 'evidencia-proxima', class: 'botao botao--secundario', disabled: pagina >= paginas - 1 }, 'Próximas detecções');
-  anterior.addEventListener('click', () => m.paginaEvidencia(pagina - 1));
-  proxima.addEventListener('click', () => m.paginaEvidencia(pagina + 1));
-  return h('div', { id: 'lente-evidencia-tabela' },
-    h('p', { id: 'lente-evidencia-info', class: 'ajuda', tabindex: '-1' }, `Mostrando ${fmtNumero(total === 0 ? 0 : de + 1)}–${fmtNumero(de + ids.length)} de ${fmtNumero(total)} detecções da evidência.`),
-    tabela('Detecções da evidência do destaque', ['Data e hora (GMT)', 'Município', 'Latitude', 'Longitude', 'ID técnico'], linhas, 'Tabela de detecções da evidência'),
-    h('div', { class: 'acoes' }, anterior, proxima));
+export function evidenciaMensal(janela: Janela, ids: readonly string[], registros: ContextoLente['registros']) {
+  const meses = mesesDaJanela(janela);
+  const contagens = new Map(meses.map(({ mes }) => [mes, 0]));
+  for (const id of ids) {
+    const dia = registros.get(id)?.data_hora_gmt.slice(0, 10);
+    if (!dia || dia < janela.inicio || dia > janela.fim) return null;
+    const mes = dia.slice(0, 7);
+    const n = contagens.get(mes);
+    if (n === undefined) return null;
+    contagens.set(mes, n + 1);
+  }
+  return meses.map((mes) => ({ ...mes, deteccoes: contagens.get(mes.mes) ?? 0 }));
 }
 
 /** Município do dia, com a classe e os motivos daquele município, sem fundir motivos (T7). */
@@ -181,6 +173,17 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
       h('p', { id: 'lente-evidencia' }, h('strong', {}, 'Evidência: '), `${fmtNumero(n)} detecções (registros principais da janela)${datas.length ? `; ${rotuloDatas}: ${datas.join(', ')}` : ''}.`)),
     h('p', { id: 'lente-cobertura', 'data-cobertura': c.estado }, h('strong', {}, 'Disponibilidade: '), textoCobertura(c)),
   );
+  const classes = resumoClassesDaCobertura(c);
+  if (classes) corpo.append(classes);
+  if (lente === 'recorrencia') {
+    const meses = evidenciaMensal(r.janela, d.evidencia.deteccoes, ctx.registros) ?? [];
+    corpo.append(blocoLente('Em quais meses houve focos?', 'Cada quadrado laranja mostra um mês com focos. O número indica quantos foram registrados.',
+      h('ul', { id: 'lente-meses', class: 'lente-meses' }, ...meses.map((mes) => h('li', { 'data-mes': mes.mes, 'aria-label': `${rotuloMes(mes.mes)}${mes.parcial ? ' (parcial)' : ''} · ${fmtNumero(mes.deteccoes)} ${mes.deteccoes === 1 ? 'detecção' : 'detecções'}` },
+        h('span', { class: mes.deteccoes ? 'lente-mes lente-mes--com-focos' : 'lente-mes', 'aria-hidden': 'true' }, mes.deteccoes ? fmtNumero(mes.deteccoes) : ''),
+        h('span', {}, `${rotuloMes(mes.mes)}${mes.parcial ? ' (parcial)' : ''}`),
+        h('span', { class: 'so-leitor' }, ` · ${fmtNumero(mes.deteccoes)} ${mes.deteccoes === 1 ? 'detecção' : 'detecções'}`)))),
+      h('p', { class: 'nota' }, 'Zero indica que a evidência não contém detecção no mês. Veja a disponibilidade e as ressalvas.')));
+  }
   if (u.tipo === 'celula_005') {
     corpo.append(h('p', { id: 'lente-municipios', class: 'nota' }, h('strong', {}, 'Municípios considerados na disponibilidade: '),
       `${c.municipios.map((x) => nomeMunicipio(x, ctx.nomes)).join('; ')}. São os municípios das detecções da célula na janela; um dia só conta como sem evidência de lacuna se todos estiverem assim.`));
@@ -206,18 +209,32 @@ function painel(r: ResultadoLente, d: Destaque, ctx: ContextoLente, m: Manipulad
         : h('li', {}, txt);
     }));
   }
-  corpo.append(caixaRessalvas(ressalvas));
+  corpo.append(acoesDestaque(d.id_destaque, n, m.mostrarNoMapa), caixaRessalvas(ressalvas));
   if (u.tipo === 'municipio') {
     const codigo = u.codigo;
     const b = h('button', { type: 'button', id: 'botao-lente-consultar', class: 'botao botao--secundario' }, 'Consultar este município');
     b.addEventListener('click', () => m.consultarMunicipio(codigo));
     corpo.append(h('div', { class: 'acoes' }, b));
-  } else {
-    corpo.append(detalhesEvidencia(d.id_destaque, n, tabelaEvidencia(d, ctx, m)));
   }
-  corpo.append(metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+  corpo.append(detalhesEvidencia(d.id_destaque, n,
+    tabelaPaginadaEvidencia(d.evidencia.deteccoes, ctx, m.paginaEvidencia, 'Detecções da evidência do destaque')),
+  metadados({ carga: r.carga, janela: r.janela, versao: r.versao_metodo }));
+  comporDetalheLente(corpo,
+    `Este lugar teve ${fmtNumero(n)} focos${lente === 'recorrencia' ? ` em ${d.evidencia.valor} meses diferentes` : lente === 'persistencia' ? ` em ${d.evidencia.valor} dias GMT seguidos` : ' no período'}. ${d.motivo}`,
+    'Por que este lugar aparece na lista?', c);
   return corpo;
 }
+
+const PERGUNTA: Record<TipoLente, string> = {
+  concentracao: 'Quais municípios concentram mais detecções?',
+  recorrencia: 'Onde os focos voltam mês após mês no mesmo lugar?',
+  persistencia: 'Onde os focos seguem dia após dia, sem pausa?',
+};
+const CRITERIO: Record<TipoLente, string> = {
+  concentracao: 'Foram destacados por contagem, incluindo os empatados no corte vigente.',
+  recorrencia: 'Tiveram registros em pelo menos três meses GMT.',
+  persistencia: 'Tiveram registros em pelo menos três dias GMT consecutivos.',
+};
 
 export function renderResultadoLente(r: ResultadoLente, selecionado: string | null, ctx: ContextoLente, m: ManipuladoresLente): void {
   const corpo = $('lente-corpo');
@@ -225,8 +242,12 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
   const municipios = r.lente === 'concentracao';
   rotularAbaDestaques(r.destaques.length);
   renderResumoLente({
-    titulo: TITULO_LENTE[r.lente], nome: TITULO_LENTE[r.lente], quantidade: r.destaques.length, unidade: municipios ? 'municipio' : 'celula', janela: r.janela,
-    ordem: municipios ? 'por contagem; não é ranking' : 'norte→sul, oeste→leste; não é ranking',
+    titulo: TITULO_LENTE[r.lente], pergunta: PERGUNTA[r.lente], resposta: r.estado === 'janela_insuficiente' ? (r.observacoes[0] ?? CRITERIO[r.lente]) : CRITERIO[r.lente],
+    quantidade: r.estado === 'janela_insuficiente' ? null : r.destaques.length,
+    unidade: municipios ? 'municipio' : 'celula', janela: r.janela,
+    celulasDaPersistencia: r.lente === 'persistencia' ? new Set(r.destaques.flatMap((d) => d.unidade.tipo === 'celula_005' ? [d.unidade.id] : [])).size : undefined,
+    ordem: municipios ? 'por contagem; não é ranking'
+      : r.lente === 'persistencia' ? 'por início da sequência e posição da célula' : 'norte→sul, oeste→leste',
     municipio: municipioDoRecorte(r.recorte, ctx.nomes),
   });
   if (municipios) corpo.append(h('p', { id: 'lente-ressalva-contagem', class: 'ressalva-contagem' }, RESSALVA_CONTAGEM));
@@ -242,16 +263,23 @@ export function renderResultadoLente(r: ResultadoLente, selecionado: string | nu
     for (const d of r.destaques) {
       const b = h('button', { type: 'button', class: 'botao-nome', 'data-id': d.id_destaque, 'aria-pressed': String(d.id_destaque === selecionado) }, rotuloDestaque(r.lente, d));
       b.addEventListener('click', () => m.selecionar(d.id_destaque));
-      lista.append(h('li', {}, b, h('span', { class: 'etiqueta', 'data-cobertura': d.cobertura.estado }, textoCobertura(d.cobertura))));
+      lista.append(h('li', {}, b, etiquetaCobertura(d.cobertura)));
     }
-    corpo.append(lista);
+    const medida = municipios ? 'detecções' : r.lente === 'recorrencia' ? 'meses GMT' : 'dias GMT consecutivos';
+    corpo.append(lista, resumoMaiorValor(r.destaques.map((d) => d.evidencia.valor), medida));
   }
-  corpo.append(
+  if (r.estado === 'sem_destaques') corpo.append(h('div', { class: 'acoes' }, acaoPeriodo()));
+  corpo.append(detalhesTecnicos(
     h('dl', { class: 'metadados', id: 'lente-parametros' }, ...r.parametros.flatMap((p) => [h('dt', {}, p.nome), h('dd', {}, p.valor)])),
     h('p', { id: 'lente-escopo', class: 'nota' },
-      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`),
+      `Janela: ${r.janela.inicio} a ${r.janela.fim} (${r.janela.referencia}) · carga nº ${r.carga.id} · ${textoRecorteLente(r.recorte, ctx.nomes)} · método ${r.versao_metodo}.`)),
     h('h3', { class: 'rotulo-secao' }, 'Limitações da lente'),
     h('ul', { class: 'lista-simples nota', id: 'lente-limitacoes' }, ...r.limitacoes.map((l) => h('li', {}, l))));
+  comporListaLente(corpo, municipios
+    ? 'Esta lente soma os focos de cada município e destaca os 10 com mais registros, incluindo os empatados no corte.'
+    : r.lente === 'recorrencia'
+      ? 'Cada lugar representa uma célula de 0,05°, cerca de 5 km de lado. Esta lente mostra as células com focos em pelo menos três meses GMT diferentes.'
+      : 'Cada linha representa uma sequência de pelo menos três dias GMT seguidos com focos. Uma célula pode ter mais de uma sequência.');
   const escolhido = r.destaques.find((d) => d.id_destaque === selecionado);
   mostrarExplicacao(escolhido ? painel(r, escolhido, ctx, m) : null, municipios ? 'Por que este município?' : 'Por que esta célula?');
 }

@@ -62,10 +62,14 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#t-destaques')).toHaveText('Concentração');
   await expect(page.locator('#resumo-lente-numero')).toHaveText('3 municípios');
+  await expect(page.locator('.lente-resposta')).toContainText('3 municípios');
+  await expect(page.getByRole('heading', { name: 'O que isso quer dizer?' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Lugares encontrados' })).toBeVisible();
+  await expect(page.locator('#resumo-lente')).toContainText('Quais municípios concentram mais detecções?');
   await expect(page.locator('#lente-ressalva-contagem')).toHaveText('Contagem absoluta favorece municípios grandes; a ordem não indica prioridade, gravidade nem risco.');
-  expect(await itens(page).locator('.botao-nome').allInnerTexts())
+  expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label'))))
     .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
-  expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+  expect(await itens(page).locator('.etiqueta').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
     '29 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
     '28 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
     '31 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
@@ -89,6 +93,15 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#lente-ressalvas')).toContainText('Contagem absoluta favorece municípios grandes');
   await expect(page.locator('#lente-motivo')).toContainText('60 detecções na janela');
   await expect(page.locator('#lente-evidencia')).toContainText('60 detecções');
+  await expect(page.locator('#lente-mostrar-mapa')).toHaveClass(/botao--primario/);
+  await expect(page.locator('#lente-ver-focos')).toHaveText('Ver os 60 focos');
+  await expect(page.locator('.lente-acoes .lente-acao')).toHaveCount(2);
+  await expect(page.locator('.lente-acoes')).toContainText('Localize este lugar no mapa para ver onde ele fica.');
+  await page.getByRole('button', { name: 'Mostrar no mapa' }).click();
+  await expect(page.locator('#vista-explicacao')).toBeVisible();
+  await page.getByRole('button', { name: /^Ver os \d+ focos$/ }).click();
+  await expect(page.locator('#lente-evidencia-info')).toHaveText('Mostrando 1–20 de 60 detecções da evidência.');
+  await expect(page.locator('#lente-evidencia-info')).toBeFocused();
   await page.getByText('Dias que contam contra (2)').click();
   expect(await page.locator('#lente-dias > li').evaluateAll((l) => l.map((x) => x.dataset.classe))).toEqual(['lacuna_conhecida', 'lacuna_conhecida']);
   await expect(page.locator('#lente-dias')).toContainText('2026-10-01: Lacuna conhecida');
@@ -142,7 +155,7 @@ test('concorrência: aplicação antiga retida não aparece depois da nova (duas
   await page.waitForTimeout(500);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
   await expect(page.locator('#lente-escopo')).toContainText('2026-10-01 a 2026-10-31');
-  expect(await itens(page).locator('.botao-nome').allInnerTexts())
+  expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label'))))
     .toEqual(['1. Município Alfa — 60 detecções', '2. Município Beta — 30 detecções', '3. Município Gama — 10 detecções']);
 });
 
@@ -202,7 +215,7 @@ test('falha da fonte na disponibilidade de um município: só os destaques dele 
   });
   await aplicar(page);
   await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
-  expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+  expect(await itens(page).locator('.etiqueta').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
     '29 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
     'cobertura não verificada: fonte indisponível',
     '31 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
@@ -324,7 +337,7 @@ test.describe('recorrência', () => {
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     // Só a célula B (3 meses, 23 detecções, toda de Alfa); a célula A tem só ago e set em Alfa (out é de Beta).
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([ROTULOS_JANELA_INTEIRA[1]]);
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([ROTULOS_JANELA_INTEIRA[1]]);
     await expect(page.locator('#resumo-lente-recorte')).toContainText('calculada só com os focos de Município Alfa');
     await expect(page.locator('#lente-limitacoes')).toContainText('Células na divisa podem perder destaque, porque só contam os focos de Município Alfa.');
     await abrirDestaque(page, 0);
@@ -345,8 +358,8 @@ test.describe('recorrência', () => {
     await expect(page.locator('#serie')).toHaveAttribute('data-total', '35');
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
-    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual(ROTULOS_JANELA_INTEIRA);
+    expect(await itens(page).locator('.etiqueta').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
       '90 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
       '91 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
       '92 de 92 dias sem evidência de lacuna (cobertura não comprovada)',
@@ -383,16 +396,21 @@ test.describe('recorrência', () => {
     await consultar(page, { inicio: '2026-08-15', fim: '2026-10-14' });
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual([
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
       'Célula -11.50 a -11.45 · -56.00 a -55.95 — 3 meses GMT (3 detecções)',
       'Célula -11.55 a -11.50 · -56.50 a -56.45 — 3 meses GMT (16 detecções)',
     ]);
-    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+    expect(await itens(page).locator('.etiqueta').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
       '60 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
       '61 de 61 dias sem evidência de lacuna (cobertura não comprovada)',
     ]);
     await expect(page.locator('#lente-corpo')).toContainText('A janela toca 3 meses GMT: ago/2026 (parcial), set/2026 e out/2026 (parcial).');
     await abrirDestaque(page, 0);
+    expect(await page.locator('#lente-meses > li').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
+      'ago/2026 (parcial) · 1 detecção',
+      'set/2026 · 1 detecção',
+      'out/2026 (parcial) · 1 detecção',
+    ]);
     expect(await page.locator('#lente-ressalvas > li').allInnerTexts()).toEqual([
       'inclui mês parcial: ago/2026 (janela de 15/08 a 31/08)',
       'inclui mês parcial: out/2026 (janela de 01/10 a 14/10)',
@@ -405,7 +423,12 @@ test.describe('recorrência', () => {
     await aplicar(page, 'recorrencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'janela_insuficiente');
     await expect(page.locator('#lente-estado')).toContainText('A janela toca 2 meses GMT; a recorrência exige pelo menos 3.');
+    await page.getByRole('button', { name: 'Alterar o período' }).click();
+    await expect(page.locator('#secao-consulta')).toHaveAttribute('open', '');
+    await expect(page.locator('#f-inicio')).toBeFocused();
+    await expect(page.locator('#f-inicio')).toHaveValue('2026-08-15');
     await expect(itens(page)).toHaveCount(0);
+    await page.getByText('Ver detalhes técnicos e limitações', { exact: true }).click();
     await expect(page.locator('#lente-limitacoes')).toBeVisible();
   });
 
@@ -420,7 +443,7 @@ test.describe('recorrência', () => {
     await page.waitForTimeout(500);
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS_JANELA_INTEIRA);
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual(ROTULOS_JANELA_INTEIRA);
   });
 });
 
@@ -452,8 +475,8 @@ test.describe('persistência', () => {
     await expect(page.locator('#serie')).toHaveAttribute('data-total', '17');
     await aplicar(page, 'persistencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
-    expect(await itens(page).locator('.etiqueta').allInnerTexts()).toEqual([
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual(ROTULOS);
+    expect(await itens(page).locator('.etiqueta').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual([
       '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
       '28 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
       '30 de 31 dias sem evidência de lacuna (cobertura não comprovada)',
@@ -461,6 +484,8 @@ test.describe('persistência', () => {
     ]);
     await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
     await expect(page.locator('#lente-ordenacao')).toContainText('não é ranking');
+    await expect(page.locator('#resumo-lente-numero')).toHaveText('4 sequências em 3 células');
+    await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 4');
     await expect(page.locator('#lente-parametros')).toContainText('pelo menos 3 dias GMT consecutivos');
     await expect(page.locator('#lente-parametros')).toContainText('só um dia sem detecção na célula interrompe');
     await expect(page.locator('#lente-limitacoes')).toContainText('a célula não segue divisas');
@@ -500,6 +525,11 @@ test.describe('persistência', () => {
       'sequência no limite da janela; pode ser mais longa',
       'inclui dia indeterminado (30/10)',
     ]);
+
+    // Sem a detecção de Beta na divisa nem a sequência de Gama, só restam as duas sequências de Alfa em Q.
+    await consultar(page, { municipio: MUNICIPIOS.alfa.codigo });
+    await expect(page.locator('#resumo-lente-numero')).toHaveText('2 sequências em 1 célula');
+    await expect(page.locator('#aba-destaques')).toHaveText('Lentes · 2');
   });
 
   test('falha da disponibilidade de um município: ressalvas de disponibilidade não verificadas, seleção mantida', async ({ page }) => {
@@ -510,7 +540,7 @@ test.describe('persistência', () => {
     });
     await aplicar(page, 'persistencia');
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'cobertura_nao_verificada');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual(ROTULOS);
     await expect(itens(page).nth(3).locator('.etiqueta')).toHaveText('cobertura não verificada: fonte indisponível');
     await abrirDestaque(page, 3);
     expect(await textosRessalvas(page)).toEqual([
@@ -531,6 +561,6 @@ test.describe('persistência', () => {
     await page.waitForTimeout(500);
     await expect(cartao(page)).toHaveAttribute('data-estado-lente', 'completo');
     await expect(page.locator('#lente-ordenacao')).toContainText('pela data de início da sequência');
-    expect(await itens(page).locator('.botao-nome').allInnerTexts()).toEqual(ROTULOS);
+    expect(await itens(page).locator('.botao-nome').evaluateAll((itens) => itens.map((item) => item.getAttribute('aria-label')))).toEqual(ROTULOS);
   });
 });
