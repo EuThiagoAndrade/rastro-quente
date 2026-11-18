@@ -1,9 +1,10 @@
 # Registro de ciclos
 
-> **Próximo ciclo:** `010`
+> **Próximo ciclo:** `011`
 
 | Ciclo | Assunto | Estado | Ideação | Plano | Issues | Encerramento |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| `010` | Painel direito completo | `Planejamento` | [Ideação](ideations/010_painel_direito_completo.md) | [Plano](drafts/010_painel_direito_completo/010_plan.md) (v2 aprovada em 2026-11-18) | — | — |
 | `000` | Fundação da governança | `Concluído` | Exceção de bootstrap | [Plano](executed/000_fundacao_governanca/000_plan.md) | Exceção nominal | PR [#1](https://github.com/EuThiagoAndrade/rastro-quente/pull/1) integrada em 2026-11-01; encerramento prospectivo na PR de encerramento |
 | `001` | Prova de dados | `Concluído` | [Ideação](ideations/001_prova_de_dados.md) | [Plano](executed/001_prova_de_dados/001_plan.md) (v5 aprovado) | [#4](https://github.com/EuThiagoAndrade/rastro-quente/issues/4) (item 1), [#5](https://github.com/EuThiagoAndrade/rastro-quente/issues/5) (item 2), [#6](https://github.com/EuThiagoAndrade/rastro-quente/issues/6) (item 3) | PRs [#7](https://github.com/EuThiagoAndrade/rastro-quente/pull/7), [#8](https://github.com/EuThiagoAndrade/rastro-quente/pull/8) e [#9](https://github.com/EuThiagoAndrade/rastro-quente/pull/9) integradas em 2026-11-03 e 2026-11-04; encerramento prospectivo na PR de encerramento |
 | `002` | Validação de capacidades, custos e arquitetura | `Concluído` | [Ideação](ideations/002_validacao_arquitetura.md) | [Plano](executed/002_validacao_arquitetura/002_plan.md) (v2 aprovado em 2026-11-05; PR documental [#11](https://github.com/EuThiagoAndrade/rastro-quente/pull/11) integrada em 2026-11-05) | [#12](https://github.com/EuThiagoAndrade/rastro-quente/issues/12) (item 1), [#13](https://github.com/EuThiagoAndrade/rastro-quente/issues/13) (item 2), [#14](https://github.com/EuThiagoAndrade/rastro-quente/issues/14) (item 3) | PRs [#15](https://github.com/EuThiagoAndrade/rastro-quente/pull/15), [#16](https://github.com/EuThiagoAndrade/rastro-quente/pull/16) e [#17](https://github.com/EuThiagoAndrade/rastro-quente/pull/17) integradas em 2026-11-05; encerramento prospectivo nesta PR documental |
