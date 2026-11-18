@@ -7,7 +7,7 @@
 > **Issue:** `#99`
 > **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-99`
-> **PR:** —
+> **PR:** [PR #103](https://github.com/EuThiagoAndrade/rastro-quente/pull/103)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #99" em 2026-11-18
 > **Modo contínuo:** `—`
@@ -90,10 +90,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 010"
+Situação: Aguardando merge — ciclo 010 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #103](https://github.com/EuThiagoAndrade/rastro-quente/pull/103)
+Diga: "aprovo o merge da PR #103"
 ```
 
 ## Handoff de saída
