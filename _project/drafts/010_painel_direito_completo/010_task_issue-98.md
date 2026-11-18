@@ -2,12 +2,12 @@
 
 > **Ciclo:** `010`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#98`
 > **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-98`
-> **PR:** —
+> **PR:** [#102](https://github.com/EuThiagoAndrade/rastro-quente/pull/102)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #98" em 2026-11-18
 > **Modo contínuo:** `—`
@@ -58,7 +58,7 @@ Não se aplica.
 | Conferência visual | Capturas da lista e do detalhe em 1440×900 claro e 390×844 escuro inspecionadas. Hierarquia, texto, ações e ausência de transbordamento conferidos. |
 | Ambiente dos testes focados | Configuração local ignorada em `local/issue98/`, porta 5175. Fixture comum fictícia temporária; publicação anterior restaurada ao terminar, sem substituir os registros do preview existente. No CI, as specs usam a configuração padrão. |
 | Governança e diff | 55 testes de governança passaram; validador com 0 erros e 0 avisos; diff conferido sem erros. |
-| Checks remotos | Pendente |
+| Checks remotos | Acompanhar os [checks da PR #102](https://github.com/EuThiagoAndrade/rastro-quente/pull/102/checks). |
 
 ## Revisão da correção
 
@@ -76,18 +76,18 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 010"
+Situação: Aguardando merge — ciclo 010 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #102](https://github.com/EuThiagoAndrade/rastro-quente/pull/102)
+Diga: "aprovo o merge da PR #102"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 98 + 5e45fcc010cd44f1113aa6bce14198e8668197a1`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: issue aberta e dependência integrada / implementação e validação local concluídas; preparação da PR em andamento.
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: issue aberta e dependência integrada / implementação e validação local concluídas; PR #102 publicada, aguardando checks e aprovação do merge.
 - `result`: `executed`
-- `evidence`: issue #98, PR #101 integrada, comandos e resultados da seção Evidências e diff da branch `feature/issue-98`.
-- `blockers`: nenhum.
+- `evidence`: issue #98, PR #101 integrada, comandos e resultados da seção Evidências e commit `224fea9` e [PR #102](https://github.com/EuThiagoAndrade/rastro-quente/pull/102).
+- `blockers`: conclusão dos checks remotos e aprovação específica do merge.
