@@ -62,7 +62,7 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#t-destaques')).toHaveText('Concentração');
   await expect(page.locator('#resumo-lente-numero')).toHaveText('3 municípios');
-  await expect(page.locator('.lente-resposta')).toContainText('3 municípios');
+  await expect(cartao(page).locator('.lente-resposta')).toContainText('3 municípios');
   await expect(page.getByRole('heading', { name: 'O que isso quer dizer?' })).toBeVisible();
   await expect(page.getByRole('heading', { name: 'Lugares encontrados' })).toBeVisible();
   await expect(page.locator('#resumo-lente')).toContainText('Quais municípios concentram mais detecções?');
@@ -95,8 +95,8 @@ test('concentração: lista ordenada por contagem, parâmetros, cobertura e pain
   await expect(page.locator('#lente-evidencia')).toContainText('60 detecções');
   await expect(page.locator('#lente-mostrar-mapa')).toHaveClass(/botao--primario/);
   await expect(page.locator('#lente-ver-focos')).toHaveText('Ver os 60 focos');
-  await expect(page.locator('.lente-acoes .lente-acao')).toHaveCount(2);
-  await expect(page.locator('.lente-acoes')).toContainText('Localize este lugar no mapa para ver onde ele fica.');
+  await expect(cartao(page).locator('.lente-acoes .lente-acao')).toHaveCount(2);
+  await expect(cartao(page).locator('.lente-acoes')).toContainText('Localize este lugar no mapa para ver onde ele fica.');
   await page.getByRole('button', { name: 'Mostrar no mapa' }).click();
   await expect(page.locator('#vista-explicacao')).toBeVisible();
   await page.getByRole('button', { name: /^Ver os \d+ focos$/ }).click();

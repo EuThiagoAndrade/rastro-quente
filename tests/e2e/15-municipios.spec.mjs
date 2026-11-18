@@ -11,9 +11,9 @@ for (const [width, height, escuro] of [[1440, 900, false], [390, 844, true]]) {
     await entrar(page, 'rp');
     if (escuro) await page.getByRole('button', { name: 'Usar tema escuro' }).click();
     await expect(page.locator('#conteudo')).toHaveAttribute('data-estado-pontos', 'completo');
-    await expect(page.locator('#municipios-resposta')).toContainText('100 detecções em 3 municípios');
-    await expect(page.locator('#municipios-resposta')).toContainText('Município Alfa — 60');
-    await expect(page.locator('#municipios-periodo')).toContainText('2026-10-01 a 2026-10-31');
+    await expect(page.locator('#municipios-resposta')).toContainText('100 focos em 3 municípios');
+    await expect(page.locator('#municipios-resposta')).toContainText('Município Alfa teve a maior contagem: 60 focos');
+    await expect(page.locator('#municipios-periodo')).toContainText('01/10/2026 a 31/10/2026');
     await page.locator('[data-ordem="nome"]').click();
     const linha = page.locator('#lista-municipios button[data-codigo="9900002"]');
     const contexto = await page.locator('#pergunta-contexto').textContent();
@@ -48,6 +48,8 @@ for (const [width, height, escuro] of [[1440, 900, false], [390, 844, true]]) {
     await page.screenshot({ path: `test-results/municipios-lista-${width}.png` });
     await linha.click();
     await page.screenshot({ path: `test-results/municipios-detalhe-${width}.png` });
+    await page.locator('#municipio-ver-destaques').scrollIntoViewIfNeeded();
+    await page.screenshot({ path: `test-results/municipios-acoes-${width}.png` });
   });
 }
 

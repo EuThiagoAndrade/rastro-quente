@@ -1980,53 +1980,32 @@ tr.selecionada td {
 }
 
 /* Ciclo 010, issue 98: mesma hierarquia de pergunta, resposta e ações das lentes. */
+#painel-municipios { font-size: 15px; line-height: 1.45; }
 #painel-municipios h2,
-#municipio-detalhe-titulo {
-  font-size: 1.15rem;
-  margin-bottom: 2px;
-}
-
-#municipio-detalhe-titulo { margin-top: 12px; }
-#painel-municipios .lente-pergunta {
-  color: var(--texto-suave);
-  font-size: 0.9rem;
-  margin: 0 0 10px;
-}
-
+#municipio-detalhe-titulo { font-size: 1.15rem; margin: 0 0 2px; }
+#painel-municipios .lente-pergunta { color: var(--texto-suave); font-size: 0.9rem; margin: 0 0 10px; }
 #painel-municipios .lente-resposta {
-  background: var(--escolha-suave);
-  border-radius: 8px;
-  padding: 10px 12px;
-  margin: 0 0 10px;
-  font-size: 1.02rem;
+  background: var(--escolha-suave); border-radius: 8px; padding: 10px 12px;
+  margin: 0 0 10px; font-size: 1.02rem;
 }
-
-#painel-municipios .lente-bloco {
-  border-top: 1px solid var(--contorno-suave);
-  padding-top: 10px;
-  margin-top: 12px;
-}
-
+#painel-municipios .nota { font-size: 0.875rem; margin: 4px 0; }
+#painel-municipios .lente-bloco { border-top: 1px solid var(--contorno-suave); padding-top: 10px; margin-top: 12px; }
 #painel-municipios .lente-bloco-titulo { font-size: 0.92rem; margin: 0; }
-#painel-municipios .lente-bloco-para {
-  color: var(--texto-suave);
-  font-size: 0.875rem;
-  margin: 0 0 6px;
-}
-
+#painel-municipios .lente-bloco-para { color: var(--texto-suave); font-size: 0.875rem; margin: 0 0 6px; }
 #painel-municipios .lente-acoes { display: grid; gap: 10px; margin-top: 12px; }
-#painel-municipios .lente-acao {
-  border: 1px solid var(--contorno-suave);
-  border-radius: 8px;
-  padding: 10px;
+#painel-municipios .lente-acao { border: 1px solid var(--contorno-suave); border-radius: 8px; padding: 10px; }
+#painel-municipios .lente-acao p { margin: 4px 0 0; font-size: 0.875rem; color: var(--texto-suave); }
+#painel-municipios .lente-acao button { font: inherit; min-height: 44px; }
+#painel-municipios .lista-mun { margin: 8px 0; }
+#painel-municipios .lista-mun button {
+  display: block; padding: 7px 0; border-bottom: 0; border-top: 1px solid var(--contorno-suave);
+  color: var(--link); min-height: 44px;
 }
-
-#painel-municipios .lente-acao p {
-  margin: 4px 0 0;
-  font-size: 0.875rem;
-  color: var(--texto-suave);
-}
-
+#painel-municipios .lista-mun .pos { color: inherit; font: inherit; font-weight: 600; }
+#painel-municipios .lista-mun .nome { font-size: 1rem; }
+#painel-municipios .lista-mun .sub-nome { margin-top: 2px; font-size: 0.875rem; }
+#painel-municipios .lista-mun .num { text-align: left; }
+#municipio-voltar { background: transparent; border: 0; color: var(--link); padding: 0; min-height: 44px; font-size: 0.875rem; font-weight: 400; }
 #municipio-estadual-numeros { font-size: 0.9rem; }
 #municipio-mapa-estado:empty { display: none; }
 #municipio-mostrar-mapa[aria-disabled="true"] { opacity: 0.65; cursor: wait; }
