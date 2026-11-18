@@ -35,12 +35,17 @@ test('dois períodos: A é o recorte aplicado, B de mesma duração; números la
   await expect(page.locator('#cmp-b-inicio')).toHaveValue('2026-10-11');
   await expect(page.locator('#cmp-b-fim')).toHaveValue('2026-10-20');
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'pronta');
+  await expect(page.locator('#painel-comparacao #t-comparacao')).toHaveText('Comparar períodos');
+  await expect(page.locator('#painel-comparacao .lente-pergunta')).toHaveText('O que mudou de um período para o outro?');
+  await expect(page.locator('#painel-comparacao .lente-resposta')).toContainText('Foram registrados 55 focos em A e 43 em B: 12 focos a menos no segundo período.');
   await expect(celulas(page).first().locator('td')).toHaveText(['Detecções (total principal)', '55', '43', '−12']);
   await expect(page.locator('#comparacao-conclusao')).toHaveAttribute('data-conclusao', 'conclusiva');
   await expect(page.locator('#comparacao-ressalvas')).toContainText('entrar ou sair não indica mudança real');
   // O mapa, a série e os municípios continuam em A.
   await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
   await expect(page.locator('#serie')).toHaveAttribute('data-total', '55');
+  await page.setViewportSize({ width: 1440, height: 1600 });
+  await page.locator('#painel-comparacao').screenshot({ path: 'local/issue99/atual-periodos-conclusiva.png' });
 });
 
 test('períodos de duração diferente são recusados, sem resultado comparativo', async ({ page }) => {
@@ -101,6 +106,7 @@ test('lado estadual sem detecções: confere todos os municípios antes de concl
   await expect(celulas(page).first().locator('td')).toHaveText(['Detecções (total principal)', '55', '0', '−55']);
   await expect(page.locator('#comparacao-ressalvas')).toContainText('Lado B: zero detecção observada; não é evidência de ausência de fogo');
   // Disponibilidade de todos os municípios, sob demanda, com as classes por município.
+  await page.locator('#comparacao-detalhes-tecnicos summary').click();
   await page.locator('#botao-lista-completa').click();
   await expect(page.locator('#comparacao-disponibilidade')).toHaveAttribute('data-estado-lista', 'completa');
   await expect(page.locator('#comparacao-disponibilidade tbody tr')).toHaveCount(3);
@@ -117,8 +123,14 @@ test('dois municípios: A é o da Consulta; contagens, dias e diferença; contex
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'incompleta');
   await page.locator('#cmp-municipio-b').selectOption('9900002');
   await expect(page.locator('#painel-comparacao')).toHaveAttribute('data-estado-comparacao', 'pronta');
+  await expect(page.locator('#painel-comparacao #t-comparacao')).toHaveText('Comparar municípios');
+  await expect(page.locator('#painel-comparacao .lente-pergunta')).toHaveText('Como os registros dos dois municípios se comparam?');
+  await expect(page.locator('#painel-comparacao .lente-resposta')).toContainText('Município Alfa teve 60 focos e Município Beta teve 30: uma diferença de 30 registros.');
   await expect(celulas(page).nth(0).locator('td')).toHaveText(['Detecções (total principal)', '60', '30', '−30']);
   await expect(celulas(page).nth(1).locator('td')).toHaveText(['Dias com detecção', '21', '10', '−11']);
+  await page.setViewportSize({ width: 1440, height: 1600 });
+  await page.locator('#painel-comparacao').screenshot({ path: 'local/issue99/atual-municipios.png' });
+  await page.locator('#comparacao-detalhes-tecnicos summary').click();
   await expect(page.locator('#comparacao-disponibilidade tbody tr').nth(0).locator('td')).toHaveText(['A', 'Município Alfa (9900001)', '29 de 31 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)']);
   await expect(page.locator('#comparacao-disponibilidade tbody tr').nth(1).locator('td')).toHaveText(['B', 'Município Beta (9900002)', '28 de 31 dias sem evidência de lacuna, 3 com incidência indeterminada (cobertura não comprovada)']);
   await expect(page.locator('#comparacao-ressalvas')).toContainText('Contagens absolutas');
@@ -131,6 +143,33 @@ test('dois municípios: A é o da Consulta; contagens, dias e diferença; contex
   await expect(page.locator('#comparacao-contexto tbody tr').nth(0).locator('td')).toHaveText(['A', 'Município Alfa (9900001)', '60', 'destacado (1º)']);
   await expect(page.locator('#comparacao-contexto tbody tr').nth(1).locator('td')).toHaveText(['B', 'Município Beta (9900002)', '30', 'destacado (2º)']);
   await expect(page.locator('input[name="l-lente"][value="concentracao"]')).toBeDisabled();
+});
+
+test('conclusão suspensa aguardando disponibilidade: exibe ressalvas, por que importa e ação de ver disponibilidade', async ({ page }) => {
+  await entrar(page, 'rp');
+  await consultar(page, { inicio: '2026-10-01', fim: '2026-10-10' });
+  await escolherLente(page, 'persistencia');
+  await modo(page, 'periodos');
+  let liberado = false;
+  const pendentes = [];
+  await page.route('**/rest/v1/rpc/consultar_disponibilidade', async (route) => {
+    if (!liberado) {
+      await new Promise((resolve) => pendentes.push(resolve));
+    }
+    return route.continue();
+  });
+  await periodoB(page, '2026-10-22', '2026-10-31');
+  await expect(page.locator('#comparacao-conclusao')).toHaveAttribute('data-conclusao', 'aguardando');
+  await expect(page.locator('#painel-comparacao .lente-resposta')).toHaveText('Foram registrados 55 focos em A e 0 em B.');
+  await expect(page.locator('#botao-ver-disponibilidade')).toBeVisible();
+  await page.setViewportSize({ width: 1440, height: 1600 });
+  await page.locator('#painel-comparacao').screenshot({ path: 'local/issue99/atual-periodos-inconclusiva.png' });
+  await page.locator('#botao-ver-disponibilidade').click();
+  await expect(page.locator('#comparacao-detalhes-tecnicos')).toHaveAttribute('open', '');
+  await expect(page.locator('#comparacao-disponibilidade')).toBeVisible();
+  liberado = true;
+  pendentes.forEach((r) => r());
+  await expect(page.locator('#comparacao-conclusao')).toHaveAttribute('data-conclusao', 'conclusiva');
 });
 
 test('o mesmo município nos dois lados explica a seleção repetida, com diferença zero', async ({ page }) => {
