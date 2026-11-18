@@ -2,12 +2,12 @@
 
 > **Ciclo:** `010`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#97`
 > **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-97`
-> **PR:** —
+> **PR:** [#101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #97" em 2026-11-18
 > **Modo contínuo:** `—`
@@ -59,7 +59,7 @@ Não se aplica.
 | `node --test scripts/validate-governance.test.mjs` | 55 passaram. |
 | `node scripts/validate-governance.mjs` | 0 erros, 0 avisos. Revisão manual de G1–G4 e staging seletivo. |
 | `git diff --check` e `git diff --cached --check` | Passaram. |
-| Checks remotos | Pendente |
+| Checks remotos | Acompanhamento nos [checks da PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101/checks). |
 
 ## Revisão da correção
 
@@ -77,19 +77,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 010"
+Situação: Aguardando merge — ciclo 010 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101)
+Diga: "aprovo o merge da PR #101"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + 97 + 9e30e6e21e0882294e0ee92481df4c5f50bf84cc`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: plano aprovado e issue aberta.
-- `state_after`: implementação local validada, pronta para publicação.
+- `state_after`: implementação validada e PR #101 aberta.
 - `result`: `executed`
-- `evidence`: [issue #97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97).
-- `blockers`: nenhum.
+- `evidence`: [issue #97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97), commit de implementação `948f675` e [PR #101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101).
+- `blockers`: conclusão bem-sucedida dos checks e aprovação específica para integrar.
