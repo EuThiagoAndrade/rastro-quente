@@ -1,7 +1,8 @@
-// Aba Comparação (plano 008, item 1; KB-007; DESIGN.md): A e B lado a lado, conclusão comparativa separada dos fatos de
-// cada lado, unidades classificadas com as evidências originais por lado, disponibilidade por município (sem agregação),
-// contexto estadual e alternância do lado mostrado no mapa. Todo valor da fonte entra por textContent.
+// Aba Comparação (plano 010, item 3; KB-007; DESIGN.md): A e B lado a lado, pergunta orientadora, resposta principal
+// em destaque, limites e interpretação antes do detalhe, cartões de alternância do mapa e detalhes técnicos com
+// números completos, disponibilidade e ressalvas. Todo valor da fonte entra por textContent.
 import { $, h, tabela } from './apresentacao.ts';
+import { blocoLente, cartaoAcao } from './apresentacao-resultado.ts';
 import {
   ROTULO_CLASSIFICACAO, ROTULO_PRESENCA, TEXTO_AGUARDANDO, TEXTO_NAO_AVALIAVEL, textoDisponibilidadeMunicipio,
   type ComparacaoMunicipal, type ComparacaoTemporal, type ContextoCombinacao, type ContextoConcentracao,
@@ -63,7 +64,10 @@ export function renderEstadoComparacao(e: EstadoComparacao, tentarDeNovo: () => 
     b.addEventListener('click', tentarDeNovo);
     alvo.append(h('div', { class: 'acoes' }, b));
   }
-  if (e.tipo !== 'pronta' && e.tipo !== 'cobertura_nao_verificada' && e.tipo !== 'carregando') $('comparacao-corpo').replaceChildren();
+  if (e.tipo !== 'pronta' && e.tipo !== 'cobertura_nao_verificada' && e.tipo !== 'carregando') {
+    $('comparacao-corpo').replaceChildren();
+    $('t-comparacao').textContent = 'Comparação';
+  }
 }
 
 /** Aba Comparação visível só com um modo escolhido; a aba some e devolve a coluna a Municípios ao sair. */
@@ -100,26 +104,20 @@ function caixa(titulo: string, textos: string[], id: string): HTMLElement {
   return h('div', { class: 'ressalvas', id }, h('strong', {}, titulo), h('ul', {}, ...textos.map((t) => h('li', {}, t))));
 }
 
-function botoesMapa(lado: Lado, rotulos: Record<Lado, string>, mostrar: (l: Lado) => void): HTMLElement {
-  const grupo = h('div', { class: 'ordem', role: 'group', 'aria-label': 'Lado mostrado no mapa', id: 'comparacao-mapa' });
-  for (const l of ['A', 'B'] as const) {
-    const b = h('button', { type: 'button', 'data-lado': l, 'aria-pressed': String(l === lado) }, `Mapa: ${rotulos[l]}`);
-    b.addEventListener('click', () => mostrar(l));
-    grupo.append(b);
-  }
-  return grupo;
-}
-
-function conclusaoTexto(c: ComparacaoTemporal['conclusao'], progresso: string | null): HTMLElement {
-  if (c.estado === 'conclusiva') return h('p', { class: 'ajuda', id: 'comparacao-conclusao', 'data-conclusao': 'conclusiva' }, 'Conclusão comparativa disponível.');
+function conclusaoTexto(c: ComparacaoTemporal['conclusao'] | ComparacaoMunicipal['conclusao'], progresso: string | null): HTMLElement {
+  if (c.estado === 'conclusiva') return h('p', { class: 'ajuda so-leitor', id: 'comparacao-conclusao', 'data-conclusao': 'conclusiva' }, 'Conclusão comparativa disponível.');
   if (c.estado === 'aguardando_disponibilidade') {
-    return h('p', { class: 'aviso-estado', id: 'comparacao-conclusao', 'data-conclusao': 'aguardando' },
+    return h('div', { class: 'ressalvas', id: 'comparacao-conclusao', 'data-conclusao': 'aguardando' },
+      h('strong', {}, 'Ainda não é possível concluir a comparação.'),
+      h('br', {}),
       `${TEXTO_AGUARDANDO}: o lado ${c.lados.join(' e ')} não tem detecções e a disponibilidade de todos os municípios do recorte está sendo conferida${progresso ? ` (${progresso})` : ''}. Entrada, saída e diferença ficam suspensas até o fim.`);
   }
   const prefixo = c.motivo === 'falha_conferencia' ? 'Conclusão indisponível por falha de conferência'
     : c.motivo === 'lacuna_total' ? 'Comparação indisponível por lacuna conhecida' : 'Comparação indisponível nesta configuração';
-  return h('div', { class: 'aviso-estado', id: 'comparacao-conclusao', 'data-conclusao': c.motivo },
-    h('p', {}, `${prefixo}. Os fatos de cada lado continuam abaixo, separados.`), h('ul', {}, ...c.textos.map((t) => h('li', {}, t))));
+  return h('div', { class: 'ressalvas', id: 'comparacao-conclusao', 'data-conclusao': c.motivo },
+    h('strong', {}, 'Ainda não é possível concluir a comparação.'),
+    h('br', {}),
+    `${prefixo}. Os fatos de cada lado continuam abaixo, separados.`, h('ul', {}, ...c.textos.map((t) => h('li', {}, t))));
 }
 
 function paginacao(total: number, pagina: number, ir: (p: number) => void): HTMLElement | null {
@@ -164,7 +162,7 @@ export interface ManipuladoresComparacao {
 function secaoDisponibilidade(ctx: ContextoComparacao, m: ManipuladoresComparacao): HTMLElement {
   const d = ctx.disponibilidade;
   const secao = h('section', { class: 'bloco', id: 'comparacao-disponibilidade', 'data-estado-lista': d.estado.tipo, 'aria-labelledby': 't-comparacao-disp' },
-    h('h3', { id: 't-comparacao-disp' }, d.estadual ? 'Disponibilidade de todos os municípios' : 'Disponibilidade do recorte'),
+    h('h3', { id: 't-comparacao-disp', tabindex: '-1' }, d.estadual ? 'Disponibilidade de todos os municípios' : 'Disponibilidade do recorte'),
     h('p', { class: 'nota' }, 'Por município e por lado, com as classes de cada um; não é cobertura da célula nem soma dos municípios.'));
   if (d.estadual && d.estado.tipo === 'nao_solicitada') {
     const b = h('button', { type: 'button', class: 'botao botao--secundario', id: 'botao-lista-completa' }, 'Ver a disponibilidade de todos os municípios');
@@ -204,7 +202,7 @@ function secaoContexto(ctx: ContextoComparacao, m: ManipuladoresComparacao): HTM
   const c = ctx.contexto;
   if (!c) return null;
   const secao = h('section', { class: 'bloco', id: 'comparacao-contexto', 'data-estado-contexto': c.estado, 'aria-labelledby': 't-comparacao-contexto' },
-    h('h3', { id: 't-comparacao-contexto' }, 'Contexto estadual — municípios A e B'),
+    h('h3', { id: 't-comparacao-contexto', tabindex: '-1' }, 'Contexto estadual — municípios A e B'),
     h('p', { class: 'nota' }, 'Cálculo pedido em todo Mato Grosso, no mesmo período; não é resultado de cada município nem um top 10 entre os dois.'));
   if (c.estado === 'nao_solicitado' || c.estado === 'falha') {
     const b = h('button', { type: 'button', class: 'botao botao--secundario', id: 'botao-contexto-estadual' }, c.estado === 'falha' ? 'Tentar de novo' : 'Ver contexto estadual');
@@ -252,68 +250,306 @@ function tabelaNumeros(rotulos: Record<Lado, string>, linhas: [string, number | 
     linhas.map(([t, a, b, d]) => [t, v(a), v(b), conclusiva ? (d === null ? '—' : fmtDiferenca(d)) : 'suspensa']), 'Números de A e B');
 }
 
+function botoesMapaPeriodos(mapa: Lado, mostrar: (l: Lado) => void): HTMLElement {
+  const grupo = h('div', { class: 'lente-acoes', role: 'group', 'aria-label': 'Lado mostrado no mapa', id: 'comparacao-mapa' });
+  const bA = h('button', {
+    type: 'button',
+    id: 'comparacao-mapa-a',
+    class: `botao ${mapa === 'A' ? 'botao--primario' : 'botao--secundario'}`,
+    'data-lado': 'A',
+    'aria-pressed': String(mapa === 'A'),
+  }, 'Mostrar período A no mapa');
+  bA.addEventListener('click', () => mostrar('A'));
+
+  const bB = h('button', {
+    type: 'button',
+    id: 'comparacao-mapa-b',
+    class: `botao ${mapa === 'B' ? 'botao--primario' : 'botao--secundario'}`,
+    'data-lado': 'B',
+    'aria-pressed': String(mapa === 'B'),
+  }, 'Mostrar período B no mapa');
+  bB.addEventListener('click', () => mostrar('B'));
+
+  grupo.append(
+    cartaoAcao(bA, 'Veja no mapa os focos e destaques do primeiro período.'),
+    cartaoAcao(bB, 'Troque o mapa para os focos e destaques do segundo período.'),
+  );
+  return grupo;
+}
+
+function botoesMapaMunicipios(mapa: Lado, nomeA: string, nomeB: string, mostrar: (l: Lado) => void): HTMLElement {
+  const grupo = h('div', { class: 'lente-acoes', role: 'group', 'aria-label': 'Lado mostrado no mapa', id: 'comparacao-mapa' });
+  const bA = h('button', {
+    type: 'button',
+    id: 'comparacao-mapa-a',
+    class: `botao ${mapa === 'A' ? 'botao--primario' : 'botao--secundario'}`,
+    'data-lado': 'A',
+    'aria-pressed': String(mapa === 'A'),
+  }, `Mostrar ${nomeA} no mapa`);
+  bA.addEventListener('click', () => mostrar('A'));
+
+  const bB = h('button', {
+    type: 'button',
+    id: 'comparacao-mapa-b',
+    class: `botao ${mapa === 'B' ? 'botao--primario' : 'botao--secundario'}`,
+    'data-lado': 'B',
+    'aria-pressed': String(mapa === 'B'),
+  }, `Mostrar ${nomeB} no mapa`);
+  bB.addEventListener('click', () => mostrar('B'));
+
+  grupo.append(
+    cartaoAcao(bA, 'Veja os focos e os destaques do primeiro município.'),
+    cartaoAcao(bB, 'Veja os focos e os destaques do segundo município.'),
+  );
+  return grupo;
+}
+
+function cartaoVerDisponibilidade(explicacao = 'Confira o que sabemos sobre os dados de cada período.'): HTMLElement {
+  const btn = h('button', {
+    type: 'button',
+    class: 'botao botao--secundario',
+    id: 'botao-ver-disponibilidade',
+  }, 'Ver a disponibilidade');
+  btn.addEventListener('click', () => {
+    const detalhes = $<HTMLDetailsElement>('comparacao-detalhes-tecnicos');
+    if (detalhes) detalhes.open = true;
+    const disp = $('comparacao-disponibilidade');
+    disp.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    disp.querySelector<HTMLElement>('h3, button')?.focus();
+  });
+  return h('div', { class: 'lente-acoes' }, cartaoAcao(btn, explicacao));
+}
+
+function detalhesComparacao(sumario: string, ...conteudo: (HTMLElement | null)[]): HTMLElement {
+  return h('details', { class: 'detalhes', id: 'comparacao-detalhes-tecnicos', 'data-tecnico': 'true' },
+    h('summary', {}, sumario),
+    ...conteudo.filter((x): x is HTMLElement => x !== null));
+}
+
 export function renderComparacaoPeriodos(c: ComparacaoTemporal, ctx: ContextoComparacao, m: ManipuladoresComparacao): void {
+  $('t-comparacao').textContent = 'Comparar períodos';
   const rotulos: Record<Lado, string> = { A: `A · ${textoJanela(c.a.janela)}`, B: `B · ${textoJanela(c.b.janela)}` };
   const conclusiva = c.conclusao.estado === 'conclusiva';
+
+  const pergunta = h('p', { class: 'lente-pergunta' }, 'O que mudou de um período para o outro?');
+  const descLente = ctx.lente ? `lente ${ctx.lente}` : 'sem lente (só contagens)';
+  const desc = h('p', { class: 'nota', id: 'comparacao-descricao' },
+    `Dois períodos de ${fmtNumero(c.validacao.dias)} dias GMT no mesmo recorte, ${descLente}. A é o período aplicado na Consulta.`);
+
+  const criterio = h('div', { class: 'criterio', id: 'comparacao-lados' },
+    h('p', {}, h('strong', {}, 'Período A: '), textoJanela(c.a.janela)),
+    h('p', {}, h('strong', {}, 'Período B: '), textoJanela(c.b.janela)),
+  );
+
+  const aTotal = c.a.total;
+  const bTotal = c.b.total;
+  let respostaTexto: HTMLElement;
+  if (aTotal !== null && bTotal !== null) {
+    if (conclusiva) {
+      const diff = c.diferencaTotal;
+      respostaTexto = h('p', { class: 'lente-resposta' },
+        'Foram registrados ',
+        h('strong', {}, `${fmtNumero(aTotal)} ${aTotal === 1 ? 'foco' : 'focos'} em A`),
+        ' e ',
+        h('strong', {}, `${fmtNumero(bTotal)} em B`),
+      );
+      if (diff !== null) {
+        if (diff > 0) {
+          respostaTexto.append(': ', h('strong', {}, `${fmtNumero(diff)} ${diff === 1 ? 'foco a mais' : 'focos a mais'}`), ' no segundo período.');
+        } else if (diff < 0) {
+          respostaTexto.append(': ', h('strong', {}, `${fmtNumero(Math.abs(diff))} ${Math.abs(diff) === 1 ? 'foco a menos' : 'focos a menos'}`), ' no segundo período.');
+        } else {
+          respostaTexto.append(': ', h('strong', {}, 'mesmo número de focos'), ' nos dois períodos.');
+        }
+      } else {
+        respostaTexto.append('.');
+      }
+    } else {
+      respostaTexto = h('p', { class: 'lente-resposta' },
+        'Foram registrados ',
+        h('strong', {}, `${fmtNumero(aTotal)} ${aTotal === 1 ? 'foco' : 'focos'} em A`),
+        ' e ',
+        h('strong', {}, `${fmtNumero(bTotal)} em B`),
+        '.',
+      );
+    }
+  } else {
+    respostaTexto = h('p', { class: 'lente-resposta' }, 'Carregando os dados dos dois períodos…');
+  }
+
   const corpo: (HTMLElement | null)[] = [
-    h('p', { class: 'nota', id: 'comparacao-descricao' }, `Dois períodos de ${fmtNumero(c.validacao.dias)} dias GMT no mesmo recorte${ctx.lente ? `, lente ${ctx.lente}` : ', sem lente (só contagens)'}. A é o período aplicado na Consulta.`),
-    botoesMapa(ctx.mapa, { A: 'A', B: 'B' }, m.mostrarNoMapa),
-    h('p', { class: 'nota', id: 'comparacao-lados' }, `${rotulos.A} · ${rotulos.B}`),
+    pergunta,
+    desc,
+    criterio,
+    respostaTexto,
+  ];
+
+  if (!conclusiva) {
+    corpo.push(conclusaoTexto(c.conclusao, ctx.progressoZero));
+    corpo.push(blocoLente('Por que isso importa?', 'Os registros podem estar incompletos em um dos períodos.',
+      h('p', { class: 'nota' }, 'Se faltaram dados, parte dos focos pode não ter sido registrada. Por isso, o aplicativo precisa conferir a disponibilidade antes de apresentar a conclusão.')));
+    corpo.push(cartaoVerDisponibilidade());
+  } else {
+    corpo.push(conclusaoTexto(c.conclusao, ctx.progressoZero));
+    if (ctx.lente) {
+      const blocoDestaques = blocoLente('E os lugares destacados?', 'Veja como os lugares encontrados pela lente mudaram de A para B.',
+        h('p', { class: 'nota', id: 'comparacao-contagem' },
+          `Entrou: ${fmtNumero(c.contagem.entrou)} · Saiu: ${fmtNumero(c.contagem.saiu)} · Permaneceu: ${fmtNumero(c.contagem.permaneceu)}`),
+        h('p', { class: 'nota' },
+          `${fmtNumero(c.contagem.entrou)} ${c.contagem.entrou === 1 ? 'lugar apareceu' : 'lugares apareceram'} só em B, `
+          + `${fmtNumero(c.contagem.saiu)} só em A e `
+          + `${fmtNumero(c.contagem.permaneceu)} ${c.contagem.permaneceu === 1 ? 'apareceu' : 'apareceram'} nos dois períodos.`),
+      );
+      if (c.meses) {
+        blocoDestaques.append(h('p', { class: 'nota', id: 'comparacao-meses' },
+          `Meses GMT tocados — A: ${c.meses.a.map((x) => rotuloMes(x.mes) + (x.parcial ? ' (parcial)' : '')).join(', ')}; B: ${c.meses.b.map((x) => rotuloMes(x.mes) + (x.parcial ? ' (parcial)' : '')).join(', ')}.`));
+      }
+      const inicio = ctx.pagina * ITENS_POR_PAGINA;
+      blocoDestaques.append(
+        h('ul', { class: 'destaques', id: 'comparacao-itens' }, ...c.itens.slice(inicio, inicio + ITENS_POR_PAGINA).map((i) => itemUnidade(
+          i.chave, i.unidade, ROTULO_CLASSIFICACAO[i.classificacao], ctx.abertas.has(i.chave),
+          evidenciasDoLado(rotulos.A, i.a, `Disponibilidade em A: ${textoDisponibilidade(i.disponibilidadeA)}`),
+          evidenciasDoLado(rotulos.B, i.b, `Disponibilidade em B: ${textoDisponibilidade(i.disponibilidadeB)}`), m.abrir))),
+      );
+      const pag = paginacao(c.itens.length, ctx.pagina, m.pagina);
+      if (pag) blocoDestaques.append(pag);
+      if (!c.itens.length) blocoDestaques.append(h('p', { class: 'nota', id: 'comparacao-sem-unidades' }, 'Nenhuma unidade destacada em nenhum dos dois lados.'));
+      corpo.push(blocoDestaques);
+    }
+    corpo.push(blocoLente('Como interpretar a diferença?', 'A diferença descreve os registros encontrados, não a causa da mudança.',
+      h('p', { class: 'nota' }, 'Mais focos registrados não dizem, sozinhos, por que houve mudança nem comprovam incêndio ou dano.')));
+  }
+
+  // Ações de mapa
+  corpo.push(botoesMapaPeriodos(ctx.mapa, m.mostrarNoMapa));
+
+  // Detalhes técnicos recolhíveis
+  const itensDetalhes: (HTMLElement | null)[] = [
     tabelaNumeros(rotulos, [
       ['Detecções (total principal)', c.a.total, c.b.total, c.diferencaTotal],
       ...(ctx.lente ? [['Unidades destacadas', c.a.unidades.length, c.b.unidades.length, conclusiva ? c.b.unidades.length - c.a.unidades.length : null] as [string, number, number, number | null]] : []),
     ], conclusiva),
-    c.meses ? h('p', { class: 'nota', id: 'comparacao-meses' },
-      `Meses GMT tocados — A: ${c.meses.a.map((x) => rotuloMes(x.mes) + (x.parcial ? ' (parcial)' : '')).join(', ')}; B: ${c.meses.b.map((x) => rotuloMes(x.mes) + (x.parcial ? ' (parcial)' : '')).join(', ')}.`) : null,
-    conclusaoTexto(c.conclusao, ctx.progressoZero),
   ];
-  if (ctx.lente && conclusiva) {
-    corpo.push(h('p', { id: 'comparacao-contagem' }, `Entrou: ${fmtNumero(c.contagem.entrou)} · Saiu: ${fmtNumero(c.contagem.saiu)} · Permaneceu: ${fmtNumero(c.contagem.permaneceu)}`));
-    const inicio = ctx.pagina * ITENS_POR_PAGINA;
-    corpo.push(h('ul', { class: 'destaques', id: 'comparacao-itens' }, ...c.itens.slice(inicio, inicio + ITENS_POR_PAGINA).map((i) => itemUnidade(
-      i.chave, i.unidade, ROTULO_CLASSIFICACAO[i.classificacao], ctx.abertas.has(i.chave),
-      evidenciasDoLado(rotulos.A, i.a, `Disponibilidade em A: ${textoDisponibilidade(i.disponibilidadeA)}`),
-      evidenciasDoLado(rotulos.B, i.b, `Disponibilidade em B: ${textoDisponibilidade(i.disponibilidadeB)}`), m.abrir))),
-    paginacao(c.itens.length, ctx.pagina, m.pagina));
-    if (!c.itens.length) corpo.push(h('p', { class: 'nota', id: 'comparacao-sem-unidades' }, 'Nenhuma unidade destacada em nenhum dos dois lados.'));
-  } else if (ctx.lente) {
-    // Sem conclusão: os fatos de cada lado continuam visíveis, separados.
+
+  if (ctx.lente && !conclusiva) {
     for (const [l, u] of [['A', c.a.unidades], ['B', c.b.unidades]] as const) {
-      corpo.push(h('details', { class: 'detalhes', id: `comparacao-fatos-${l}` },
+      itensDetalhes.push(h('details', { class: 'detalhes', id: `comparacao-fatos-${l}` },
         h('summary', {}, `Destaques observados em ${rotulos[l]}: ${fmtNumero(u.length)}`),
         h('ul', { class: 'lista-simples' }, ...u.slice(0, ITENS_POR_PAGINA).map((x) => h('li', {}, nomeUnidade(x.unidade)))),
         u.length > ITENS_POR_PAGINA ? h('p', { class: 'nota' }, `Mostrando ${ITENS_POR_PAGINA} de ${fmtNumero(u.length)}; a lista completa está na aba Lentes e no mapa de cada lado.`) : null));
     }
   }
-  corpo.push(secaoDisponibilidade(ctx, m), caixa('Ressalvas', c.ressalvas, 'comparacao-ressalvas'), metadadosComparacao(ctx));
+
+  itensDetalhes.push(
+    secaoDisponibilidade(ctx, m),
+    caixa('Ressalvas', c.ressalvas, 'comparacao-ressalvas'),
+    metadadosComparacao(ctx),
+  );
+
+  corpo.push(detalhesComparacao('Ver números e detalhes da comparação', ...itensDetalhes));
+
   $('comparacao-corpo').replaceChildren(...corpo.filter((x): x is HTMLElement => x !== null));
 }
 
 export function renderComparacaoMunicipios(c: ComparacaoMunicipal, ctx: ContextoComparacao, m: ManipuladoresComparacao): void {
+  $('t-comparacao').textContent = 'Comparar municípios';
   const rotulos: Record<Lado, string> = { A: `A · ${c.a.nome}`, B: `B · ${c.b.nome}` };
   const conclusiva = c.conclusao.estado === 'conclusiva';
   const d = c.diferenca;
+
+  const pergunta = h('p', { class: 'lente-pergunta' }, 'Como os registros dos dois municípios se comparam?');
+  const descLente = ctx.lente ? `lente ${ctx.lente} calculada em cada município` : 'sem lente (só contagens)';
+  const desc = h('p', { class: 'nota', id: 'comparacao-descricao' },
+    `Dois municípios no período ${textoJanela(c.janela)}, ${descLente}. A é o município da Consulta.`);
+
+  const criterio = h('div', { class: 'criterio', id: 'comparacao-lados' },
+    h('p', {}, h('strong', {}, 'Município A: '), `${c.a.nome} (${c.a.codigo})`),
+    h('p', {}, h('strong', {}, 'Município B: '), `${c.b.nome} (${c.b.codigo})`),
+  );
+
+  const focosA = c.a.numeros.focos;
+  const focosB = c.b.numeros.focos;
+  let respostaTexto: HTMLElement;
+  if (conclusiva) {
+    const diff = d?.focos ?? (focosB - focosA);
+    respostaTexto = h('p', { class: 'lente-resposta' },
+      h('strong', {}, c.a.nome),
+      ` teve `,
+      h('strong', {}, `${fmtNumero(focosA)} ${focosA === 1 ? 'foco' : 'focos'}`),
+      ' e ',
+      h('strong', {}, c.b.nome),
+      ` teve `,
+      h('strong', {}, `${fmtNumero(focosB)}`),
+    );
+    if (diff === 0) {
+      respostaTexto.append(': ', h('strong', {}, 'mesma contagem'), ' nos dois municípios.');
+    } else {
+      respostaTexto.append(
+        ': uma diferença de ',
+        h('strong', {}, `${fmtNumero(Math.abs(diff))} ${Math.abs(diff) === 1 ? 'registro' : 'registros'}`),
+        '.',
+      );
+    }
+  } else {
+    respostaTexto = h('p', { class: 'lente-resposta' },
+      'Foram registrados ',
+      h('strong', {}, `${fmtNumero(focosA)} ${focosA === 1 ? 'foco' : 'focos'} em ${c.a.nome}`),
+      ' e ',
+      h('strong', {}, `${fmtNumero(focosB)} em ${c.b.nome}`),
+      '.',
+    );
+  }
+
   const corpo: (HTMLElement | null)[] = [
-    h('p', { class: 'nota', id: 'comparacao-descricao' }, `Dois municípios no período ${textoJanela(c.janela)}${ctx.lente ? `, lente ${ctx.lente} calculada em cada município` : ', sem lente (só contagens)'}. A é o município da Consulta.`),
-    botoesMapa(ctx.mapa, { A: 'A', B: 'B' }, m.mostrarNoMapa),
-    h('p', { class: 'nota', id: 'comparacao-lados' }, `${rotulos.A} · ${rotulos.B}`),
+    pergunta,
+    desc,
+    criterio,
+    respostaTexto,
+  ];
+
+  if (!conclusiva) {
+    corpo.push(conclusaoTexto(c.conclusao, ctx.progressoZero));
+    corpo.push(blocoLente('Por que isso importa?', 'Os registros podem estar incompletos em um dos municípios.',
+      h('p', { class: 'nota' }, 'Se faltaram dados, parte dos focos pode não ter sido registrada. Por isso, o aplicativo precisa conferir a disponibilidade antes de apresentar a conclusão.')));
+    corpo.push(cartaoVerDisponibilidade('Confira o que sabemos sobre os dados de cada município.'));
+  } else {
+    corpo.push(conclusaoTexto(c.conclusao, ctx.progressoZero));
+    if (ctx.lente) {
+      const blocoDestaques = blocoLente('Lugares destacados', 'Veja os lugares encontrados pela lente em cada município.');
+      const inicio = ctx.pagina * ITENS_POR_PAGINA;
+      blocoDestaques.append(
+        h('ul', { class: 'destaques', id: 'comparacao-itens' }, ...c.itens.slice(inicio, inicio + ITENS_POR_PAGINA).map((i) => itemUnidade(
+          i.chave, i.unidade, ROTULO_PRESENCA[i.presenca], ctx.abertas.has(i.chave),
+          evidenciasDoLado(rotulos.A, i.a, null), evidenciasDoLado(rotulos.B, i.b, null), m.abrir))),
+      );
+      const pag = paginacao(c.itens.length, ctx.pagina, m.pagina);
+      if (pag) blocoDestaques.append(pag);
+      if (!c.itens.length) blocoDestaques.append(h('p', { class: 'nota', id: 'comparacao-sem-unidades' }, 'Nenhuma unidade destacada em nenhum dos dois municípios.'));
+      corpo.push(blocoDestaques);
+    }
+    corpo.push(blocoLente('O que essa diferença significa?', 'A comparação mostra quantidades registradas no mesmo período.',
+      h('p', { class: 'nota' }, 'Os municípios têm tamanhos e características diferentes. A diferença entre as contagens não demonstra, por si só, qual deles apresenta maior gravidade.')));
+  }
+
+  // Ações de mapa
+  corpo.push(botoesMapaMunicipios(ctx.mapa, c.a.nome, c.b.nome, m.mostrarNoMapa));
+
+  // Detalhes técnicos recolhíveis
+  const itensDetalhes: (HTMLElement | null)[] = [
     tabelaNumeros(rotulos, [
       ['Detecções (total principal)', c.a.numeros.focos, c.b.numeros.focos, d?.focos ?? null],
       ['Dias com detecção', c.a.numeros.dias, c.b.numeros.dias, d?.dias ?? null],
       ['Células com detecção', c.a.numeros.celulas, c.b.numeros.celulas, d?.celulas ?? null],
       ...(ctx.lente ? [['Unidades destacadas', c.a.unidades.length, c.b.unidades.length, null] as [string, number, number, null]] : []),
     ], conclusiva),
-    conclusaoTexto(c.conclusao, ctx.progressoZero),
+    secaoDisponibilidade(ctx, m),
+    secaoContexto(ctx, m),
+    caixa('Ressalvas', c.ressalvas, 'comparacao-ressalvas'),
+    metadadosComparacao(ctx),
   ];
-  if (ctx.lente) {
-    const inicio = ctx.pagina * ITENS_POR_PAGINA;
-    corpo.push(h('ul', { class: 'destaques', id: 'comparacao-itens' }, ...c.itens.slice(inicio, inicio + ITENS_POR_PAGINA).map((i) => itemUnidade(
-      i.chave, i.unidade, ROTULO_PRESENCA[i.presenca], ctx.abertas.has(i.chave),
-      evidenciasDoLado(rotulos.A, i.a, null), evidenciasDoLado(rotulos.B, i.b, null), m.abrir))),
-    paginacao(c.itens.length, ctx.pagina, m.pagina));
-    if (!c.itens.length) corpo.push(h('p', { class: 'nota', id: 'comparacao-sem-unidades' }, 'Nenhuma unidade destacada em nenhum dos dois municípios.'));
-  }
-  corpo.push(secaoDisponibilidade(ctx, m), secaoContexto(ctx, m), caixa('Ressalvas', c.ressalvas, 'comparacao-ressalvas'), metadadosComparacao(ctx));
+
+  corpo.push(detalhesComparacao('Ver disponibilidade e detalhes', ...itensDetalhes));
+
   $('comparacao-corpo').replaceChildren(...corpo.filter((x): x is HTMLElement => x !== null));
 }
 
