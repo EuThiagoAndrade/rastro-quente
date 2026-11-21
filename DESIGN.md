@@ -130,3 +130,7 @@ Pares exigidos, nos dois temas: texto informativo ≥ 4,5:1 sobre a superfície 
 - Comparação: o lado mostrado no mapa é dito em texto (rótulo sobre o mapa, `role="status"`, e pílulas com `aria-pressed`); as unidades usam `<details>` nativo; a lista completa e o contexto estadual anunciam o progresso e, ao terminar, levam o foco ao título da seção; a aba cabe em 320 px e a 200% sem rolagem horizontal da página (as tabelas rolam dentro da própria região).
 - Perguntas: o estado da execução e da resposta é anunciado em `#perguntas-estado` (`role="status"`); as etapas são uma lista ordenada com rótulo; perguntas desabilitadas dizem o motivo em texto; pergunta, envio e cancelamento funcionam só pelo teclado; o painel é auditado (contraste, alvos, reflow) com a resposta aberta nos dois temas.
 - `prefers-reduced-motion` desliga animações e transições.
+
+### Emenda de 2026-11-21 — painel do agente (ciclo 010)
+
+O painel apresenta o recorte, a lente, o destaque e a comparação aplicados antes das perguntas. Após resposta ou falha, a ação de retorno abre a aba correspondente ao pedido vigente; “Ver as informações usadas” abre e foca as evidências sem nova chamada. As perguntas normativas e o contrato de execução do ciclo 008 permanecem.

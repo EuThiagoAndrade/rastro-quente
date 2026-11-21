@@ -18,6 +18,8 @@ export type EstadoPerguntas =
 
 export interface ManipuladoresPerguntas {
   tentarDeNovo(): void;
+  abrirResultado(): void;
+  rotuloResultado: string;
   /** Leva ao detalhamento determinístico que sustenta a evidência (aba Lentes ou Comparação). */
   abrirDetalhamento(ferramenta: Ferramenta): void;
   /** Há detalhamento na tela para a ferramenta? A disponibilidade só tem fora do painel na comparação (ciclo 009). */
@@ -139,6 +141,22 @@ function etapas(lista: Evento[]): HTMLElement {
   return h('ol', { class: 'etapas', id: 'perguntas-etapas', 'aria-label': 'Etapas da execução' }, ...lista.map((e) => h('li', { 'data-etapa': e.tipo }, textoEtapa(e))));
 }
 
+function acoesResultado(m: ManipuladoresPerguntas, evidencias: boolean): HTMLElement {
+  const resultado = h('button', { type: 'button', class: 'botao botao--primario' }, m.rotuloResultado);
+  resultado.addEventListener('click', () => m.abrirResultado());
+  const informacoes = evidencias ? h('button', { type: 'button', class: 'botao botao--secundario' }, 'Ver as informações usadas') : null;
+  informacoes?.addEventListener('click', () => {
+    const detalhe = $<HTMLDetailsElement>('perguntas-evidencias');
+    detalhe.open = true;
+    const resumo = detalhe.querySelector('summary');
+    resumo?.focus();
+    resumo?.scrollIntoView({ block: 'nearest' });
+  });
+  return h('div', { class: 'acoes' },
+    h('div', { class: 'perguntas__acao' }, resultado, h('p', { class: 'nota' }, 'Confira os dados da seleção diretamente na tela.')),
+    informacoes ? h('div', { class: 'perguntas__acao' }, informacoes, h('p', { class: 'nota' }, 'Confira as evidências recebidas, sem fazer outra pergunta.')) : null);
+}
+
 const tentar = (m: ManipuladoresPerguntas, nota: string): HTMLElement => {
   const b = h('button', { type: 'button', class: 'botao', id: 'pergunta-tentar' }, 'Tentar de novo');
   b.addEventListener('click', () => m.tentarDeNovo());
@@ -177,11 +195,11 @@ export function renderPerguntas(e: EstadoPerguntas, m: ManipuladoresPerguntas): 
       return;
     case 'formato':
       estado.textContent = 'A resposta do serviço veio fora do formato; nada dela foi exibido.';
-      corpo.replaceChildren(titulo, etapas(e.etapas), tentar(m, NOTA_COTA));
+      corpo.replaceChildren(titulo, etapas(e.etapas), acoesResultado(m, false), tentar(m, NOTA_COTA));
       return;
     case 'rede':
       estado.textContent = 'O serviço de explicação não respondeu. A consulta, as lentes e a comparação continuam disponíveis.';
-      corpo.replaceChildren(titulo, etapas(e.etapas), tentar(m, NOTA_COTA));
+      corpo.replaceChildren(titulo, etapas(e.etapas), acoesResultado(m, false), tentar(m, NOTA_COTA));
       return;
     case 'falha': {
       const d = e.desfecho;
@@ -195,6 +213,7 @@ export function renderPerguntas(e: EstadoPerguntas, m: ManipuladoresPerguntas): 
         blocoAnalises(d.analises, d.evidencias),
         blocoEvidencias(d.evidencias, m),
         blocoExecucao(d.execucao),
+        acoesResultado(m, d.evidencias.size > 0),
         desligada ? null : tentar(m, NOTA_COTA),
       ));
       return;
@@ -203,14 +222,16 @@ export function renderPerguntas(e: EstadoPerguntas, m: ManipuladoresPerguntas): 
       const r = e.resposta;
       estado.textContent = `${ESTADO[r.estado]}.`;
       corpo.replaceChildren(...presentes(
+        h('h3', {}, 'Resposta à sua pergunta'),
         titulo,
-        etapas(e.etapas),
         h('div', { class: 'resposta-ia', 'data-estado-resposta': r.estado },
           h('p', { class: 'resposta-ia__estado' }, ESTADO[r.estado]),
           r.geradoPorIa ? h('p', { class: 'marca-ia' }, h('span', { class: 'marca-ia__etiqueta' }, 'Gerado por IA'), ' ', r.aviso) : null,
           r.notas.length ? h('div', { class: 'aviso-estado notas-ia' }, ...r.notas.map((n) => h('p', {}, n))) : null,
           r.afirmacoes.length ? afirmacoes(r.afirmacoes, r.evidencias) : null,
           lista(r.limites, 'Limites da resposta')),
+        acoesResultado(m, r.evidencias.size > 0),
+        h('details', { class: 'perguntas__bloco' }, h('summary', {}, 'Etapas da execução'), etapas(e.etapas)),
         blocoAnalises(r.analises, r.evidencias),
         blocoEvidencias(r.evidencias, m),
         blocoExecucao(r.execucao),

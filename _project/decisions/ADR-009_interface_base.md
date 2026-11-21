@@ -92,3 +92,7 @@ Item 2 do plano `010` v2 aprovado e integrado na PR #96, issue #98 autorizada pe
 - ADR-007 (interface do protótipo), revisado por este ADR nos pontos acima.
 - Tasks `_project/executed/007_interface_base/007_task_issue-61.md` e `007_task_issue-62.md`.
 - `DESIGN.md` (contrato visual).
+
+## Emenda de 2026-11-21 — ciclo 010
+
+A navegação do painel do agente abre o destaque, a comparação, a lista de lentes ou Municípios segundo o recorte do pedido vigente; as evidências são abertas e focadas no próprio painel.

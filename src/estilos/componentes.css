@@ -2051,3 +2051,17 @@ tr.selecionada td {
   border: 0; border-left: 3px solid var(--aviso-borda); border-radius: 4px; padding: 6px 10px;
   background: var(--aviso-fundo); color: var(--aviso-texto); font-size: 0.82rem; margin: 8px 0;
 }
+
+/* Contexto exibido antes da pergunta, com os mesmos tokens dos demais painéis. */
+#perguntas-contexto-aplicado {
+  padding: 0.75rem;
+  border-left: 3px solid var(--escolha);
+  border-radius: 8px;
+  background: var(--superficie-suave);
+  overflow-wrap: anywhere;
+}
+
+#perguntas-contexto-aplicado p { margin: 0.35rem 0 0; }
+
+.perguntas__acao { margin: 0.5rem 0; padding: 0.65rem; border: 1px solid var(--contorno-suave); border-radius: 8px; }
+.perguntas__acao .nota { margin: 0.35rem 0 0; }

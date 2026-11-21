@@ -86,3 +86,7 @@ Com a saída do cartão "Disponibilidade dos dados" (plano `009`, D2; issue #91)
 - Plano `_project/executed/008_comparacao_periodos_agentes/008_plan.md` (v3), T4 a T6 e item 2.
 - ADR-005 (banco e autorização), ADR-007 (interface), KB-007 (comparação).
 - Prova: `npm run typecheck:servidor`, `npm run test:api`, `npm run test:agentes`, `scripts/agentes/conferir-pacote.mjs` e `npm run prova:agentes` (resultados nas tasks das issues #78 e #79).
+
+## Emenda de 2026-11-21 — ciclo 010
+
+Os atalhos do painel usam o recorte e a identidade do pedido vigente para voltar ao resultado e abrir as evidências já recebidas. A sessão, o formato do fluxo e o contrato do servidor permanecem.
