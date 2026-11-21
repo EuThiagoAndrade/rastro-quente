@@ -37,6 +37,8 @@ Rótulos das lentes e espaço do mapa (ciclo `009`, issue #91): o rótulo "Lente
 
 Painel direito completo (ciclo `010`): as abas Lentes, Municípios e Comparação mostram resultados, limites e ações de navegação; inspecionar um município estadual não altera o filtro até a consulta explícita. O painel de perguntas mostra o contexto aplicado, as etapas e as evidências, com retorno ao resultado. Contrato visual em [DESIGN.md](DESIGN.md); não houve mudança de método nem verificação em produção no ciclo.
 
+Insights com agentes (ciclo `011`, issue #107): o painel de perguntas oferece cinco perguntas fechadas, sem texto livre, e explica quando uma não se aplica ao recorte. Os subagentes de padrões e de contexto/qualidade usam também a distribuição temporal GMT e o cruzamento dos critérios aplicáveis; a síntese só sai completa quando relaciona evidências distintas ou traz limitação conferida. `npm run prova:agentes` espaça as chamadas ao Gemini em 13 s por padrão. Utilidade aceita em amostra local fictícia; verificação em produção dispensada no ciclo.
+
 Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.

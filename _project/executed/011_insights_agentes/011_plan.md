@@ -1,7 +1,7 @@
 # Plano de Implementação — insights com agentes
 
 > **Ciclo:** `011`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v4`
 > **Autor da correção:** Codex (modelo exato não informado ao agente)
 > **Data de criação:** 2026-11-21
@@ -195,18 +195,18 @@ Resposta plausível pode estar errada apesar de valores corretos; validar sentid
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | [#107](https://github.com/EuThiagoAndrade/rastro-quente/issues/107) |
-| PR(s) | [#106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106) (documental) |
-| Branch(es) | `chore/cycle-011-plan` |
+| PR(s) | [#106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106) documental; [#108](https://github.com/EuThiagoAndrade/rastro-quente/pull/108) entrega atômica integrada |
+| Branch(es) | `chore/cycle-011-plan`, `feature/issue-107` e `chore/cycle-011-closure` |
 | Destino após conclusão | `_project/executed/011_insights_agentes/011_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 011 (completo)
-Quem: Responsável
-Conferir: Issue #107 e escopo
-Diga: "autorizo a implementação da issue #107"
+Situação: Concluído — ciclo 011 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -520,9 +520,9 @@ Em 2026-11-21, o responsável aprovou integralmente as recomendações apresenta
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
-- **Lições comprovadas:** —
+- **Data de conclusão:** 2026-11-21 (prospectiva; efetiva após o merge do encerramento)
+- **Desvios:** a amostra real local exigiu, com autorizações próprias registradas na task da issue #107, um diagnóstico de schema, um reteste dos dois casos e duas repetições únicas do panorama, sempre com 13 s entre chamadas e sem teste de carga. O aceite de utilidade foi dado pelo responsável sobre a última amostra fictícia. A verificação hospedada foi dispensada pelo responsável no encerramento e não gerou resultados de produção.
+- **Lições comprovadas:** nenhuma nova lição transversal registrada.
 
 ## Referência do bootstrap
 
