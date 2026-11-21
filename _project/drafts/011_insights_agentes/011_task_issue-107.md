@@ -7,7 +7,7 @@
 > **Issue:** `#107`
 > **Plano:** `_project/drafts/011_insights_agentes/011_plan.md`
 > **Branch:** `feature/issue-107`
-> **PR:** —
+> **PR:** [#108](https://github.com/EuThiagoAndrade/rastro-quente/pull/108)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #107" em 2026-11-21
 > **Modo contínuo:** `—`
@@ -221,21 +221,21 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Parado — ciclo 011 (completo)
+Situação: Aguardando merge — ciclo 011 (completo)
 Quem: Responsável
-Conferir: A interpretação concreta da amostra mais recente, com observação temporal e contraste de disponibilidade, atende ao ganho de utilidade pretendido no plano v4? Avaliação humana pendente antes da PR; não se pede nova execução Gemini.
-Diga: sua resposta à pergunta registrada
+Conferir: Checks e diff da PR #108
+Diga: "aprovo o merge da PR #108"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 011 + implementar_issue + 107/insights_agentes + 8b5f68465a2c18fdb6afe912f08bbb66abe4e347`
-- `effect_class`: `local_mutation`
-- `state_before` / `state_after`: reteste único autorizado após correções locais / seis HTTP 200 com padrões, contexto e síntese concluídos; falso positivo negativo corrigido/reproduzido sem rede; validações pertinentes passaram, aceite humano de utilidade pendente.
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: aceite humano da utilidade pendente / aceite concedido em 2026-11-21, branch `feature/issue-107` publicada e PR #108 aberta contra `main`.
 - `result`: `executed`
-- `evidence`: relatório local ignorado 011_prova_panorama_corrigido.json, seis HTTP 200 com mínimo 13.003 ms; fixture fictícia de captura e teste antes/depois do falso positivo; 44 testes de agentes, 16 de API e pacote 42a9c5769da91449cb6a769301c0f82402b3630175ddd2dcb853bce9c9d47d4d conferidos; texto de avaliação acima.
-- `blockers`: aceite humano da utilidade da amostra antes da PR, conforme plano v4. Não há pedido nem execução adicional do Gemini pendente nesta saída.
+- `evidence`: [PR #108](https://github.com/EuThiagoAndrade/rastro-quente/pull/108); gates locais registrados acima (44 agentes, 223 interface, 16 API, 25 E2E, 55 governança, build e validador sem erros).
+- `blockers`: checks remotos e "aprovo o merge da PR #108".
 
 ## Referência do bootstrap
 
