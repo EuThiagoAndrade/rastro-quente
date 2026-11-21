@@ -2,12 +2,12 @@
 
 > **Ciclo:** `010`
 > **Trilha:** `normal`
-> **Estado:** `Em andamento`
+> **Estado:** `Aguardando integração`
 > **Tipo:** `feature`
 > **Issue:** `#100`
 > **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-100`
-> **PR:** —
+> **PR:** [PR #104](https://github.com/EuThiagoAndrade/rastro-quente/pull/104)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "autorizo a implementação da issue #100" em 2026-11-21
 > **Modo contínuo:** `—`
@@ -45,7 +45,7 @@ Não se aplica.
 - [x] Conferidos plano, autorização, base e dependências.
 - [x] Implementar painel, navegação e documentação.
 - [x] Executar gates e conferir evidências.
-- [ ] Publicar PR para revisão.
+- [x] Publicar PR para revisão.
 
 ## Evidências
 
@@ -72,19 +72,19 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 010"
+Situação: Aguardando merge — ciclo 010 (completo)
+Quem: Responsável
+Conferir: Checks e diff da [PR #104](https://github.com/EuThiagoAndrade/rastro-quente/pull/104)
+Diga: "aprovo o merge da PR #104"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + implementar_issue + issue-100 + 3f9955ef24a3e01eae72b11a26a8bfe670c090bd`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: issue aberta e autorizada; dependências integradas; branch ausente.
-- `state_after`: implementação e gates locais concluídos; publicação pendente.
+- `state_after`: implementação e gates locais concluídos; PR #104 aberta, aguardando checks e aprovação do merge.
 - `result`: `executed`
-- `evidence`: esta task, branch `feature/issue-100` e PR #103 integrada.
-- `blockers`: nenhum para publicação.
+- `evidence`: esta task, branch `feature/issue-100`, PR #103 integrada e PR #104 aberta.
+- `blockers`: checks remotos e aprovação específica do merge pendentes.
