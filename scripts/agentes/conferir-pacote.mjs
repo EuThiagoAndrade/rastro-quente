@@ -22,7 +22,8 @@ import { criarGemini } from '../../servidor/gemini.ts';
 import { fetchSimulado, respostaSimulada } from './simulado.mjs';
 
 const RAIZ = path.resolve(import.meta.dirname, '../..');
-const FUNCOES = path.join(RAIZ, '.vercel/output/functions');
+// Caminho opcional permite auditar o build isolado sem substituir uma saída existente no checkout.
+const FUNCOES = path.join(path.resolve(process.argv[2] ?? path.join(RAIZ, '.vercel/output')), 'functions');
 
 function arquivos(dir, base = dir) {
   return readdirSync(dir, { withFileTypes: true }).flatMap((e) => {
@@ -139,7 +140,7 @@ try {
     RQ_GEMINI_CHAVE: 'chave-ficticia-de-teste', RQ_GEMINI_MODELO: 'gemini-3.1-flash-lite',
   });
   const pedido = {
-    pergunta: 'O que mudou entre estes períodos?', carga: { id: cargaId, identidade: IDENTIDADE },
+    pergunta_id: 'mudanca', carga: { id: cargaId, identidade: IDENTIDADE },
     recorte: { tipo: 'periodos', a: { inicio: '2026-10-01', fim: '2026-10-10' }, b: { inicio: '2026-10-11', fim: '2026-10-20' }, municipio: null, lente: { tipo: 'concentracao' } },
   };
   const chamar = (token) => fetch(`${executor.base}/api/explicar`, { method: 'POST', headers: { 'content-type': 'application/json', authorization: `Bearer ${token}` }, body: JSON.stringify(pedido) });

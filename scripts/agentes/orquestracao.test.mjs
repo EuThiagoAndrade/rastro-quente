@@ -6,7 +6,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, janelaDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar, TEXTO_RECUSA,
+  conferirAfirmacao, FalhaProvedor, indexar, INSTRUCOES, itemDe, janelaDe, LIMITE_CHAMADAS, NOTAS, normalizarReferencia, orquestrar,
 } from '../../servidor/agentes.ts';
 import { corpoInteracao, criarGemini, ENDPOINT_GEMINI, lerResposta, LIMITE_ENVIO_BYTES, SOBRECARGA } from '../../servidor/gemini.ts';
 import { Orcamento } from '../../servidor/orcamento.ts';
@@ -16,7 +16,7 @@ import { CASOS } from './casos.mjs';
 const JANELA_A = { inicio: '2026-10-01', fim: '2026-10-10' };
 const JANELA_B = { inicio: '2026-10-11', fim: '2026-10-20' };
 const PERIODOS = { tipo: 'periodos', a: JANELA_A, b: JANELA_B, municipio: null, lente: { tipo: 'concentracao' } };
-const pedido = (pergunta, recorte = PERIODOS) => ({ pergunta, carga: { id: 1, identidade: 'a'.repeat(64) }, recorte });
+const pedido = (pergunta, recorte = PERIODOS) => ({ pergunta_id: pergunta === 'Há lacunas nos dados?' ? 'cuidados' : 'mudanca', carga: { id: 1, identidade: 'a'.repeat(64) }, recorte });
 
 // Resultados fictícios fixos das ferramentas (os valores reais vêm de `test:api`, com Supabase local).
 const DADOS = {
@@ -99,7 +99,7 @@ test('comparação: principal delega aos dois subagentes, cada um com chamadas p
   // Instruções e ferramentas distintas por papel.
   const lentes = log.interacoes.find((i) => papelDe(i) === 'lentes' && i.escolha !== 'none');
   const disp = log.interacoes.find((i) => papelDe(i) === 'disponibilidade' && i.escolha !== 'none');
-  assert.deepEqual(lentes.ferramentas.map((f) => f.name), ['comparar_periodos', 'ler_detalhes']);
+  assert.deepEqual(lentes.ferramentas.map((f) => f.name), ['comparar_periodos']);
   assert.deepEqual(disp.ferramentas.map((f) => f.name), ['consultar_disponibilidade']);
   assert.notEqual(lentes.sistema, disp.sistema);
   // Segunda chamada do subagente reenvia o histórico (com o passo recebido intacto) e o resultado da ferramenta.
@@ -123,8 +123,8 @@ test('comparação: principal delega aos dois subagentes, cada um com chamadas p
 });
 
 test('pergunta só de disponibilidade: o principal pode delegar só a esse subagente (4 chamadas)', async () => {
-  const recorte = { tipo: 'disponibilidade', janela: JANELA_A, municipios: [9900001] };
-  const rot = roteiro({ principal: () => chamadaF('delegar', { analistas: ['disponibilidade'], classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: ANALISE.disponibilidade.afirmacoes.map((a) => ({ ...a, referencias: ['E1.lados[0].municipios[0].texto'] })), limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
+  const recorte = { tipo: 'selecao', janela: JANELA_A, municipio: 9900001, lente: null };
+  const rot = roteiro({ principal: () => chamadaF('delegar', { analistas: ['disponibilidade'], classificacao: 'respondivel' }), sintese: () => saida({ classificacao: 'respondivel', afirmacoes: ANALISE.disponibilidade.afirmacoes.map((a) => ({ ...a, referencias: ['E1.lados[0].municipios[0].texto'], limitacao: { texto: 'Disponibilidade não comprova cobertura.', referencias: ['E1.lados[0].municipios[0].texto'] } })), limites: [] }), disponibilidade: (i) => (i.escolha === 'none' ? saida({ afirmacoes: [{ ...ANALISE.disponibilidade.afirmacoes[0], referencias: ['E1.lados[0].municipios[0].texto'] }], limites: [] }) : chamadaF('consultar_disponibilidade')) });
   const { amb, log } = ambiente({ roteiro: rot, recorte, pergunta: 'Há lacunas nos dados?' });
   const r = await orquestrar(amb);
   assert.equal(r.estado, 'completa');
@@ -142,14 +142,10 @@ test('comparação sem a delegação necessária: resultado incompleto explícit
   assert.ok(!log.execucoes.includes('comparar_periodos'));
 });
 
-test('pergunta de autoria: recusa com texto do código, uma chamada, nenhuma ferramenta', async () => {
-  const { amb, log } = ambiente({ roteiro: roteiro({ principal: () => chamadaF('recusar_pergunta', { motivo: 'autoria_ou_infracao' }) }), pergunta: 'Quem colocou fogo no Município Alfa?' });
-  const r = await orquestrar(amb);
-  assert.equal(r.estado, 'fora_do_alcance');
-  assert.deepEqual(r.notas, [TEXTO_RECUSA.autoria_ou_infracao]);
-  assert.equal(r.chamadas.length, 1);
+test('recusa fora do catálogo fechado: falha sem executar ferramentas', async () => {
+  const { amb, log } = ambiente({ roteiro: roteiro({ principal: () => chamadaF('recusar_pergunta', { motivo: 'autoria_ou_infracao' }) }) });
+  await assert.rejects(orquestrar(amb), (e) => e instanceof FalhaProvedor && e.codigo === 'saida_invalida');
   assert.equal(log.execucoes.length, 0);
-  assert.equal(r.afirmacoes.length, 0);
 });
 
 test('pergunta causal: resposta parcial, com nota fixa e limite', async () => {
@@ -176,7 +172,7 @@ test('ferramenta fora do catálogo do subagente ou com argumento fora do pedido:
   assert.equal(log.eventos.filter((e) => e.tipo === 'ferramenta_recusada').length, 3);
   assert.equal(r.estado, 'incompleta');
   assert.ok(r.notas.includes(NOTAS.falha('lentes')));
-  assert.equal(r.chamadas.length, 5);
+  assert.equal(r.chamadas.length, 4);
 });
 
 test('referência inventada, número divergente, data ou classificação alterada: afirmação rejeitada', async () => {
@@ -285,7 +281,8 @@ test('saída fora do formato do subagente: falha só dele; síntese inválida ma
   const { amb } = ambiente({ roteiro: rot });
   const r = await orquestrar(amb);
   assert.equal(r.analises.find((a) => a.papel === 'disponibilidade').estado, 'falha');
-  assert.ok(r.notas.includes(NOTAS.sinteseInvalida));
+  assert.ok(r.notas.includes(NOTAS.falha('disponibilidade')));
+  assert.ok(!r.etapas.some((e) => e.tipo === 'sintese_iniciada'));
   assert.equal(r.afirmacoes.length, 0);
   assert.equal(r.estado, 'incompleta');
   assert.equal(r.analises.find((a) => a.papel === 'lentes').afirmacoes.length, 2);
@@ -384,7 +381,8 @@ test('injeção de prompt: a pergunta vai delimitada como dado, sem mudar instru
     const texto = JSON.stringify(i);
     assert.ok(!/chave-ficticia|Bearer|eyJ/.test(texto));
     const u = i.entrada[0].content[0].text;
-    assert.ok(u.includes(`<<<\n${pergunta}\n>>>`));
+    assert.ok(!u.includes(pergunta));
+    assert.ok(u.includes('ID fechado: mudanca'));
   }
   assert.ok(log.eventos.some((e) => e.tipo === 'ferramenta_recusada'), 'argumento fora do pedido recusado');
   assert.equal(log.execucoes.filter((x) => x === 'comparar_periodos').length, 1);
@@ -449,11 +447,31 @@ test('cliente REST: chave só no cabeçalho, 429 e erro sem repetição e sem re
   assert.equal(pedidos.length, 3);
 });
 
-test('casos de avaliação em português: respondíveis, parciais e fora do alcance, com o comportamento esperado declarado', () => {
-  const tipos = new Set(CASOS.map((c) => c.esperado.estado));
-  for (const t of ['completa', 'parcial', 'fora_do_alcance']) assert.ok(tipos.has(t), t);
+test('cinco perguntas fechadas com casos positivos e contrapontos inadequados', () => {
+  assert.equal(CASOS.length, 5);
   for (const c of CASOS) {
-    assert.ok(c.pergunta.length > 0 && c.pergunta.length <= 2000);
-    assert.ok(['periodos', 'disponibilidade', 'municipios', 'selecao'].includes(c.recorte));
+    assert.ok(c.pergunta_id && c.evidencias && c.tela && c.interpretacao && c.inadequada);
   }
+});
+
+test('evidência de dados insuficientes impede síntese, mesmo com duas análises formatadas', async () => {
+  const { amb, log } = ambiente({ executar: async (nome) => ({ ...DADOS[nome], ...(nome === 'consultar_disponibilidade' ? { estado: 'dados_insuficientes' } : {}) }) });
+  const r = await orquestrar(amb);
+  assert.equal(r.estado, 'incompleta');
+  assert.deepEqual(r.afirmacoes, []);
+  assert.ok(r.notas.some((n) => n.includes('Dados insuficientes')));
+  assert.ok(!log.eventos.some((e) => e.tipo === 'sintese_iniciada'));
+  assert.equal(r.chamadas.length, 5);
+});
+
+test('sugestão fora dos destinos é omitida sem descartar a observação do subagente', async () => {
+  const rot = roteiro({ lentes: (i) => i.escolha === 'none' ? saida({ afirmacoes: [{ texto: 'A teve 55 detecções.', referencias: ['E1.a.total'], sugestao: { texto: 'Consulte imagens de satélite para validar a ocorrência.', referencias: ['E1.a.total'] } }], limites: [] }) : chamadaF('comparar_periodos') });
+  const { amb, log } = ambiente({ roteiro: rot });
+  const r = await orquestrar(amb);
+  const a = r.analises.find((x) => x.papel === 'lentes');
+  assert.equal(a.estado, 'concluida');
+  assert.equal(a.rejeitadas, 0);
+  assert.deepEqual(a.afirmacoes, [{ texto: 'A teve 55 detecções.', referencias: ['E1.a.total'] }]);
+  assert.ok(r.notas.some((n) => n.includes('Sugestões sem fundamento')));
+  assert.ok(log.eventos.some((e) => e.tipo === 'sintese_iniciada'));
 });

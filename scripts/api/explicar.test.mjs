@@ -84,7 +84,7 @@ function iniciarServidor() {
 }
 
 const PEDIDO = () => ({
-  pergunta: 'O que mudou entre estes períodos?',
+  pergunta_id: 'mudanca',
   carga: { id: cargaId, identidade: IDENTIDADE },
   recorte: { tipo: 'periodos', a: { inicio: '2026-10-01', fim: '2026-10-10' }, b: { inicio: '2026-10-11', fim: '2026-10-20' }, municipio: null, lente: { tipo: 'concentracao' } },
 });
@@ -326,26 +326,21 @@ test('ferramentas: catálogo fechado, argumentos presos ao pedido e detalhe pagi
   let ctx;
   deps = depsPadrao({ executar: async (c, nome, args) => { ctx = c; return executarFerramenta(c, nome, args); } });
   assert.equal((await chamar({ token: tokens.rp })).status, 200);
-  const d = await executarFerramenta(ctx, 'ler_detalhes', { lado: 'B', pagina: 0 });
-  assert.equal(d.total, 43);
-  assert.equal(d.registros.length, 43);
-  assert.equal(d.completo, true);
-  assert.ok(d.registros.every((x) => x.data_hora_gmt >= '2026-10-11' && x.data_hora_gmt < '2026-10-21'));
   assert.equal(LIMITE_DETALHE, 100);
   await assert.rejects(executarFerramenta(ctx, 'executar_sql', {}), (e) => e instanceof ErroHttp && e.detalhe === 'ferramenta fora do catálogo');
-  await assert.rejects(executarFerramenta(ctx, 'ler_detalhes', { carga: 1 }), (e) => e instanceof ErroHttp && e.detalhe === 'argumento não admitido');
+  await assert.rejects(executarFerramenta(ctx, 'ler_detalhes', { carga: 1 }), (e) => e instanceof ErroHttp && e.detalhe === 'ferramenta fora do pedido');
   await assert.rejects(executarFerramenta(ctx, 'ler_detalhes', { lado: 'C' }), ErroHttp);
   await assert.rejects(executarFerramenta(ctx, 'explicar_selecao', {}), (e) => e.detalhe === 'ferramenta fora do pedido');
-  const disp = await executarFerramenta({ ...ctx, pedido: { ...ctx.pedido, recorte: { tipo: 'disponibilidade', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, municipios: [9900001] } } }, 'consultar_disponibilidade');
-  assert.equal(disp.municipios[0].texto, '8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)');
-  assert.match(disp.alcance, /não é disponibilidade estadual/);
-  // Na comparação de municípios, a disponibilidade é a dos dois municípios do recorte, por lado.
-  const dm = await executarFerramenta({ ...ctx, pedido: { ...ctx.pedido, recorte: { tipo: 'municipios', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, a: 9900001, b: 9900002, lente: null } } }, 'consultar_disponibilidade');
-  assert.equal(dm.alcance, 'municípios do recorte do pedido');
-  assert.deepEqual(dm.lados.map((l) => l.municipios.map((m) => m.municipio)), [['Município Alfa (9900001)'], ['Município Beta (9900002)']]);
-  assert.equal(dm.lados[0].municipios[0].texto, '8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)');
-  assert.ok(dm.lados.every((l) => !('sem_municipios' in l)));
-  // Issue #81: períodos no estado sem lente não têm destaques; o lado declara que não houve município a conferir.
+  await assert.rejects(executarFerramenta(ctx, 'distribuicao_temporal', {}), (e) => e.detalhe === 'ferramenta fora do pedido');
+  const selecao = { ...ctx, pedido: { ...ctx.pedido, pergunta_id: 'panorama', recorte: { tipo: 'selecao', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, municipio: null, lente: { tipo: 'concentracao' } } } };
+  const temporal = await executarFerramenta(selecao, 'distribuicao_temporal');
+  assert.equal(temporal.total, 55);
+  assert.equal(temporal.meses.totais[0].total, 55);
+  assert.equal(temporal.dias.totais.reduce((total, dia) => total + dia.total, 0), 55);
+  await assert.rejects(executarFerramenta(selecao, 'distribuicao_temporal', { municipio: 9900001 }), (e) => e.detalhe === 'argumento não admitido');
+  const disp = await executarFerramenta({ ...ctx, pedido: { ...ctx.pedido, pergunta_id: 'cuidados', recorte: { tipo: 'selecao', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, municipio: 9900001, lente: null } } }, 'consultar_disponibilidade');
+  assert.equal(disp.lados[0].municipios[0].texto, '8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)');
+  assert.match(disp.alcance, /municípios do recorte/);
   const ds = await executarFerramenta({ ...ctx, pedido: { ...ctx.pedido, recorte: { tipo: 'periodos', a: { inicio: '2026-10-01', fim: '2026-10-10' }, b: { inicio: '2026-10-11', fim: '2026-10-20' }, municipio: null, lente: null } } }, 'consultar_disponibilidade');
   assert.deepEqual(ds.lados.map((l) => l.municipios.length), [0, 0]);
   assert.ok(ds.lados.every((l) => l.sem_municipios === SEM_MUNICIPIOS));
@@ -386,6 +381,40 @@ test('responsável revogado durante a execução: 403, resposta descartada e nen
   // Chamadas sem evidências (classificação e pedido de ferramenta) podem ter ocorrido; nenhuma envia evidências.
   assert.equal(comEvidencias(), 0);
   cadastrarRp();
+  deps = depsPadrao();
+});
+
+test('contrato 011: IDs, incompatibilidades e recortes antigos são recusados antes de sessão/provedor', async () => {
+  zerar();
+  for (const p of [
+    { ...PEDIDO(), pergunta_id: 'livre' },
+    { ...PEDIDO(), pergunta_id: 'panorama' },
+    { ...PEDIDO(), pergunta_id: 'proximos' },
+    { ...PEDIDO(), recorte: { tipo: 'municipios', janela: PEDIDO().recorte.a, a: 9900001, b: 9900002, lente: null } },
+    { ...PEDIDO(), recorte: { tipo: 'disponibilidade', janela: PEDIDO().recorte.a, municipios: [9900001] } },
+  ]) assert.equal((await chamar({ corpo: p })).status, 400);
+  assert.equal(chamadas.clientes, 0);
+  assert.equal(chamadas.provedor, 0);
+});
+test('disponibilidade estadual sem lente: subconjunto explícito; zero é não avaliada', async () => {
+  let ctx;
+  deps = depsPadrao({ executar: async (c, n, args) => { ctx = c; return executarFerramenta(c, n, args); } });
+  await chamar({ token: tokens.rp });
+  const contexto = (dia) => ({ ...ctx, pedido: { ...ctx.pedido, pergunta_id: 'panorama', recorte: { tipo: 'selecao', janela: { inicio: dia, fim: dia }, municipio: null, lente: null } } });
+  const alfa = contexto('2026-10-01');
+  const disp = await executarFerramenta(alfa, 'consultar_disponibilidade');
+  assert.match(disp.alcance, /subconjunto/);
+  assert.deepEqual(disp.lados[0].municipios.map((m) => m.municipio), ['Município Alfa (9900001)']);
+  const vazio = contexto('2026-10-22');
+  const zero = await executarFerramenta(vazio, 'consultar_disponibilidade');
+  assert.equal(zero.estado, 'dados_insuficientes');
+  assert.deepEqual(zero.lados[0].municipios, []);
+  assert.match(zero.lados[0].sem_municipios, /não avaliada/);
+  const cruzamento = await executarFerramenta({ ...alfa, pedido: { ...alfa.pedido, pergunta_id: 'padroes' } }, 'cruzar_padroes');
+  assert.deepEqual(cruzamento.criterios_disponiveis, ['concentracao', 'persistencia']);
+  assert.equal(cruzamento.estado, 'sem_achados');
+  // Alfa tem três detecções no dia 01, mas não três dias consecutivos.
+  assert.deepEqual(cruzamento.celulas, []);
   deps = depsPadrao();
 });
 

@@ -14,116 +14,51 @@ export const LIMITE_MUNICIPIOS = 142;
 /** Teto do fluxo lido (eventos e resultado com as evidências): acima disso, a leitura para sem exibir nada. */
 export const LIMITE_FLUXO_BYTES = 8 * 1024 * 1024;
 
-/** Perguntas prontas de D4 e o texto livre. */
-export type Pergunta = 'destaque' | 'periodos' | 'lacunas' | 'livre';
-
-export const PERGUNTAS: Record<Exclude<Pergunta, 'livre'>, string> = {
-  destaque: 'Por que esta célula foi destacada?',
-  periodos: 'O que mudou entre estes períodos?',
-  lacunas: 'Há lacunas nos dados?',
-};
-
-// --- Pedido (o formato fechado do servidor) ------------------------------------------------------------------------
+export { PERGUNTAS, IDS_PERGUNTAS } from './perguntas.ts';
+import { type Pergunta } from './perguntas.ts';
+export type { Pergunta } from './perguntas.ts';
 
 export type ConfigLente =
   | { tipo: TipoLente }
   | { tipo: 'combinacao'; lentes: TipoLente[]; operador: Operador }
   | { tipo: 'sobreposicao'; classe: ClasseArea };
-
 export type Recorte =
-  | { tipo: 'selecao'; janela: Janela; municipio: number | null; lente: ConfigLente }
-  | { tipo: 'periodos'; a: Janela; b: Janela; municipio: number | null; lente: ConfigLente | null }
-  | { tipo: 'municipios'; janela: Janela; a: number; b: number; lente: ConfigLente | null }
-  | { tipo: 'disponibilidade'; janela: Janela; municipios: number[] };
-
+  | { tipo: 'selecao'; janela: Janela; municipio: number | null; lente: ConfigLente | null }
+  | { tipo: 'periodos'; a: Janela; b: Janela; municipio: number | null; lente: ConfigLente | null };
 export interface PedidoExplicacao {
-  pergunta: string;
+  pergunta_id: Pergunta;
   carga: { id: number; identidade: string };
   recorte: Recorte;
 }
-
-/** O que está na tela agora: recorte aplicado, lente aplicada, destaque aberto e comparação calculada. */
 export interface ContextoTela {
   carga: { id: number; identidade: string };
   janela: Janela;
   municipio: number | null;
   lente: ConfigLente | null;
   destaque: { id: string; rotulo: string; municipios: number[] } | null;
+  comparacaoIncompleta?: boolean;
   comparacao: { modo: 'periodos'; a: Janela; b: Janela } | { modo: 'municipios'; a: number; b: number } | null;
 }
-
-/** Recorte da pergunta, ou o motivo de ela não estar disponível no contexto atual. */
 export type Escolha = { recorte: Recorte; descricao: string } | { indisponivel: string };
 
-const recorteComparacao = (c: ContextoTela): Escolha | null => {
-  const k = c.comparacao;
-  if (!k) return null;
-  if (k.modo === 'periodos') {
-    return { recorte: { tipo: 'periodos', a: k.a, b: k.b, municipio: c.municipio, lente: c.lente }, descricao: 'a comparação de dois períodos' };
-  }
-  return { recorte: { tipo: 'municipios', janela: c.janela, a: k.a, b: k.b, lente: c.lente }, descricao: 'a comparação de dois municípios' };
-};
-
-const disponibilidade = (c: ContextoTela, municipios: number[], descricao: string): Escolha =>
-  ({ recorte: { tipo: 'disponibilidade', janela: c.janela, municipios: [...new Set(municipios)].slice(0, LIMITE_MUNICIPIOS) }, descricao });
-
-/**
- * Recorte de cada pergunta (T7: só habilitada com contexto suficiente). A ordem é fixa e explícita; nada é inventado
- * para a pergunta caber, e o texto livre segue a mesma ordem da tela (comparação, destaque ou lente, município).
- */
 export function escolherRecorte(p: Pergunta, c: ContextoTela): Escolha {
-  const selecao = c.lente ? { recorte: { tipo: 'selecao', janela: c.janela, municipio: c.municipio, lente: c.lente } as Recorte } : null;
-  switch (p) {
-    case 'destaque':
-      if (!c.lente || !c.destaque) return { indisponivel: 'Escolha uma lente e abra um destaque.' };
-      return { recorte: selecao!.recorte, descricao: 'o destaque aberto' };
-    case 'periodos':
-      if (c.comparacao?.modo !== 'periodos') return { indisponivel: 'Compare dois períodos em Filtros › Comparar.' };
-      return recorteComparacao(c)!;
-    case 'lacunas': {
-      const comp = recorteComparacao(c);
-      if (comp) return comp;
-      if (c.destaque?.municipios.length) return disponibilidade(c, c.destaque.municipios, 'os municípios do destaque aberto');
-      if (c.municipio !== null) return disponibilidade(c, [c.municipio], 'o município da Consulta');
-      if (selecao) return { recorte: selecao.recorte, descricao: 'os destaques da lente' };
-      return { indisponivel: 'Escolha um município, uma lente ou uma comparação.' };
-    }
-    case 'livre': {
-      const comp = recorteComparacao(c);
-      if (comp) return comp;
-      if (selecao) return { recorte: selecao.recorte, descricao: c.destaque ? 'o destaque aberto' : 'os destaques da lente' };
-      if (c.municipio !== null) return disponibilidade(c, [c.municipio], 'a disponibilidade do município da Consulta');
-      return { indisponivel: 'Escolha uma lente, um município ou uma comparação para dar contexto à pergunta.' };
-    }
+  if (c.comparacaoIncompleta) return { indisponivel: 'Aguarde uma comparação válida ou volte ao período único.' };
+  if (c.comparacao?.modo === 'municipios') return { indisponivel: 'Saia da comparação de municípios para usar estas perguntas.' };
+  if (p === 'mudanca' && !c.comparacao) return { indisponivel: 'Compare dois períodos em Filtros › Comparar.' };
+  if (c.comparacao) {
+    if (p !== 'mudanca' && p !== 'cuidados') return { indisponivel: 'Volte ao período único para esta pergunta.' };
+    return { recorte: { tipo: 'periodos', a: c.comparacao.a, b: c.comparacao.b, municipio: c.municipio, lente: c.lente }, descricao: 'a comparação de dois períodos' };
   }
+  return { recorte: { tipo: 'selecao', janela: c.janela, municipio: c.municipio, lente: c.lente }, descricao: 'o período e município aplicados na Consulta' };
 }
 
-/** Destino local da ação: acompanha o recorte efetivamente enviado, sem confiar em comandos do modelo. */
-export function destinoDoPedido(tipo: Pergunta, contexto: ContextoTela, recorte: Recorte): { aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } {
-  if (recorte.tipo === 'periodos' || recorte.tipo === 'municipios') return { aba: 'comparacao', destaque: false };
-  const usaDestaque = !!contexto.destaque && (tipo === 'destaque' ||
-    (tipo === 'livre' && recorte.tipo === 'selecao') ||
-    (tipo === 'lacunas' && recorte.tipo === 'disponibilidade' && contexto.destaque.municipios.length > 0));
-  return { aba: usaDestaque || recorte.tipo === 'selecao' ? 'destaques' : 'municipios', destaque: usaDestaque };
+export function destinoDoPedido(_tipo: Pergunta, contexto: ContextoTela, recorte: Recorte): { aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } {
+  return { aba: recorte.tipo === 'periodos' ? 'comparacao' : contexto.lente ? 'destaques' : 'municipios', destaque: false };
 }
-
-/** Texto enviado: a pergunta e, para o destaque, qual está aberto (o servidor recalcula tudo; nenhum número vai junto). */
-export function textoPergunta(p: Pergunta, c: ContextoTela, livre: string): string {
-  if (p === 'livre') return livre.trim();
-  if (p === 'destaque' && c.destaque) return `${PERGUNTAS.destaque} Destaque aberto: ${c.destaque.rotulo} (${c.destaque.id}).`;
-  return PERGUNTAS[p];
-}
-
-export function montarPedido(p: Pergunta, c: ContextoTela, livre = ''): PedidoExplicacao | { indisponivel: string } {
+export function montarPedido(p: Pergunta, c: ContextoTela): PedidoExplicacao | { indisponivel: string } {
   const e = escolherRecorte(p, c);
-  if ('indisponivel' in e) return e;
-  const pergunta = textoPergunta(p, c, livre);
-  if (!pergunta) return { indisponivel: 'Escreva a pergunta.' };
-  if ([...pergunta].length > LIMITE_PERGUNTA) return { indisponivel: `A pergunta passa de ${LIMITE_PERGUNTA} caracteres.` };
-  return { pergunta, carga: c.carga, recorte: e.recorte };
+  return 'indisponivel' in e ? e : { pergunta_id: p, carga: c.carga, recorte: e.recorte };
 }
-
-/** Identidade do contexto: mudou, a pergunta em curso é cancelada e a resposta exibida sai (nenhuma resposta obsoleta). */
 export const chaveContexto = (sessao: number, c: ContextoTela | null): string => JSON.stringify([sessao, c]);
 
 // --- Mensagens do fluxo --------------------------------------------------------------------------------------------
@@ -131,7 +66,7 @@ export const chaveContexto = (sessao: number, c: ContextoTela | null): string =>
 export type PapelAgente = 'principal' | 'lentes' | 'disponibilidade';
 export type Subagente = Exclude<PapelAgente, 'principal'>;
 export type EstadoExecucao = 'completa' | 'parcial' | 'incompleta' | 'fora_do_alcance';
-export type Ferramenta = 'explicar_selecao' | 'comparar_periodos' | 'comparar_municipios' | 'consultar_disponibilidade' | 'ler_detalhes';
+export type Ferramenta = 'explicar_selecao' | 'comparar_periodos' | 'comparar_municipios' | 'consultar_disponibilidade' | 'ler_detalhes' | 'distribuicao_temporal' | 'cruzar_padroes';
 
 export type Evento =
   | { tipo: 'acesso_validado' }
@@ -147,7 +82,7 @@ export type Evento =
   | { tipo: 'concluido'; estado: EstadoExecucao }
   | { tipo: 'erro'; codigo: string };
 
-export interface Afirmacao { texto: string; referencias: string[] }
+export interface Afirmacao { texto: string; referencias: string[]; limitacao?: { texto: string; referencias: string[] }; sugestao?: { texto: string; referencias: string[] } }
 
 export interface Analise {
   papel: Subagente;
@@ -195,7 +130,7 @@ const um = <T extends string>(x: unknown, valores: readonly T[]): x is T => valo
 const SUBAGENTES = ['lentes', 'disponibilidade'] as const;
 const PAPEIS = ['principal', ...SUBAGENTES] as const;
 const ESTADOS = ['completa', 'parcial', 'incompleta', 'fora_do_alcance'] as const;
-const FERRAMENTAS = ['explicar_selecao', 'comparar_periodos', 'comparar_municipios', 'consultar_disponibilidade', 'ler_detalhes'] as const;
+const FERRAMENTAS = ['explicar_selecao', 'comparar_periodos', 'comparar_municipios', 'consultar_disponibilidade', 'ler_detalhes', 'distribuicao_temporal', 'cruzar_padroes'] as const;
 const ID_EVIDENCIA = /^E[1-9]\d{0,2}$/;
 const CODIGO = /^[a-z_]{1,40}$/;
 
@@ -227,9 +162,11 @@ export function validarEvento(x: unknown): Evento | null {
   }
 }
 
-const afirmacoes = (x: unknown): Afirmacao[] | null =>
-  (Array.isArray(x) && x.every((a) => objeto(a) && texto(a['texto']) && textos(a['referencias']))
-    ? x.map((a: Objeto) => ({ texto: a['texto'] as string, referencias: a['referencias'] as string[] })) : null);
+const afirmacoes = (x: unknown): Afirmacao[] | null => {
+  const parte = (a: unknown): a is { texto: string; referencias: string[] } => objeto(a) && texto(a['texto']) && textos(a['referencias']) && a['referencias'].length > 0;
+  if (!Array.isArray(x) || !x.every((a) => parte(a) && (!('limitacao' in a) || parte(a.limitacao)) && (!('sugestao' in a) || parte(a.sugestao)))) return null;
+  return x as Afirmacao[];
+};
 
 function analises(x: unknown): Analise[] | null {
   if (!Array.isArray(x)) return null;

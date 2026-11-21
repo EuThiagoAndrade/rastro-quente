@@ -122,7 +122,7 @@ for (const [w, h, esquema] of VIEWPORTS) {
     await page.locator('#t-explicacao').scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/lente-detalhe-${w}x${h}-${esquema}.png`, fullPage: true });
     // Ciclo 008, item 4: o painel de perguntas com uma resposta (provedor simulado) e os blocos abertos.
-    await page.locator('#pergunta-destaque').click();
+    await page.locator('#pergunta-panorama').click();
     await expect(page.locator('#painel-perguntas')).toHaveAttribute('data-estado-perguntas', 'resposta');
     for (const s of await page.locator('#perguntas-corpo details > summary').all()) await s.click();
     const q = await page.evaluate(auditoriaNaPagina);

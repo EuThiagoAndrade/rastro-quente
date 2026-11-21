@@ -1,3 +1,4 @@
+import { PERGUNTAS, type Pergunta } from '../src/perguntas.ts';
 // Formato do pedido (plano 008, T4): esquema fechado, sem campos extras, com limites. O pedido identifica a carga (eco
 // conferido com a vigente sob RLS), o recorte e a configuração; o servidor relê e recalcula tudo, sem aceitar números
 // do cliente. Nenhum texto do pedido volta em mensagens de erro.
@@ -17,13 +18,11 @@ export type ConfigLente =
   | { tipo: 'sobreposicao'; classe: ClasseArea };
 
 export type Recorte =
-  | { tipo: 'selecao'; janela: Janela; municipio: number | null; lente: ConfigLente }
-  | { tipo: 'periodos'; a: Janela; b: Janela; municipio: number | null; lente: ConfigLente | null }
-  | { tipo: 'municipios'; janela: Janela; a: number; b: number; lente: ConfigLente | null }
-  | { tipo: 'disponibilidade'; janela: Janela; municipios: number[] };
+  | { tipo: 'selecao'; janela: Janela; municipio: number | null; lente: ConfigLente | null }
+  | { tipo: 'periodos'; a: Janela; b: Janela; municipio: number | null; lente: ConfigLente | null };
 
 export interface Pedido {
-  pergunta: string;
+  pergunta_id: Pergunta;
   carga: { id: number; identidade: string };
   recorte: Recorte;
 }
@@ -82,23 +81,11 @@ function recorte(x: unknown): Recorte {
   switch (base['tipo']) {
     case 'selecao': {
       const o = objeto(x, 'recorte', ['tipo', 'janela', 'municipio', 'lente']);
-      return { tipo: 'selecao', janela: janela(o['janela'], 'recorte.janela'), municipio: municipioOuEstado(o['municipio'], 'recorte.municipio'), lente: lente(o['lente'], 'recorte.lente') };
+      return { tipo: 'selecao', janela: janela(o['janela'], 'recorte.janela'), municipio: municipioOuEstado(o['municipio'], 'recorte.municipio'), lente: comLente(o['lente']) };
     }
     case 'periodos': {
       const o = objeto(x, 'recorte', ['tipo', 'a', 'b', 'municipio', 'lente']);
       return { tipo: 'periodos', a: janela(o['a'], 'recorte.a'), b: janela(o['b'], 'recorte.b'), municipio: municipioOuEstado(o['municipio'], 'recorte.municipio'), lente: comLente(o['lente']) };
-    }
-    case 'municipios': {
-      const o = objeto(x, 'recorte', ['tipo', 'janela', 'a', 'b', 'lente']);
-      return { tipo: 'municipios', janela: janela(o['janela'], 'recorte.janela'), a: inteiro(o['a'], 'recorte.a'), b: inteiro(o['b'], 'recorte.b'), lente: comLente(o['lente']) };
-    }
-    case 'disponibilidade': {
-      const o = objeto(x, 'recorte', ['tipo', 'janela', 'municipios']);
-      const m = o['municipios'];
-      if (!Array.isArray(m) || m.length < 1 || m.length > LIMITE_MUNICIPIOS) return invalido('recorte.municipios');
-      const codigos = m.map((c, i) => inteiro(c, `recorte.municipios[${i}]`));
-      if (new Set(codigos).size !== codigos.length) invalido('recorte.municipios');
-      return { tipo: 'disponibilidade', janela: janela(o['janela'], 'recorte.janela'), municipios: codigos };
     }
     default: return invalido('recorte.tipo');
   }
@@ -112,13 +99,15 @@ export function validarPedido(texto: string): Pedido {
   } catch {
     return invalido('JSON');
   }
-  const o = objeto(bruto, 'pedido', ['pergunta', 'carga', 'recorte']);
-  const pergunta = o['pergunta'];
-  if (typeof pergunta !== 'string' || !pergunta.trim() || [...pergunta].length > LIMITE_PERGUNTA) invalido('pergunta');
+  const o = objeto(bruto, 'pedido', ['pergunta_id', 'carga', 'recorte']);
+  const id = o['pergunta_id'];
+  if (typeof id !== 'string' || !Object.hasOwn(PERGUNTAS, id)) return invalido('pergunta_id');
+  const r = recorte(o['recorte']);
+  if (id === 'mudanca' ? r.tipo !== 'periodos' : id !== 'cuidados' && r.tipo !== 'selecao') return invalido('pergunta incompatível com recorte');
   const c = objeto(o['carga'], 'carga', ['id', 'identidade']);
   const identidade = c['identidade'];
   if (typeof identidade !== 'string' || !/^[0-9a-f]{64}$/.test(identidade)) invalido('carga.identidade');
-  return { pergunta: (pergunta as string).trim(), carga: { id: inteiro(c['id'], 'carga.id'), identidade: identidade as string }, recorte: recorte(o['recorte']) };
+  return { pergunta_id: id as Pergunta, carga: { id: inteiro(c['id'], 'carga.id'), identidade: identidade as string }, recorte: r };
 }
 
 /** Lê o corpo com teto de bytes, sem confiar em `content-length`. */
