@@ -110,6 +110,13 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 
 As abas Lentes, Municípios e Comparação apresentam resposta, evidências, limitações e ações de navegação. A inspeção de um município no resultado estadual não aplica o filtro: a consulta municipal é uma ação explícita. A comparação preserva os lados A e B e as condições de disponibilidade. O painel de perguntas apresenta o contexto aplicado, as etapas recebidas, resposta e evidências, com retorno ao resultado vigente. O ciclo não alterou os métodos analíticos nem o contrato da função de explicação. As entregas foram integradas nas PRs #101 a #104; não houve verificação em produção no ciclo.
 
+### Insights com agentes (ciclo 011)
+
+- **Perguntas fechadas:** o painel mostra sempre as mesmas cinco perguntas, com o motivo quando uma não se aplica ao recorte; o texto livre saiu. O pedido é `{ pergunta_id, carga, recorte }`; IDs desconhecidos, recortes incompatíveis e campos extras são recusados antes do provedor.
+- **Novas evidências determinísticas:** distribuição temporal GMT, com todos os empates, e cruzamento dos critérios aplicáveis (incluindo projeção municipal e classes de sobreposição). Lentes e comparação não mudaram.
+- **Interpretação conferida:** subagentes de padrões e de contexto/qualidade; a síntese só é completa quando relaciona evidências distintas ou traz limitação referenciada. Dados insuficientes ou falta de análise obrigatória impedem a síntese. Afirmações de cobertura mais fortes que a classe de disponibilidade são rejeitadas; sugestão inválida é omitida sem perder a observação conferida.
+- **Limite de produto:** a conferência barra números, referências e certezas indevidas conhecidas, mas não garante todo o sentido futuro das frases. A utilidade foi aceita pelo responsável sobre uma amostra local fictícia com o Gemini real, espaçada em 13 s entre chamadas; a verificação hospedada foi dispensada e não há resultado de produção. Entrega integrada na PR #108.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -126,6 +133,7 @@ As abas Lentes, Municípios e Comparação apresentam resposta, evidências, lim
 - Ciclo `009`: [plano](../executed/009_rotulos_lentes_espaco_mapa/009_plan.md) e [task da issue #91](../executed/009_rotulos_lentes_espaco_mapa/009_task_issue-91.md); `DESIGN.md` e emendas dos ADR-007, ADR-009 e ADR-011.
 
 - Ciclo `010`: [plano](../executed/010_painel_direito_completo/010_plan.md), [encerramento](../executed/010_painel_direito_completo/010_task_closure.md), `DESIGN.md` e emendas dos ADR-009 e ADR-011.
+- Ciclo `011`: [plano](../executed/011_insights_agentes/011_plan.md), [task da issue #107](../executed/011_insights_agentes/011_task_issue-107.md), [encerramento](../executed/011_insights_agentes/011_task_closure.md), `DESIGN.md`, runbook seção 10 e emenda do ADR-011.
 
 ## Histórico
 
@@ -142,3 +150,4 @@ As abas Lentes, Municípios e Comparação apresentam resposta, evidências, lim
 | 2026-11-17 | `008` | Comparação determinística de períodos e municípios, função autenticada no servidor, agente principal e dois subagentes Gemini, painel de perguntas e verificação hospedada com o pacote de confiabilidade; escopo dos agentes a rever |
 | 2026-11-17 | `009` | Rótulos das lentes, aba "Lentes" e centro só com a série, sem mudança de método |
 | 2026-11-21 | `010` | Painel de Lentes, Municípios, Comparação e perguntas reorganizado; sem alteração de método ou verificação em produção |
+| 2026-11-21 | `011` | Cinco perguntas fechadas, distribuição temporal e cruzamento de critérios, síntese interpretativa conferida; utilidade aceita em amostra local, verificação hospedada dispensada |
