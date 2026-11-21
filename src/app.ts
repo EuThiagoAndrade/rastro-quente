@@ -31,7 +31,7 @@ import {
   type ValidacaoPeriodos,
 } from './comparacao.ts';
 import {
-  chaveContexto, escolherRecorte, destinoDoPedido, montarPedido, perguntar, type ConfigLente as ConfigLenteIa, type ContextoTela, type Desfecho,
+  PERGUNTAS, IDS_PERGUNTAS, chaveContexto, escolherRecorte, destinoDoPedido, montarPedido, perguntar, type ConfigLente as ConfigLenteIa, type ContextoTela, type Desfecho,
   type Escolha, type Evento as EventoIa, type Ferramenta, type Pergunta,
 } from './agentes.ts';
 import { renderDisponibilidade as renderDisponibilidadePerguntas, renderPerguntas, type EstadoPerguntas } from './apresentacao-agentes.ts';
@@ -304,7 +304,7 @@ class Controlador {
   private geracaoPergunta = 0;
   private perguntaEmCurso: AbortController | null = null;
   private chavePergunta: string | null = null;
-  private ultimaPergunta: { tipo: Pergunta; livre: string } | null = null;
+  private ultimaPergunta: { tipo: Pergunta } | null = null;
   private destinoPergunta: { chave: string; aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } | null = null;
   private estadoPerguntas: EstadoPerguntas = { tipo: 'ociosa' };
 
@@ -376,13 +376,7 @@ class Controlador {
     $('lista-focos').addEventListener('keydown', (ev) => { if (ev.key === 'Escape') { ev.stopPropagation(); this.fecharListaFocos(); } });
     $('botao-voltar').addEventListener('click', () => this.voltarAosDestaques());
     ligarAbas();
-    // Perguntas (item 4): prontas, ação de comparação municipal, texto livre e cancelamento.
-    for (const p of ['destaque', 'periodos', 'lacunas'] as const) $(`pergunta-${p}`).addEventListener('click', () => void this.perguntarAgora(p));
-    $('acao-comparar-municipios').addEventListener('click', () => this.abrirComparacaoMunicipios());
-    $('form-pergunta').addEventListener('submit', (ev) => {
-      ev.preventDefault();
-      void this.perguntarAgora('livre', $<HTMLTextAreaElement>('pergunta-livre').value);
-    });
+    for (const p of IDS_PERGUNTAS) $(`pergunta-${p}`).addEventListener('click', () => void this.perguntarAgora(p));
     $('botao-cancelar-pergunta').addEventListener('click', () => this.perguntaEmCurso?.abort());
     const arrastar = $('botao-arrastar');
     arrastar.addEventListener('click', () => {
@@ -547,7 +541,6 @@ class Controlador {
     abrirAba('municipios');
     // Sessão, acesso ou versão mudaram: a pergunta e a resposta saem junto, sem aviso de seleção.
     this.descartarPergunta(false);
-    $<HTMLTextAreaElement>('pergunta-livre').value = '';
     this.atualizarPerguntas();
   }
 
@@ -2096,6 +2089,7 @@ class Controlador {
       municipio: a.municipio,
       lente: comLente || c ? this.configLenteFormulario() : null,
       destaque: comLente ? this.destaqueAberto() : null,
+      comparacaoIncompleta: modoComparacao() !== 'nenhuma' && (!c || !la || !lb),
       comparacao: !c || !la || !lb ? null
         : c.modo === 'periodos' ? { modo: 'periodos', a: la.pedido.janela, b: lb.pedido.janela }
           : { modo: 'municipios', a: la.filtro.municipio ?? 0, b: lb.filtro.municipio ?? 0 },
@@ -2110,12 +2104,9 @@ class Controlador {
     const ctx = this.contextoPergunta();
     if (this.chavePergunta !== null && chaveContexto(this.geracaoSessao, ctx) !== this.chavePergunta) this.descartarPergunta(true);
     const sem: Escolha = { indisponivel: 'Sem dados autorizados na tela.' };
-    const escolhas = Object.fromEntries((['destaque', 'periodos', 'lacunas', 'livre'] as const)
+    const escolhas = Object.fromEntries(IDS_PERGUNTAS
       .map((p) => [p, ctx ? escolherRecorte(p, ctx) : sem])) as Record<Pergunta, Escolha>;
-    const comparar = !ctx ? sem.indisponivel
-      : ctx.municipio === null ? 'Escolha um município na Consulta para ser o A.'
-        : modoComparacao() === 'municipios' ? 'A comparação de municípios já está aberta em Filtros › Comparar.' : null;
-    renderDisponibilidadePerguntas(escolhas, comparar, this.perguntaEmCurso !== null);
+    renderDisponibilidadePerguntas(escolhas, this.perguntaEmCurso !== null);
     const contexto = $('perguntas-contexto-aplicado');
     const nomesLente: Record<string, string> = { concentracao: 'Concentração', recorrencia: 'Recorrência', persistencia: 'Persistência', combinacao: 'Combinação', sobreposicao: 'Sobreposição' };
     const comparacao = ctx?.comparacao;
@@ -2142,7 +2133,7 @@ class Controlador {
         if (!destino || destino.chave !== chaveContexto(this.geracaoSessao, this.contextoPergunta())) return;
         abrirAba(destino.aba, true);
       },
-      tentarDeNovo: () => { const u = this.ultimaPergunta; if (u) void this.perguntarAgora(u.tipo, u.livre); },
+      tentarDeNovo: () => { const u = this.ultimaPergunta; if (u) void this.perguntarAgora(u.tipo); },
       abrirDetalhamento: (f) => this.abrirDetalhamento(f),
       temDetalhamento: (f) => this.temDetalhamento(f),
     });
@@ -2158,22 +2149,12 @@ class Controlador {
     this.mostrarPerguntas(avisar && this.estadoPerguntas.tipo !== 'ociosa' && this.estadoPerguntas.tipo !== 'descartada' ? { tipo: 'descartada' } : { tipo: 'ociosa' });
   }
 
-  /** "Comparar municípios": abre o seletor do município B na seção Comparar; nada é calculado antes da escolha. */
-  private abrirComparacaoMunicipios(): void {
-    const radio = document.querySelector<HTMLInputElement>('input[name="c-modo"][value="municipios"]');
-    if (!radio || this.aplicado?.municipio == null) return;
-    radio.checked = true;
-    this.aoMudarModoComparacao();
-    $<HTMLDetailsElement>('secao-comparar').open = true;
-    $('cmp-municipio-b').focus();
-  }
-
   /**
    * Há detalhamento determinístico na tela para a evidência? Fora da comparação, a disponibilidade não tem mais
    * cartão próprio (ciclo 009, D2): a evidência fica só no painel de perguntas.
    */
   private temDetalhamento(f: Ferramenta): boolean {
-    if (f === 'ler_detalhes') return false;
+    if (f === 'ler_detalhes' || f === 'distribuicao_temporal' || f === 'cruzar_padroes') return false;
     if (f === 'consultar_disponibilidade') return this.comparacao !== null;
     return true;
   }
@@ -2188,10 +2169,10 @@ class Controlador {
    * Envia a pergunta com o JWT da sessão (só no cabeçalho) e mostra as etapas reais à medida que chegam. Sessão,
    * acesso e versão recusados pelo servidor nunca ficam locais: a tela inteira reage, como nas lentes.
    */
-  private async perguntarAgora(tipo: Pergunta, livre = ''): Promise<void> {
+  private async perguntarAgora(tipo: Pergunta): Promise<void> {
     const ctx = this.contextoPergunta();
     if (!ctx || this.perguntaEmCurso) return;
-    const pedido = montarPedido(tipo, ctx, livre);
+    const pedido = montarPedido(tipo, ctx);
     if ('indisponivel' in pedido) {
       $('perguntas-estado').textContent = pedido.indisponivel;
       return;
@@ -2201,10 +2182,10 @@ class Controlador {
     this.perguntaEmCurso = controle;
     this.chavePergunta = chaveContexto(this.geracaoSessao, ctx);
     this.destinoPergunta = { chave: this.chavePergunta, ...destinoDoPedido(tipo, ctx, pedido.recorte) };
-    this.ultimaPergunta = { tipo, livre };
+    this.ultimaPergunta = { tipo };
     const atual = () => g === this.geracaoPergunta;
     const etapas: EventoIa[] = [];
-    this.mostrarPerguntas({ tipo: 'executando', pergunta: pedido.pergunta, etapas: [] });
+    this.mostrarPerguntas({ tipo: 'executando', pergunta: PERGUNTAS[pedido.pergunta_id], etapas: [] });
     this.atualizarPerguntas();
     $('perguntas-estado').scrollIntoView({ block: 'nearest' });
     let desfecho: Desfecho | 'rede';
@@ -2219,14 +2200,14 @@ class Controlador {
       desfecho = await perguntar(pedido, token, controle.signal, (e) => {
         if (!atual()) return;
         etapas.push(e);
-        this.mostrarPerguntas({ tipo: 'executando', pergunta: pedido.pergunta, etapas: [...etapas] });
+        this.mostrarPerguntas({ tipo: 'executando', pergunta: PERGUNTAS[pedido.pergunta_id], etapas: [...etapas] });
       });
     } catch {
       desfecho = 'rede';
     }
     if (!atual()) return;
     this.perguntaEmCurso = null;
-    const base = { pergunta: pedido.pergunta, etapas };
+    const base = { pergunta: PERGUNTAS[pedido.pergunta_id], etapas };
     if (controle.signal.aborted) this.mostrarPerguntas({ tipo: 'cancelada', ...base });
     else if (desfecho === 'rede') this.mostrarPerguntas({ tipo: 'rede', ...base });
     else if (desfecho.tipo === 'formato') this.mostrarPerguntas({ tipo: 'formato', ...base });

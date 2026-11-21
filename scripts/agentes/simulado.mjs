@@ -16,7 +16,9 @@ export function respostaSimulada(corpo) {
   if (papel === 'sintese') {
     const linha = corpo.input[0].content[0].text.split('\n').find((l) => l.startsWith('Análises conferidas (dados): '));
     const analises = JSON.parse(linha.slice('Análises conferidas (dados): '.length));
-    return texto({ classificacao: 'respondivel', afirmacoes: [analises[0].afirmacoes[0]], limites: [] });
+    const fatos = analises.map((a) => a.afirmacoes[0]);
+    const referencias = [...new Set(fatos.flatMap((a) => a.referencias))];
+    return texto({ classificacao: 'respondivel', afirmacoes: [{ texto: fatos.map((a) => a.texto).join(' '), referencias, ...(referencias.length === 1 ? { limitacao: { texto: 'Disponibilidade não comprova cobertura.', referencias } } : {}) }], limites: [] });
   }
   const escolha = corpo.generation_config?.tool_choice;
   if (escolha && escolha !== 'none') {

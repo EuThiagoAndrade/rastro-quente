@@ -1,3 +1,4 @@
+import { IDS_PERGUNTAS } from './perguntas.ts';
 // Painel de perguntas (plano 008, item 4; DESIGN.md): perguntas prontas e texto livre ligados ao contexto da tela,
 // etapas reais da execução (só eventos recebidos do servidor, sem animação nem raciocínio do modelo), resposta com as
 // afirmações conferidas, notas fixas, aviso "Gerado por IA" e as evidências por identificador. Todo texto vindo do
@@ -27,12 +28,13 @@ export interface ManipuladoresPerguntas {
 }
 
 const PAPEL: Record<Subagente | 'principal', string> = {
-  principal: 'agente principal', lentes: 'subagente de lentes e evidências', disponibilidade: 'subagente de disponibilidade',
+  principal: 'agente principal', lentes: 'subagente de padrões', disponibilidade: 'subagente de contexto e qualidade',
 };
 
 export const NOME_FERRAMENTA: Record<Ferramenta, string> = {
   explicar_selecao: 'destaques da lente', comparar_periodos: 'comparação de períodos', comparar_municipios: 'comparação de municípios',
   consultar_disponibilidade: 'disponibilidade por município', ler_detalhes: 'detalhes das detecções',
+  distribuicao_temporal: 'distribuição temporal', cruzar_padroes: 'cruzamento de padrões',
 };
 
 const ESTADO: Record<EstadoExecucao, string> = {
@@ -58,11 +60,10 @@ export function textoEtapa(e: Evento): string {
   }
 }
 
-const IDS_PRONTAS: Record<Exclude<Pergunta, 'livre'>, string> = { destaque: 'pergunta-destaque', periodos: 'pergunta-periodos', lacunas: 'pergunta-lacunas' };
-
-/** Habilita cada pergunta só com contexto suficiente e diz o porquê ao lado; durante a execução, nada novo começa. */
-export function renderDisponibilidade(escolhas: Record<Pergunta, Escolha>, comparar: string | null, ocupado: boolean): void {
-  for (const [p, id] of Object.entries(IDS_PRONTAS) as [Exclude<Pergunta, 'livre'>, string][]) {
+/** As cinco perguntas ficam visíveis; o motivo de incompatibilidade aparece junto à opção. */
+export function renderDisponibilidade(escolhas: Record<Pergunta, Escolha>, ocupado: boolean): void {
+  for (const p of IDS_PERGUNTAS) {
+    const id = `pergunta-${p}`;
     const e = escolhas[p];
     const motivo = 'indisponivel' in e ? e.indisponivel : null;
     $<HTMLButtonElement>(id).disabled = ocupado || motivo !== null;
@@ -70,13 +71,6 @@ export function renderDisponibilidade(escolhas: Record<Pergunta, Escolha>, compa
     nota.textContent = motivo ?? '';
     nota.hidden = motivo === null;
   }
-  $<HTMLButtonElement>('acao-comparar-municipios').disabled = ocupado || comparar !== null;
-  const notaComparar = $('acao-comparar-municipios-motivo');
-  notaComparar.textContent = comparar ?? '';
-  notaComparar.hidden = comparar === null;
-  const livre = escolhas.livre;
-  $<HTMLButtonElement>('botao-perguntar').disabled = ocupado || 'indisponivel' in livre;
-  $('pergunta-contexto').textContent = 'indisponivel' in livre ? livre.indisponivel : `A pergunta escrita usa ${livre.descricao}, como estão na tela.`;
   $('botao-cancelar-pergunta').hidden = !ocupado;
 }
 
@@ -88,6 +82,8 @@ function lista(itens: string[], rotulo: string, classe = 'lista-simples'): HTMLE
 function afirmacoes(af: Resposta['afirmacoes'], evidencias: Map<string, EvidenciaRecebida>): HTMLElement {
   return h('ul', { class: 'afirmacoes' }, ...af.map((a) => h('li', {},
     h('span', {}, a.texto),
+    a.limitacao ? h('p', { class: 'nota' }, `Limitação: ${a.limitacao.texto} (${a.limitacao.referencias.join('; ')})`) : null,
+    a.sugestao ? h('p', {}, `Vale examinar: ${a.sugestao.texto} (${a.sugestao.referencias.join('; ')})`) : null,
     h('span', { class: 'referencias' }, `Evidências: ${a.referencias.map((r) => {
       const id = /^E\d+/.exec(r)?.[0];
       const e = id ? evidencias.get(id) : undefined;

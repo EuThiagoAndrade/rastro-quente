@@ -1,0 +1,214 @@
+{
+  "descricao": "Respostas reais do modelo sobre fixture inteiramente fictícia, capturadas em 2026-11-21; sem credenciais ou dados de conta. Regressão local sem rede, não é nova prova Gemini.",
+  "evidencias": {
+    "E1": {
+      "ferramenta": "distribuicao_temporal",
+      "papel": "lentes",
+      "dados": {
+        "ferramenta": "distribuicao_temporal",
+        "janela": {
+          "inicio": "2026-10-01",
+          "fim": "2026-10-10"
+        },
+        "municipio": null,
+        "total": 55,
+        "dias_com_deteccao": 10,
+        "dias": {
+          "totais": [
+            {
+              "periodo": "2026-10-01",
+              "total": 3
+            },
+            {
+              "periodo": "2026-10-02",
+              "total": 2
+            },
+            {
+              "periodo": "2026-10-03",
+              "total": 4
+            },
+            {
+              "periodo": "2026-10-04",
+              "total": 4
+            },
+            {
+              "periodo": "2026-10-05",
+              "total": 7
+            },
+            {
+              "periodo": "2026-10-06",
+              "total": 7
+            },
+            {
+              "periodo": "2026-10-07",
+              "total": 7
+            },
+            {
+              "periodo": "2026-10-08",
+              "total": 7
+            },
+            {
+              "periodo": "2026-10-09",
+              "total": 7
+            },
+            {
+              "periodo": "2026-10-10",
+              "total": 7
+            }
+          ],
+          "maximo": 7,
+          "periodos_maximos": [
+            "2026-10-05",
+            "2026-10-06",
+            "2026-10-07",
+            "2026-10-08",
+            "2026-10-09",
+            "2026-10-10"
+          ]
+        },
+        "meses": {
+          "totais": [
+            {
+              "periodo": "2026-10",
+              "total": 55
+            }
+          ],
+          "maximo": 55,
+          "periodos_maximos": [
+            "2026-10"
+          ]
+        },
+        "selecao": {
+          "ferramenta": "explicar_selecao",
+          "janela": {
+            "inicio": "2026-10-01",
+            "fim": "2026-10-10"
+          },
+          "municipio": null,
+          "total_deteccoes": 55,
+          "lente": null,
+          "limitacoes": [
+            "Zero observado não comprova ausência de fogo; disponibilidade é avaliada separadamente."
+          ]
+        }
+      }
+    },
+    "E2": {
+      "ferramenta": "explicar_selecao",
+      "papel": "lentes",
+      "dados": {
+        "ferramenta": "explicar_selecao",
+        "janela": {
+          "inicio": "2026-10-01",
+          "fim": "2026-10-10"
+        },
+        "municipio": null,
+        "total_deteccoes": 55,
+        "lente": null,
+        "limitacoes": [
+          "Zero observado não comprova ausência de fogo; disponibilidade é avaliada separadamente."
+        ]
+      }
+    },
+    "E3": {
+      "ferramenta": "consultar_disponibilidade",
+      "papel": "disponibilidade",
+      "dados": {
+        "ferramenta": "consultar_disponibilidade",
+        "ressalvas": [
+          {
+            "lado": "A",
+            "meses_parciais": [
+              {
+                "mes": "2026-10",
+                "parcial": true,
+                "inicio": "2026-10-01",
+                "fim": "2026-10-10"
+              }
+            ]
+          }
+        ],
+        "estado": "avaliada",
+        "alcance": "subconjunto dos municípios associados às detecções do recorte; lista explícita em lados; não é disponibilidade estadual completa",
+        "lados": [
+          {
+            "lado": "A",
+            "janela": {
+              "inicio": "2026-10-01",
+              "fim": "2026-10-10"
+            },
+            "municipios": [
+              {
+                "municipio": "Município Alfa (9900001)",
+                "texto": "8 de 10 dias sem evidência de lacuna, 2 com lacuna conhecida (cobertura não comprovada)",
+                "por_classe": {
+                  "sem_evidencia_de_lacuna": 8,
+                  "incidencia_indeterminada": 0,
+                  "lacuna_conhecida": 2
+                }
+              },
+              {
+                "municipio": "Município Beta (9900002)",
+                "texto": "7 de 10 dias sem evidência de lacuna, 3 com incidência indeterminada (cobertura não comprovada)",
+                "por_classe": {
+                  "sem_evidencia_de_lacuna": 7,
+                  "incidencia_indeterminada": 3,
+                  "lacuna_conhecida": 0
+                }
+              },
+              {
+                "municipio": "Município Gama (9900003)",
+                "texto": "10 de 10 dias sem evidência de lacuna (cobertura não comprovada)",
+                "por_classe": {
+                  "sem_evidencia_de_lacuna": 10,
+                  "incidencia_indeterminada": 0,
+                  "lacuna_conhecida": 0
+                }
+              }
+            ]
+          }
+        ],
+        "nota": "Disponibilidade não comprova cobertura; cada município tem as próprias classes, sem agregação."
+      }
+    }
+  },
+  "saidas": [
+    {
+      "papel": "principal",
+      "saida": [
+        "function_call delegar {\"analistas\":[\"lentes\",\"disponibilidade\"],\"classificacao\":\"respondivel\"}"
+      ]
+    },
+    {
+      "papel": "lentes",
+      "saida": [
+        "function_call distribuicao_temporal {}",
+        "function_call explicar_selecao {}"
+      ]
+    },
+    {
+      "papel": "disponibilidade",
+      "saida": [
+        "function_call consultar_disponibilidade {}"
+      ]
+    },
+    {
+      "papel": "lentes",
+      "saida": [
+        "{\n  \"afirmacoes\": [\n    {\n      \"texto\": \"No período de 2026-10-01 a 2026-10-10, o estado do Mato Grosso registrou um total de 55 detecções.\",\n      \"referencias\": [\n        \"E1.dados.total\"\n      ]\n    },\n    {\n      \"texto\": \"O número máximo de detecções diárias foi de 7, atingido entre 2026-10-05 e 2026-10-10.\",\n      \"referencias\": [\n        \"E1.dados.dias.maximo\",\n        \"E1.dados.dias.periodos_maximos\"\n      ],\n      \"limitacao\": {\n        \"texto\": \"O valor observado é um registro de detecções e não deve ser interpretado como a totalidade de eventos de incêndio ocorridos.\",\n        \"referencias\": [\n          \"E2.dados.limitacoes[0]\"\n        ]\n      },\n      \"sugestao\": {\n        \"texto\": \"Consultar a disponibilidade de dados no período para verificar possíveis lacunas na observação.\",\n        \"referencias\": [\n          \"E2.dados.limitacoes[0]\"\n        ]\n      }\n    }\n  ],\n  \"limites\": [\n    \"Detecções não comprovam incêndio, dano, autoria ou infração.\",\n    \"Disponibilidade não comprova cobertura.\"\n  ]\n}"
+      ]
+    },
+    {
+      "papel": "disponibilidade",
+      "saida": [
+        "{\n  \"afirmacoes\": [\n    {\n      \"texto\": \"No município Município Alfa (9900001), 8 de 10 dias não apresentaram evidência de lacuna, enquanto 2 dias registraram lacuna conhecida na disponibilidade.\",\n      \"referencias\": [\n        \"E3.dados.lados[0].municipios[0]\"\n      ],\n      \"limitacao\": {\n        \"texto\": \"A existência de 2 dias com lacuna conhecida impede a confirmação de disponibilidade contínua no período.\",\n        \"referencias\": [\n          \"E3.dados.lados[0].municipios[0]\"\n        ]\n      }\n    },\n    {\n      \"texto\": \"No município Município Beta (9900002), 7 de 10 dias não apresentaram evidência de lacuna e 3 dias registraram incidência indeterminada.\",\n      \"referencias\": [\n        \"E3.dados.lados[0].municipios[1]\"\n      ],\n      \"limitacao\": {\n        \"texto\": \"A incidência indeterminada em 3 dias impossibilita a garantia de cobertura total de dados para este município.\",\n        \"referencias\": [\n          \"E3.dados.lados[0].municipios[1]\"\n        ]\n      }\n    },\n    {\n      \"texto\": \"No município Município Gama (9900003), todos os 10 dias do período apresentaram disponibilidade sem evidência de lacuna.\",\n      \"referencias\": [\n        \"E3.dados.lados[0].municipios[2]\"\n      ]\n    }\n  ],\n  \"limites\": [\n    \"Disponibilidade não comprova cobertura.\",\n    \"Detecções não comprovam incêndio, dano, autoria ou infração.\"\n  ]\n}"
+      ]
+    },
+    {
+      "papel": "sintese",
+      "saida": [
+        "{\n  \"classificacao\": \"respondivel\",\n  \"afirmacoes\": [\n    {\n      \"texto\": \"O estado do Mato Grosso apresentou um total de 55 detecções entre 2026-10-01 e 2026-10-10.\",\n      \"referencias\": [\n        \"E1.total\"\n      ]\n    },\n    {\n      \"texto\": \"O Município Gama (9900003) registrou 10 dias de disponibilidade sem lacunas, enquanto o Município Alfa (9900001) apresentou 2 dias de lacuna conhecida no mesmo período.\",\n      \"referencias\": [\n        \"E3.lados[0].municipios[0]\",\n        \"E3.lados[0].municipios[2]\"\n      ],\n      \"limitacao\": {\n        \"texto\": \"A existência de dias com lacuna conhecida ou incidência indeterminada limita a garantia de cobertura total para os municípios analisados.\",\n        \"referencias\": [\n          \"E3.lados[0].municipios[0]\",\n          \"E3.lados[0].municipios[1]\"\n        ]\n      },\n      \"sugestao\": {\n        \"texto\": \"Consultar disponibilidade com ressalva comprovada para o Município Alfa e Município Beta.\",\n        \"referencias\": [\n          \"E3.lados[0].municipios[0]\",\n          \"E3.lados[0].municipios[1]\"\n        ]\n      }\n    }\n  ],\n  \"limites\": [\n    \"Disponibilidade não comprova cobertura.\",\n    \"Detecções não comprovam incêndio, dano, autoria ou infração.\"\n  ]\n}"
+      ]
+    }
+  ]
+}

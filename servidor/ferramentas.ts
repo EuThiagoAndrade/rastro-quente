@@ -5,8 +5,8 @@
 // classificações são calculados sobre o conjunto completo e a resposta diz quando a página não é o todo.
 import type { SupabaseClient } from '@supabase/supabase-js';
 import {
-  compararMunicipios, compararPeriodos, conferirZero, disponibilidadePorMunicipio, ErroComparacao, leiturasDeDisponibilidade,
-  textoDisponibilidadeMunicipio, unidadesDe, validarMunicipios, validarPeriodos, ROTULO_CLASSIFICACAO, ROTULO_PRESENCA,
+  compararPeriodos, conferirZero, disponibilidadePorMunicipio, ErroComparacao, leiturasDeDisponibilidade,
+  textoDisponibilidadeMunicipio, unidadesDe, validarPeriodos, ROTULO_CLASSIFICACAO,
   type ConferenciaZero, type Lado, type ResultadoComparavel, type UnidadeLado,
 } from '../src/comparacao.ts';
 import {
@@ -23,13 +23,14 @@ import { qualificar } from '../src/lentes/comum.ts';
 import { concentracao } from '../src/lentes/concentracao.ts';
 import { ErroLente, recorteDe, type DisponibilidadeMunicipio, type EntradaLente, type Janela, type ResultadoLente } from '../src/lentes/contrato.ts';
 import { persistencia } from '../src/lentes/persistencia.ts';
-import { recorrencia } from '../src/lentes/recorrencia.ts';
+import { mesesDaJanela, recorrencia } from '../src/lentes/recorrencia.ts';
 import { qualificarSobreposicao, sobreposicao, type ResultadoSobreposicao } from '../src/lentes/sobreposicao.ts';
-import { numerosMunicipio } from '../src/municipios.ts';
 import type { CargaDetalhe, Registro, Resumo } from '../src/tipos.ts';
 import type { Orcamento } from './orcamento.ts';
 import type { ConfigLente, Pedido } from './pedido.ts';
 import { ErroHttp } from './resposta.ts';
+import { distribuicaoTemporal } from './distribuicao-temporal.ts';
+import { calcularPadroes } from './cruzar-criterios.ts';
 
 export const LIMITE_DETALHE = 100;
 
@@ -43,15 +44,16 @@ export interface Contexto {
   orcamento: Orcamento;
 }
 
-export type NomeFerramenta = 'explicar_selecao' | 'comparar_periodos' | 'comparar_municipios' | 'consultar_disponibilidade' | 'ler_detalhes';
+export type NomeFerramenta = 'explicar_selecao' | 'comparar_periodos' | 'consultar_disponibilidade' | 'ler_detalhes' | 'distribuicao_temporal' | 'cruzar_padroes';
 
 /** Descrição do catálogo para o modelo (item 3): nomes e argumentos admitidos, todos presos ao pedido validado. */
 export const CATALOGO: Record<NomeFerramenta, { descricao: string; argumentos: Record<string, string> }> = {
   explicar_selecao: { descricao: 'Destaques da lente no recorte do pedido, com motivo, evidência e cobertura.', argumentos: {} },
   comparar_periodos: { descricao: 'Comparação determinística dos dois períodos do pedido (comparacao-008-v1).', argumentos: {} },
-  comparar_municipios: { descricao: 'Comparação determinística dos dois municípios do pedido (comparacao-008-v1).', argumentos: {} },
   consultar_disponibilidade: { descricao: 'Disponibilidade por município e dia, sem agregação, nos municípios do pedido.', argumentos: {} },
   ler_detalhes: { descricao: 'Registros de detecção de um lado do pedido, paginados em até 100.', argumentos: { lado: 'A ou B (seleção: A)', pagina: 'inteiro ≥ 0' } },
+  distribuicao_temporal: { descricao: 'Contagens por dia e mês GMT do período único, incluindo todos os máximos empatados.', argumentos: {} },
+  cruzar_padroes: { descricao: 'Células presentes em pelo menos dois critérios distintos aplicáveis ao recorte.', argumentos: {} },
 };
 
 // --- Leitura sob JWT --------------------------------------------------------------------------------------------
@@ -77,6 +79,7 @@ function lerRecorte(ctx: Contexto, filtro: Filtro): Promise<{ resumo: Resumo; re
     const total = validarResumo(pedido, resumo);
     const registros = await lerPaginas(fontes(ctx.cliente), pedido, total, () => !sinal.aborted);
     if (!registros || sinal.aborted) throw new Error('interrompida');
+    if (registros.some((r) => !ctx.nomes.has(r.municipio_codigo))) throw new ErroHttp('leitura_inconsistente');
     return { resumo, registros };
   });
   mapa.set(chave, p);
@@ -125,7 +128,7 @@ async function lerDisponibilidade(ctx: Contexto, filtro: Filtro, codigos: readon
 
 let camadaCache: WeakMap<Contexto, Promise<LeituraAreas | null>> = new WeakMap();
 const lerCamada = (ctx: Contexto): Promise<LeituraAreas | null> => {
-  const x = camadaCache.get(ctx) ?? ctx.orcamento.executar('leitura', () => lerAreas(fontesAreas(ctx.cliente), ctx.carga.id, () => true));
+  const x = camadaCache.get(ctx) ?? ctx.orcamento.executar('leitura', (sinal) => lerAreas(fontesAreas(ctx.cliente), ctx.carga.id, () => !sinal.aborted));
   camadaCache.set(ctx, x);
   return x;
 };
@@ -184,6 +187,33 @@ function pagina<T>(itens: T[]): { itens: T[]; total: number; completo: boolean }
 
 // --- Ferramentas ------------------------------------------------------------------------------------------------
 
+async function distribuicaoTemporalF(ctx: Contexto): Promise<unknown> {
+  const r = ctx.pedido.recorte;
+  if (r.tipo !== 'selecao') throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
+  dentroDaCarga(ctx, r.janela);
+  municipioValido(ctx, r.municipio);
+  const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
+  const { registros } = await lerRecorte(ctx, filtro);
+  return { ferramenta: 'distribuicao_temporal', janela: r.janela, municipio: r.municipio, ...distribuicaoTemporal(registros), selecao: await explicarSelecao(ctx) };
+}
+
+async function cruzarPadroesF(ctx: Contexto): Promise<unknown> {
+  const r = ctx.pedido.recorte;
+  if (r.tipo !== 'selecao') throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
+  dentroDaCarga(ctx, r.janela);
+  municipioValido(ctx, r.municipio);
+  const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
+  const { registros } = await lerRecorte(ctx, filtro);
+  const entrada: EntradaLente = { carga: { id: ctx.carga.id, identidade: ctx.carga.identidade }, janela: r.janela, registros, totalResumo: registros.length, nomes: ctx.nomes, recorte: recorteDe(r.municipio) };
+  const municipios = [...new Set(registros.map((x) => x.municipio_codigo))].sort((a, b) => a - b);
+  const disp = await lerDisponibilidade(ctx, filtro, r.municipio === null ? municipios : [r.municipio]);
+  if ([...disp.values()].some((d) => d.estado !== 'ok')) throw new ErroHttp('leitura_inconsistente');
+  const camada = await lerCamada(ctx);
+  if (!camada) throw new ErroHttp('cancelada');
+  const resultado = calcularPadroes(entrada, camada, disp);
+  return { ferramenta: 'cruzar_padroes', janela: r.janela, municipio: r.municipio, ...resultado, disponibilidade: disponibilidadePorMunicipio(r.municipio === null ? municipios : [r.municipio], r.janela, disp).map((x) => linhaMunicipio(ctx, x)), limitacao: 'Células não seguem divisas; critérios não indicam gravidade ou prioridade.' };
+}
+
 async function explicarSelecao(ctx: Contexto): Promise<unknown> {
   const r = ctx.pedido.recorte;
   if (r.tipo !== 'selecao') throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
@@ -191,6 +221,7 @@ async function explicarSelecao(ctx: Contexto): Promise<unknown> {
   municipioValido(ctx, r.municipio);
   const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
   const { registros } = await lerRecorte(ctx, filtro);
+  if (!r.lente) return { ferramenta: 'explicar_selecao', janela: r.janela, municipio: r.municipio, total_deteccoes: registros.length, lente: null, limitacoes: ['Zero observado não comprova ausência de fogo; disponibilidade é avaliada separadamente.'] };
   const bruto = await calcular(ctx, r.lente, r.janela, r.municipio, registros);
   const resultado = qualificado(bruto, await lerDisponibilidade(ctx, filtro, municipiosDe(bruto)));
   const unidades = unidadesDe(resultado);
@@ -251,28 +282,6 @@ async function compararPeriodosF(ctx: Contexto): Promise<unknown> {
   };
 }
 
-async function compararMunicipiosF(ctx: Contexto): Promise<unknown> {
-  const r = ctx.pedido.recorte;
-  if (r.tipo !== 'municipios') throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
-  dentroDaCarga(ctx, r.janela);
-  validarMunicipios(r.a, r.b, new Set(ctx.nomes.keys()));
-  const base: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.a };
-  const [la, lb] = await qualificarLados(ctx, await Promise.all([lado(ctx, base, r.lente, r.janela), lado(ctx, { ...base, municipio: r.b }, r.lente, r.janela)]));
-  if (!la || !lb) throw new ErroHttp('leitura_inconsistente');
-  const ladoM = (l: typeof la, codigo: number) => ({
-    codigo, nome: ctx.nomes.get(codigo) ?? String(codigo), numeros: numerosMunicipio(l.resumo, l.registros), resultado: l.resultado, zero: l.zero,
-  });
-  const c = compararMunicipios(r.janela, ladoM(la, r.a), ladoM(lb, r.b));
-  return {
-    ferramenta: 'comparar_municipios', versao: c.versao, janela: r.janela, mesmo_municipio: c.mesmoMunicipio,
-    a: { municipio: `${c.a.nome} (${c.a.codigo})`, ...c.a.numeros, disponibilidade: disponibilidadePorMunicipio([r.a], r.janela, la.disp).map(textoDisponibilidadeMunicipio)[0] },
-    b: { municipio: `${c.b.nome} (${c.b.codigo})`, ...c.b.numeros, disponibilidade: disponibilidadePorMunicipio([r.b], r.janela, lb.disp).map(textoDisponibilidadeMunicipio)[0] },
-    conclusao: c.conclusao, diferenca: c.diferenca,
-    itens: pagina(c.itens.map((i) => ({ chave: i.chave, unidade: nomeUnidade(i.unidade), presenca: ROTULO_PRESENCA[i.presenca], a: unidadeResumo(i.a), b: unidadeResumo(i.b) }))),
-    ressalvas: c.ressalvas,
-  };
-}
-
 const linhaMunicipio = (ctx: Contexto, x: ReturnType<typeof disponibilidadePorMunicipio>[number]) => ({
   municipio: `${ctx.nomes.get(x.codigo) ?? ''} (${x.codigo})`, texto: textoDisponibilidadeMunicipio(x), ...(x.estado === 'completa' ? { por_classe: x.porClasse } : {}),
 });
@@ -294,59 +303,54 @@ function textoZero(z: ConferenciaZero): string | null {
  */
 async function consultarDisponibilidadeF(ctx: Contexto): Promise<unknown> {
   const r = ctx.pedido.recorte;
-  if (r.tipo === 'disponibilidade') {
-    dentroDaCarga(ctx, r.janela);
-    for (const m of r.municipios) municipioValido(ctx, m);
-    const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: null };
-    const disp = await lerDisponibilidade(ctx, filtro, r.municipios);
-    return {
-      ferramenta: 'consultar_disponibilidade', janela: r.janela,
-      alcance: r.municipios.length === ctx.nomes.size ? 'todos os municípios da carga' : `${r.municipios.length} municípios pedidos; não é disponibilidade estadual`,
-      municipios: disponibilidadePorMunicipio(r.municipios, r.janela, disp).map((x) => linhaMunicipio(ctx, x)),
-      nota: NOTA_DISPONIBILIDADE,
-    };
-  }
   let lados: { lado: Lado; janela: Janela; municipio: number | null; codigos: number[]; disp: Map<number, DisponibilidadeMunicipio>; zero: ConferenciaZero }[];
   if (r.tipo === 'selecao') {
     dentroDaCarga(ctx, r.janela);
     municipioValido(ctx, r.municipio);
     const filtro: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
     const { registros } = await lerRecorte(ctx, filtro);
-    const codigos = r.municipio !== null ? [r.municipio] : municipiosDe(await calcular(ctx, r.lente, r.janela, null, registros));
+    const codigos = r.municipio !== null ? [r.municipio] : r.lente ? municipiosDe(await calcular(ctx, r.lente, r.janela, null, registros)) : [...new Set(registros.map((x) => x.municipio_codigo))].sort((a, b) => a - b);
     lados = [{ lado: 'A', janela: r.janela, municipio: r.municipio, codigos, disp: await lerDisponibilidade(ctx, filtro, codigos), zero: { estado: 'nao_necessaria' } }];
   } else {
     let filtros: [Filtro, Filtro];
     let janelas: [Janela, Janela];
-    if (r.tipo === 'periodos') {
-      municipioValido(ctx, r.municipio);
-      validarPeriodos(ctx.janelaCarga, r.a, r.b);
-      const fa: Filtro = { carga: ctx.carga.id, inicio: r.a.inicio, fim: r.a.fim, municipio: r.municipio };
-      filtros = [fa, { ...fa, inicio: r.b.inicio, fim: r.b.fim }];
-      janelas = [r.a, r.b];
-    } else {
-      dentroDaCarga(ctx, r.janela);
-      validarMunicipios(r.a, r.b, new Set(ctx.nomes.keys()));
-      const fa: Filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.a };
-      filtros = [fa, { ...fa, municipio: r.b }];
-      janelas = [r.janela, r.janela];
-    }
+    municipioValido(ctx, r.municipio);
+    validarPeriodos(ctx.janelaCarga, r.a, r.b);
+    const fa: Filtro = { carga: ctx.carga.id, inicio: r.a.inicio, fim: r.a.fim, municipio: r.municipio };
+    filtros = [fa, { ...fa, inicio: r.b.inicio, fim: r.b.fim }];
+    janelas = [r.a, r.b];
     const q = await qualificarLados(ctx, await Promise.all([0, 1].map((i) => lado(ctx, filtros[i]!, r.lente, janelas[i]!))));
     lados = q.map((l, i) => ({
       lado: (i === 0 ? 'A' : 'B') as Lado, janela: janelas[i]!, municipio: l.filtro.municipio,
       codigos: [...l.disp.keys()].sort((x, y) => x - y), disp: l.disp, zero: l.zero,
     }));
   }
+  const ressalvas: unknown[] = [];
+  for (const l of lados) {
+    if ([...l.disp.values()].some((d) => d.estado !== 'ok') || l.disp.size !== l.codigos.length) throw new ErroHttp('leitura_inconsistente');
+    const filtro: Filtro = { carga: ctx.carga.id, inicio: l.janela.inicio, fim: l.janela.fim, municipio: l.municipio };
+    if (r.lente) {
+      const { registros } = await lerRecorte(ctx, filtro);
+      const resultado = qualificado(await calcular(ctx, r.lente, l.janela, l.municipio, registros), l.disp);
+      ressalvas.push({ lado: l.lado, unidades: unidadesDe(resultado).map((u) => ({ unidade: nomeUnidade(u.unidade), cobertura: textoCobertura(u.cobertura), destaques: u.destaques.map((d) => ({ motivo: d.motivo, datas: d.datas, ressalvas: d.ressalvas })) })) });
+    }
+    const parciais = mesesDaJanela(l.janela).filter((m) => m.parcial);
+    if (parciais.length) ressalvas.push({ lado: l.lado, meses_parciais: parciais });
+  }
+  if (r.tipo === 'periodos') ressalvas.push({ comparacao: await compararPeriodosF(ctx) });
   const estadual = lados.some((l) => l.municipio === null);
   return {
     ferramenta: 'consultar_disponibilidade',
+    ressalvas,
+    estado: lados.some((l) => l.codigos.length === 0) && r.tipo === 'selecao' && !r.lente ? 'dados_insuficientes' : 'avaliada',
     alcance: estadual
-      ? 'municípios exigidos pelos destaques de cada lado (todos os do recorte só num lado sem detecções); não é disponibilidade estadual completa'
+      ? r.tipo === 'selecao' && !r.lente ? 'subconjunto dos municípios associados às detecções do recorte; lista explícita em lados; não é disponibilidade estadual completa' : 'municípios exigidos pelos destaques de cada lado (todos os do recorte só num lado sem detecções); não é disponibilidade estadual completa'
       : 'municípios do recorte do pedido',
     lados: lados.map((l) => ({
       lado: l.lado, janela: l.janela,
       municipios: disponibilidadePorMunicipio(l.codigos, l.janela, l.disp).map((x) => linhaMunicipio(ctx, x)),
       // Issue #81: lista vazia por alcance (sem destaques) foi lida pelo modelo como falta de dados.
-      ...(l.codigos.length ? {} : { sem_municipios: SEM_MUNICIPIOS }),
+      ...(l.codigos.length ? {} : { sem_municipios: r.tipo === 'selecao' && !r.lente ? 'Sem detecções no recorte: disponibilidade estadual não avaliada; dados insuficientes para concluir sobre a ausência.' : SEM_MUNICIPIOS }),
       ...(textoZero(l.zero) ? { conferencia_sem_deteccoes: textoZero(l.zero) } : {}),
     })),
     nota: NOTA_DISPONIBILIDADE,
@@ -362,7 +366,6 @@ async function lerDetalhes(ctx: Contexto, args: { lado?: unknown; pagina?: unkno
   let filtro: Filtro;
   if (r.tipo === 'selecao' && lado === 'A') filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: r.municipio };
   else if (r.tipo === 'periodos') { const j = lado === 'A' ? r.a : r.b; filtro = { carga: ctx.carga.id, inicio: j.inicio, fim: j.fim, municipio: r.municipio }; }
-  else if (r.tipo === 'municipios') filtro = { carga: ctx.carga.id, inicio: r.janela.inicio, fim: r.janela.fim, municipio: lado === 'A' ? r.a : r.b };
   else throw new ErroHttp('entrada_invalida', 'ler_detalhes fora do pedido');
   dentroDaCarga(ctx, { inicio: filtro.inicio, fim: filtro.fim });
   municipioValido(ctx, filtro.municipio);
@@ -385,11 +388,10 @@ async function lerDetalhes(ctx: Contexto, args: { lado?: unknown; pagina?: unkno
 export function validarRecorte(ctx: Contexto): void {
   const r = ctx.pedido.recorte;
   try {
+    if (r.municipio !== null && (r.lente?.tipo === 'concentracao' || (r.lente?.tipo === 'combinacao' && r.lente.lentes.includes('concentracao')))) throw new ErroHttp('entrada_invalida', 'concentração exige recorte estadual');
     if (r.tipo === 'periodos') { municipioValido(ctx, r.municipio); validarPeriodos(ctx.janelaCarga, r.a, r.b); return; }
     dentroDaCarga(ctx, r.janela);
-    if (r.tipo === 'selecao') municipioValido(ctx, r.municipio);
-    else if (r.tipo === 'municipios') validarMunicipios(r.a, r.b, new Set(ctx.nomes.keys()));
-    else for (const m of r.municipios) municipioValido(ctx, m);
+    municipioValido(ctx, r.municipio);
   } catch (e) {
     if (e instanceof ErroComparacao) throw new ErroHttp('entrada_invalida', e.message);
     throw e;
@@ -399,15 +401,17 @@ export function validarRecorte(ctx: Contexto): void {
 /** Executa uma ferramenta do catálogo; nome fora do catálogo ou argumento fora do pedido é recusado. */
 export async function executarFerramenta(ctx: Contexto, nome: string, args: Record<string, unknown> = {}): Promise<unknown> {
   if (!Object.hasOwn(CATALOGO, nome)) throw new ErroHttp('entrada_invalida', 'ferramenta fora do catálogo');
+  if (!ferramentasPermitidas(ctx.pedido).includes(nome as NomeFerramenta)) throw new ErroHttp('entrada_invalida', 'ferramenta fora do pedido');
   const admitidos = Object.keys(CATALOGO[nome as NomeFerramenta].argumentos);
   if (Object.keys(args).some((k) => !admitidos.includes(k))) throw new ErroHttp('entrada_invalida', 'argumento não admitido');
   try {
     switch (nome as NomeFerramenta) {
       case 'explicar_selecao': return await explicarSelecao(ctx);
       case 'comparar_periodos': return await compararPeriodosF(ctx);
-      case 'comparar_municipios': return await compararMunicipiosF(ctx);
       case 'consultar_disponibilidade': return await consultarDisponibilidadeF(ctx);
       case 'ler_detalhes': return await lerDetalhes(ctx, args);
+      case 'distribuicao_temporal': return await distribuicaoTemporalF(ctx);
+      case 'cruzar_padroes': return await cruzarPadroesF(ctx);
     }
   } catch (e) {
     if (e instanceof ErroComparacao) throw new ErroHttp('entrada_invalida', e.message);
@@ -417,5 +421,16 @@ export async function executarFerramenta(ctx: Contexto, nome: string, args: Reco
 
 /** Ferramenta principal de cada tipo de pedido (item 2: uma por execução; a orquestração entra no item 3). */
 export const FERRAMENTA_DO_PEDIDO: Record<Pedido['recorte']['tipo'], NomeFerramenta> = {
-  selecao: 'explicar_selecao', periodos: 'comparar_periodos', municipios: 'comparar_municipios', disponibilidade: 'consultar_disponibilidade',
+  selecao: 'explicar_selecao', periodos: 'comparar_periodos',
 };
+
+/** Ferramentas determinísticas pertinentes ao ID; nenhuma seleção livre pelo modelo. */
+export function ferramentasPermitidas(p: Pedido): NomeFerramenta[] {
+  switch (p.pergunta_id) {
+    case 'panorama': return ['distribuicao_temporal', 'explicar_selecao', 'consultar_disponibilidade'];
+    case 'mudanca': return ['comparar_periodos', 'consultar_disponibilidade'];
+    case 'padroes': return ['cruzar_padroes', 'consultar_disponibilidade'];
+    case 'cuidados': return ['consultar_disponibilidade'];
+    case 'proximos': return ['cruzar_padroes', 'distribuicao_temporal', 'consultar_disponibilidade'];
+  }
+}

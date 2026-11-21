@@ -1,7 +1,7 @@
 # Plano de Implementação — insights com agentes
 
 > **Ciclo:** `011`
-> **Status:** `Aprovado`
+> **Status:** `Em Execução`
 > **Versão:** `v4`
 > **Autor da correção:** Codex (modelo exato não informado ao agente)
 > **Data de criação:** 2026-11-21
@@ -194,7 +194,7 @@ Resposta plausível pode estar errada apesar de valores corretos; validar sentid
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | — |
+| Issue(s) | [#107](https://github.com/EuThiagoAndrade/rastro-quente/issues/107) |
 | PR(s) | [#106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106) (documental) |
 | Branch(es) | `chore/cycle-011-plan` |
 | Destino após conclusão | `_project/executed/011_insights_agentes/011_plan.md` |
@@ -203,21 +203,31 @@ Resposta plausível pode estar errada apesar de valores corretos; validar sentid
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 011 (completo)
+Situação: Aguardando autorização de implementação — ciclo 011 (completo)
 Quem: Responsável
-Conferir: Checks e diff da PR #106
-Diga: "aprovo o merge da PR #106"
+Conferir: Issue #107 e escopo
+Diga: "autorizo a implementação da issue #107"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 011 + criar_issues + feature/insights_agentes + v4`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: plano v4 aprovado e PR documental #106 integrada / issue #107 aberta, aguardando autorização de implementação.
+- `result`: `executed`
+- `evidence`: [PR #106 integrada](https://github.com/EuThiagoAndrade/rastro-quente/pull/106) e [issue #107](https://github.com/EuThiagoAndrade/rastro-quente/issues/107) aberta.
+- `blockers`: autorização explícita de implementação da issue #107.
+
+### Histórico — PR documental
+
+- `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 011 + publicacao_documental + 011_plan + v4`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: plano v4 aprovado e pronto para publicação / PR documental #106 aberta e aguardando merge.
+- `state_before` / `state_after`: plano aprovado / PR documental #106 aberta.
 - `result`: `executed`
-- `evidence`: [PR #106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106), branch documental e aprovação registrada no cabeçalho.
-- `blockers`: checks verdes e aprovação específica do merge.
+- `evidence`: PR #106 integrada no commit `8b5f68465a2c18fdb6afe912f08bbb66abe4e347` após aprovação humana e checks verdes.
+- `blockers`: nenhum.
 
 ### Histórico — aprovação do plano
 
