@@ -2,13 +2,13 @@
 
 > **Ciclo:** `010`
 > **Trilha:** `normal`
-> **Estado:** `Aguardando integração`
+> **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#100`
-> **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
+> **Plano:** `_project/executed/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-100`
 > **PR:** [PR #104](https://github.com/EuThiagoAndrade/rastro-quente/pull/104)
-> **Integração:** `Pendente`
+> **Integração:** PR #104 integrada em 2026-11-21, conferida no GitHub.
 > **Autorização inicial:** "autorizo a implementação da issue #100" em 2026-11-21
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-21
@@ -72,10 +72,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 010 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #104](https://github.com/EuThiagoAndrade/rastro-quente/pull/104)
-Diga: "aprovo o merge da PR #104"
+Situação: Concluído — ciclo 010 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída

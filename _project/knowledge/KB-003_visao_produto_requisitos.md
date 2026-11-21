@@ -4,7 +4,7 @@ tags:
   - governança
 author: "Codex; modelo exato não registrado"
 module: "produto"
-last_updated: "2026-11-17"
+last_updated: "2026-11-21"
 origin_cycle: "000"
 ---
 
@@ -106,6 +106,10 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - **Centro simplificado:** abaixo do mapa, só a série; total, sensibilidade, versão, disponibilidade geral e avisos do mapa saíram da tela principal por decisão do responsável. A sensibilidade, a versão e as limitações continuam em "Sobre os dados"; a disponibilidade, na explicação de cada destaque e na comparação. Um recorte com zero detecções, sem lente e sem comparação, não mostra a disponibilidade.
 - **Métodos:** sem mudança em lentes, comparação, agentes ou leituras.
 
+### Painel direito completo (ciclo 010)
+
+As abas Lentes, Municípios e Comparação apresentam resposta, evidências, limitações e ações de navegação. A inspeção de um município no resultado estadual não aplica o filtro: a consulta municipal é uma ação explícita. A comparação preserva os lados A e B e as condições de disponibilidade. O painel de perguntas apresenta o contexto aplicado, as etapas recebidas, resposta e evidências, com retorno ao resultado vigente. O ciclo não alterou os métodos analíticos nem o contrato da função de explicação. As entregas foram integradas nas PRs #101 a #104; não houve verificação em produção no ciclo.
+
 ## Fontes
 
 - Requisitos sintetizados no plano v4 do ciclo 000, revisado por outra LLM na Rodada 3 e objeto da instrução humana local de 2026-10-31. Identificador estável: ciclo `000` em `_project/cycles.md`.
@@ -121,6 +125,8 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 - Ciclo `008`: [plano](../executed/008_comparacao_periodos_agentes/008_plan.md), [relatório de validação](../executed/008_comparacao_periodos_agentes/008_validation_agentes.md), [encerramento](../executed/008_comparacao_periodos_agentes/008_task_closure.md), [KB-007](KB-007_comparacao_territorial.md) e [ADR-011](../decisions/ADR-011_funcao_explicacao_servidor.md). As entregas foram integradas nas PRs #82, #83, #85, #86, #87 e #88. A verificação hospedada foi executada, com C2 não executado e C9 parcial.
 - Ciclo `009`: [plano](../executed/009_rotulos_lentes_espaco_mapa/009_plan.md) e [task da issue #91](../executed/009_rotulos_lentes_espaco_mapa/009_task_issue-91.md); `DESIGN.md` e emendas dos ADR-007, ADR-009 e ADR-011.
 
+- Ciclo `010`: [plano](../executed/010_painel_direito_completo/010_plan.md), [encerramento](../executed/010_painel_direito_completo/010_task_closure.md), `DESIGN.md` e emendas dos ADR-009 e ADR-011.
+
 ## Histórico
 
 | Data | Ciclo | Alteração |
@@ -135,3 +141,4 @@ A interface passou a seguir a referência visual V13, com o contrato em `DESIGN.
 | 2026-11-15 | `007` | Interface base da V13 com `DESIGN.md`, lentes no recorte, densidade, série, "Lista de focos", painéis do mapa e mapa-base de satélite da Esri; verificação hospedada aprovada |
 | 2026-11-17 | `008` | Comparação determinística de períodos e municípios, função autenticada no servidor, agente principal e dois subagentes Gemini, painel de perguntas e verificação hospedada com o pacote de confiabilidade; escopo dos agentes a rever |
 | 2026-11-17 | `009` | Rótulos das lentes, aba "Lentes" e centro só com a série, sem mudança de método |
+| 2026-11-21 | `010` | Painel de Lentes, Municípios, Comparação e perguntas reorganizado; sem alteração de método ou verificação em produção |

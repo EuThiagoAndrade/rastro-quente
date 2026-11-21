@@ -35,6 +35,8 @@ Agentes de explicação (ciclo `008`, issues #79 a #81): um agente principal Gem
 
 Rótulos das lentes e espaço do mapa (ciclo `009`, issue #91): o rótulo "Lentes" agrupa "Seleção", "Contexto territorial" e "Cruzar critérios"; a aba de resultado se chama "Lentes", com o título da opção ativa. Abaixo do mapa fica só a série: os cartões "No mapa", "Detecções no período" e "Disponibilidade dos dados" saíram, e o mapa ficou mais alto. A disponibilidade aparece na explicação de cada destaque e na aba "Comparação"; aviso e atribuição das áreas protegidas ficam na "Legenda" do mapa. Decisões no [plano](_project/executed/009_rotulos_lentes_espaco_mapa/009_plan.md) e nas emendas dos ADR-007, ADR-009 e ADR-011.
 
+Painel direito completo (ciclo `010`): as abas Lentes, Municípios e Comparação mostram resultados, limites e ações de navegação; inspecionar um município estadual não altera o filtro até a consulta explícita. O painel de perguntas mostra o contexto aplicado, as etapas e as evidências, com retorno ao resultado. Contrato visual em [DESIGN.md](DESIGN.md); não houve mudança de método nem verificação em produção no ciclo.
+
 Implantação (ciclo `003`, issue #24): `vercel.json` define o build estático e os cabeçalhos. Só `main` gera deploy. A carga hospedada levou 20,6 s e o banco lógico ficou com 29,5 MB. A [seção 11 do runbook](docs/runbook.md#11-roteiro-do-item-5--operação-hospedada-atos-do-responsável) reúne os procedimentos e as medições.
 
 Leia `.agent/ai_behavior.md`, `_project/README.md` e `_project/cycles.md`. Requisitos: `_project/knowledge/KB-003_visao_produto_requisitos.md`. Repositório privado: `EuThiagoAndrade/rastro-quente`. Licença aberta adiada, sem LICENSE.

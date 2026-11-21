@@ -5,10 +5,10 @@
 > **Estado:** `Concluída`
 > **Tipo:** `feature`
 > **Issue:** `#97`
-> **Plano:** `_project/drafts/010_painel_direito_completo/010_plan.md`
+> **Plano:** `_project/executed/010_painel_direito_completo/010_plan.md`
 > **Branch:** `feature/issue-97`
 > **PR:** [#101](https://github.com/EuThiagoAndrade/rastro-quente/pull/101)
-> **Integração:** PR #101 integrada em 2026-11-18 (conferida no GitHub na implementação da issue #98)
+> **Integração:** PR #101 integrada em 2026-11-18, conferida no GitHub.
 > **Autorização inicial:** "autorizo a implementação da issue #97" em 2026-11-18
 > **Modo contínuo:** `—`
 > **Início:** 2026-11-18
@@ -86,10 +86,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 010 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
+Situação: Concluído — ciclo 010 (completo)
+Quem: —
 Conferir: —
-Diga: "continue o ciclo 010"
+Diga: —
 ```
 
 ## Handoff de saída
