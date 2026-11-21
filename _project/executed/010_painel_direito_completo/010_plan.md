@@ -1,7 +1,7 @@
 # Plano de Implementação — Painel direito completo
 
 > **Ciclo:** `010`
-> **Status:** `Em Execução`
+> **Status:** `Concluído`
 > **Versão:** `v2`
 > **Data de criação:** 2026-11-18
 > **Última atualização:** 2026-11-18
@@ -224,8 +224,8 @@ Gates locais dependem do ambiente de teste já definido pelo projeto. A revisão
 
 | Campo | Valor |
 | :-- | :-- |
-| Issue(s) | [#97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97) |
-| PR(s) | [#96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96) — publicação documental |
+| Issue(s) | #97, #98, #99 e #100 |
+| PR(s) | #96 documental; #101, #102, #103 e #104 entregas integradas |
 | Branch(es) | `chore/cycle-010-plan` |
 | Destino após conclusão | `_project/executed/010_painel_direito_completo/010_plan.md` |
 
@@ -233,10 +233,10 @@ Gates locais dependem do ambiente de teste já definido pelo projeto. A revisão
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 010 (completo)
-Quem: Responsável
-Conferir: Checks e diff da [PR #96](https://github.com/EuThiagoAndrade/rastro-quente/pull/96)
-Diga: "aprovo o merge da PR #96"
+Situação: Concluído — ciclo 010 (completo)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
@@ -425,6 +425,6 @@ Nenhuma.
 
 ## Pós-mortem
 
-- **Data de conclusão:** —
-- **Desvios:** —
-- **Lições comprovadas:** —
+- **Data de conclusão:** 2026-11-21 (prospectiva; efetiva após o merge do encerramento)
+- **Desvios:** a conferência visual usou o esboço privado como referência direta a pedido do responsável; suas adaptações e os testes locais estão registrados nas tasks. Não houve verificação em produção neste ciclo.
+- **Lições comprovadas:** nenhuma nova lição transversal registrada.
