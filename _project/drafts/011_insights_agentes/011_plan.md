@@ -195,29 +195,39 @@ Resposta plausível pode estar errada apesar de valores corretos; validar sentid
 | Campo | Valor |
 | :-- | :-- |
 | Issue(s) | — |
-| PR(s) | — |
-| Branch(es) | — |
+| PR(s) | [#106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106) (documental) |
+| Branch(es) | `chore/cycle-011-plan` |
 | Destino após conclusão | `_project/executed/011_insights_agentes/011_plan.md` |
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Pronto para continuar — ciclo 011 (completo)
-Quem: Qualquer ferramenta, a pedido do responsável
-Conferir: —
-Diga: "continue o ciclo 011"
+Situação: Aguardando merge — ciclo 011 (completo)
+Quem: Responsável
+Conferir: Checks e diff da PR #106
+Diga: "aprovo o merge da PR #106"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
+- `logical_key`: `EuThiagoAndrade/rastro-quente + 011 + publicacao_documental + 011_plan + v4`
+- `effect_class`: `remote_mutation`
+- `state_before` / `state_after`: plano v4 aprovado e pronto para publicação / PR documental #106 aberta e aguardando merge.
+- `result`: `executed`
+- `evidence`: [PR #106](https://github.com/EuThiagoAndrade/rastro-quente/pull/106), branch documental e aprovação registrada no cabeçalho.
+- `blockers`: checks verdes e aprovação específica do merge.
+
+### Histórico — aprovação do plano
+
+- `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 011 + aprovar_plano + 011_plan + v4`
 - `effect_class`: `local_mutation`
-- `state_before` / `state_after`: plano v4 com revisão concluída, veredito `APTO PARA APROVAÇÃO` e aprovação pendente / plano v4 `Aprovado` após manifestação humana, pronto para publicação documental.
+- `state_before` / `state_after`: v4 apta aguardando aprovação / v4 aprovada, pronta para publicação documental.
 - `result`: `executed`
-- `evidence`: seção [Rodada 3](#rodada-3), manifestação humana "aprovo o plano do ciclo 011" em 2026-11-21 e cabeçalho deste plano; base local `fc5f6334e871606abe5560b6487ec2bfee36222f`.
-- `blockers`: nenhum para publicação documental; merge exige aprovação própria.
+- `evidence`: seção Rodada 3 e manifestação humana "aprovo o plano do ciclo 011" em 2026-11-21.
+- `blockers`: nenhum para publicação documental.
 
 ### Histórico — revisão da rodada 3
 
