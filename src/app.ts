@@ -31,7 +31,7 @@ import {
   type ValidacaoPeriodos,
 } from './comparacao.ts';
 import {
-  chaveContexto, escolherRecorte, montarPedido, perguntar, type ConfigLente as ConfigLenteIa, type ContextoTela, type Desfecho,
+  chaveContexto, escolherRecorte, destinoDoPedido, montarPedido, perguntar, type ConfigLente as ConfigLenteIa, type ContextoTela, type Desfecho,
   type Escolha, type Evento as EventoIa, type Ferramenta, type Pergunta,
 } from './agentes.ts';
 import { renderDisponibilidade as renderDisponibilidadePerguntas, renderPerguntas, type EstadoPerguntas } from './apresentacao-agentes.ts';
@@ -305,6 +305,7 @@ class Controlador {
   private perguntaEmCurso: AbortController | null = null;
   private chavePergunta: string | null = null;
   private ultimaPergunta: { tipo: Pergunta; livre: string } | null = null;
+  private destinoPergunta: { chave: string; aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } | null = null;
   private estadoPerguntas: EstadoPerguntas = { tipo: 'ociosa' };
 
   constructor(private readonly senhaLocal: boolean, private readonly sessao: Sessao) {}
@@ -2115,11 +2116,32 @@ class Controlador {
       : ctx.municipio === null ? 'Escolha um município na Consulta para ser o A.'
         : modoComparacao() === 'municipios' ? 'A comparação de municípios já está aberta em Filtros › Comparar.' : null;
     renderDisponibilidadePerguntas(escolhas, comparar, this.perguntaEmCurso !== null);
+    const contexto = $('perguntas-contexto-aplicado');
+    const nomesLente: Record<string, string> = { concentracao: 'Concentração', recorrencia: 'Recorrência', persistencia: 'Persistência', combinacao: 'Combinação', sobreposicao: 'Sobreposição' };
+    const comparacao = ctx?.comparacao;
+    const descricaoComparacao = !comparacao ? '' : comparacao.modo === 'periodos'
+      ? ` · Comparação de períodos: ${comparacao.a.inicio} a ${comparacao.a.fim} e ${comparacao.b.inicio} a ${comparacao.b.fim}`
+      : ` · Comparação de municípios: ${this.nomeMunicipio(comparacao.a)} e ${this.nomeMunicipio(comparacao.b)}`;
+    contexto.replaceChildren();
+    const titulo = document.createElement('strong');
+    titulo.textContent = 'O que será usado na resposta';
+    const descricao = document.createElement('p');
+    descricao.textContent = ctx ? `${ctx.municipio === null ? 'Mato Grosso' : this.nomeMunicipio(ctx.municipio)} · ${ctx.janela.inicio} a ${ctx.janela.fim} · Lente: ${ctx.lente ? nomesLente[ctx.lente.tipo] : 'nenhuma'}${ctx.destaque ? ` · Destaque: ${ctx.destaque.rotulo}` : ''}${descricaoComparacao}` : 'Nenhum recorte autorizado aplicado.';
+    const nota = document.createElement('p');
+    nota.className = 'nota';
+    nota.textContent = 'Para perguntar sobre outro município ou período, altere os filtros antes.';
+    contexto.append(titulo, descricao, nota);
   }
 
   private mostrarPerguntas(e: EstadoPerguntas): void {
     this.estadoPerguntas = e;
     renderPerguntas(e, {
+      rotuloResultado: this.destinoPergunta?.destaque ? 'Ver o lugar na tela' : 'Ver detalhes do resultado',
+      abrirResultado: () => {
+        const destino = this.destinoPergunta;
+        if (!destino || destino.chave !== chaveContexto(this.geracaoSessao, this.contextoPergunta())) return;
+        abrirAba(destino.aba, true);
+      },
       tentarDeNovo: () => { const u = this.ultimaPergunta; if (u) void this.perguntarAgora(u.tipo, u.livre); },
       abrirDetalhamento: (f) => this.abrirDetalhamento(f),
       temDetalhamento: (f) => this.temDetalhamento(f),
@@ -2132,6 +2154,7 @@ class Controlador {
     this.perguntaEmCurso?.abort();
     this.perguntaEmCurso = null;
     this.chavePergunta = null;
+    this.destinoPergunta = null;
     this.mostrarPerguntas(avisar && this.estadoPerguntas.tipo !== 'ociosa' && this.estadoPerguntas.tipo !== 'descartada' ? { tipo: 'descartada' } : { tipo: 'ociosa' });
   }
 
@@ -2177,6 +2200,7 @@ class Controlador {
     const controle = new AbortController();
     this.perguntaEmCurso = controle;
     this.chavePergunta = chaveContexto(this.geracaoSessao, ctx);
+    this.destinoPergunta = { chave: this.chavePergunta, ...destinoDoPedido(tipo, ctx, pedido.recorte) };
     this.ultimaPergunta = { tipo, livre };
     const atual = () => g === this.geracaoPergunta;
     const etapas: EventoIa[] = [];

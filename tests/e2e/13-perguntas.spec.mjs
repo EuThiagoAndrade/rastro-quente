@@ -37,6 +37,7 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
   await compararPeriodos(page);
   await expect(page.locator('#pergunta-periodos')).toBeEnabled();
   await expect(page.locator('#pergunta-contexto')).toHaveText('A pergunta escrita usa a comparação de dois períodos, como estão na tela.');
+  await expect(page.locator('#perguntas-contexto-aplicado')).toContainText('Comparação de períodos: 2026-10-01 a 2026-10-10');
   await page.locator('#pergunta-periodos').click();
   await expect(painel(page)).toHaveAttribute('data-estado-perguntas', 'resposta');
   await expect(page.locator('#perguntas-estado')).toHaveText('Resposta completa.');
@@ -52,12 +53,16 @@ test('perguntas prontas só com contexto; comparação de períodos com as etapa
     expect(textos, t).toContain(t);
   }
   expect(textos.at(-1)).toBe('Execução concluída: resposta completa');
+  await page.getByRole('button', { name: 'Ver detalhes do resultado' }).click();
+  await expect(page.locator('#aba-comparacao')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('.marca-ia')).toContainText('Gerado por IA');
   await expect(page.locator('.marca-ia')).toContainText('Detecções não comprovam incêndio, dano, autoria ou infração.');
   await expect(page.locator('.resposta-ia .afirmacoes li').first()).toContainText('Valor conferido');
   await expect(page.locator('.resposta-ia .referencias').first()).toContainText('(comparação de períodos)');
   // Evidências por identificador e o caminho de volta ao detalhamento determinístico.
-  await page.locator('#perguntas-evidencias > summary').click();
+  await page.getByRole('button', { name: 'Ver as informações usadas' }).click();
+  await expect(page.locator('#perguntas-evidencias')).toHaveAttribute('open', '');
+  await expect(page.locator('#perguntas-evidencias > summary')).toBeFocused();
   // Ciclo 009 (C4): fora da comparação, a disponibilidade fica só nas evidências do painel.
   await expect(page.locator('#perguntas-evidencias > .nota')).toContainText('a disponibilidade fora da comparação fica só nestas evidências');
   const e1 = page.locator('.evidencia').filter({ hasText: 'comparação de períodos' });
@@ -87,8 +92,12 @@ test('"Por que esta célula foi destacada?" usa o destaque aberto; outro destaqu
   await expect(page.locator('#pergunta-destaque')).toBeDisabled();
   await page.locator('#lente-destaques .botao-nome').first().click();
   await expect(page.locator('#pergunta-destaque')).toBeEnabled();
+  await expect(page.locator('#perguntas-contexto-aplicado')).toContainText('Destaque: Município Alfa');
   await page.locator('#pergunta-destaque').click();
   await expect(painel(page)).toHaveAttribute('data-estado-perguntas', 'resposta');
+  await page.getByRole('button', { name: 'Ver o lugar na tela' }).click();
+  await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
+  await expect(page.locator('#botao-voltar')).toBeVisible();
   expect(corpo.recorte).toEqual({ tipo: 'selecao', janela: { inicio: '2026-10-01', fim: '2026-10-10' }, municipio: null, lente: { tipo: 'concentracao' } });
   expect(corpo.pergunta).toMatch(/^Por que esta célula foi destacada\? Destaque aberto: Município Alfa \(9900001\)/);
   expect(Object.keys(corpo).sort()).toEqual(['carga', 'pergunta', 'recorte']);
@@ -111,6 +120,8 @@ test('"Há lacunas nos dados?" no município da Consulta: só o subagente de dis
   await expect(etapas(page)).toContainText(['Delegação ao subagente de lentes e evidências recusada: não se aplica a este recorte']);
   await expect(etapas(page)).toContainText(['Ferramenta executada: disponibilidade por município (evidência E1)']);
   await expect(page.locator('#perguntas-estado')).toHaveText('Resposta completa.');
+  await page.getByRole('button', { name: 'Ver detalhes do resultado' }).click();
+  await expect(page.locator('#aba-municipios')).toHaveAttribute('aria-selected', 'true');
   // Ciclo 009 (D2, C4): sem comparação, a disponibilidade não tem cartão; a evidência não oferece atalho para a tela.
   await page.locator('#perguntas-evidencias > summary').click();
   const e1 = page.locator('.evidencia[data-evidencia="E1"]');
@@ -206,6 +217,8 @@ test('sem IA: estado claro no painel; consulta, lentes e comparação continuam 
   await expect(page.locator('#perguntas-estado')).toHaveText('Explicação por IA desligada neste ambiente.');
   await expect(page.locator('#perguntas-corpo [data-codigo="ia_desabilitada"]')).toHaveText('A explicação por IA está desligada neste ambiente; a comparação e as lentes continuam disponíveis.');
   await expect(page.locator('#pergunta-tentar')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Ver detalhes do resultado' }).click();
+  await expect(page.locator('#aba-comparacao')).toHaveAttribute('aria-selected', 'true');
   expect(await chamadasProvedor(request)).toBe(0);
   // A comparação determinística e a consulta seguem inteiras.
   await expect(page.locator('#comparacao-corpo table').first().locator('tbody tr').first().locator('td')).toHaveText(['Detecções (total principal)', '55', '43', '−12']);

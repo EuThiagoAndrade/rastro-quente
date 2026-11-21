@@ -296,7 +296,11 @@
           <!-- Perguntas (ciclo 008, item 4): agentes sobre o que está na tela; etapas reais e evidências. -->
           <section id="painel-perguntas" class="perguntas" aria-labelledby="t-perguntas" data-estado-perguntas="ociosa" aria-busy="false">
             <h2 id="t-perguntas" class="rotulo-secao" tabindex="-1">Perguntar sobre a tela</h2>
-            <p class="nota">Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação. As respostas são geradas por IA e podem conter erros.</p>
+            <p class="pergunta-lente">Quer ajuda para entender o que aparece na tela?</p>
+            <p class="nota">A inteligência artificial usa os resultados selecionados para ajudar a explicá-los. Confira as informações: a resposta pode conter erros.</p>
+            <div id="perguntas-contexto-aplicado" class="perguntas__bloco" aria-label="Contexto aplicado"></div>
+            <p class="rotulo-secao">Escolha uma pergunta pronta</p>
+            <p class="nota">Peça uma explicação sobre a seleção atual.</p>
             <div class="perguntas__prontas" role="group" aria-label="Perguntas prontas">
               <button id="pergunta-destaque" type="button" class="botao pergunta" data-pergunta="destaque" aria-describedby="pergunta-destaque-motivo">Por que esta célula foi destacada?</button>
               <p id="pergunta-destaque-motivo" class="nota pergunta__motivo" hidden></p>
@@ -308,7 +312,7 @@
               <p id="acao-comparar-municipios-motivo" class="nota pergunta__motivo" hidden></p>
             </div>
             <form id="form-pergunta" class="perguntas__livre" novalidate>
-              <label for="pergunta-livre" class="rotulo-secao rotulo-secao--campo">Sua pergunta</label>
+              <label for="pergunta-livre" class="rotulo-secao rotulo-secao--campo">Ou escreva sua pergunta</label>
               <textarea id="pergunta-livre" rows="3" maxlength="2000" aria-describedby="pergunta-ajuda pergunta-contexto"></textarea>
               <p id="pergunta-ajuda" class="nota">Até 2.000 caracteres. Não escreva dados pessoais, senhas ou chaves. A pergunta não muda os filtros; para outro recorte, mude-o na tela.</p>
               <p id="pergunta-contexto" class="nota"></p>

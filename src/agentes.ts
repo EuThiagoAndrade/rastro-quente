@@ -98,6 +98,15 @@ export function escolherRecorte(p: Pergunta, c: ContextoTela): Escolha {
   }
 }
 
+/** Destino local da ação: acompanha o recorte efetivamente enviado, sem confiar em comandos do modelo. */
+export function destinoDoPedido(tipo: Pergunta, contexto: ContextoTela, recorte: Recorte): { aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } {
+  if (recorte.tipo === 'periodos' || recorte.tipo === 'municipios') return { aba: 'comparacao', destaque: false };
+  const usaDestaque = !!contexto.destaque && (tipo === 'destaque' ||
+    (tipo === 'livre' && recorte.tipo === 'selecao') ||
+    (tipo === 'lacunas' && recorte.tipo === 'disponibilidade' && contexto.destaque.municipios.length > 0));
+  return { aba: usaDestaque || recorte.tipo === 'selecao' ? 'destaques' : 'municipios', destaque: usaDestaque };
+}
+
 /** Texto enviado: a pergunta e, para o destaque, qual está aberto (o servidor recalcula tudo; nenhum número vai junto). */
 export function textoPergunta(p: Pergunta, c: ContextoTela, livre: string): string {
   if (p === 'livre') return livre.trim();
