@@ -7,7 +7,7 @@
 > **Issue:** `— (encerramento documental, sem issue própria)`
 > **Plano:** `_project/executed/010_painel_direito_completo/010_plan.md`
 > **Branch:** `chore/cycle-010-closure`
-> **PR:** Pendente de publicação
+> **PR:** [#105](https://github.com/EuThiagoAndrade/rastro-quente/pull/105)
 > **Integração:** `Pendente`
 > **Encerramento prospectivo:** `Sim`
 > **Autorização inicial:** aprovação humana do plano v2 em 2026-11-18; "continue o ciclo 010" em 2026-11-21.
@@ -47,7 +47,7 @@ Não se aplica.
 - [x] Plano e tasks movidos para `executed/`, integração reconciliada e ciclo atualizado prospectivamente.
 - [x] README e KB-003 consolidados, sem alegar verificação em produção.
 - [x] Executar gates locais.
-- [ ] Publicar PR de encerramento.
+- [x] Publicar PR de encerramento (#105).
 
 ## Evidências
 
@@ -84,12 +84,12 @@ Diga: —
 
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + 010 + atualizar_docs + encerramento + 711ebdd80d8200dbcd245ec671b56f10d447607e`
-- `effect_class`: `local_mutation`
+- `effect_class`: `remote_mutation`
 - `state_before`: ciclo em execução, quatro entregas integradas, base `711ebdd80d8200dbcd245ec671b56f10d447607e`.
-- `state_after`: encerramento prospectivo preparado localmente, publicação pendente.
+- `state_after`: encerramento prospectivo preparado e PR #105 aberta; integração pendente.
 - `result`: `executed`
-- `evidence`: PRs #101 a #104 e arquivos deste encerramento.
-- `blockers`: publicação pendente; merge exige checks verdes e aprovação específica.
+- `evidence`: PRs #101 a #104, PR #105 e arquivos deste encerramento.
+- `blockers`: merge da PR #105 exige checks verdes e aprovação específica.
 
 ## Referência do bootstrap
 
