@@ -39,9 +39,26 @@ Total: cerca de 15 chamadas ao Gemini, sem 429 observado e sem teste de carga.
 
 ### Achados
 
-1. **Falha do subagente de contexto e qualidade no estado inteiro (P1).** A evidência de disponibilidade por município do recorte estadual tinha cerca de 30,8 mil caracteres (141 municípios), contra 2,6 mil da distribuição temporal. A saída desse subagente não passou no formato (`saida_invalida`), e a pergunta de panorama ficou sem síntese. A prova local usava fixture de três municípios e não reproduziu esse tamanho. A causa exata (tamanho da evidência, limite de saída ou formato) não foi isolada nesta verificação. Recomenda-se correção por trilha curta, com teste que reproduza o recorte estadual sem rede.
+1. **Falha do subagente de contexto e qualidade no estado inteiro (P1).** A evidência de disponibilidade por município do recorte estadual tinha cerca de 30,8 mil caracteres (87 municípios com detecções no recorte; o número 141, citado antes, é o total de municípios do estado e foi um erro de leitura), contra 2,6 mil da distribuição temporal. A saída desse subagente não passou no formato (`saida_invalida`), e a pergunta de panorama ficou sem síntese. A prova local usava fixture de três municípios e não reproduziu esse tamanho. A causa exata (tamanho da evidência, limite de saída ou formato) não foi isolada nesta verificação. Recomenda-se correção por trilha curta, com teste que reproduza o recorte estadual sem rede.
 2. **Certeza mais forte que a fonte (P2).** A síntese escreveu que a variação "não reflete mudança real do fenômeno", enquanto a ressalva da evidência diz que entrar ou sair "não indica mudança real". Números e referências conferem, mas a formulação nega o fenômeno em vez de apenas não comprová-lo. Mesmo tipo de desvio corrigido localmente para disponibilidade no ciclo 011; este caso não é coberto pela conferência atual.
 3. **Delegação mais enxuta que a simulada (P3).** O principal real delegou só ao subagente pertinente; nos testes com provedor simulado, a delegação extra aparece recusada. Comportamento correto.
+
+## Conferência após a correção da issue #111 (PR #112)
+
+Depois do merge da PR #112 e do deploy da `main` (`7648592`, status Vercel `success`), uma única pergunta foi repetida, como autorizado pelo responsável: panorama de Mato Grosso, 2026-10-01 a 2026-10-31.
+
+- **Resultado: falhou de novo.** Estado `incompleta`, cerca de 28 s, 5 chamadas. Padrões conferido; contexto e qualidade com `saida_invalida` e **1 afirmação rejeitada** na conferência, ou seja, nenhuma afirmação válida.
+- A evidência publicada já trazia os campos novos: 87 municípios, todos com `ressalva` e com o mesmo texto (22 dias sem evidência de lacuna e 9 com incidência indeterminada), e `lista_parcial`.
+- A correção da #111 tratou o conflito com o teto de 8 tópicos, reproduzido sem rede, mas não a causa observada desta vez. A tela não mostra o texto rejeitado.
+
+## Diagnóstico local autorizado (2026-11-21)
+
+Autorização: "Autorizo o diagnóstico", para cerca de 5 chamadas com dados fictícios. Script e relatório em `local/` (ignorados). Evidências fictícias imitando o caso: 87 municípios com classes idênticas, `ressalva` e `lista_parcial`; sem banco e sem dados reais.
+
+- 6 envios, todos HTTP 200, 13 s entre inícios (mínimo observado 13.003 ms), cerca de 68 s; chave fora dos corpos.
+- **Resultado: `completa`.** Contexto e qualidade com 8 afirmações conferidas, cada uma com um município, e a limitação de lista parcial aceita; nota fixa presente. Não reproduziu a falha de produção.
+- **Achado novo:** a síntese escreveu "Os municípios listados apresentaram 9 dias com incidência indeterminada", citando os oito itens de uma vez. A conferência aceitou, mas é um enunciado agrupado, que a decisão G1 não admite.
+- **Leitura:** com classes idênticas em todos os municípios, o modelo tende a generalizar. Em produção, uma generalização do subagente (provavelmente com contagem) teria sido rejeitada e deixado a análise sem afirmações; localmente, a mesma tendência apareceu na síntese. A falha parece intermitente, e uma amostra local não basta para afirmar a causa.
 
 ## Não executado
 
