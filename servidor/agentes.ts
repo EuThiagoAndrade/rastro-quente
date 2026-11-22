@@ -155,8 +155,10 @@ export const INSTRUCOES: Record<'principal' | 'sintese' | Subagente, string> = {
   ].join('\n'),
   disponibilidade: [
     'Você é o analista de disponibilidade dos dados do Rastro Quente.',
-    'Chame consultar_disponibilidade e depois descreva só o que as evidências recebidas mostram, por município, sem agregar municípios.',
-    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho usado. Ao nomear um município, cite o item inteiro do município em cada lado (por exemplo E1.lados[0].municipios[0] e E1.lados[1].municipios[0]), que inclui nome, código e texto.',
+    'Chame consultar_disponibilidade e depois descreva só o que as evidências recebidas mostram, por município, sem somar nem agrupar municípios.',
+    // Issue #111 (decisão G1, opção A): no recorte estadual a lista passa de 8 e não cabe nos tópicos.
+    'Cada município traz "ressalva": true quando tem lacuna conhecida ou incidência indeterminada. Se um lado tiver até 8 municípios, descreva cada um. Se um lado trouxer "lista_parcial", cite no máximo 8 municípios com "ressalva": true no total da resposta, somando os lados, um por tópico, e declare numa limitacao, sem algarismos, que a lista é parcial, citando o campo lista_parcial. Não conte, não resuma e não classifique os municípios não citados. Se um lado trouxer "sem_ressalva", diga só isso, citando esse campo.',
+    'Cada evidência tem um identificador (E1, E2...). Em "referencias", cite o caminho usado. Ao nomear um município, cite o item inteiro do município em cada lado (por exemplo E1.lados[0].municipios[0] e E1.lados[1].municipios[2]), que inclui nome, código e texto; o mesmo município pode ter índices diferentes em cada lado: localize-o pelo nome.',
     'Interprete as ressalvas comprovadas do recorte; nenhuma ressalva extra constatada não comprova cobertura perfeita. Nunca atribua a mudança a uma lacuna. Copie números e textos exatamente como estão nas evidências. Declare o alcance: não diga que examinou o estado inteiro se a evidência disser o contrário.',
     'Um lado com "sem_municipios" não teve município a conferir: diga só isso, citando esse campo; não conclua que faltam dados.',
     COMUM,
@@ -211,6 +213,7 @@ export const NOTAS = {
   falha: (p: Subagente) => `A análise de ${NOME[p]} não foi concluída; a resposta está incompleta.`,
   sinteseInvalida: 'A síntese não passou na conferência das evidências; ficam só as análises conferidas.',
   rejeitadas: (n: number) => `${n} afirmação(ões) gerada(s) foram descartadas por não conferirem com as evidências.`,
+  listaParcial: 'A análise de disponibilidade cita só parte dos municípios com ressalva; a lista completa está nas evidências.',
 } as const;
 
 const NOME: Record<Subagente, string> = { lentes: 'lentes e evidências', disponibilidade: 'disponibilidade dos dados' };
@@ -620,6 +623,9 @@ export async function orquestrar(amb: Ambiente): Promise<Resultado> {
     res.analises = await Promise.all([...delegadas.keys()].map(subagente));
     for (const p of delegacoesNecessarias(amb.pedido)) if (!delegadas.has(p)) res.notas.push(NOTAS.semDelegacao(p));
     for (const a of res.analises) if (a.estado === 'falha') res.notas.push(NOTAS.falha(a.papel));
+    // Issue #111: o aviso de lista parcial não depende de o modelo escrevê-lo.
+    const listaLonga = res.evidencias.some((e) => ((e.dados as { lados?: { lista_parcial?: string }[] })?.lados ?? []).some((l) => l.lista_parcial));
+    if (listaLonga && res.analises.some((a) => a.papel === 'disponibilidade' && a.estado === 'concluida')) res.notas.push(NOTAS.listaParcial);
     const concluidas = res.analises.filter((a) => a.estado === 'concluida');
     const baseCompleta = delegacoesNecessarias(amb.pedido).every((p) => concluidas.some((a) => a.papel === p));
     const insuficiente = res.evidencias.some((e) => (e.dados as { estado?: string })?.estado === 'dados_insuficientes');
