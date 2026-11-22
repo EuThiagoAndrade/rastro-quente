@@ -286,6 +286,24 @@ const linhaMunicipio = (ctx: Contexto, x: ReturnType<typeof disponibilidadePorMu
   municipio: `${ctx.nomes.get(x.codigo) ?? ''} (${x.codigo})`, texto: textoDisponibilidadeMunicipio(x), ...(x.estado === 'completa' ? { por_classe: x.porClasse } : {}),
 });
 
+// Issue #111 (decisão G1, opção A): com lista longa, a análise cita só alguns municípios com ressalva comprovada.
+// Frases fixas sem algarismos: nada aqui pode sustentar uma contagem de municípios na conferência.
+export const MAX_MUNICIPIOS_CITADOS = 8;
+export const LISTA_PARCIAL = 'Lista longa: a análise cita só alguns municípios com ressalva comprovada; os demais ficam só nesta evidência, sem contagem nem resumo.';
+export const SEM_RESSALVA = 'Nenhum município desta lista tem lacuna conhecida ou incidência indeterminada; isso não comprova cobertura.';
+
+/**
+ * Marca cada município com `ressalva` (lacuna conhecida ou incidência indeterminada nas classes avaliadas) e, com mais
+ * de 8 municípios, acrescenta `lista_parcial` ou, se todos foram avaliados e nenhum tem ressalva, `sem_ressalva`.
+ * Não soma nem agrupa municípios.
+ */
+export function marcarRessalvas<T extends { por_classe?: { lacuna_conhecida: number; incidencia_indeterminada: number } }>(municipios: readonly T[]) {
+  const marcados = municipios.map((m) => ({ ...m, ressalva: Boolean(m.por_classe && (m.por_classe.lacuna_conhecida > 0 || m.por_classe.incidencia_indeterminada > 0)) }));
+  if (marcados.length <= MAX_MUNICIPIOS_CITADOS) return { municipios: marcados };
+  const semNenhuma = marcados.every((m) => m.por_classe && !m.ressalva);
+  return { municipios: marcados, ...(semNenhuma ? { sem_ressalva: SEM_RESSALVA } : { lista_parcial: LISTA_PARCIAL }) };
+}
+
 const NOTA_DISPONIBILIDADE = 'Disponibilidade não comprova cobertura; cada município tem as próprias classes, sem agregação.';
 export const SEM_MUNICIPIOS = 'Nenhum município a conferir neste lado: sem destaques (sem lente aplicada ou lente sem destaques). Isto não indica falta de dados.';
 
@@ -348,7 +366,7 @@ async function consultarDisponibilidadeF(ctx: Contexto): Promise<unknown> {
       : 'municípios do recorte do pedido',
     lados: lados.map((l) => ({
       lado: l.lado, janela: l.janela,
-      municipios: disponibilidadePorMunicipio(l.codigos, l.janela, l.disp).map((x) => linhaMunicipio(ctx, x)),
+      ...marcarRessalvas(disponibilidadePorMunicipio(l.codigos, l.janela, l.disp).map((x) => linhaMunicipio(ctx, x))),
       // Issue #81: lista vazia por alcance (sem destaques) foi lida pelo modelo como falta de dados.
       ...(l.codigos.length ? {} : { sem_municipios: r.tipo === 'selecao' && !r.lente ? 'Sem detecções no recorte: disponibilidade estadual não avaliada; dados insuficientes para concluir sobre a ausência.' : SEM_MUNICIPIOS }),
       ...(textoZero(l.zero) ? { conferencia_sem_deteccoes: textoZero(l.zero) } : {}),
