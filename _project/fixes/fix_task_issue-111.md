@@ -7,7 +7,7 @@
 > **Issue:** `#111`
 > **Plano:** `—`
 > **Branch:** `fix/issue-111`
-> **PR:** —
+> **PR:** [#112](https://github.com/EuThiagoAndrade/rastro-quente/pull/112)
 > **Integração:** `Pendente`
 > **Autorização inicial:** "confirmo a trilha curta e autorizo abrir e corrigir a issue [FIX] Panorama do estado inteiro incompleto: subagente de contexto e qualidade estoura a saída com muitos municípios" em 2026-11-21
 > **Modo contínuo:** `suspenso` (G1 aplica-se)
@@ -121,10 +121,10 @@ Não se aplica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando revisão (rodada 1) — correção da issue #111
-Quem: O responsável leva a vez a um revisor, que pode ser outra ferramenta
-Conferir: —
-Diga: "revise a correção da issue #111"
+Situação: Aguardando merge — correção da issue #111
+Quem: Responsável
+Conferir: Checks e diff da PR #112
+Diga: "aprovo o merge da PR #112"
 ```
 
 ## Handoff de saída
@@ -132,10 +132,10 @@ Diga: "revise a correção da issue #111"
 - `handoff_schema_version: 2`
 - `logical_key`: `EuThiagoAndrade/rastro-quente + fix + corrigir_trilha_curta + 111 + 72d2629250fbc00e7b76be88e74b88420a193c0f`
 - `effect_class`: `remote_mutation`
-- `state_before` / `state_after`: falha observada em produção / correção local com teste de reprodução e gates verdes, aguardando revisão; sem commit.
+- `state_before` / `state_after`: falha observada em produção / correção revisada (rodada 2 `APTO COM RESSALVAS`), commitada e PR #112 aberta.
 - `result`: `executed`
-- `evidence`: issue #111; `scripts/agentes/disponibilidade-estadual.test.mjs`; 47 testes de agentes, 16 de API, 8 E2E de perguntas.
-- `blockers`: revisão da correção (rodada 1).
+- `evidence`: issue #111; PR #112; `scripts/agentes/disponibilidade-estadual.test.mjs`; 48 testes de agentes, 16 de API, 8 E2E de perguntas.
+- `blockers`: checks remotos e "aprovo o merge da PR #112"; depois do merge, conferência em produção com uma pergunta.
 
 ## Referência do bootstrap
 
