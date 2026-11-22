@@ -60,6 +60,18 @@ Autorização: "Autorizo o diagnóstico", para cerca de 5 chamadas com dados fic
 - **Achado novo:** a síntese escreveu "Os municípios listados apresentaram 9 dias com incidência indeterminada", citando os oito itens de uma vez. A conferência aceitou, mas é um enunciado agrupado, que a decisão G1 não admite.
 - **Leitura:** com classes idênticas em todos os municípios, o modelo tende a generalizar. Em produção, uma generalização do subagente (provavelmente com contagem) teria sido rejeitada e deixado a análise sem afirmações; localmente, a mesma tendência apareceu na síntese. A falha parece intermitente, e uma amostra local não basta para afirmar a causa.
 
+## Decisão do responsável (2026-11-21)
+
+Depois do diagnóstico, o agente informou que não há garantia de que uma nova instrução elimine a generalização: a saída do modelo não é determinística, e a conferência impede respostas erradas, mas não garante respostas completas. O único caminho com garantia seria o servidor escrever deterministicamente a disponibilidade de listas longas, o que muda o desenho do agente e exigiria decisão e ciclo próprios.
+
+Decisão: "pode deixar como está e registrar a decisão". Fica sem nova correção:
+
+- o panorama do estado inteiro pode sair `incompleta` de forma intermitente; quando isso acontece, mostra a análise de padrões conferida e avisa que a resposta está incompleta, sem conteúdo não conferido;
+- a síntese pode agrupar municípios num enunciado ("os municípios listados…"), observado só no diagnóstico local;
+- a formulação "não reflete" na comparação (achado 2) continua possível.
+
+A correção da issue #111 (PR #112) permanece integrada: trata o conflito com o teto de 8 tópicos e garante o aviso de lista parcial. Retomar o tema exige nova triagem.
+
 ## Não executado
 
 - Outra conta Google fora da lista de responsáveis (negação autenticada); provada localmente com Auth e RLS reais.
