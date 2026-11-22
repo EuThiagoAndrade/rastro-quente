@@ -65,7 +65,7 @@ Não se aplica.
 
 ## Decisões incidentais e desvios
 
-A verificação hospedada, opcional no plano, foi dispensada pelo responsável ("Encerrar sem verificar", 2026-11-21). A função de explicação continua ligada em produção desde o ciclo 008, e o comportamento das perguntas fechadas no domínio hospedado não foi observado neste ciclo. O aceite de utilidade vale para a amostra local fictícia registrada na task da issue #107.
+A verificação hospedada, opcional no plano, foi dispensada pelo responsável ("Encerrar sem verificar", 2026-11-21). A função de explicação continua ligada em produção desde o ciclo 008, e o comportamento das perguntas fechadas no domínio hospedado não foi observado neste ciclo. O aceite de utilidade vale para a amostra local fictícia registrada na task da issue #107. Depois do merge do encerramento, o responsável autorizou a verificação em produção ("autorizo a verificação em produção do ciclo 011", 2026-11-21); resultados e achados em [011_validation_producao.md](011_validation_producao.md).
 
 ## Encerramento
 

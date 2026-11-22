@@ -115,7 +115,8 @@ As abas Lentes, Municípios e Comparação apresentam resposta, evidências, lim
 - **Perguntas fechadas:** o painel mostra sempre as mesmas cinco perguntas, com o motivo quando uma não se aplica ao recorte; o texto livre saiu. O pedido é `{ pergunta_id, carga, recorte }`; IDs desconhecidos, recortes incompatíveis e campos extras são recusados antes do provedor.
 - **Novas evidências determinísticas:** distribuição temporal GMT, com todos os empates, e cruzamento dos critérios aplicáveis (incluindo projeção municipal e classes de sobreposição). Lentes e comparação não mudaram.
 - **Interpretação conferida:** subagentes de padrões e de contexto/qualidade; a síntese só é completa quando relaciona evidências distintas ou traz limitação referenciada. Dados insuficientes ou falta de análise obrigatória impedem a síntese. Afirmações de cobertura mais fortes que a classe de disponibilidade são rejeitadas; sugestão inválida é omitida sem perder a observação conferida.
-- **Limite de produto:** a conferência barra números, referências e certezas indevidas conhecidas, mas não garante todo o sentido futuro das frases. A utilidade foi aceita pelo responsável sobre uma amostra local fictícia com o Gemini real, espaçada em 13 s entre chamadas; a verificação hospedada foi dispensada e não há resultado de produção. Entrega integrada na PR #108.
+- **Limite de produto:** a conferência barra números, referências e certezas indevidas conhecidas, mas não garante todo o sentido futuro das frases. A utilidade foi aceita pelo responsável sobre uma amostra local fictícia com o Gemini real, espaçada em 13 s entre chamadas. Entrega integrada na PR #108.
+- **Verificação em produção (2026-11-21, após o encerramento):** sondagens anônimas, comparação de períodos, cuidados num município, comparação de municípios e cancelamento passaram com dados reais. O panorama do estado inteiro ficou incompleto: o subagente de contexto e qualidade falhou com a disponibilidade dos 87 municípios do recorte; a correção da issue #111 (PR #112) não resolveu em produção, e um diagnóstico local indicou generalização do modelo quando todos os municípios têm as mesmas classes. Uma síntese usou "não reflete" onde a evidência diz "não indica". Detalhes no [relatório de produção](../executed/011_insights_agentes/011_validation_producao.md).
 
 ## Fontes
 
@@ -133,7 +134,7 @@ As abas Lentes, Municípios e Comparação apresentam resposta, evidências, lim
 - Ciclo `009`: [plano](../executed/009_rotulos_lentes_espaco_mapa/009_plan.md) e [task da issue #91](../executed/009_rotulos_lentes_espaco_mapa/009_task_issue-91.md); `DESIGN.md` e emendas dos ADR-007, ADR-009 e ADR-011.
 
 - Ciclo `010`: [plano](../executed/010_painel_direito_completo/010_plan.md), [encerramento](../executed/010_painel_direito_completo/010_task_closure.md), `DESIGN.md` e emendas dos ADR-009 e ADR-011.
-- Ciclo `011`: [plano](../executed/011_insights_agentes/011_plan.md), [task da issue #107](../executed/011_insights_agentes/011_task_issue-107.md), [encerramento](../executed/011_insights_agentes/011_task_closure.md), `DESIGN.md`, runbook seção 10 e emenda do ADR-011.
+- Ciclo `011`: [plano](../executed/011_insights_agentes/011_plan.md), [task da issue #107](../executed/011_insights_agentes/011_task_issue-107.md), [encerramento](../executed/011_insights_agentes/011_task_closure.md), [relatório de produção](../executed/011_insights_agentes/011_validation_producao.md), `DESIGN.md`, runbook seção 10 e emenda do ADR-011.
 
 ## Histórico
 
@@ -150,4 +151,4 @@ As abas Lentes, Municípios e Comparação apresentam resposta, evidências, lim
 | 2026-11-17 | `008` | Comparação determinística de períodos e municípios, função autenticada no servidor, agente principal e dois subagentes Gemini, painel de perguntas e verificação hospedada com o pacote de confiabilidade; escopo dos agentes a rever |
 | 2026-11-17 | `009` | Rótulos das lentes, aba "Lentes" e centro só com a série, sem mudança de método |
 | 2026-11-21 | `010` | Painel de Lentes, Municípios, Comparação e perguntas reorganizado; sem alteração de método ou verificação em produção |
-| 2026-11-21 | `011` | Cinco perguntas fechadas, distribuição temporal e cruzamento de critérios, síntese interpretativa conferida; utilidade aceita em amostra local, verificação hospedada dispensada |
+| 2026-11-21 | `011` | Cinco perguntas fechadas, distribuição temporal e cruzamento de critérios, síntese interpretativa conferida; utilidade aceita em amostra local; verificação hospedada posterior com falha do panorama estadual |

@@ -521,7 +521,7 @@ Em 2026-11-21, o responsável aprovou integralmente as recomendações apresenta
 ## Pós-mortem
 
 - **Data de conclusão:** 2026-11-21 (prospectiva; efetiva após o merge do encerramento)
-- **Desvios:** a amostra real local exigiu, com autorizações próprias registradas na task da issue #107, um diagnóstico de schema, um reteste dos dois casos e duas repetições únicas do panorama, sempre com 13 s entre chamadas e sem teste de carga. O aceite de utilidade foi dado pelo responsável sobre a última amostra fictícia. A verificação hospedada foi dispensada pelo responsável no encerramento e não gerou resultados de produção.
+- **Desvios:** a amostra real local exigiu, com autorizações próprias registradas na task da issue #107, um diagnóstico de schema, um reteste dos dois casos e duas repetições únicas do panorama, sempre com 13 s entre chamadas e sem teste de carga. O aceite de utilidade foi dado pelo responsável sobre a última amostra fictícia. A verificação hospedada foi dispensada no encerramento e depois autorizada e executada em 2026-11-21 ([relatório](011_validation_producao.md)): o panorama do estado inteiro ficou incompleto por falha de formato do subagente de contexto e qualidade.
 - **Lições comprovadas:** nenhuma nova lição transversal registrada.
 
 ## Referência do bootstrap
