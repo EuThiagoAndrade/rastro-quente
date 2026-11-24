@@ -330,6 +330,8 @@ class Controlador {
     sem: Map<string, Exclude<ClasseDisponibilidade, 'sem_evidencia_de_lacuna'>>;
   } | null = null;
   private velocidade: Velocidade = 1;
+  /** A reprodução ampliou o mapa ao abrir: ao fechar, ele volta ao tamanho normal. */
+  private ampliadoPelaReproducao = false;
   /** Camada de áreas lida para a ficha, por carga (a mesma leitura da sobreposição). */
   private areasFicha: { carga: number; leitura: LeituraAreas } | null = null;
 
@@ -614,20 +616,21 @@ class Controlador {
     }
     if (this.mapaComB) { void this.restaurarMapaA(); renderLadoNoMapa(null); }
     this.fecharReproducao(false);
+    // O mapa vivo sempre abre com o mapa ampliado; ao fechar, ele volta ao tamanho anterior.
+    if (!mapaAmpliado()) { this.ampliarMapa(true, false); this.ampliadoPelaReproducao = true; }
     const rep = montarReproducao(p, a.inicio, a.fim);
     const r = this.resultado;
     const disp = r && r.filtro.inicio === a.inicio && r.filtro.fim === a.fim && r.filtro.municipio === a.municipio ? r.disponibilidade : null;
     const sem = diasSemCobertura(disp);
     this.mapa.fecharBalao();
     this.mapa.iniciarReproducao(rep.dias, rep.porDia);
-    if (tocar) this.mapa.enquadrar();
+    // Depois que o navegador aplica o novo tamanho do mapa, enquadra os dados (pontos e limite do município).
+    if (tocar || this.ampliadoPelaReproducao) this.enquadrarDepoisDoLayout();
     this.reproducao = { rep, i: 0, tocando: false, relogio: undefined, sem };
     const faixa = $<HTMLInputElement>('rep-dia');
     faixa.max = String(Math.max(0, rep.dias.length - 1));
     renderMarcas(rep, sem, a.municipio !== null);
     renderVelocidade(this.velocidade);
-    // Aberta pelo botão, a barra vem minimizada (só "Tocar" e "Fechar", ao lado da Legenda); tocando, expande.
-    $('reproducao').dataset['modo'] = tocar ? 'completo' : 'compacto';
     $('reproducao').hidden = false;
     $('reproducao').dataset['total'] = String(rep.total);
     $('botao-animar').setAttribute('aria-expanded', 'true');
@@ -650,7 +653,6 @@ class Controlador {
     const r = this.reproducao;
     if (!r) return;
     if (r.i >= r.rep.dias.length - 1) this.irParaDia(0);
-    $('reproducao').dataset['modo'] = 'completo';
     r.tocando = true;
     renderTocando(true);
     const passo = () => {
@@ -688,7 +690,17 @@ class Controlador {
     delete $('conteudo').dataset['reproducao'];
     marcarSerie(null);
     renderTocando(false);
+    if (this.ampliadoPelaReproducao && mapaAmpliado()) {
+      this.ampliarMapa(false, false);
+      this.enquadrarDepoisDoLayout();
+    }
+    this.ampliadoPelaReproducao = false;
     if (focar) this.mapa?.focar();
+  }
+
+  /** Redimensiona e enquadra no quadro seguinte ao da troca de tamanho do mapa (ampliar ou reduzir). */
+  private enquadrarDepoisDoLayout(): void {
+    requestAnimationFrame(() => requestAnimationFrame(() => this.mapa?.enquadrarAposZoom()));
   }
 
   /** Registros do alvo da ficha: o destaque aberto (evidência da lente) ou o recorte aplicado inteiro. */

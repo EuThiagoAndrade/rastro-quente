@@ -45,7 +45,7 @@ A fórmula escolhida é **pergunta → mapa vivo → ficha para averiguação**.
 - **D7. Sem 3D neste ciclo (v3).** O modo 3D proposto na v2 sai do escopo por causa do prazo: exigiria outra biblioteca de mapa, mudanças na CSP e revisão do limite de tamanho do pacote. O mapa vivo é só em 2D, no Leaflet atual. O 3D pode voltar num ciclo próprio. O relatório do CBMMT continua fora.
 - **D8. Ajustes depois do primeiro teste (2026-11-24).** Autorizados na PR #114 ("autorizo incluir a combinação de lentes na PR #114"):
   - a pergunta também aplica a combinação de lentes (duas ou mais entre concentração, recorrência e persistência, com o operador "e" ou "ou"), nos controles existentes de "Cruzar critérios"; a sobreposição continua fora da combinação;
-  - a barra do mapa vivo abre minimizada ao lado da Legenda (só "Tocar" e "Fechar") e se expande ao tocar;
+  - o mapa vivo sempre abre com o mapa ampliado e a barra completa; Esc ou "Fechar" fecham a barra e devolvem o mapa ao tamanho anterior (a barra minimizada da primeira rodada de ajustes saiu, a pedido do responsável);
   - a coluna esquerda passa a ser "Pergunte ao mapa", "Filtro" (Consulta), "Lentes" (Seleção, Contexto territorial, Cruzar critérios) e Comparar;
   - as perguntas de exemplo saem; fica o exemplo dentro do campo.
 

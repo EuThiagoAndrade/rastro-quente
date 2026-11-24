@@ -249,30 +249,7 @@
   margin-top: 0.2rem;
 }
 
-/* Minimizada: só "Tocar" e "Fechar", na base do mapa, ao lado da pílula da Legenda. */
-.reproducao[data-modo="compacto"] {
-  right: auto;
-  left: 6.6rem;
-  max-width: none;
-  margin: 0;
-  padding: 0.3rem;
-}
-
-.reproducao[data-modo="compacto"] :is(.reproducao__trilho, .reproducao__velocidades, .reproducao__rotulo, .reproducao__aviso, .reproducao__nota) {
-  display: none;
-}
-
-.reproducao[data-modo="compacto"] .reproducao__tocar {
-  min-width: 0;
-}
-
 @media (max-width: 760px) {
-  .reproducao[data-modo="compacto"] {
-    right: auto;
-    bottom: max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem));
-    left: 6.6rem;
-  }
-
   .reproducao {
     right: 0.75rem;
     bottom: calc(max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem)) + var(--alvo) + 0.4rem);

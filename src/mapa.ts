@@ -83,6 +83,11 @@ export interface Mapa {
   limparTudo(): void;
   selecionarRegistro(id: string | null): boolean;
   enquadrar(): void;
+  /**
+   * Mapa vivo (ciclo 012): enquadra depois de uma animação de zoom em curso. Chamado durante a animação, o
+   * enquadramento comum é desfeito quando ela termina.
+   */
+  enquadrarAposZoom(): void;
   permitirArrastar(ativo: boolean): void;
   arrastoAtivo(): boolean;
   aoSelecionar(f: (id: string) => void): void;
@@ -394,6 +399,11 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       mapa.invalidateSize();
       const alvo = limitesBounds && pontosBounds ? limitesBounds.extend(pontosBounds) : (limitesBounds ?? pontosBounds);
       if (alvo?.isValid()) mapa.fitBounds(alvo, { padding: [24, 24], maxZoom: 11, animate: false });
+    },
+    enquadrarAposZoom() {
+      const ajustar = () => { this.redimensionar(); this.enquadrar(); };
+      if ((mapa as unknown as { _animatingZoom?: boolean })._animatingZoom) mapa.once('zoomend', ajustar);
+      else ajustar();
     },
     permitirArrastar(ativo) {
       if (ativo) mapa.dragging.enable();

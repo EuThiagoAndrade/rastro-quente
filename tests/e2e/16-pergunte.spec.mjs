@@ -48,7 +48,8 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   // Mapa vivo aberto e tocando; a soma dos quadros é o total do recorte.
   const barra = page.locator('#reproducao');
   await expect(barra).toBeVisible();
-  await expect(barra).toHaveAttribute('data-modo', 'completo');
+  // O mapa vivo abre com o mapa ampliado.
+  await expect(page.locator('body')).toHaveClass(/mapa-ampliado/);
   await expect(barra).toHaveAttribute('data-total', '18');
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'true');
   await page.locator('#rep-tocar').click();
@@ -61,7 +62,10 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(page.locator('#rep-rotulo')).toHaveText('10/10 · 3 no dia · 18 acumuladas');
   await expect(page.locator('#rep-aviso')).toBeHidden();
   await expect(page.locator('#serie .serie__barra--atual')).toHaveAttribute('data-chave', '2026-10-10');
-  // Clicar numa barra da série leva a reprodução àquele dia.
+  // Com o mapa reduzido pelo botão do canto, a série fica à vista: clicar numa barra leva a reprodução àquele dia.
+  await page.locator('#botao-ampliar').click();
+  await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
+  await expect(page.locator('#reproducao')).toBeVisible();
   await page.locator('#serie .serie__barra[data-chave="2026-10-06"]').click();
   await expect(page.locator('#rep-rotulo')).toHaveText('06/10 · 3 no dia · 6 acumuladas');
   // Velocidade e Esc: a barra fecha e o mapa estático volta.
@@ -69,20 +73,20 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(page.locator('[data-vel="4"]')).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Escape');
   await expect(barra).toBeHidden();
+  // Um Esc fecha a reprodução e devolve o mapa ao tamanho normal.
+  await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#mapa-contagem')).toContainText('18');
-  // Pelo botão "Animar no tempo", a barra abre minimizada (só "Tocar" e "Fechar"); tocar a expande.
+  // Pelo botão "Animar no tempo": o menu fecha, o mapa amplia e a barra abre completa; "Fechar" desfaz.
   await page.locator('#opcoes-mapa > summary').click();
   await page.locator('#botao-animar').click();
-  await expect(barra).toHaveAttribute('data-modo', 'compacto');
-  await expect(page.locator('#rep-dia')).toBeHidden();
-  await expect(page.locator('#rep-tocar')).toBeVisible();
-  await expect(page.locator('#rep-fechar')).toBeVisible();
-  await page.locator('#rep-tocar').click();
-  await expect(barra).toHaveAttribute('data-modo', 'completo');
+  await expect(page.locator('#opcoes-mapa')).not.toHaveAttribute('open', '');
+  await expect(page.locator('body')).toHaveClass(/mapa-ampliado/);
   await expect(page.locator('#rep-dia')).toBeVisible();
+  await expect(page.locator('#rep-tocar')).toBeVisible();
   await page.locator('#rep-fechar').click();
   await expect(barra).toBeHidden();
+  await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
 
   // ✎ abre e foca o controle existente.
   await entendi.locator('[data-alvo="municipio"]').click();
@@ -141,6 +145,9 @@ test('com IA (provedor simulado): uma chamada à rota, JWT no cabeçalho, "Inter
 
   // Desligada no meio da sessão: o interpretador local assume, sem erro na tela; persistência aplicada pela lente.
   await request.post(CONTROLE, { data: { modo: 'desligada' } });
+  // O mapa ampliado cobre a coluna da pergunta: Esc fecha a animação e devolve o mapa ao tamanho normal.
+  await page.keyboard.press('Escape');
+  await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
   await perguntar(page, 'Onde as detecções persistiram no Município Alfa em outubro?');
   await expect(page.locator('#p-entendi')).toHaveAttribute('data-origem', 'local');
   await expect(page.locator('input[name="l-lente"][value="persistencia"]')).toBeChecked();
