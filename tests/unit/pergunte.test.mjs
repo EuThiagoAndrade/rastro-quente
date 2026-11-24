@@ -19,7 +19,7 @@ test('normaliza acentos e caixa', () => {
 
 test('as três perguntas do roteiro viram os filtros esperados', () => {
   assert.deepEqual(ler('Como as detecções evoluíram em Nova Nazaré em agosto de 2026?').interpretacao, {
-    tipo: 'consulta', periodo: { inicio: '2026-08-01', fim: '2026-08-31' }, municipio: 1, lente: 'nenhuma', classe: null,
+    tipo: 'consulta', periodo: { inicio: '2026-08-01', fim: '2026-08-31' }, municipio: 1, lente: 'nenhuma', classe: null, combinacao: null,
     animar: true, comparar: null, motivo: 'Pedido de evolução no tempo.',
   });
   const b = ler('Mostre a evolução das detecções em Campinápolis em agosto').interpretacao;
@@ -94,4 +94,34 @@ test('o prompt leva só janela e municípios; o esquema é fechado', () => {
   assert.match(p, /3: Nova Maringá/);
   assert.equal(ESQUEMA_INTERPRETACAO.additionalProperties, false);
   assert.deepEqual([...ESQUEMA_INTERPRETACAO.required].sort(), Object.keys(ESQUEMA_INTERPRETACAO.properties).sort());
+});
+
+test('combinação de lentes pela pergunta: duas ou mais lentes, operador e concentração com município', () => {
+  const e = ler('Onde há persistência e recorrência em Colniza em agosto?').interpretacao;
+  assert.equal(e.lente, 'combinacao');
+  assert.deepEqual(e.combinacao, { lentes: ['recorrencia', 'persistencia'], operador: 'e' });
+  const ou = ler('Onde os focos persistem ou voltam mês após mês em setembro?').interpretacao;
+  assert.deepEqual(ou.combinacao, { lentes: ['recorrencia', 'persistencia'], operador: 'ou' });
+  // Sem município, as três lentes entram.
+  const tres = ler('Onde há concentração, recorrência e persistência em agosto?').interpretacao;
+  assert.deepEqual(tres.combinacao, { lentes: ['concentracao', 'recorrencia', 'persistencia'], operador: 'e' });
+  // Com município, a concentração sai; com duas restantes, continua combinação.
+  const r = ler('Concentração, recorrência e persistência em Colniza');
+  assert.deepEqual(r.interpretacao.combinacao, { lentes: ['recorrencia', 'persistencia'], operador: 'e' });
+  assert.ok(r.descartados.includes('com município, a concentração sai da combinação'));
+  // Com município e só uma lente restante, aplica essa lente e avisa.
+  const uma = ler('Concentração e persistência em Colniza');
+  assert.equal(uma.interpretacao.lente, 'persistencia');
+  assert.equal(uma.interpretacao.combinacao, null);
+});
+
+test('validador da combinação: lentes inválidas, menos de duas e operador ausente', () => {
+  const base = { tipo: 'consulta', inicio: '', fim: '', municipio_codigo: 0, lente: 'combinacao', classe_area: 'nenhuma', lentes_combinacao: [], operador: 'nenhum', animar: false, comparar_modo: 'nenhuma', b_inicio: '', b_fim: '', municipio_b: 0, motivo: '' };
+  const r = validarInterpretacao({ ...base, lentes_combinacao: ['persistencia', 'sobreposicao', 'recorrencia'] }, ctx);
+  assert.deepEqual(r.interpretacao.combinacao, { lentes: ['recorrencia', 'persistencia'], operador: 'e' });
+  assert.ok(r.descartados.includes('lente desconhecida na combinação'));
+  assert.ok(r.descartados.includes('operador não citado: usado "e"'));
+  assert.equal(validarInterpretacao({ ...base, lentes_combinacao: [] }, ctx).interpretacao.lente, 'nenhuma');
+  // Combinação nunca sobra em outra lente.
+  assert.equal(validarInterpretacao({ ...base, lente: 'persistencia', lentes_combinacao: ['recorrencia', 'persistencia'], operador: 'e' }, ctx).interpretacao.combinacao, null);
 });

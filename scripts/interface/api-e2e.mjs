@@ -37,7 +37,7 @@ export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
     if (sis.includes('interpretador de perguntas')) {
       const interpretacao = {
         tipo: 'consulta', inicio: '2026-10-01', fim: '2026-10-10', municipio_codigo: 9900002, lente: 'nenhuma', classe_area: 'nenhuma',
-        animar: true, comparar_modo: 'nenhuma', b_inicio: '', b_fim: '', municipio_b: 0, motivo: 'Interpretação simulada do E2E.',
+        lentes_combinacao: [], operador: 'nenhum', animar: true, comparar_modo: 'nenhuma', b_inicio: '', b_fim: '', municipio_b: 0, motivo: 'Interpretação simulada do E2E.',
       };
       const r = { status: 'completed', usage: { total_input_tokens: 10, total_output_tokens: 5, total_thought_tokens: 0, total_tokens: 15 }, steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(interpretacao) }] }] };
       return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } });

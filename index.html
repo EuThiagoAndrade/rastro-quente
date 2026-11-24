@@ -58,33 +58,28 @@
       <div id="conteudo" class="grade" data-estado-painel="carregando" hidden>
         <!-- Esquerda: a pergunta (filtros e lentes). -->
         <section id="filtros" class="coluna coluna--lentes" aria-labelledby="t-filtros">
-          <div class="cabeca-coluna">
-            <h2 id="t-filtros" class="rotulo-secao">Filtros</h2>
-            <button id="botao-limpar" type="button" class="botao-limpar" title="Volta período, município e lente ao padrão" disabled>
-              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
-            </button>
-          </div>
-
           <!-- Ciclo 012 (issue #113): a pergunta em linguagem natural vira os filtros abaixo, que continuam editáveis. -->
-          <details id="secao-pergunte" class="secao" open>
-            <summary><span>Pergunte ao mapa</span></summary>
+          <details id="secao-pergunte" class="secao secao--topo" open>
+            <summary><h2 id="t-pergunte" class="rotulo-secao">Pergunte ao mapa</h2></summary>
             <form id="form-pergunte" class="pergunte" novalidate>
               <label class="so-leitor" for="p-pergunta">Pergunta sobre as detecções de calor</label>
-              <textarea id="p-pergunta" class="campo-periodo pergunte__campo" rows="3" maxlength="300" placeholder="Ex.: Como as detecções evoluíram em Nova Nazaré em agosto?" aria-describedby="p-ajuda"></textarea>
+              <textarea id="p-pergunta" class="campo-periodo pergunte__campo" rows="3" maxlength="300" placeholder="Ex.: Como as detecções evoluíram em Nova Nazaré em agosto de 2026?" aria-describedby="p-ajuda"></textarea>
               <div class="pergunte__acoes">
                 <span id="p-ajuda" class="nota">Enter envia; Shift+Enter quebra a linha.</span>
                 <button id="p-enviar" type="submit" class="botao botao--primario botao--compacto">Perguntar</button>
               </div>
             </form>
-            <div class="pergunte__sugestoes" role="group" aria-label="Sugestões de pergunta">
-              <button type="button" class="pergunte__sugestao">Como as detecções evoluíram em Nova Nazaré em agosto de 2026?</button>
-              <button type="button" class="pergunte__sugestao">Mostre a evolução das detecções em Campinápolis em agosto</button>
-              <button type="button" class="pergunte__sugestao">Onde as detecções persistiram em Nova Maringá entre agosto e setembro?</button>
-            </div>
             <p id="p-estado" class="nota" role="status"></p>
             <div id="p-aviso" class="pergunte__aviso" hidden></div>
             <div id="p-entendi" class="entendi" hidden></div>
           </details>
+
+          <div class="cabeca-coluna">
+            <h2 id="t-filtros" class="rotulo-secao">Filtro</h2>
+            <button id="botao-limpar" type="button" class="botao-limpar" title="Volta período, município e lente ao padrão" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
+            </button>
+          </div>
 
           <details id="secao-consulta" class="secao" open>
             <summary><span>Consulta</span></summary>
@@ -234,7 +229,7 @@
             </button>
           </div>
           <!-- Mapa vivo (ciclo 012): reprodução dia a dia das detecções do recorte, na base do mapa. -->
-          <div id="reproducao" class="flutuante reproducao" role="group" aria-label="Mapa vivo: detecções de calor dia a dia" hidden>
+          <div id="reproducao" class="flutuante reproducao" data-modo="compacto" role="group" aria-label="Mapa vivo: detecções de calor dia a dia" hidden>
             <div class="reproducao__linha">
               <button id="rep-tocar" type="button" class="botao botao--primario botao--compacto reproducao__tocar" aria-label="Tocar">▶ Tocar</button>
               <div class="reproducao__trilho">
@@ -383,7 +378,7 @@
       <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Mapa", escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"), abra a "Lista de focos" ou enquadre os dados; com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Lentes e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
-      <div class="passo"><b>5</b><div><strong>Pergunte ao mapa.</strong> No alto dos filtros, escreva uma pergunta sobre as detecções de calor. O sistema a converte nos filtros desta tela e mostra "Entendi assim", com um ✎ para corrigir cada item; com a IA desligada, um interpretador local, sem IA, faz o mesmo. Perguntas sobre autoria e previsão são recusadas. "Animar no tempo", no painel "Mapa", reproduz as detecções dia a dia (os dias de cobertura não comprovada ficam marcados), e "Gerar ficha para averiguação" prepara um documento imprimível com evidências, roteiro, ressalvas e o espaço para a conclusão do técnico.</div></div>
+      <div class="passo"><b>5</b><div><strong>Pergunte ao mapa.</strong> No alto da coluna esquerda, escreva uma pergunta sobre as detecções de calor. O sistema a converte nos filtros desta tela e mostra "Entendi assim", com um ✎ para corrigir cada item; com a IA desligada, um interpretador local, sem IA, faz o mesmo. Perguntas sobre autoria e previsão são recusadas. "Animar no tempo", no painel "Mapa", abre ao lado da Legenda os botões "Tocar" e "Fechar"; ao tocar, a barra se expande e reproduz as detecções dia a dia (os dias de cobertura não comprovada ficam marcados), e "Gerar ficha para averiguação" prepara um documento imprimível com evidências, roteiro, ressalvas e o espaço para a conclusão do técnico.</div></div>
       <div class="passo"><b>6</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as cinco perguntas fechadas usam o período, município e lente aplicados ou a comparação de períodos configurada e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. A série usa <strong>dia GMT</strong>. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>

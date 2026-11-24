@@ -421,10 +421,9 @@ class Controlador {
     campo.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); void this.perguntarMapa(campo.value); }
     });
-    for (const b of document.querySelectorAll<HTMLButtonElement>('.pergunte__sugestao')) {
-      b.addEventListener('click', () => { campo.value = b.textContent ?? ''; void this.perguntarMapa(campo.value); });
-    }
     $('botao-animar').addEventListener('click', () => {
+      // O menu "Mapa" fecha para não cobrir a barra.
+      $<HTMLDetailsElement>('opcoes-mapa').open = false;
       if (this.reproducao) this.fecharReproducao(true);
       else this.abrirReproducao(false);
     });
@@ -483,7 +482,7 @@ class Controlador {
     const dados = this.dados;
     const texto = bruta.trim();
     if (!dados || !this.aplicado) return;
-    if (!texto) { estadoPergunte('Escreva uma pergunta ou escolha uma sugestão.', false); return; }
+    if (!texto) { estadoPergunte('Escreva uma pergunta sobre as detecções de calor.', false); return; }
     const g = ++this.geracaoPergunte;
     const gs = this.geracaoSessao;
     const atual = () => g === this.geracaoPergunte && gs === this.geracaoSessao;
@@ -543,6 +542,11 @@ class Controlador {
     if (this.lente || this.combinacao || this.sobreposicao) this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
     marcar(`input[name="l-lente"][value="${i.lente}"]`);
     if (i.classe) marcar(`input[name="l-classe"][value="${i.classe}"]`);
+    if (i.combinacao) {
+      for (const c of document.querySelectorAll<HTMLInputElement>('input[name="l-comb"]')) c.checked = (i.combinacao.lentes as string[]).includes(c.value);
+      marcar(`input[name="l-operador"][value="${i.combinacao.operador}"]`);
+      this.concentracaoRetirada = false;
+    }
     this.mostrarEscolhaLente();
     if (i.lente !== 'nenhuma') this.lentePendente = true;
     // Comparação: o modo pedido, ou nenhuma.
@@ -577,7 +581,8 @@ class Controlador {
       controle = alvo === 'municipio' ? $('f-municipio')
         : $<HTMLSelectElement>('f-periodo').value === 'personalizado' ? $('f-inicio') : $('f-periodo');
     } else if (alvo === 'lente' || alvo === 'classe') {
-      const marcado = document.querySelector<HTMLInputElement>(alvo === 'classe' ? 'input[name="l-classe"]:checked' : 'input[name="l-lente"]:checked:not([hidden])')
+      const marcado = document.querySelector<HTMLInputElement>(alvo === 'classe' ? 'input[name="l-classe"]:checked'
+        : lenteEscolhida() === 'combinacao' ? 'input[name="l-comb"]:checked' : 'input[name="l-lente"]:checked:not([hidden])')
         ?? document.querySelector<HTMLInputElement>('#secao-lente input[name="l-lente"]');
       const secao = marcado?.closest('details');
       if (secao) secao.open = true;
@@ -621,6 +626,8 @@ class Controlador {
     faixa.max = String(Math.max(0, rep.dias.length - 1));
     renderMarcas(rep, sem, a.municipio !== null);
     renderVelocidade(this.velocidade);
+    // Aberta pelo botão, a barra vem minimizada (só "Tocar" e "Fechar", ao lado da Legenda); tocando, expande.
+    $('reproducao').dataset['modo'] = tocar ? 'completo' : 'compacto';
     $('reproducao').hidden = false;
     $('reproducao').dataset['total'] = String(rep.total);
     $('botao-animar').setAttribute('aria-expanded', 'true');
@@ -643,6 +650,7 @@ class Controlador {
     const r = this.reproducao;
     if (!r) return;
     if (r.i >= r.rep.dias.length - 1) this.irParaDia(0);
+    $('reproducao').dataset['modo'] = 'completo';
     r.tocando = true;
     renderTocando(true);
     const passo = () => {

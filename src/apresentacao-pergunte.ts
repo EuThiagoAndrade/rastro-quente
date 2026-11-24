@@ -19,7 +19,7 @@ export interface ItemEntendi {
 
 const NOME_LENTE: Record<string, string> = {
   nenhuma: 'Nenhuma', concentracao: 'Concentração', recorrencia: 'Recorrência', persistencia: 'Persistência',
-  sobreposicao: 'Sobreposição com áreas protegidas',
+  sobreposicao: 'Sobreposição com áreas protegidas', combinacao: 'Combinação de lentes',
 };
 const NOME_CLASSE: Record<ClasseArea, string> = {
   protecao_integral: 'Proteção integral', uso_sustentavel: 'Uso sustentável', terra_indigena: 'Terra indígena',
@@ -30,7 +30,12 @@ export function itensEntendi(i: Interpretacao, aplicado: Janela, nome: (codigo: 
   const itens: ItemEntendi[] = [
     { rotulo: 'Período', valor: i.periodo ? resumoPeriodo(i.periodo) : `mantido: ${resumoPeriodo(aplicado)}`, alvo: 'periodo' },
     { rotulo: 'Município', valor: nome(i.municipio), alvo: 'municipio' },
-    { rotulo: 'Lente', valor: NOME_LENTE[i.lente] ?? i.lente, alvo: 'lente' },
+    {
+      rotulo: 'Lente', alvo: 'lente',
+      valor: i.combinacao
+        ? `Combinação: ${i.combinacao.lentes.map((l) => NOME_LENTE[l]).join(i.combinacao.operador === 'e' ? ' e ' : ' ou ')} (${i.combinacao.operador === 'e' ? 'e: destacada por todas' : 'ou: destacada por pelo menos uma'})`
+        : NOME_LENTE[i.lente] ?? i.lente,
+    },
   ];
   if (i.classe) itens.push({ rotulo: 'Classe de área', valor: NOME_CLASSE[i.classe], alvo: 'classe' });
   itens.push({ rotulo: 'Modo', valor: i.animar ? 'Animação dia a dia' : 'Mapa estático', alvo: 'animar' });

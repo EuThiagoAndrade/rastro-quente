@@ -23,6 +23,12 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   // A seção nova é a primeira da coluna e recolhível; as demais continuam na mesma ordem.
   const secoes = await page.locator('#filtros > details.secao').evaluateAll((s) => s.map((x) => x.id));
   expect(secoes).toEqual(['secao-pergunte', 'secao-consulta', 'secao-lente', 'secao-contexto', 'secao-cruzar', 'secao-comparar']);
+  // "Pergunte ao mapa" vem antes do rótulo "Filtro"; não há perguntas de exemplo, só o exemplo no campo.
+  await expect(page.locator('#t-pergunte')).toHaveText('Pergunte ao mapa');
+  await expect(page.locator('#t-filtros')).toHaveText('Filtro');
+  expect(await page.locator('#t-pergunte').evaluate((a) => !!(a.compareDocumentPosition(document.getElementById('t-filtros')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  await expect(page.locator('.pergunte__sugestao')).toHaveCount(0);
+  await expect(page.locator('#p-pergunta')).toHaveAttribute('placeholder', /^Ex\.: /);
   await expect(page.locator('#reproducao')).toBeHidden();
 
   await perguntar(page, 'Como as detecções evoluíram no Município Beta entre 01/10 e 10/10?');
@@ -42,6 +48,7 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   // Mapa vivo aberto e tocando; a soma dos quadros é o total do recorte.
   const barra = page.locator('#reproducao');
   await expect(barra).toBeVisible();
+  await expect(barra).toHaveAttribute('data-modo', 'completo');
   await expect(barra).toHaveAttribute('data-total', '18');
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'true');
   await page.locator('#rep-tocar').click();
@@ -64,6 +71,18 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(barra).toBeHidden();
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#mapa-contagem')).toContainText('18');
+  // Pelo botão "Animar no tempo", a barra abre minimizada (só "Tocar" e "Fechar"); tocar a expande.
+  await page.locator('#opcoes-mapa > summary').click();
+  await page.locator('#botao-animar').click();
+  await expect(barra).toHaveAttribute('data-modo', 'compacto');
+  await expect(page.locator('#rep-dia')).toBeHidden();
+  await expect(page.locator('#rep-tocar')).toBeVisible();
+  await expect(page.locator('#rep-fechar')).toBeVisible();
+  await page.locator('#rep-tocar').click();
+  await expect(barra).toHaveAttribute('data-modo', 'completo');
+  await expect(page.locator('#rep-dia')).toBeVisible();
+  await page.locator('#rep-fechar').click();
+  await expect(barra).toBeHidden();
 
   // ✎ abre e foca o controle existente.
   await entendi.locator('[data-alvo="municipio"]').click();
@@ -129,6 +148,15 @@ test('com IA (provedor simulado): uma chamada à rota, JWT no cabeçalho, "Inter
   await expect(page.locator('#aba-destaques')).toHaveAttribute('aria-selected', 'true');
   await expect(page.locator('#cartao-lentes')).not.toHaveAttribute('data-estado-lente', 'carregando');
   await expect(page.locator('#reproducao')).toBeHidden();
+  // Combinação de lentes pela pergunta: duas lentes citadas, operador "e", nos controles de "Cruzar critérios".
+  await perguntar(page, 'Onde há persistência e recorrência no Município Alfa em outubro?');
+  await expect(page.locator('input[name="l-lente"][value="combinacao"]')).toBeChecked();
+  await expect(page.locator('input[name="l-comb"][value="persistencia"]')).toBeChecked();
+  await expect(page.locator('input[name="l-comb"][value="recorrencia"]')).toBeChecked();
+  await expect(page.locator('input[name="l-comb"][value="concentracao"]')).not.toBeChecked();
+  await expect(page.locator('input[name="l-operador"][value="e"]')).toBeChecked();
+  await expect(page.locator('#p-entendi [data-item="lente"]')).toContainText('Combinação: Recorrência e Persistência');
+  await expect(page.locator('#cartao-lentes')).not.toHaveAttribute('data-estado-lente', 'carregando');
   // "Limpar tudo" tira a interpretação junto com os filtros.
   await page.getByRole('button', { name: 'Limpar tudo' }).click();
   await expect(page.locator('#p-entendi')).toBeHidden();
