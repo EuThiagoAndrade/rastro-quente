@@ -289,10 +289,10 @@ O texto determinístico da síntese fica.
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 012 (leve)
+Situação: Aguardando merge — ciclo 012 (leve)
 Quem: Responsável
-Conferir: Issue [#113](https://github.com/EuThiagoAndrade/rastro-quente/issues/113) e escopo deste plano
-Diga: "autorizo a implementação da issue #113"
+Conferir: Checks e diff da PR [#114](https://github.com/EuThiagoAndrade/rastro-quente/pull/114)
+Diga: "aprovo o merge da PR #114"
 ```
 
 ## Handoff de saída
