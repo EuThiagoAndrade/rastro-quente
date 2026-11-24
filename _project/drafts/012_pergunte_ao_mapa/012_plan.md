@@ -12,7 +12,8 @@
 > **Modo contínuo:** `—`
 > **Revisão formal:** `Dispensada pelo responsável (D1)`
 > **Veredito da revisão:** `—`
-> **Aprovação humana pós-revisão:** `—`
+> **Aprovação humana pós-revisão:** `—` (revisão dispensada, D1)
+> **Autorização de implementação:** "Autorizo a implementação da issue #113" em 2026-11-24
 > **Issue:** [#113](https://github.com/EuThiagoAndrade/rastro-quente/issues/113)
 > **Branch:** `feature/issue-113`
 > **handoff_schema_version:** `2`

@@ -1,0 +1,491 @@
+/* Ciclo 012 (issue #113): Pergunte ao mapa, mapa vivo e ficha para averiguação. Só tokens e padrões existentes;
+   nada do que já existia muda de aparência. */
+
+.pergunte__campo {
+  display: block;
+  resize: vertical;
+  min-height: calc(var(--alvo) * 1.6);
+  line-height: 1.35;
+}
+
+.pergunte__acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.pergunte__acoes .nota {
+  margin: 0;
+}
+
+.pergunte__sugestoes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.6rem;
+}
+
+.pergunte__sugestao {
+  min-height: var(--alvo);
+  padding: 0.35rem 0.6rem;
+  border: 1px dashed var(--contorno);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--link);
+  font: inherit;
+  font-size: var(--t-pequeno);
+  text-align: left;
+  cursor: pointer;
+}
+
+.pergunte__sugestao:hover {
+  border-style: solid;
+  background: var(--escolha-suave);
+}
+
+#p-estado:empty {
+  display: none;
+}
+
+.pergunte__aviso {
+  margin-top: 0.5rem;
+}
+
+.pergunte__aviso .aviso-estado {
+  margin-bottom: 0.4rem;
+}
+
+.entendi {
+  margin-top: 0.6rem;
+  padding: 0.6rem 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-left: 3px solid var(--escolha);
+  border-radius: 10px;
+  background: var(--superficie-suave);
+}
+
+.entendi__cabeca {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.3rem 0.5rem;
+}
+
+.entendi__cabeca .rotulo-secao {
+  margin: 0;
+}
+
+.entendi__origem {
+  padding: 0 0.5rem;
+  border: 2px solid var(--escolha);
+  border-radius: 999px;
+  font-size: var(--t-pequeno);
+  font-weight: 600;
+}
+
+.entendi__origem[data-origem="local"] {
+  border-style: dashed;
+  border-color: var(--contorno);
+}
+
+.entendi__itens {
+  margin: 0.4rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.entendi__itens li {
+  display: grid;
+  grid-template-areas: "rotulo editar" "valor editar";
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  column-gap: 0.4rem;
+  padding: 0.25rem 0;
+  border-bottom: 1px solid var(--contorno-suave);
+  font-size: var(--t-pequeno);
+}
+
+.entendi__rotulo {
+  grid-area: rotulo;
+  color: var(--texto-suave);
+}
+
+.entendi__valor {
+  grid-area: valor;
+  font-weight: 600;
+}
+
+.entendi__editar {
+  grid-area: editar;
+  min-width: var(--alvo);
+  min-height: var(--alvo);
+  border: 0;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  font-size: 1.05rem;
+  cursor: pointer;
+}
+
+.entendi__ficha {
+  width: 100%;
+  margin-top: 0.6rem;
+}
+
+/* ✎: o controle aberto ganha por um instante o contorno de foco (classe aplicada pelo JS). */
+.editando {
+  border-radius: var(--raio-pequeno);
+  outline: 3px solid var(--foco);
+  outline-offset: 2px;
+  animation: editando 1.8s ease-out forwards;
+}
+
+@keyframes editando {
+  0%,
+  70% {
+    outline-color: var(--foco);
+  }
+  100% {
+    outline-color: transparent;
+  }
+}
+
+.opcao-mapa--animar::before {
+  content: "▶";
+}
+
+.opcao-mapa--animar[aria-expanded="true"]::before {
+  content: "■";
+}
+
+/* Barra do mapa vivo: na base do mapa, entre a legenda (esquerda) e o zoom (direita). */
+.reproducao {
+  bottom: max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem));
+  /* Entre a pílula da Legenda (esquerda) e o zoom (direita), centralizada no espaço livre. */
+  right: calc(var(--alvo) + 1.5rem);
+  left: 7.5rem;
+  max-width: 40rem;
+  margin-inline: auto;
+  padding: 0.45rem 0.7rem 0.35rem;
+  background: color-mix(in srgb, var(--superficie) 95%, transparent);
+}
+
+.reproducao__linha {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem 0.5rem;
+}
+
+.reproducao__tocar {
+  min-width: 6.4rem;
+}
+
+.reproducao__trilho {
+  position: relative;
+  flex: 1;
+  flex-basis: 8rem;
+  min-width: 6rem;
+}
+
+.reproducao__trilho input {
+  width: 100%;
+  min-height: var(--alvo);
+  margin: 0;
+  accent-color: var(--escolha);
+}
+
+.reproducao__marcas {
+  position: absolute;
+  right: 0.5rem;
+  bottom: 0.1rem;
+  left: 0.5rem;
+  height: 0.6rem;
+  pointer-events: none;
+}
+
+.reproducao__marca {
+  position: absolute;
+  bottom: 0;
+  width: 0;
+  height: 0;
+  margin-left: -0.3rem;
+  border-right: 0.3rem solid transparent;
+  border-bottom: 0.5rem solid var(--classe-indeterminada);
+  border-left: 0.3rem solid transparent;
+}
+
+.reproducao__velocidades {
+  display: flex;
+  gap: 0.15rem;
+}
+
+.reproducao__vel {
+  min-width: 2.3rem;
+  min-height: var(--alvo);
+  padding: 0 0.3rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: 6px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+  font-size: var(--t-pequeno);
+  cursor: pointer;
+}
+
+.reproducao__vel[aria-pressed="true"] {
+  border: 2px solid var(--escolha);
+  background: var(--escolha-suave);
+  font-weight: 700;
+}
+
+.reproducao__rotulo {
+  margin: 0.1rem 0 0;
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.reproducao__aviso {
+  margin: 0.25rem 0 0;
+  padding: 0.25rem 0.5rem;
+  border-left: 0.25rem solid var(--aviso-borda);
+  background: var(--aviso-fundo);
+  color: var(--aviso-texto);
+}
+
+.reproducao__nota {
+  margin-top: 0.2rem;
+}
+
+@media (max-width: 760px) {
+  .reproducao {
+    right: 0.75rem;
+    bottom: calc(max(1.6rem, calc(var(--altura-atribuicao, 0px) + 0.4rem)) + var(--alvo) + 0.4rem);
+    left: 0.75rem;
+  }
+}
+
+/* Série acompanha o dia da reprodução. */
+#conteudo[data-reproducao="aberta"] .serie__barra {
+  cursor: pointer;
+}
+
+.serie__barra--atual .serie__coluna {
+  outline: 2px solid var(--texto);
+  outline-offset: 1px;
+}
+
+.serie__barra--atual .serie__rotulo {
+  color: var(--texto);
+  font-weight: 700;
+}
+
+.botao-ficha {
+  width: 100%;
+  margin-top: 0.75rem;
+}
+
+/* Ficha para averiguação (diálogo imprimível). */
+.dialogo--ficha {
+  width: min(52rem, calc(100vw - 2rem));
+}
+
+.ficha__botoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.ficha__estado:empty {
+  display: none;
+}
+
+.ficha__sobretitulo {
+  margin: 0;
+  font-weight: 700;
+}
+
+.ficha__secao {
+  margin-top: 1rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--contorno-suave);
+}
+
+.ficha__secao h3 {
+  margin: 0 0 0.4rem;
+  font-size: var(--t-medio);
+}
+
+.ficha__secao p,
+.ficha__secao li {
+  margin: 0.25rem 0;
+}
+
+.ficha__pares {
+  display: grid;
+  grid-template-columns: minmax(10rem, max-content) 1fr;
+  gap: 0.2rem 1rem;
+  margin: 0.25rem 0;
+}
+
+.ficha__pares dt {
+  color: var(--texto-suave);
+}
+
+.ficha__pares dd {
+  margin: 0;
+  font-weight: 600;
+}
+
+.ficha__rotulo {
+  font-weight: 600;
+}
+
+.ficha__figuras {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.ficha__figuras svg {
+  width: 100%;
+  height: auto;
+  border: 1px solid var(--contorno-suave);
+  border-radius: var(--raio-pequeno);
+}
+
+.ficha__mapa-fundo {
+  fill: var(--superficie-suave);
+}
+
+.ficha__ponto {
+  fill: var(--deteccao);
+  fill-opacity: 0.85;
+  stroke: var(--deteccao-escura);
+  stroke-width: 0.6;
+}
+
+.ficha__barra {
+  fill: var(--barra);
+}
+
+.ficha__sem-cobertura {
+  fill: var(--aviso-fundo);
+}
+
+.ficha__escala {
+  stroke: var(--texto);
+  stroke-width: 2;
+}
+
+.ficha__escala-texto {
+  fill: var(--texto-suave);
+  font-size: 10px;
+}
+
+.ficha__ia {
+  margin-top: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  border-left: 3px solid var(--escolha);
+  background: var(--superficie-suave);
+}
+
+.ficha__conclusao {
+  margin: 0 0 0.5rem;
+  padding: 0.25rem 0.75rem;
+  border: 1px solid var(--contorno-suave);
+  border-radius: var(--raio-pequeno);
+}
+
+.ficha__campo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  margin-top: 0.5rem;
+  font-size: var(--t-pequeno);
+  color: var(--texto-suave);
+}
+
+.ficha__campo :is(input, textarea) {
+  min-height: var(--alvo);
+  padding: 0.35rem 0.5rem;
+  border: 1px solid var(--contorno);
+  border-radius: 8px;
+  background: var(--superficie);
+  color: var(--texto);
+  font: inherit;
+}
+
+.ficha__assinatura {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 0.5rem;
+}
+
+@media (max-width: 760px) {
+  .ficha__assinatura,
+  .ficha__pares {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Impressão (Salvar como PDF): só a ficha, em cores claras, sem os botões. */
+@media print {
+  body > :not(#dialogo-ficha) {
+    display: none !important;
+  }
+
+  #dialogo-ficha {
+    position: static;
+    width: auto;
+    max-width: none;
+    max-height: none;
+    margin: 0;
+    padding: 0;
+    overflow: visible;
+    border: 0;
+    color: #000;
+    background: #fff;
+  }
+
+  #dialogo-ficha::backdrop {
+    background: none;
+  }
+
+  .ficha__botoes,
+  .ficha__estado {
+    display: none !important;
+  }
+
+  .ficha__secao {
+    break-inside: avoid;
+  }
+
+  .ficha__pares dt,
+  .ficha__campo,
+  .nota {
+    color: #333;
+  }
+
+  .ficha__ponto {
+    fill: #f97316;
+    stroke: #7c2d12;
+  }
+
+  .ficha__barra {
+    fill: #f97316;
+  }
+
+  .ficha__mapa-fundo {
+    fill: #f4f6f2;
+  }
+
+  .ficha__sem-cobertura {
+    fill: #fff6df;
+  }
+}

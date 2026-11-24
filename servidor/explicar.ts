@@ -50,14 +50,14 @@ function classificar(e: unknown): ErroHttp {
 }
 
 /** Origem, quando presente, precisa ser a própria ou uma configurada; ausência não autentica nada (T4). */
-function origemPermitida(request: Request, config: ConfigLigada): boolean {
+export function origemPermitida(request: Request, config: ConfigLigada): boolean {
   const origem = request.headers.get('origin');
   if (origem === null) return true;
   return origem === new URL(request.url).origin || config.origens.includes(origem);
 }
 
 /** Autorização vigente provada sob RLS: a carga vigente só aparece para o responsável autorizado. */
-async function autorizar(cliente: SupabaseClient): Promise<CargaDetalhe> {
+export async function autorizar(cliente: SupabaseClient): Promise<CargaDetalhe> {
   const carga = await lerCargaVigente(cliente);
   if (carga) return carga;
   const s = await sondarAcesso(cliente);
