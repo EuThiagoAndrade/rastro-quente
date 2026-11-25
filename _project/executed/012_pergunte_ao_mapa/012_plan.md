@@ -1,10 +1,10 @@
 # Plano de Implementação — Pergunte ao mapa
 
 > **Ciclo:** `012`
-> **Status:** `Rascunho`
+> **Status:** `Concluído`
 > **Versão:** `v3`
 > **Data de criação:** 2026-11-24
-> **Última atualização:** 2026-11-24
+> **Última atualização:** 2026-11-25
 > **Tipo:** `feature`
 > **Prioridade:** `P1`
 > **Nível:** `leve`
@@ -291,22 +291,30 @@ O texto determinístico da síntese fica.
 - Maquete de funcionalidade: `local/mockup-visual/v14/rastro-quente-v14.html` (local, não versionada).
 - `DESIGN.md`, ADR-007, ADR-009, ADR-010, ADR-011, KB-005 e KB-006: referências de comportamento existente, não alteradas neste ciclo (D1).
 
+## Encerramento
+
+- **Encerramento prospectivo:** Sim. Encerramento curto, autorizado pelo responsável em 2026-11-25 ("Posso fazer o encerramento curto dos ciclos 012 e 013"), numa PR documental conjunta, porque a PR de entrega deste ciclo leve (D1) foi integrada sem o encerramento.
+- **Entrega:** PR [#114](https://github.com/EuThiagoAndrade/rastro-quente/pull/114), integrada por squash em `main` (`c90a3bf`), com os checks verdes. Fechou a issue [#113](https://github.com/EuThiagoAndrade/rastro-quente/issues/113).
+- **O que entrou:** "Pergunte ao mapa", mapa vivo e ficha para averiguação, com os ajustes D8 do teste do responsável.
+- O ciclo 013 (PR #116) ajustou o que este entregou: sobrecarga da IA com modelo reserva e o mini mapa da ficha.
+- **Integração deste encerramento:** `Pendente` até o merge da PR documental.
+
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 012 (leve)
-Quem: Responsável
-Conferir: Checks e diff da PR [#114](https://github.com/EuThiagoAndrade/rastro-quente/pull/114)
-Diga: "aprovo o merge da PR #114"
+Situação: Concluído — ciclo 012 (leve)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 012 + ajustar_plano + 012_plan + v3`
-- `effect_class`: `local_mutation` (plano e referência de versão em `cycles.md`)
-- `state_before` / `state_after`: plano `Rascunho` v2, com 3D e sem trajeto / plano `Rascunho` v3, só 2D e sem trajeto; implementação não iniciada
+- `logical_key`: `rastro-quente + 012 + encerrar + 012_plan + pr-114`
+- `effect_class`: `remote_mutation` (PR documental de encerramento)
+- `state_before` / `state_after`: ciclo em `drafts/`, `Planejamento`, com a PR #114 integrada / ciclo em `executed/`, `Concluído`
 - `result`: `executed`
-- `evidence`: este arquivo e a linha do ciclo `012` em `_project/cycles.md`. A issue #113 não foi alterada nesta revisão.
+- `evidence`: PR #114 integrada (`c90a3bf`) com os checks verdes; issue #113 fechada; linha do ciclo em `_project/cycles.md`
 - `blockers`: nenhum
