@@ -11,15 +11,18 @@
 // `GET /__e2e/provedor` devolve `{ chamadas }`, o número de chamadas recebidas pelo provedor simulado.
 // Ciclo 012 (issue #113): `/api/interpretar` usa o mesmo provedor simulado; a interpretação simulada é fixa (Município
 // Beta, 01 a 10/10/2026, com animação) e só é usada pelo E2E que liga a IA; com `desligada`, vale o interpretador local.
+// Ciclo 013 (issue #115), só para `/api/interpretar`, com a reserva configurada:
+//   - `sobrecarregada`: todos os modelos respondem 503 de alta demanda;
+//   - `reserva`: o modelo principal responde 503, e o modelo reserva interpreta.
 import http from 'node:http';
 import { criarCliente } from '../../api/explicar.ts';
 import { tratarExplicar } from '../../servidor/explicar.ts';
 import { tratarInterpretar } from '../../servidor/interpretar.ts';
 import { criarGemini } from '../../servidor/gemini.ts';
-import { MODELO_FIXADO } from '../../servidor/config.ts';
+import { MODELO_FIXADO, MODELO_RESERVA } from '../../servidor/config.ts';
 import { respostaSimulada } from '../agentes/simulado.mjs';
 
-const MODOS = new Set(['normal', 'falha_lentes', 'desligada']);
+const MODOS = new Set(['normal', 'falha_lentes', 'desligada', 'sobrecarregada', 'reserva']);
 
 export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
   const estado = { modo: 'normal', atrasoMs: 0, chamadas: 0 };
@@ -35,6 +38,8 @@ export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
     }
     const sis = String(corpo.system_instruction ?? '');
     if (sis.includes('interpretador de perguntas')) {
+      const sobrecarga = estado.modo === 'sobrecarregada' || (estado.modo === 'reserva' && corpo.model === MODELO_FIXADO);
+      if (sobrecarga) return new Response(JSON.stringify({ error: { code: 503, status: 'UNAVAILABLE' } }), { status: 503, headers: { 'content-type': 'application/json' } });
       const interpretacao = {
         tipo: 'consulta', inicio: '2026-10-01', fim: '2026-10-10', municipio_codigo: 9900002, lente: 'nenhuma', classe_area: 'nenhuma',
         lentes_combinacao: [], operador: 'nenhum', animar: true, comparar_modo: 'nenhuma', b_inicio: '', b_fim: '', municipio_b: 0, motivo: 'Interpretação simulada do E2E.',
@@ -52,9 +57,9 @@ export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
   const deps = () => ({
     config: estado.modo === 'desligada'
       ? { habilitada: false }
-      : { habilitada: true, supabaseUrl, chavePublica, gemini: { chave: 'chave-ficticia-e2e', modelo: MODELO_FIXADO }, origens: [origem] },
+      : { habilitada: true, supabaseUrl, chavePublica, gemini: { chave: 'chave-ficticia-e2e', modelo: MODELO_FIXADO, modeloReserva: MODELO_RESERVA }, origens: [origem] },
     criarCliente,
-    provedor: (config) => criarGemini(config.gemini, fetchProvedor),
+    provedor: (config, modelo) => criarGemini({ chave: config.gemini.chave, modelo: modelo ?? config.gemini.modelo }, fetchProvedor),
   });
 
   const servidor = http.createServer(async (req, res) => {

@@ -2,12 +2,14 @@
 // por padrão; qualquer variável ausente ou inválida também a desliga. Nada aqui é registrado em log.
 
 export const MODELO_FIXADO = 'gemini-3.1-flash-lite';
+/** Modelo reserva da "Pergunte ao mapa" (ciclo 013, ADR-011): só depois de sobrecarga persistente do principal. */
+export const MODELO_RESERVA = 'gemini-3.5-flash';
 
 export interface ConfigLigada {
   habilitada: true;
   supabaseUrl: string;
   chavePublica: string;
-  gemini: { chave: string; modelo: string; intervaloMs?: number };
+  gemini: { chave: string; modelo: string; intervaloMs?: number; modeloReserva?: string };
   /** Origens admitidas além da própria (validação de origem não substitui autenticação). */
   origens: string[];
 }
@@ -31,6 +33,8 @@ const url = (x: string | undefined): string | null => {
  * pública do Supabase (a sessão é a do usuário); `RQ_GEMINI_CHAVE` e `RQ_GEMINI_MODELO` (exatamente o modelo fixado,
  * sem alias) são do provedor; `RQ_GEMINI_INTERVALO_MS` (opcional, inteiro de 0 a 20000) espaça as chamadas ao provedor
  * para a cota por minuto do projeto (presente e inválido desliga a função); `RQ_ORIGENS` lista origens extras separadas por vírgula.
+ * `RQ_GEMINI_MODELO_RESERVA` (opcional, ciclo 013) liga o modelo reserva da "Pergunte ao mapa" só se for exatamente
+ * o modelo reserva, sem alias; ausente ou com outro valor, a reserva fica desligada e o resto continua como está.
  */
 export function lerConfigServidor(env: Ambiente): ConfigServidor {
   if (env['RQ_IA_HABILITADA'] !== 'true') return { habilitada: false };
@@ -43,5 +47,10 @@ export function lerConfigServidor(env: Ambiente): ConfigServidor {
   const intervaloMs = bruto === undefined || bruto === '' ? 0 : /^\d{1,5}$/.test(bruto) && Number(bruto) <= 20_000 ? Number(bruto) : null;
   if (intervaloMs === null) return { habilitada: false };
   const origens = (env['RQ_ORIGENS'] ?? '').split(',').map((x) => x.trim()).filter((x) => url(x) !== null);
-  return { habilitada: true, supabaseUrl, chavePublica, gemini: { chave, modelo, ...(intervaloMs ? { intervaloMs } : {}) }, origens };
+  const reserva = env['RQ_GEMINI_MODELO_RESERVA'] === MODELO_RESERVA;
+  return {
+    habilitada: true, supabaseUrl, chavePublica,
+    gemini: { chave, modelo, ...(intervaloMs ? { intervaloMs } : {}), ...(reserva ? { modeloReserva: MODELO_RESERVA } : {}) },
+    origens,
+  };
 }

@@ -125,3 +125,28 @@ test('validador da combinação: lentes inválidas, menos de duas e operador aus
   // Combinação nunca sobra em outra lente.
   assert.equal(validarInterpretacao({ ...base, lente: 'persistencia', lentes_combinacao: ['recorrencia', 'persistencia'], operador: 'e' }, ctx).interpretacao.combinacao, null);
 });
+
+// --- Ciclo 013 (issue #115): sobrecarga e modelo reserva no navegador ----------------------------------------------
+
+test('nota de falha: sobrecarga tem nota própria; tempo e outras falhas mantêm as notas atuais', async () => {
+  const { notaFalhaIa } = await import('../../src/pergunte.ts');
+  assert.equal(notaFalhaIa('provedor_sobrecarregado'), 'A IA está sobrecarregada no momento; o interpretador local assumiu. Tente de novo em alguns minutos.');
+  assert.equal(notaFalhaIa('tempo_esgotado'), 'A IA não respondeu a tempo; o interpretador local assumiu.');
+  assert.equal(notaFalhaIa('provedor_indisponivel'), 'A IA não respondeu como esperado; o interpretador local assumiu.');
+  assert.equal(notaFalhaIa('cota_provedor'), 'A IA não respondeu como esperado; o interpretador local assumiu.');
+});
+
+test('pedirInterpretacao: reserva informada, sobrecarga (503) não é IA desligada', async () => {
+  const { pedirInterpretacao, ROTULO_ORIGEM } = await import('../../src/pergunte.ts');
+  const resp = (status, corpo) => async () => new Response(JSON.stringify(corpo), { status, headers: { 'content-type': 'application/json' } });
+  const carga = { id: 1, identidade: 'a'.repeat(64) };
+  const sinal = new AbortController().signal;
+  assert.deepEqual(await pedirInterpretacao('p', carga, 't', sinal, resp(200, { interpretacao: { tipo: 'consulta' }, modelo: 'gemini-3.5-flash', reserva: true })),
+    { tipo: 'ok', bruto: { tipo: 'consulta' }, reserva: true });
+  assert.deepEqual(await pedirInterpretacao('p', carga, 't', sinal, resp(200, { interpretacao: { tipo: 'consulta' }, modelo: 'gemini-3.1-flash-lite', reserva: false })),
+    { tipo: 'ok', bruto: { tipo: 'consulta' }, reserva: false });
+  assert.deepEqual(await pedirInterpretacao('p', carga, 't', sinal, resp(503, { erro: 'provedor_sobrecarregado' })),
+    { tipo: 'falha', codigo: 'provedor_sobrecarregado' });
+  assert.deepEqual(await pedirInterpretacao('p', carga, 't', sinal, resp(503, { erro: 'ia_desabilitada' })), { tipo: 'desligada' });
+  assert.equal(ROTULO_ORIGEM.ia_reserva, 'Interpretado por IA (modelo reserva)');
+});

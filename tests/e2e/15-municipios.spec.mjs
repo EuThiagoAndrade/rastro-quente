@@ -16,7 +16,6 @@ for (const [width, height, escuro] of [[1440, 900, false], [390, 844, true]]) {
     await expect(page.locator('#municipios-periodo')).toContainText('01/10/2026 a 31/10/2026');
     await page.locator('[data-ordem="nome"]').click();
     const linha = page.locator('#lista-municipios button[data-codigo="9900002"]');
-    const contexto = await page.locator('#perguntas-contexto-aplicado').textContent();
     await linha.focus();
     await page.keyboard.press('Enter');
     await expect(page.locator('#municipio-detalhe-titulo')).toBeFocused();
@@ -24,7 +23,6 @@ for (const [width, height, escuro] of [[1440, 900, false], [390, 844, true]]) {
     await expect(page.locator('#cartao-dias')).toHaveCount(0);
     await expect(page.locator('#f-municipio')).toHaveValue('');
     await expect(page.locator('#serie')).toHaveAttribute('data-total', '100');
-    await expect(page.locator('#perguntas-contexto-aplicado')).toHaveText(contexto);
     await page.locator('#municipio-mostrar-mapa').click();
     await expect(page.locator('#municipio-mapa-estado')).toHaveAttribute('data-estado', 'exibido');
     await expect(page.locator('#f-municipio')).toHaveValue('');

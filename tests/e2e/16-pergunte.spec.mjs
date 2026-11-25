@@ -46,7 +46,9 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
 
   await perguntar(page, 'Como as detecções evoluíram no Município Beta entre 01/10 e 10/10?');
   const entendi = page.locator('#p-entendi');
-  await expect(entendi).toBeVisible();
+  // A pergunta pede animação: o mapa vivo abre ampliado assim que os pontos chegam e esconde a coluna. Aqui só se
+  // confere que o bloco foi preenchido; a visibilidade é conferida depois do Esc, sem corrida com a abertura.
+  await expect(entendi).not.toHaveAttribute('hidden', '');
   await expect(entendi).toHaveAttribute('data-origem', 'local');
   await expect(entendi).toContainText('Interpretado sem IA');
   // IA desligada (503): o robozinho fica apagado.
@@ -88,8 +90,9 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(page.locator('[data-vel="4"]')).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Escape');
   await expect(barra).toBeHidden();
-  // Um Esc fecha a reprodução e devolve o mapa ao tamanho normal.
+  // Um Esc fecha a reprodução e devolve o mapa ao tamanho normal; a coluna e o "Entendi assim" voltam à vista.
   await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
+  await expect(entendi).toBeVisible();
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#mapa-contagem')).toContainText('18');
   // Pelo botão "Animar no tempo": o menu fecha, o mapa amplia e a barra abre completa; "Fechar" desfaz.
@@ -120,7 +123,17 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(ficha).toContainText('VIIRS');
   await expect(ficha).toContainText('Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.');
   await expect(ficha.locator('input[name="ficha-parecer"]')).toHaveCount(3);
-  await expect(ficha.locator('svg.ficha__mini-mapa circle')).toHaveCount(18);
+  // Ciclo 013 (D10): mini mapa com a densidade por célula (a soma das células é o total do alvo), o limite do
+  // município das detecções e a legenda de domínio; sem as bolinhas de antes.
+  const miniMapa = ficha.locator('svg.ficha__mini-mapa');
+  await expect(miniMapa.locator('circle')).toHaveCount(0);
+  await expect(miniMapa.locator('path.ficha__limite')).toHaveCount(1);
+  const contagens = await miniMapa.locator('rect.ficha__celula').evaluateAll((rs) => rs.map((r) => Number(r.getAttribute('data-contagem'))));
+  expect(contagens.length).toBeGreaterThan(0);
+  expect(contagens.reduce((a, b) => a + b, 0)).toBe(18);
+  await expect(miniMapa).toHaveAttribute('aria-label', /limite de Município Beta/);
+  await expect(ficha.locator('.ficha__legenda')).toContainText('Detecções por célula: contagem, não gravidade');
+  await expect(ficha.locator('.ficha__legenda')).toContainText('Limite do município');
   await ficha.getByRole('button', { name: 'Fechar' }).click();
   await expect(ficha).not.toHaveAttribute('open', '');
   await expect(page.locator('#botao-ficha-pergunta')).toBeFocused();
@@ -183,4 +196,27 @@ test('com IA (provedor simulado): uma chamada à rota, JWT no cabeçalho, "Inter
   await page.getByRole('button', { name: 'Limpar tudo' }).click();
   await expect(page.locator('#p-entendi')).toBeHidden();
   await expect(page.locator('#p-pergunta')).toHaveValue('');
+});
+
+// Ciclo 013 (issue #115): sobrecarga do Gemini. Com o principal e a reserva em 503, a rota responde
+// `provedor_sobrecarregado` e a tela explica o motivo; com a reserva respondendo, a pergunta segue interpretada por IA.
+test('sobrecarga: nota própria e "Interpretado sem IA"; reserva respondendo: "Interpretado por IA (modelo reserva)"', async ({ page, request }) => {
+  await request.post(CONTROLE, { data: { modo: 'sobrecarregada' } });
+  await entrar(page, 'rp');
+  await perguntar(page, 'Mostre o Município Beta no começo de outubro');
+  await expect(page.locator('#p-entendi')).toHaveAttribute('data-origem', 'local');
+  await expect(page.locator('#p-entendi')).toContainText('Interpretado sem IA');
+  await expect(page.locator('#p-entendi')).toContainText('A IA está sobrecarregada no momento; o interpretador local assumiu. Tente de novo em alguns minutos.');
+  await expect(page.locator('#p-entendi')).not.toContainText('não respondeu como esperado');
+  // Principal, nova tentativa e reserva: três chamadas ao provedor simulado.
+  expect((await (await request.get(CONTROLE)).json()).chamadas).toBe(3);
+
+  await request.post(CONTROLE, { data: { modo: 'reserva' } });
+  if (await page.locator('#reproducao').isVisible()) await page.keyboard.press('Escape');
+  await perguntar(page, 'Mostre o Município Beta no começo de outubro');
+  await expect(page.locator('#p-entendi')).toHaveAttribute('data-origem', 'ia_reserva');
+  await expect(page.locator('#p-entendi')).toContainText('Interpretado por IA (modelo reserva)');
+  await expect(page.locator('#p-entendi')).not.toContainText('sobrecarregada');
+  await expect(page.locator('#f-municipio')).toHaveValue(BETA);
+  expect((await (await request.get(CONTROLE)).json()).chamadas).toBe(3);
 });

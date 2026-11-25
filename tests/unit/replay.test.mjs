@@ -63,3 +63,17 @@ test('roteiro conforme o contexto', () => {
   const semAreas = roteiroAveriguacao({ areas: { estado: 'falha' }, persistencia: false, semCobertura: 0, total: 6 });
   assert.match(semAreas[0], /não conferidas/);
 });
+
+// Ciclo 013 (issue #115, D10): anéis do GeoJSON para o mini mapa da ficha.
+test('ficha: anéis de Polygon, MultiPolygon, Feature e GeometryCollection; formato inválido não lança', async () => {
+  const { aneis } = await import('../../src/ficha.ts');
+  const quadrado = [[-55, -12], [-54, -12], [-54, -11], [-55, -11], [-55, -12]];
+  const furo = [[-54.8, -11.8], [-54.2, -11.8], [-54.2, -11.2], [-54.8, -11.8]];
+  assert.deepEqual(aneis({ type: 'Polygon', coordinates: [quadrado, furo] }), [quadrado, furo]);
+  assert.deepEqual(aneis({ type: 'MultiPolygon', coordinates: [[quadrado], [furo]] }), [quadrado, furo]);
+  assert.deepEqual(aneis({ type: 'Feature', geometry: { type: 'Polygon', coordinates: [quadrado] } }), [quadrado]);
+  assert.deepEqual(aneis({ type: 'GeometryCollection', geometries: [{ type: 'Polygon', coordinates: [quadrado] }, { type: 'Point', coordinates: [0, 0] }] }), [quadrado]);
+  for (const ruim of [null, 'x', 42, {}, { type: 'Polygon' }, { type: 'Polygon', coordinates: [[[0, 0], [1, 1]]] }, { type: 'Polygon', coordinates: [[[0, 'a'], [1, 1], [2, 2]]] }]) {
+    assert.deepEqual(aneis(ruim), [], JSON.stringify(ruim));
+  }
+});

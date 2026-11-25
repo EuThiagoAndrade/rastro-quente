@@ -407,11 +407,96 @@
   fill: var(--superficie-suave);
 }
 
-.ficha__ponto {
-  fill: var(--deteccao);
-  fill-opacity: 0.85;
-  stroke: var(--deteccao-escura);
-  stroke-width: 0.6;
+/* Mini mapa (ciclo 013, D10): densidade por célula com as cores fixas da camada do mapa, limite municipal por cima
+   e áreas protegidas por baixo, com o traço de cada classe (contínuo, tracejado, pontilhado) como no mapa. */
+.ficha__figura {
+  margin: 0;
+}
+
+.ficha__celula--0 { fill: var(--densidade-0); }
+.ficha__celula--1 { fill: var(--densidade-1); }
+.ficha__celula--2 { fill: var(--densidade-2); }
+.ficha__celula--3 { fill: var(--densidade-3); }
+.ficha__celula--4 { fill: var(--densidade-4); }
+
+.ficha__limite {
+  fill: none;
+  stroke: var(--texto);
+  stroke-width: 1.4;
+  stroke-linejoin: round;
+}
+
+/* Cada classe de área define a cor e o traço; o preenchimento fica sob as células e o contorno, sobre elas. */
+.ficha__area--protecao_integral { --cor-area: var(--area-integral); --traco-area: none; }
+.ficha__area--uso_sustentavel { --cor-area: var(--area-sustentavel); --traco-area: 6 4; }
+.ficha__area--terra_indigena { --cor-area: var(--area-indigena); --traco-area: 2 3; }
+
+.ficha__area {
+  fill: var(--cor-area);
+  fill-opacity: 0.18;
+  stroke: none;
+}
+
+.ficha__area-contorno {
+  fill: none;
+  stroke: color-mix(in srgb, var(--cor-area) 55%, var(--texto));
+  stroke-width: 1.8;
+  stroke-dasharray: var(--traco-area);
+  stroke-linejoin: round;
+}
+
+.ficha__legenda .nota {
+  margin: 0.4rem 0 0.25rem;
+}
+
+.ficha__legenda-itens {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.75rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: var(--t-pequeno);
+}
+
+.ficha__legenda-itens li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.ficha__amostra {
+  display: inline-block;
+  width: 0.9rem;
+  height: 0.9rem;
+  border-radius: 2px;
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+}
+
+.ficha__amostra--dens-0 { background: var(--densidade-0); }
+.ficha__amostra--dens-1 { background: var(--densidade-1); }
+.ficha__amostra--dens-2 { background: var(--densidade-2); }
+.ficha__amostra--dens-3 { background: var(--densidade-3); }
+.ficha__amostra--dens-4 { background: var(--densidade-4); }
+
+.ficha__amostra--limite {
+  border: 2px solid var(--texto);
+}
+
+.ficha__amostra--protecao_integral {
+  border: 2px solid color-mix(in srgb, var(--area-integral) 55%, var(--texto));
+  background: color-mix(in srgb, var(--area-integral) 30%, transparent);
+}
+
+.ficha__amostra--uso_sustentavel {
+  border: 2px dashed color-mix(in srgb, var(--area-sustentavel) 55%, var(--texto));
+  background: color-mix(in srgb, var(--area-sustentavel) 30%, transparent);
+}
+
+.ficha__amostra--terra_indigena {
+  border: 2px dotted color-mix(in srgb, var(--area-indigena) 55%, var(--texto));
+  background: color-mix(in srgb, var(--area-indigena) 30%, transparent);
 }
 
 .ficha__barra {
@@ -430,13 +515,6 @@
 .ficha__escala-texto {
   fill: var(--texto-suave);
   font-size: 10px;
-}
-
-.ficha__ia {
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--escolha);
-  background: var(--superficie-suave);
 }
 
 .ficha__conclusao {
@@ -516,10 +594,28 @@
     color: #333;
   }
 
-  .ficha__ponto {
-    fill: #f97316;
-    stroke: #7c2d12;
+  .ficha__limite {
+    stroke: #000;
   }
+
+  .ficha__amostra--limite {
+    border-color: #000;
+  }
+
+  /* No papel claro, o contorno das áreas escurece mesmo com o tema escuro ligado. */
+  .ficha__area-contorno {
+    stroke: color-mix(in srgb, var(--cor-area) 45%, #000);
+  }
+
+  .ficha__amostra--protecao_integral { border-color: color-mix(in srgb, var(--area-integral) 45%, #000); }
+  .ficha__amostra--uso_sustentavel { border-color: color-mix(in srgb, var(--area-sustentavel) 45%, #000); }
+  .ficha__amostra--terra_indigena { border-color: color-mix(in srgb, var(--area-indigena) 45%, #000); }
+
+  .ficha__celula--0 { fill: #fed7aa; }
+  .ficha__celula--1 { fill: #fdba74; }
+  .ficha__celula--2 { fill: #f97316; }
+  .ficha__celula--3 { fill: #c2410c; }
+  .ficha__celula--4 { fill: #7c2d12; }
 
   .ficha__barra {
     fill: #f97316;

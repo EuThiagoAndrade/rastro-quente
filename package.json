@@ -20,6 +20,7 @@
     "test:e2e": "supabase db reset && playwright test",
     "test:api": "supabase db reset && node --test --test-concurrency=1 \"scripts/api/*.test.mjs\"",
     "test:agentes": "node --test \"scripts/agentes/*.test.mjs\"",
+    "prova:interpretar": "node --env-file-if-exists=.env scripts/agentes/prova-interpretar.mjs",
     "prova:agentes": "supabase db reset && node --env-file-if-exists=.env scripts/agentes/prova-real.mjs",
     "medir:interface": "supabase db reset && node scripts/interface/medir-geometria.mjs",
     "conferir:areas": "supabase db reset && node --max-old-space-size=4096 scripts/areas/conferir.mjs",

@@ -1,9 +1,10 @@
 # Registro de ciclos
 
-> **Próximo ciclo:** `013`
+> **Próximo ciclo:** `014`
 
 | Ciclo | Assunto | Estado | Ideação | Plano | Issues | Encerramento |
 | :-- | :-- | :-- | :-- | :-- | :-- | :-- |
+| `013` | Colunas, sobrecarga da IA e retirada de "Perguntar sobre a tela" | `Planejamento` | Não se aplica (leve, governança reduzida por decisão do responsável em 2026-11-25, como no 012) | [Plano](drafts/013_ajustes_ia_colunas/013_plan.md) (v1, `Rascunho`) | [#115](https://github.com/EuThiagoAndrade/rastro-quente/issues/115) | — |
 | `012` | Pergunte ao mapa | `Planejamento` | Não se aplica (leve, entrega única com governança reduzida por decisão do responsável em 2026-11-24) | [Plano](drafts/012_pergunte_ao_mapa/012_plan.md) (v3, `Rascunho`) | [#113](https://github.com/EuThiagoAndrade/rastro-quente/issues/113) | — |
 | `011` | Insights com agentes | `Concluído` | [Ideação](ideations/011_insights_agentes.md) | [Plano](executed/011_insights_agentes/011_plan.md) (v4 aprovado) | [#107](https://github.com/EuThiagoAndrade/rastro-quente/issues/107) | [Encerramento prospectivo](executed/011_insights_agentes/011_task_closure.md) |
 | `010` | Painel direito completo | `Concluído` | [Ideação](ideations/010_painel_direito_completo.md) | [Plano](executed/010_painel_direito_completo/010_plan.md) (v2 aprovado) | [#97](https://github.com/EuThiagoAndrade/rastro-quente/issues/97), [#98](https://github.com/EuThiagoAndrade/rastro-quente/issues/98), [#99](https://github.com/EuThiagoAndrade/rastro-quente/issues/99), [#100](https://github.com/EuThiagoAndrade/rastro-quente/issues/100) | [Encerramento prospectivo](executed/010_painel_direito_completo/010_task_closure.md) |

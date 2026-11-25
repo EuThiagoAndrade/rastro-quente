@@ -113,6 +113,9 @@ body:has(#acesso:not([hidden])) .rodape {
 }
 
 .coluna {
+  /* Ciclo 013: bloco de contenção dos textos só para leitor de tela (.so-leitor, absolutos), como no rodapé do
+     mapa. Sem ele, com as seções abertas, eles escapam da rolagem interna e alongam a página depois do rodapé. */
+  position: relative;
   border: 1px solid var(--contorno-suave);
   border-radius: var(--raio);
   background: var(--superficie);

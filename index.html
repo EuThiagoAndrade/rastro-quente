@@ -337,30 +337,6 @@
             <div id="comparacao-estado" role="status"></div>
             <div id="comparacao-corpo"></div>
           </section>
-          <!-- Perguntas (ciclo 008, item 4): agentes sobre o que está na tela; etapas reais e evidências. -->
-          <section id="painel-perguntas" class="perguntas" aria-labelledby="t-perguntas" data-estado-perguntas="ociosa" aria-busy="false">
-            <h2 id="t-perguntas" class="rotulo-secao" tabindex="-1">Perguntar sobre a tela</h2>
-            <p class="pergunta-lente">Quer ajuda para entender o que aparece na tela?</p>
-            <p class="nota">A inteligência artificial usa os resultados selecionados para ajudar a explicá-los. Confira as informações: a resposta pode conter erros.</p>
-            <div id="perguntas-contexto-aplicado" class="perguntas__bloco" aria-label="Contexto aplicado"></div>
-            <p class="rotulo-secao">Escolha uma pergunta pronta</p>
-            <p class="nota">Peça uma explicação sobre a seleção atual.</p>
-            <div class="perguntas__prontas" role="group" aria-label="Perguntas sobre o recorte">
-              <button id="pergunta-panorama" type="button" class="botao pergunta" data-pergunta="panorama" aria-describedby="pergunta-panorama-motivo">O que chama atenção neste período?</button>
-              <p id="pergunta-panorama-motivo" class="nota pergunta__motivo" hidden></p>
-              <button id="pergunta-mudanca" type="button" class="botao pergunta" data-pergunta="mudanca" aria-describedby="pergunta-mudanca-motivo">O que mudou em relação ao outro período?</button>
-              <p id="pergunta-mudanca-motivo" class="nota pergunta__motivo" hidden></p>
-              <button id="pergunta-padroes" type="button" class="botao pergunta" data-pergunta="padroes" aria-describedby="pergunta-padroes-motivo">Quais locais apresentam mais de um padrão?</button>
-              <p id="pergunta-padroes-motivo" class="nota pergunta__motivo" hidden></p>
-              <button id="pergunta-cuidados" type="button" class="botao pergunta" data-pergunta="cuidados" aria-describedby="pergunta-cuidados-motivo">Onde devo interpretar os resultados com mais cuidado?</button>
-              <p id="pergunta-cuidados-motivo" class="nota pergunta__motivo" hidden></p>
-              <button id="pergunta-proximos" type="button" class="botao pergunta" data-pergunta="proximos" aria-describedby="pergunta-proximos-motivo">O que vale examinar em seguida?</button>
-              <p id="pergunta-proximos-motivo" class="nota pergunta__motivo" hidden></p>
-            </div>
-            <button id="botao-cancelar-pergunta" type="button" class="botao" hidden>Cancelar pergunta</button>
-            <div id="perguntas-estado" role="status"></div>
-            <div id="perguntas-corpo"></div>
-          </section>
         </aside>
       </div>
     </main>
@@ -386,7 +362,6 @@
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Lentes e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
       <div class="passo"><b>5</b><div><strong>Pergunte ao mapa.</strong> No alto da coluna esquerda, escreva uma pergunta sobre as detecções de calor. O sistema a converte nos filtros desta tela e mostra "Entendi assim", com um ✎ para corrigir cada item; com a IA desligada, um interpretador local, sem IA, faz o mesmo. Perguntas sobre autoria e previsão são recusadas. "Animar no tempo", no painel "Mapa", amplia o mapa e reproduz as detecções dia a dia (os dias de cobertura não comprovada ficam marcados); Esc ou "Fechar" voltam o mapa ao tamanho anterior, e "Gerar ficha para averiguação" prepara um documento imprimível com evidências, roteiro, ressalvas e o espaço para a conclusão do técnico.</div></div>
-      <div class="passo"><b>6</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as cinco perguntas fechadas usam o período, município e lente aplicados ou a comparação de períodos configurada e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. A série usa <strong>dia GMT</strong>. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
     </dialog>
