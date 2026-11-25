@@ -24,6 +24,11 @@ export const TEMPO_PROVEDOR_MS = 20_000;
 export const ESPERA_NOVA_TENTATIVA_MS = 2_000;
 /** Tempo útil mínimo para começar uma chamada; com menos, a rota responde a sobrecarga sem tentar. */
 export const TEMPO_MINIMO_CHAMADA_MS = 3_000;
+/**
+ * Teto da nova tentativa no principal com a reserva ligada (ciclo 013, D9): o principal já se mostrou sobrecarregado,
+ * e uma nova tentativa pendurada não pode consumir o prazo da reserva. Estourado o teto, a pergunta vai para a reserva.
+ */
+export const TETO_NOVA_TENTATIVA_MS = 7_000;
 
 export interface DependenciasInterpretar {
   config: ConfigServidor;
@@ -34,6 +39,8 @@ export interface DependenciasInterpretar {
   /** Relógio e espera, injetáveis nos testes. */
   agora?: () => number;
   esperar?: (ms: number, sinal: AbortSignal) => Promise<void>;
+  /** Teto da nova tentativa; só os testes o mudam. */
+  tetoNovaTentativaMs?: number;
 }
 
 const esperarPadrao = (ms: number, sinal: AbortSignal): Promise<void> => new Promise((ok) => {
@@ -45,8 +52,9 @@ const sobrecarga = (e: unknown): boolean => e instanceof ErroHttp && e.codigo ==
 
 /**
  * Principal; com 503 de sobrecarga, nova tentativa no principal depois da espera; com 503 de novo, uma chamada à
- * reserva, se ligada. Tudo no mesmo prazo. 429, saída inválida, tempo esgotado e outros erros seguem sem repetir.
- * Sobrecarga sem saída vira `provedor_sobrecarregado`.
+ * reserva, se ligada. Tudo no mesmo prazo. Com a reserva ligada, a nova tentativa tem teto e deixa tempo para a
+ * reserva; estourar o teto também leva à reserva (D9). 429, saída inválida, tempo esgotado na primeira chamada e outros
+ * erros seguem sem repetir. Sobrecarga sem saída vira `provedor_sobrecarregado`.
  */
 async function interagirComReserva(
   deps: DependenciasInterpretar, config: ConfigLigada, i: Interacao, sinal: AbortSignal, contar: (modelo: string) => void,
@@ -55,10 +63,11 @@ async function interagirComReserva(
   const esperar = deps.esperar ?? esperarPadrao;
   const prazo = agora() + TEMPO_PROVEDOR_MS;
   const restante = () => prazo - agora();
-  const chamar = async (p: Provedor): Promise<RespostaInteracao> => {
+  const chamar = async (p: Provedor, ...extras: AbortSignal[]): Promise<RespostaInteracao> => {
     contar(p.modelo);
-    return p.interagir(i, AbortSignal.any([sinal, AbortSignal.timeout(Math.max(1, Math.round(restante())))]));
+    return p.interagir(i, AbortSignal.any([sinal, AbortSignal.timeout(Math.max(1, Math.round(restante()))), ...extras]));
   };
+  const modeloReserva = config.gemini.modeloReserva;
   const principal = deps.provedor(config);
   try {
     return { r: await chamar(principal), provedor: principal, reserva: false };
@@ -68,13 +77,19 @@ async function interagirComReserva(
   if (restante() >= ESPERA_NOVA_TENTATIVA_MS + TEMPO_MINIMO_CHAMADA_MS) {
     await esperar(ESPERA_NOVA_TENTATIVA_MS, sinal);
     if (sinal.aborted) throw new ErroHttp('tempo_esgotado');
-    try {
-      return { r: await chamar(principal), provedor: principal, reserva: false };
-    } catch (e) {
-      if (!sobrecarga(e)) throw e;
+    // Com a reserva ligada, a nova tentativa para antes de tirar da reserva o tempo mínimo de uma chamada.
+    const tetoMs = deps.tetoNovaTentativaMs ?? TETO_NOVA_TENTATIVA_MS;
+    const limite = modeloReserva ? Math.min(tetoMs, restante() - TEMPO_MINIMO_CHAMADA_MS) : restante();
+    if (limite >= Math.min(TEMPO_MINIMO_CHAMADA_MS, tetoMs)) {
+      const teto = AbortSignal.timeout(Math.round(limite));
+      try {
+        return { r: await chamar(principal, teto), provedor: principal, reserva: false };
+      } catch (e) {
+        const estourouTeto = teto.aborted && !sinal.aborted;
+        if (!sobrecarga(e) && !(modeloReserva && estourouTeto)) throw e;
+      }
     }
   }
-  const modeloReserva = config.gemini.modeloReserva;
   if (!modeloReserva || restante() < TEMPO_MINIMO_CHAMADA_MS) throw new ErroHttp('provedor_sobrecarregado');
   const reserva = deps.provedor(config, modeloReserva);
   try {

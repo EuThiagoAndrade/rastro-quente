@@ -134,7 +134,7 @@ const SOBRE = () => new ErroHttp('provedor_indisponivel', 'sobrecarga');
  * Provedores roteirizados por modelo: cada item da fila é `'ok'` ou um erro a lançar. Relógio simulado: cada chamada
  * consome `msPorChamada` e a espera consome o que pedir, sem tempo real.
  */
-function roteiro({ config = COM_RESERVA, principal = [], reserva = [], msPorChamada = 1_000 } = {}) {
+function roteiro({ config = COM_RESERVA, principal = [], reserva = [], msPorChamada = 1_000, teto } = {}) {
   const r = { chamadas: [], esperas: [], logs: [] };
   let relogio = 0;
   const filas = { [PRINCIPAL]: [...principal], [RESERVA]: [...reserva] };
@@ -145,10 +145,14 @@ function roteiro({ config = COM_RESERVA, principal = [], reserva = [], msPorCham
       const m = modelo ?? PRINCIPAL;
       return {
         modelo: m,
-        async interagir() {
+        async interagir(_i, sinal) {
           r.chamadas.push(m);
           relogio += msPorChamada;
           const passo = filas[m].shift() ?? 'ok';
+          // 'pendura': não responde até o sinal da chamada abortar (teto ou prazo).
+          if (passo === 'pendura') {
+            await new Promise((_ok, falha) => sinal.addEventListener('abort', () => falha(sinal.reason), { once: true }));
+          }
           if (passo !== 'ok') throw passo();
           return { passos: [], chamadas: [], texto: JSON.stringify(BOA), uso: { entrada: 100, saida: 20, raciocinio: 0 } };
         },
@@ -157,6 +161,7 @@ function roteiro({ config = COM_RESERVA, principal = [], reserva = [], msPorCham
     registrar: (e) => r.logs.push(e),
     agora: () => relogio,
     esperar: async (ms) => { r.esperas.push(ms); relogio += ms; },
+    ...(teto !== undefined ? { tetoNovaTentativaMs: teto } : {}),
   };
   return { r, deps };
 }
@@ -233,4 +238,20 @@ test('prazo único de 20 s: sem tempo útil, nenhuma chamada nova começa', asyn
   assert.equal((await r2.json()).modelo, RESERVA);
   assert.deepEqual(lento.r.esperas, []);
   assert.deepEqual(lento.r.chamadas, [PRINCIPAL, RESERVA]);
+});
+
+test('D9: nova tentativa pendurada depois de 503 estoura o teto e a reserva interpreta', async () => {
+  const { r, deps } = roteiro({ principal: [SOBRE, 'pendura'], teto: 50 });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal(resp.status, 200);
+  const corpo = await resp.json();
+  assert.equal(corpo.modelo, RESERVA);
+  assert.equal(corpo.reserva, true);
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL, RESERVA]);
+});
+
+test('D9: tempo esgotado na primeira chamada continua sem acionar a reserva', async () => {
+  const { r, deps } = roteiro({ principal: [() => new DOMException('tempo', 'TimeoutError')] });
+  assert.equal((await (await tratarInterpretar(pedido(valido), deps)).json()).erro, 'tempo_esgotado');
+  assert.deepEqual(r.chamadas, [PRINCIPAL]);
 });

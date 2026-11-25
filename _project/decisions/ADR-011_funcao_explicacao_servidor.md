@@ -112,7 +112,8 @@ Decisão do responsável, registrada no plano do ciclo 013 (D1 e D2, "Sim, com a
 - **Nova tentativa.** Com HTTP 503 de sobrecarga no modelo principal, a rota espera 2 s e tenta o principal mais uma vez, como já faz a orquestração do `/api/explicar`.
 - **Modelo reserva.** Se o principal continuar com 503, a mesma pergunta vai uma vez para o `gemini-3.5-flash`. Ele recebe exatamente o que o principal recebe (a pergunta, a janela e os nomes públicos de município) e sua saída passa pelo mesmo validador.
 - **Prazo único.** Principal, espera, nova tentativa e reserva cabem no prazo de 20 s do provedor. Nenhuma chamada começa com menos de 3 s úteis.
-- **Sem reserva para outros erros.** 429 (`cota_provedor`), saída inválida, tempo esgotado e outros erros não repetem nem acionam a reserva.
+- **Teto da nova tentativa (D9 do plano 013).** Com a reserva ligada, a nova tentativa no principal tem teto de 7 s e deixa à reserva pelo menos 3 s. Estourar esse teto depois de um 503 leva a pergunta à reserva, porque o principal já se mostrou sobrecarregado.
+- **Sem reserva para outros erros.** 429 (`cota_provedor`), saída inválida, tempo esgotado na primeira chamada e outros erros não repetem nem acionam a reserva.
 - **Configuração.** `RQ_GEMINI_MODELO_RESERVA` é opcional e só vale se for exatamente `gemini-3.5-flash`, sem alias. Ausente ou com outro valor, a reserva fica desligada e a IA continua como antes; o valor inválido não desliga a IA. É variável só do servidor, cadastrada na Vercel pelo responsável.
 - **Código novo.** Sobrecarga sem saída responde `provedor_sobrecarregado` (503), e a tela explica o motivo. A resposta informa o modelo usado e se foi a reserva; o log registra o modelo e o número de chamadas, nunca a pergunta.
 - **Cota.** O projeto Gemini continua no nível gratuito, sem pagamento.
