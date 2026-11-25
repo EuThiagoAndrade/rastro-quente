@@ -76,10 +76,15 @@ import {
   renderTocando, renderVelocidade, type Alvo, type ManipuladoresEntendi,
 } from './apresentacao-pergunte.ts';
 import { diasSemCobertura, montarReproducao, PASSO_MS, type Reproducao, type Velocidade } from './replay.ts';
-import { renderFicha, resumirFicha, roteiroAveriguacao, sinteseDeterministica, type AreasFicha } from './ficha.ts';
+import {
+  renderFicha, resumirFicha, roteiroAveriguacao, sinteseDeterministica, type AreasFicha, type GeometriaFicha, type MapaFicha,
+} from './ficha.ts';
 import { resumoPeriodo } from './recorte.ts';
 import type { ClasseDisponibilidade } from './tipos.ts';
 import type { CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, Registro, Resumo } from './tipos.ts';
+
+/** Acima disso, a ficha lê os limites de todos os municípios numa só requisição. */
+const LIMITES_POR_MUNICIPIO = 20;
 
 interface Dados {
   carga: CargaDetalhe;
@@ -736,12 +741,45 @@ class Controlador {
       const nomes = new Map(l.areas.map((a) => [chaveArea(a.fonte, a.codigo), a]));
       const areas = [...porArea].flatMap(([k, s]) => {
         const a = nomes.get(k);
-        return a ? [{ nome: a.nome, classe: a.classe, deteccoes: s.size }] : [];
+        return a ? [{ chave: k, nome: a.nome, classe: a.classe, deteccoes: s.size }] : [];
       }).sort((x, y) => y.deteccoes - x.deteccoes || x.nome.localeCompare(y.nome, 'pt-BR'));
       return { estado: 'lidas', areas, fora: ids.size - dentro.size };
     } catch {
       return { estado: 'falha' };
     }
+  }
+
+  /**
+   * Geometrias do mini mapa da ficha (ciclo 013, D10): limites dos municípios das detecções do alvo (com muitos
+   * municípios, uma leitura de todos) e contornos das áreas protegidas com detecções, das mesmas memórias do mapa.
+   * O que não puder ser lido vira aviso; a densidade aparece mesmo assim.
+   */
+  private async mapaDaFicha(registros: readonly RegistroLente[], areas: AreasFicha, atual: () => boolean): Promise<MapaFicha> {
+    const avisos: string[] = [];
+    const codigos = [...new Set(registros.map((r) => r.municipio_codigo))];
+    let limites: GeometriaFicha[] = [];
+    try {
+      if (codigos.length > LIMITES_POR_MUNICIPIO) await this.carregarLimites(null, atual);
+      else await Promise.all(codigos.map((c) => this.carregarLimites(c, atual)));
+      limites = codigos.flatMap((c) => {
+        const l = this.limites.get(c);
+        return l ? [{ rotulo: l.nome, classe: 'municipio' as const, geometria: l.geometria_exibicao }] : [];
+      });
+      if (limites.length < codigos.length) avisos.push('Parte dos limites municipais não foi lida; o mini mapa mostra os que estão disponíveis.');
+    } catch {
+      avisos.push('Não foi possível ler os limites municipais agora; o mini mapa mostra só a densidade.');
+    }
+    let contornos: GeometriaFicha[] = [];
+    if (areas.estado === 'lidas' && areas.areas.length && this.dados) {
+      try {
+        const lidos = await this.obterContornos(this.dados.carga.id, areas.areas.map((a) => ({ chave: a.chave, classe: a.classe })), atual);
+        const nomes = new Map(areas.areas.map((a) => [a.chave, a.nome]));
+        contornos = lidos.map((x) => ({ rotulo: nomes.get(x.chave) ?? x.chave, classe: x.classe, geometria: x.geometria }));
+      } catch {
+        avisos.push('Não foi possível ler os contornos das áreas protegidas agora; confira o local antes da vistoria.');
+      }
+    }
+    return { limites, areas: contornos, avisos };
   }
 
   /** Monta e abre a ficha do recorte atual ou do destaque aberto. */
@@ -769,6 +807,8 @@ class Controlador {
     const resumo = resumirFicha(alvo.registros, periodo, sem);
     const areas = await this.areasDaFicha(alvo.registros, atual);
     if (!atual() || !dialogo.open) return;
+    const mapaFicha = await this.mapaDaFicha(alvo.registros, areas, atual);
+    if (!atual() || !dialogo.open) return;
     let persistente = false;
     try {
       persistente = persistencia({
@@ -787,7 +827,7 @@ class Controlador {
       alvo: `${alvo.rotulo} · ${alvo.registros.length} ${alvo.registros.length === 1 ? 'detecção' : 'detecções'}`,
       local, periodo, registros: alvo.registros, resumo, areas,
       roteiro: roteiroAveriguacao({ areas, persistencia: persistente, semCobertura: resumo.semCobertura.length, total: resumo.total }),
-      sintese: sinteseDeterministica(resumo, local, periodo),
+      sintese: sinteseDeterministica(resumo, local, periodo), mapa: mapaFicha,
     });
     $('ficha-estado').textContent = '';
     $('ficha-corpo').dataset['total'] = String(resumo.total);

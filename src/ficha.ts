@@ -3,6 +3,7 @@
 // determinísticos. A ficha não é gravada: é montada no navegador e salva pelo próprio navegador (Salvar como PDF).
 // Valores da fonte entram por textContent, nunca como marcação.
 import { h } from './apresentacao.ts';
+import { CLASSES_DENSIDADE, densidadePorCelula, LEGENDA_DENSIDADE } from './densidade.ts';
 import { fmtNumero } from './formato.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
@@ -58,6 +59,8 @@ export function resumirFicha(registros: readonly RegistroLente[], periodo: Janel
 }
 
 export interface AreaNaFicha {
+  /** `fonte:codigo`, a mesma chave dos contornos do mapa. */
+  chave: string;
   nome: string;
   classe: ClasseArea;
   deteccoes: number;
@@ -114,6 +117,40 @@ export interface Ficha {
   areas: AreasFicha;
   roteiro: string[];
   sintese: string;
+  mapa: MapaFicha;
+}
+
+/** Geometria GeoJSON para o mini mapa: limite de município ou contorno de área protegida. */
+export interface GeometriaFicha {
+  rotulo: string;
+  classe: 'municipio' | ClasseArea;
+  geometria: unknown;
+}
+
+/** O que o mini mapa desenha além da densidade (ciclo 013, D10), e o que não pôde ser lido. */
+export interface MapaFicha {
+  limites: GeometriaFicha[];
+  areas: GeometriaFicha[];
+  avisos: string[];
+}
+
+/**
+ * Anéis `[lon, lat]` de uma geometria GeoJSON (Polygon, MultiPolygon, GeometryCollection ou Feature). Formato
+ * inesperado não lança: devolve só os anéis válidos.
+ */
+export function aneis(g: unknown): [number, number][][] {
+  if (typeof g !== 'object' || g === null) return [];
+  const o = g as Record<string, unknown>;
+  const valido = (anel: unknown): anel is [number, number][] => Array.isArray(anel) && anel.length >= 3
+    && anel.every((p) => Array.isArray(p) && Number.isFinite(p[0]) && Number.isFinite(p[1]));
+  const dePoligono = (p: unknown): [number, number][][] => (Array.isArray(p) ? p.filter(valido) : []);
+  switch (o['type']) {
+    case 'Feature': return aneis(o['geometry']);
+    case 'GeometryCollection': return Array.isArray(o['geometries']) ? o['geometries'].flatMap(aneis) : [];
+    case 'Polygon': return dePoligono(o['coordinates']);
+    case 'MultiPolygon': return Array.isArray(o['coordinates']) ? o['coordinates'].flatMap(dePoligono) : [];
+    default: return [];
+  }
 }
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -123,27 +160,72 @@ function svg(tag: string, atributos: Record<string, string | number>): SVGElemen
   return e;
 }
 
-/** Mini mapa só com os pontos (sem fundo de terceiros), em projeção simples com a escala corrigida pela latitude. */
-function miniMapa(registros: readonly RegistroLente[]): Element {
-  const L = 320;
-  const A = 200;
-  const raiz = svg('svg', { viewBox: `0 0 ${L} ${A}`, class: 'ficha__mini-mapa', role: 'img', 'aria-label': `Mini mapa com ${registros.length} detecções, sem fundo` });
+/**
+ * Mini mapa (ciclo 013, D10): limite dos municípios das detecções do alvo, contorno das áreas protegidas com detecções
+ * e a densidade por célula (a mesma da camada do mapa: células de 0,05°, cinco classes fixas, contagem e não
+ * gravidade). Sem fundo de terceiros; projeção simples com a escala corrigida pela latitude, enquadrada nos
+ * municípios ou, sem eles, nas células.
+ */
+export function miniMapa(registros: readonly RegistroLente[], periodo: Janela, m: MapaFicha): Element {
+  const L = 360;
+  const A = 240;
+  const celulas = densidadePorCelula(registros, periodo.inicio, periodo.fim).celulas;
+  const limites = m.limites.map((g) => ({ ...g, aneis: aneis(g.geometria) })).filter((g) => g.aneis.length);
+  const areas = m.areas.map((g) => ({ ...g, aneis: aneis(g.geometria) })).filter((g) => g.aneis.length);
+  const raiz = svg('svg', {
+    viewBox: `0 0 ${L} ${A}`, class: 'ficha__mini-mapa', role: 'img',
+    'aria-label': `Mini mapa sem fundo: ${celulas.length} ${celulas.length === 1 ? 'célula' : 'células'} com detecções`
+      + (limites.length ? `, limite de ${limites.map((g) => g.rotulo).join(', ')}` : '')
+      + (areas.length ? `, ${areas.length} ${areas.length === 1 ? 'área protegida' : 'áreas protegidas'}` : ''),
+  });
   raiz.append(svg('rect', { x: 0, y: 0, width: L, height: A, class: 'ficha__mapa-fundo' }));
-  if (!registros.length) return raiz;
-  const lats = registros.map((r) => r.latitude);
-  const lons = registros.map((r) => r.longitude);
-  const [s, n, o, l] = [Math.min(...lats), Math.max(...lats), Math.min(...lons), Math.max(...lons)];
+  const pontos: [number, number][] = limites.length
+    ? limites.flatMap((g) => g.aneis.flat())
+    : celulas.flatMap((c): [number, number][] => [[Number(c.celula.oeste), Number(c.celula.sul)], [Number(c.celula.leste), Number(c.celula.norte)]]);
+  if (!pontos.length) return raiz;
+  let [s, n, o, l] = [Infinity, -Infinity, Infinity, -Infinity];
+  for (const [lon, lat] of pontos) {
+    if (lat < s) s = lat;
+    if (lat > n) n = lat;
+    if (lon < o) o = lon;
+    if (lon > l) l = lon;
+  }
   const cos = Math.cos((((s + n) / 2) * Math.PI) / 180);
   const larg = Math.max((l - o) * cos, 0.02);
   const alt = Math.max(n - s, 0.02);
   const escala = Math.min((L - 24) / larg, (A - 24) / alt);
   const cx = (o + l) / 2;
   const cy = (s + n) / 2;
-  for (const r of registros) {
-    raiz.append(svg('circle', { cx: (L / 2 + (r.longitude - cx) * cos * escala).toFixed(1), cy: (A / 2 - (r.latitude - cy) * escala).toFixed(1), r: 2.6, class: 'ficha__ponto' }));
+  const x = (lon: number) => L / 2 + (lon - cx) * cos * escala;
+  const y = (lat: number) => A / 2 - (lat - cy) * escala;
+  // Caminho com os vértices a menos de 0,5 px do anterior descartados: contornos detalhados ficam leves.
+  const caminho = (rs: [number, number][][]): string => rs.map((anel) => {
+    let ultimo: [number, number] | null = null;
+    const partes: string[] = [];
+    for (const [lon, lat] of anel) {
+      const p: [number, number] = [x(lon), y(lat)];
+      if (ultimo && Math.abs(p[0] - ultimo[0]) < 0.5 && Math.abs(p[1] - ultimo[1]) < 0.5) continue;
+      partes.push(`${partes.length ? 'L' : 'M'}${p[0].toFixed(1)} ${p[1].toFixed(1)}`);
+      ultimo = p;
+    }
+    return `${partes.join('')}Z`;
+  }).join('');
+  // Áreas: o preenchimento fica sob as células e o contorno sobre elas, para não sumir onde há detecções.
+  const caminhosAreas = areas.map((a) => ({ classe: a.classe, d: caminho(a.aneis) }));
+  for (const a of caminhosAreas) raiz.append(svg('path', { d: a.d, class: `ficha__area ficha__area--${a.classe}`, 'fill-rule': 'evenodd' }));
+  for (const c of celulas) {
+    const x0 = x(Number(c.celula.oeste));
+    const y0 = y(Number(c.celula.norte));
+    raiz.append(svg('rect', {
+      x: x0.toFixed(1), y: y0.toFixed(1),
+      width: Math.max(x(Number(c.celula.leste)) - x0, 1).toFixed(1), height: Math.max(y(Number(c.celula.sul)) - y0, 1).toFixed(1),
+      class: `ficha__celula ficha__celula--${c.classe}`, 'data-contagem': c.contagem,
+    }));
   }
+  for (const a of caminhosAreas) raiz.append(svg('path', { d: a.d, class: `ficha__area-contorno ficha__area--${a.classe}`, 'fill-rule': 'evenodd' }));
+  for (const g of limites) raiz.append(svg('path', { d: caminho(g.aneis), class: 'ficha__limite', 'fill-rule': 'evenodd' }));
   const km = larg * KM_POR_GRAU;
-  const barraKm = km > 40 ? 10 : km > 8 ? 2 : 0.5;
+  const barraKm = km > 200 ? 50 : km > 40 ? 10 : km > 8 ? 2 : 0.5;
   const px = (barraKm / KM_POR_GRAU) * escala;
   raiz.append(svg('line', { x1: 10, y1: A - 10, x2: 10 + px, y2: A - 10, class: 'ficha__escala' }));
   const t = svg('text', { x: 14 + px, y: A - 6, class: 'ficha__escala-texto' });
@@ -153,6 +235,17 @@ function miniMapa(registros: readonly RegistroLente[]): Element {
   norte.textContent = 'N';
   raiz.append(norte);
   return raiz;
+}
+
+/** Legenda do mini mapa: as cinco classes fixas da densidade, o limite municipal e as classes de área presentes. */
+function legendaMiniMapa(m: MapaFicha): Element {
+  const classes = [...new Set(m.areas.map((a) => a.classe))].filter((c): c is ClasseArea => c !== 'municipio');
+  return h('div', { class: 'ficha__legenda' },
+    h('p', { class: 'nota' }, `${LEGENDA_DENSIDADE} (células de 0,05°, cerca de 5,5 km).`),
+    h('ul', { class: 'ficha__legenda-itens' },
+      ...CLASSES_DENSIDADE.map((c, i) => h('li', {}, h('span', { class: `ficha__amostra ficha__amostra--dens-${i}`, 'aria-hidden': 'true' }), c.rotulo)),
+      m.limites.length ? h('li', {}, h('span', { class: 'ficha__amostra ficha__amostra--limite', 'aria-hidden': 'true' }), m.limites.length === 1 ? 'Limite do município' : 'Limites dos municípios') : null,
+      ...classes.map((c) => h('li', {}, h('span', { class: `ficha__amostra ficha__amostra--${c}`, 'aria-hidden': 'true' }), ROTULO_AREA[c]))));
 }
 
 function miniSerie(r: ResumoFicha): Element {
@@ -213,8 +306,9 @@ export function renderFicha(corpo: HTMLElement, f: Ficha): void {
         ...par('Primeiro e último dia', r.primeiro ? `${br(r.primeiro)} a ${br(r.ultimo!)}` : '—'),
         ...par('Pico diário', r.pico ? `${fmtNumero(r.pico.total)} em ${br(r.pico.dia)}` : '—'),
         ...par('Dias de cobertura não comprovada', r.semCobertura.length ? `${fmtNumero(r.semCobertura.length)} (${r.semCobertura.map((d) => br(d).slice(0, 5)).join(', ')})` : 'nenhum no recorte do município ou recorte estadual')),
-      h('div', { class: 'ficha__figuras' }, miniMapa(f.registros), miniSerie(r)),
-      h('p', { class: 'nota' }, 'Mini mapa só com os pontos, sem imagem de fundo. Na série, as faixas claras marcam dias de cobertura não comprovada.')),
+      h('div', { class: 'ficha__figuras' }, h('figure', { class: 'ficha__figura' }, miniMapa(f.registros, f.periodo, f.mapa), legendaMiniMapa(f.mapa)), miniSerie(r)),
+      ...f.mapa.avisos.map((a) => h('p', { class: 'nota' }, a)),
+      h('p', { class: 'nota' }, 'Mini mapa sem imagem de fundo. Na série, as faixas claras marcam dias de cobertura não comprovada.')),
     secao('4. Síntese', h('p', {}, f.sintese)),
     secao('5. Roteiro de averiguação sugerido', lista(f.roteiro, true)),
     secao('6. Ressalvas', lista([

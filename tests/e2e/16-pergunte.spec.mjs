@@ -120,7 +120,17 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(ficha).toContainText('VIIRS');
   await expect(ficha).toContainText('Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.');
   await expect(ficha.locator('input[name="ficha-parecer"]')).toHaveCount(3);
-  await expect(ficha.locator('svg.ficha__mini-mapa circle')).toHaveCount(18);
+  // Ciclo 013 (D10): mini mapa com a densidade por célula (a soma das células é o total do alvo), o limite do
+  // município das detecções e a legenda de domínio; sem as bolinhas de antes.
+  const miniMapa = ficha.locator('svg.ficha__mini-mapa');
+  await expect(miniMapa.locator('circle')).toHaveCount(0);
+  await expect(miniMapa.locator('path.ficha__limite')).toHaveCount(1);
+  const contagens = await miniMapa.locator('rect.ficha__celula').evaluateAll((rs) => rs.map((r) => Number(r.getAttribute('data-contagem'))));
+  expect(contagens.length).toBeGreaterThan(0);
+  expect(contagens.reduce((a, b) => a + b, 0)).toBe(18);
+  await expect(miniMapa).toHaveAttribute('aria-label', /limite de Município Beta/);
+  await expect(ficha.locator('.ficha__legenda')).toContainText('Detecções por célula: contagem, não gravidade');
+  await expect(ficha.locator('.ficha__legenda')).toContainText('Limite do município');
   await ficha.getByRole('button', { name: 'Fechar' }).click();
   await expect(ficha).not.toHaveAttribute('open', '');
   await expect(page.locator('#botao-ficha-pergunta')).toBeFocused();
