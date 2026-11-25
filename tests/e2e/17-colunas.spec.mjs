@@ -43,6 +43,10 @@ for (const [width, height] of [[1440, 900], [1280, 720]]) {
       expect(m.fora, `coluna esquerda: elementos fora (item ${i})`).toEqual([]);
       expect(m.scrollWidth, 'coluna esquerda: rolagem horizontal').toBeLessThanOrEqual(m.clientWidth);
     }
+    // Com todas as seções abertas, a página continua do tamanho da janela: nada escapa da rolagem interna da coluna
+    // (os textos só para leitor de tela são absolutos) e alonga a página depois do rodapé.
+    const pagina = await page.evaluate(() => ({ altura: document.documentElement.scrollHeight, janela: window.innerHeight }));
+    expect(pagina.altura, 'página alongada depois do rodapé').toBeLessThanOrEqual(pagina.janela);
     for (const aba of ['aba-destaques', 'aba-municipios']) {
       await page.locator(`#${aba}`).click();
       await page.locator('#resultado').hover();
