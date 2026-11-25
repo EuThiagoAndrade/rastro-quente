@@ -72,6 +72,17 @@ import { fecharDialogos, iniciarTema, ligarDialogo } from './topo.ts';
 import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.ts';
 import { densidadePorCelula } from './densidade.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
+import {
+  interpretarLocal, pedirInterpretacao, TEMPO_LIMITE_IA_MS, validarInterpretacao, type Interpretacao,
+} from './pergunte.ts';
+import {
+  estadoPergunte, itensEntendi, limparPergunte, marcarIa, marcarSerie, renderAvisoPergunta, renderEntendi, renderMarcas, renderQuadro,
+  renderTocando, renderVelocidade, type Alvo, type ManipuladoresEntendi,
+} from './apresentacao-pergunte.ts';
+import { diasSemCobertura, montarReproducao, PASSO_MS, type Reproducao, type Velocidade } from './replay.ts';
+import { renderFicha, resumirFicha, roteiroAveriguacao, sinteseDeterministica, type AreasFicha } from './ficha.ts';
+import { resumoPeriodo } from './recorte.ts';
+import type { ClasseDisponibilidade } from './tipos.ts';
 import type { CargaDetalhe, Disponibilidade, Fonte, Limite, Malha, MunicipioItem, Registro, Resumo } from './tipos.ts';
 
 interface Dados {
@@ -307,6 +318,22 @@ class Controlador {
   private ultimaPergunta: { tipo: Pergunta } | null = null;
   private destinoPergunta: { chave: string; aba: 'destaques' | 'comparacao' | 'municipios'; destaque: boolean } | null = null;
   private estadoPerguntas: EstadoPerguntas = { tipo: 'ociosa' };
+  // Pergunte ao mapa (ciclo 012): geração própria, última pergunta interpretada e IA desligada (503) nesta sessão.
+  private geracaoPergunte = 0;
+  private perguntaMapa: { texto: string; interpretacao: Interpretacao; origem: 'ia' | 'local'; linhas: string[] } | null = null;
+  private iaInterpretacaoDesligada = false;
+  /** A pergunta pediu animação: abre a reprodução quando os pontos do novo recorte chegarem. */
+  private animarAoCarregar = false;
+  // Mapa vivo (ciclo 012): quadros do recorte aplicado, dia exibido, relógio e velocidade.
+  private reproducao: {
+    rep: Reproducao; i: number; tocando: boolean; relogio: number | undefined;
+    sem: Map<string, Exclude<ClasseDisponibilidade, 'sem_evidencia_de_lacuna'>>;
+  } | null = null;
+  private velocidade: Velocidade = 1;
+  /** A reprodução ampliou o mapa ao abrir: ao fechar, ele volta ao tamanho normal. */
+  private ampliadoPelaReproducao = false;
+  /** Camada de áreas lida para a ficha, por carga (a mesma leitura da sobreposição). */
+  private areasFicha: { carga: number; leitura: LeituraAreas } | null = null;
 
   constructor(private readonly senhaLocal: boolean, private readonly sessao: Sessao) {}
 
@@ -349,7 +376,8 @@ class Controlador {
     // Camadas (T8, T10): limites, áreas, detecções individuais e densidade.
     $('c-limites').addEventListener('change', () => void this.alternarLimites());
     $('c-areas').addEventListener('change', () => void this.alternarAreas());
-    $('c-pontos').addEventListener('change', () => this.mapa?.mostrarPontos(marcado('c-pontos')));
+    // Com a reprodução aberta, a camada estática fica fora do mapa até fechar (ela volta conforme a caixa).
+    $('c-pontos').addEventListener('change', () => { if (!this.reproducao) this.mapa?.mostrarPontos(marcado('c-pontos')); });
     $('c-densidade').addEventListener('change', () => this.mostrarDensidade());
     // Ampliar mapa (T17): Esc ou o mesmo botão voltam, com o foco no botão.
     $('botao-ampliar').addEventListener('click', () => this.ampliarMapa(!mapaAmpliado()));
@@ -384,6 +412,402 @@ class Controlador {
       arrastar.setAttribute('aria-pressed', String(ativo));
       this.mapa?.permitirArrastar(ativo);
     });
+    this.ligarPergunte();
+  }
+
+  // --- Pergunte ao mapa, mapa vivo e ficha (ciclo 012, issue #113) ------------------------------------------------
+
+  private ligarPergunte(): void {
+    const campo = $<HTMLTextAreaElement>('p-pergunta');
+    $('form-pergunte').addEventListener('submit', (ev) => { ev.preventDefault(); void this.perguntarMapa(campo.value); });
+    // "×" no campo: apaga só o texto; os filtros aplicados continuam.
+    const apagar = $<HTMLButtonElement>('p-apagar');
+    campo.addEventListener('input', () => { apagar.hidden = campo.value === ''; this.atualizarLimpar(); });
+    apagar.addEventListener('click', () => { campo.value = ''; apagar.hidden = true; campo.focus(); this.atualizarLimpar(); });
+    campo.addEventListener('keydown', (ev) => {
+      if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); void this.perguntarMapa(campo.value); }
+    });
+    $('botao-animar').addEventListener('click', () => {
+      // O menu "Mapa" fecha para não cobrir a barra.
+      $<HTMLDetailsElement>('opcoes-mapa').open = false;
+      if (this.reproducao) this.fecharReproducao(true);
+      else this.abrirReproducao(false);
+    });
+    $('rep-tocar').addEventListener('click', () => this.alternarTocar());
+    $('rep-fechar').addEventListener('click', () => this.fecharReproducao(true));
+    $<HTMLInputElement>('rep-dia').addEventListener('input', (ev) => {
+      this.pausar();
+      this.irParaDia(Number((ev.target as HTMLInputElement).value));
+    });
+    for (const b of document.querySelectorAll<HTMLButtonElement>('[data-vel]')) {
+      b.addEventListener('click', () => {
+        this.velocidade = Number(b.dataset['vel']) as Velocidade;
+        renderVelocidade(this.velocidade);
+        if (this.reproducao?.tocando) { this.pausar(); this.tocar(); }
+      });
+    }
+    // Série (desejável): clicar num dia leva a reprodução àquele dia.
+    $('serie-corpo').addEventListener('click', (ev) => {
+      const barra = (ev.target as HTMLElement).closest<HTMLElement>('.serie__barra[data-chave]');
+      const r = this.reproducao;
+      if (!barra || !r) return;
+      const i = r.rep.dias.indexOf(barra.dataset['chave'] ?? '');
+      if (i < 0) return;
+      this.pausar();
+      this.irParaDia(i);
+    });
+    // Esc fecha a reprodução antes de qualquer outro uso da tecla (mapa ampliado), fora dos diálogos.
+    window.addEventListener('keydown', (ev) => {
+      if (ev.key !== 'Escape' || !this.reproducao || document.querySelector('dialog[open]')) return;
+      ev.stopPropagation();
+      this.fecharReproducao(true);
+    }, true);
+    $('botao-ficha-destaque').addEventListener('click', () => void this.abrirFicha('destaque', $('botao-ficha-destaque')));
+    const dialogo = $<HTMLDialogElement>('dialogo-ficha');
+    for (const b of dialogo.querySelectorAll<HTMLButtonElement>('[data-fechar]')) b.addEventListener('click', () => dialogo.close());
+    $('ficha-imprimir').addEventListener('click', () => window.print());
+  }
+
+  private manipuladoresEntendi(): ManipuladoresEntendi {
+    return {
+      editar: (alvo) => this.editarItem(alvo),
+      ficha: () => void this.abrirFicha('recorte', document.getElementById('botao-ficha-pergunta')),
+      mostrarDeteccoes: () => {
+        limparPergunte();
+        this.abrirListaFocos();
+        this.mapa?.enquadrar();
+      },
+    };
+  }
+
+  /**
+   * Interpreta a pergunta (IA com tempo-limite; sem IA ou com falha, o interpretador local), valida contra a janela e
+   * a lista de municípios e aplica nos controles existentes. Uma pergunta nova descarta a anterior em curso.
+   */
+  private async perguntarMapa(bruta: string): Promise<void> {
+    const dados = this.dados;
+    const texto = bruta.trim();
+    if (!dados || !this.aplicado) return;
+    if (!texto) { estadoPergunte('Escreva uma pergunta sobre as detecções de calor.', false); return; }
+    const g = ++this.geracaoPergunte;
+    const gs = this.geracaoSessao;
+    const atual = () => g === this.geracaoPergunte && gs === this.geracaoSessao;
+    limparPergunte();
+    estadoPergunte('Interpretando a pergunta…', true);
+    const ctx = { janela: dados.janela, municipios: dados.municipios };
+    let bruto: unknown = null;
+    let origem: 'ia' | 'local' = 'local';
+    let notaOrigem: string | null = null;
+    if (!this.iaInterpretacaoDesligada) {
+      const { data } = await this.sessao.cliente.auth.getSession();
+      const token = data.session?.access_token;
+      if (!atual()) return;
+      if (token) {
+        const d = await pedirInterpretacao(texto, { id: dados.carga.id, identidade: dados.carga.identidade }, token, AbortSignal.timeout(TEMPO_LIMITE_IA_MS));
+        if (!atual()) return;
+        if (d.tipo === 'ok') { bruto = d.bruto; origem = 'ia'; }
+        else if (d.tipo === 'desligada') { this.iaInterpretacaoDesligada = true; marcarIa(false); }
+        else notaOrigem = d.codigo === 'tempo_esgotado' ? 'A IA não respondeu a tempo; o interpretador local assumiu.' : 'A IA não respondeu como esperado; o interpretador local assumiu.';
+      }
+    }
+    if (bruto === null) bruto = interpretarLocal(texto, ctx);
+    let { interpretacao, descartados } = validarInterpretacao(bruto, ctx);
+    // Saída da IA sem nada aproveitável: as regras locais tentam antes de dizer "não entendi".
+    if (origem === 'ia' && interpretacao.tipo === 'nao_entendi') {
+      const local = validarInterpretacao(interpretarLocal(texto, ctx), ctx);
+      if (local.interpretacao.tipo !== 'nao_entendi') { ({ interpretacao, descartados } = local); origem = 'local'; notaOrigem = 'A IA não reconheceu filtros; o interpretador local assumiu.'; }
+    }
+    estadoPergunte('', false);
+    const m = this.manipuladoresEntendi();
+    if (interpretacao.tipo !== 'consulta') {
+      this.perguntaMapa = null;
+      renderAvisoPergunta(interpretacao.tipo, dados.janela, origem, m);
+      this.atualizarLimpar();
+      return;
+    }
+    const itens = itensEntendi(interpretacao, this.aplicado, (c) => (c === null ? 'Todo Mato Grosso' : this.nomeMunicipio(c) ?? String(c)));
+    this.perguntaMapa = { texto, interpretacao, origem, linhas: itens.map((x) => `${x.rotulo}: ${x.valor}`) };
+    renderEntendi(itens, origem, notaOrigem, descartados, m);
+    this.aplicarInterpretacao(interpretacao);
+  }
+
+  /** Preenche os controles existentes e dispara o mesmo caminho dos filtros; não há consulta paralela. */
+  private aplicarInterpretacao(i: Interpretacao): void {
+    const dados = this.dados;
+    const antes = this.aplicado;
+    if (!dados || !antes) return;
+    this.fecharReproducao(false);
+    if (i.periodo) {
+      $<HTMLSelectElement>('f-periodo').value = 'personalizado';
+      $('intervalo').hidden = false;
+      $<HTMLInputElement>('f-inicio').value = i.periodo.inicio;
+      $<HTMLInputElement>('f-fim').value = i.periodo.fim;
+    }
+    $<HTMLSelectElement>('f-municipio').value = i.municipio === null ? '' : String(i.municipio);
+    // Lente: a anterior sai; a nova é calculada depois da leitura do recorte (ou já, se o recorte não mudar).
+    const marcar = (seletor: string) => { const e = document.querySelector<HTMLInputElement>(seletor); if (e) e.checked = true; };
+    if (this.lente || this.combinacao || this.sobreposicao) this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
+    marcar(`input[name="l-lente"][value="${i.lente}"]`);
+    if (i.classe) marcar(`input[name="l-classe"][value="${i.classe}"]`);
+    if (i.combinacao) {
+      for (const c of document.querySelectorAll<HTMLInputElement>('input[name="l-comb"]')) c.checked = (i.combinacao.lentes as string[]).includes(c.value);
+      marcar(`input[name="l-operador"][value="${i.combinacao.operador}"]`);
+      this.concentracaoRetirada = false;
+    }
+    this.mostrarEscolhaLente();
+    if (i.lente !== 'nenhuma') this.lentePendente = true;
+    // Comparação: o modo pedido, ou nenhuma.
+    marcar(`input[name="c-modo"][value="${i.comparar?.modo ?? 'nenhuma'}"]`);
+    $('comparar-periodos').hidden = i.comparar?.modo !== 'periodos';
+    $('comparar-municipios').hidden = i.comparar?.modo !== 'municipios';
+    if (i.comparar?.modo === 'periodos') {
+      $<HTMLInputElement>('cmp-b-inicio').value = i.comparar.b.inicio;
+      $<HTMLInputElement>('cmp-b-fim').value = i.comparar.b.fim;
+    } else if (i.comparar?.modo === 'municipios') {
+      $<HTMLSelectElement>('cmp-municipio-b').value = String(i.comparar.municipio_b);
+    }
+    this.animarAoCarregar = i.animar;
+    this.aplicarFormulario();
+    const a = this.aplicado;
+    const mudou = !a || a.inicio !== antes.inicio || a.fim !== antes.fim || a.municipio !== antes.municipio;
+    if (!mudou) {
+      if (i.lente !== 'nenhuma') void this.aplicarLente();
+      void this.compararAgora();
+      if (this.animarAoCarregar && Array.isArray(this.pontos)) { this.animarAoCarregar = false; this.abrirReproducao(true); }
+    }
+    abrirAba(i.comparar ? 'comparacao' : i.lente !== 'nenhuma' ? 'destaques' : 'municipios');
+    this.atualizarLimpar();
+  }
+
+  /** ✎: abre a seção do controle, foca e destaca brevemente. */
+  private editarItem(alvo: Alvo): void {
+    const abrir = (id: string) => { const d = document.getElementById(id); if (d instanceof HTMLDetailsElement) d.open = true; };
+    let controle: HTMLElement | null = null;
+    if (alvo === 'periodo' || alvo === 'municipio') {
+      abrir('secao-consulta');
+      controle = alvo === 'municipio' ? $('f-municipio')
+        : $<HTMLSelectElement>('f-periodo').value === 'personalizado' ? $('f-inicio') : $('f-periodo');
+    } else if (alvo === 'lente' || alvo === 'classe') {
+      const marcado = document.querySelector<HTMLInputElement>(alvo === 'classe' ? 'input[name="l-classe"]:checked'
+        : lenteEscolhida() === 'combinacao' ? 'input[name="l-comb"]:checked' : 'input[name="l-lente"]:checked:not([hidden])')
+        ?? document.querySelector<HTMLInputElement>('#secao-lente input[name="l-lente"]');
+      const secao = marcado?.closest('details');
+      if (secao) secao.open = true;
+      controle = marcado ?? null;
+    } else if (alvo === 'comparar') {
+      abrir('secao-comparar');
+      controle = document.querySelector<HTMLInputElement>('input[name="c-modo"]:checked');
+    } else {
+      abrir('opcoes-mapa');
+      controle = $('botao-animar');
+    }
+    if (!controle) return;
+    const destaque = controle.closest<HTMLElement>('label, .opcao-lente') ?? controle;
+    destaque.classList.remove('editando');
+    void destaque.offsetWidth;
+    destaque.classList.add('editando');
+    window.setTimeout(() => destaque.classList.remove('editando'), 1800);
+    controle.scrollIntoView({ block: 'nearest' });
+    controle.focus();
+  }
+
+  /** Abre a barra do mapa vivo sobre os pontos já lidos do recorte aplicado; `tocar` já começa do primeiro dia. */
+  private abrirReproducao(tocar: boolean): void {
+    const p = this.pontos;
+    const a = this.aplicado;
+    if (!Array.isArray(p) || !a || !this.mapa) {
+      $('p-estado').textContent = 'A reprodução abre quando as detecções do recorte terminarem de carregar.';
+      return;
+    }
+    if (this.mapaComB) { void this.restaurarMapaA(); renderLadoNoMapa(null); }
+    this.fecharReproducao(false);
+    // O mapa vivo sempre abre com o mapa ampliado; ao fechar, ele volta ao tamanho anterior.
+    if (!mapaAmpliado()) { this.ampliarMapa(true, false); this.ampliadoPelaReproducao = true; }
+    const rep = montarReproducao(p, a.inicio, a.fim);
+    const r = this.resultado;
+    const disp = r && r.filtro.inicio === a.inicio && r.filtro.fim === a.fim && r.filtro.municipio === a.municipio ? r.disponibilidade : null;
+    const sem = diasSemCobertura(disp);
+    this.mapa.fecharBalao();
+    this.mapa.iniciarReproducao(rep.dias, rep.porDia);
+    // Depois que o navegador aplica o novo tamanho do mapa, enquadra os dados (pontos e limite do município).
+    if (tocar || this.ampliadoPelaReproducao) this.enquadrarDepoisDoLayout();
+    this.reproducao = { rep, i: 0, tocando: false, relogio: undefined, sem };
+    const faixa = $<HTMLInputElement>('rep-dia');
+    faixa.max = String(Math.max(0, rep.dias.length - 1));
+    renderMarcas(rep, sem, a.municipio !== null);
+    renderVelocidade(this.velocidade);
+    $('reproducao').hidden = false;
+    $('reproducao').dataset['total'] = String(rep.total);
+    $('botao-animar').setAttribute('aria-expanded', 'true');
+    $('conteudo').dataset['reproducao'] = 'aberta';
+    this.irParaDia(tocar ? 0 : rep.dias.length - 1);
+    if (tocar) this.tocar();
+    else $('rep-tocar').focus({ preventScroll: true });
+  }
+
+  private irParaDia(i: number): void {
+    const r = this.reproducao;
+    if (!r) return;
+    r.i = Math.max(0, Math.min(i, r.rep.dias.length - 1));
+    this.mapa?.mostrarQuadro(r.i);
+    renderQuadro(r.rep, r.i, r.sem);
+    marcarSerie(r.rep.dias[r.i] ?? null);
+  }
+
+  private tocar(): void {
+    const r = this.reproducao;
+    if (!r) return;
+    if (r.i >= r.rep.dias.length - 1) this.irParaDia(0);
+    r.tocando = true;
+    renderTocando(true);
+    const passo = () => {
+      const x = this.reproducao;
+      if (!x || !x.tocando) return;
+      if (x.i >= x.rep.dias.length - 1) { this.pausar(); return; }
+      this.irParaDia(x.i + 1);
+      x.relogio = window.setTimeout(passo, PASSO_MS / this.velocidade);
+    };
+    r.relogio = window.setTimeout(passo, PASSO_MS / this.velocidade);
+  }
+
+  private pausar(): void {
+    const r = this.reproducao;
+    if (!r) return;
+    window.clearTimeout(r.relogio);
+    r.relogio = undefined;
+    r.tocando = false;
+    renderTocando(false);
+  }
+
+  private alternarTocar(): void {
+    if (this.reproducao?.tocando) this.pausar();
+    else this.tocar();
+  }
+
+  /** Fecha a barra e devolve o mapa estático, intacto; `focar` leva o foco ao mapa. */
+  private fecharReproducao(focar: boolean): void {
+    if (!this.reproducao) return;
+    this.pausar();
+    this.reproducao = null;
+    this.mapa?.encerrarReproducao(marcado('c-pontos'));
+    $('reproducao').hidden = true;
+    $('botao-animar').setAttribute('aria-expanded', 'false');
+    delete $('conteudo').dataset['reproducao'];
+    marcarSerie(null);
+    renderTocando(false);
+    if (this.ampliadoPelaReproducao && mapaAmpliado()) {
+      this.ampliarMapa(false, false);
+      this.enquadrarDepoisDoLayout();
+    }
+    this.ampliadoPelaReproducao = false;
+    if (focar) this.mapa?.focar();
+  }
+
+  /** Redimensiona e enquadra no quadro seguinte ao da troca de tamanho do mapa (ampliar ou reduzir). */
+  private enquadrarDepoisDoLayout(): void {
+    requestAnimationFrame(() => requestAnimationFrame(() => this.mapa?.enquadrarAposZoom()));
+  }
+
+  /** Registros do alvo da ficha: o destaque aberto (evidência da lente) ou o recorte aplicado inteiro. */
+  private alvoFicha(origem: 'recorte' | 'destaque'): { registros: RegistroLente[]; rotulo: string } | null {
+    const p = this.pontos;
+    if (!Array.isArray(p)) return null;
+    if (origem === 'destaque') {
+      const aberto = this.destaqueAberto();
+      const ids = this.lente?.resultado.destaques.find((d) => d.id_destaque === aberto?.id)?.evidencia.deteccoes
+        ?? this.combinacao?.resultado.celulas.find((c) => c.id_combinado === aberto?.id)?.evidencia.deteccoes
+        ?? this.sobreposicao?.resultado.destaques.find((d) => d.id_destaque === aberto?.id)?.evidencia.deteccoes;
+      if (aberto && ids) {
+        const conjunto = new Set(ids);
+        return { registros: p.filter((r) => conjunto.has(r.id_tecnico)), rotulo: `Destaque ${aberto.rotulo} (${$('t-destaques').textContent ?? 'lente'})` };
+      }
+    }
+    return { registros: p, rotulo: 'Recorte aplicado inteiro' };
+  }
+
+  /** Lê (uma vez por carga) a camada de áreas e conta as detecções do alvo em cada área. */
+  private async areasDaFicha(registros: readonly RegistroLente[], atual: () => boolean): Promise<AreasFicha> {
+    const dados = this.dados;
+    if (!dados) return { estado: 'falha' };
+    try {
+      if (this.areasFicha?.carga !== dados.carga.id) {
+        const leitura = await lerAreas(fontesAreas(this.sessao.cliente), dados.carga.id, atual);
+        if (!leitura || !atual()) return { estado: 'falha' };
+        this.areasFicha = { carga: dados.carga.id, leitura };
+      }
+      const l = this.areasFicha.leitura;
+      if (l.estado === 'sem_camada') return { estado: 'sem_camada' };
+      const ids = new Set(registros.map((r) => r.id_tecnico));
+      const porArea = new Map<string, Set<string>>();
+      const dentro = new Set<string>();
+      for (const v of l.vinculos) {
+        if (!ids.has(v.id_tecnico)) continue;
+        const k = chaveArea(v.area_fonte, v.area_codigo);
+        if (!porArea.has(k)) porArea.set(k, new Set());
+        porArea.get(k)!.add(v.id_tecnico);
+        dentro.add(v.id_tecnico);
+      }
+      const nomes = new Map(l.areas.map((a) => [chaveArea(a.fonte, a.codigo), a]));
+      const areas = [...porArea].flatMap(([k, s]) => {
+        const a = nomes.get(k);
+        return a ? [{ nome: a.nome, classe: a.classe, deteccoes: s.size }] : [];
+      }).sort((x, y) => y.deteccoes - x.deteccoes || x.nome.localeCompare(y.nome, 'pt-BR'));
+      return { estado: 'lidas', areas, fora: ids.size - dentro.size };
+    } catch {
+      return { estado: 'falha' };
+    }
+  }
+
+  /** Monta e abre a ficha do recorte atual ou do destaque aberto. */
+  private async abrirFicha(origem: 'recorte' | 'destaque', botao: HTMLElement | null): Promise<void> {
+    const dados = this.dados;
+    const a = this.aplicado;
+    const dialogo = $<HTMLDialogElement>('dialogo-ficha');
+    const alvo = this.alvoFicha(origem);
+    if (!dados || !a || !alvo) {
+      $('p-estado').textContent = 'A ficha fica disponível quando as detecções do recorte terminarem de carregar.';
+      return;
+    }
+    const gs = this.geracaoSessao;
+    const gc = this.geracaoConsulta;
+    const atual = () => gs === this.geracaoSessao && gc === this.geracaoConsulta;
+    const voltar = botao ?? $('botao-animar');
+    dialogo.addEventListener('close', () => { if (document.contains(voltar)) voltar.focus(); }, { once: true });
+    $('ficha-corpo').replaceChildren();
+    $('ficha-estado').textContent = 'Montando a ficha e conferindo as áreas protegidas…';
+    if (!dialogo.open) dialogo.showModal();
+    const r = this.resultado;
+    const disp = r && r.filtro.inicio === a.inicio && r.filtro.fim === a.fim && r.filtro.municipio === a.municipio ? r.disponibilidade : null;
+    const sem = diasSemCobertura(disp);
+    const periodo = { inicio: a.inicio, fim: a.fim };
+    const resumo = resumirFicha(alvo.registros, periodo, sem);
+    const areas = await this.areasDaFicha(alvo.registros, atual);
+    if (!atual() || !dialogo.open) return;
+    let persistente = false;
+    try {
+      persistente = persistencia({
+        carga: { id: dados.carga.id, identidade: dados.carga.identidade }, janela: periodo, registros: [...alvo.registros],
+        totalResumo: alvo.registros.length, nomes: dados.nomes, recorte: recorteDe(a.municipio),
+      }).destaques.length > 0;
+    } catch { /* sem persistência conferida, o passo não entra */ }
+    const local = a.municipio === null ? 'Todo Mato Grosso' : this.nomeMunicipio(a.municipio) ?? String(a.municipio);
+    const ctx = this.contextoPergunta();
+    const respostaIa = this.estadoPerguntas.tipo === 'resposta' && this.chavePergunta !== null && this.chavePergunta === chaveContexto(this.geracaoSessao, ctx)
+      ? this.estadoPerguntas.resposta.afirmacoes.map((x) => x.texto) : null;
+    const lente = lenteEscolhida();
+    const pm = this.perguntaMapa;
+    renderFicha($('ficha-corpo'), {
+      geradaEm: new Date(), carga: { id: dados.carga.id, identidade: dados.carga.identidade },
+      pergunta: pm?.texto ?? null, interpretacao: pm ? { linhas: pm.linhas, origem: pm.origem } : null,
+      filtros: [local, resumoPeriodo(periodo), `Lente: ${TITULO_OPCAO[lente] ?? 'nenhuma'}`,
+        ...(modoComparacao() !== 'nenhuma' ? [`Comparação: ${modoComparacao() === 'periodos' ? 'dois períodos' : 'dois municípios'}`] : [])],
+      alvo: `${alvo.rotulo} · ${alvo.registros.length} ${alvo.registros.length === 1 ? 'detecção' : 'detecções'}`,
+      local, periodo, registros: alvo.registros, resumo, areas,
+      roteiro: roteiroAveriguacao({ areas, persistencia: persistente, semCobertura: resumo.semCobertura.length, total: resumo.total }),
+      sintese: sinteseDeterministica(resumo, local, periodo), sinteseIa: respostaIa,
+    });
+    $('ficha-estado').textContent = '';
+    $('ficha-corpo').dataset['total'] = String(resumo.total);
   }
 
   // --- Sessão e acesso ---------------------------------------------------------------------------
@@ -542,6 +966,14 @@ class Controlador {
     // Sessão, acesso ou versão mudaram: a pergunta e a resposta saem junto, sem aviso de seleção.
     this.descartarPergunta(false);
     this.atualizarPerguntas();
+    // Pergunte ao mapa, mapa vivo e ficha (ciclo 012) saem junto.
+    this.geracaoPergunte++;
+    this.perguntaMapa = null;
+    this.animarAoCarregar = false;
+    this.areasFicha = null;
+    this.fecharReproducao(false);
+    limparPergunte();
+    estadoPergunte('', false);
   }
 
   // --- Consulta --------------------------------------------------------------------------------------
@@ -606,12 +1038,13 @@ class Controlador {
     this.atualizarLimpar();
   }
 
-  /** "Limpar tudo" só fica ativo fora do padrão (janela inteira, todo o estado, nenhuma lente), como na V13. */
+  /** "Limpar tudo" só fica ativo fora do padrão (janela inteira, todo o estado, nenhuma lente, nenhuma pergunta), como na V13. */
   private atualizarLimpar(): void {
     const a = this.aplicado;
     const j = this.dados?.janela;
     const padrao = !a || !j || (a.inicio === j.inicio && a.fim === j.fim && a.municipio === null
-      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma' && modoComparacao() === 'nenhuma');
+      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma' && modoComparacao() === 'nenhuma'
+      && this.perguntaMapa === null && $<HTMLTextAreaElement>('p-pergunta').value === '' && $('p-aviso').hidden === true);
     $<HTMLButtonElement>('botao-limpar').disabled = padrao;
   }
 
@@ -692,6 +1125,10 @@ class Controlador {
     this.limparLente({ memoria: false, estado: { tipo: 'nenhuma' } });
     this.redefinirComparacao();
     abrirAba('municipios');
+    this.perguntaMapa = null;
+    limparPergunte();
+    $<HTMLTextAreaElement>('p-pergunta').value = '';
+    $('p-apagar').hidden = true;
     this.aplicarFormulario();
     this.mostrarMunicipios();
   }
@@ -727,6 +1164,7 @@ class Controlador {
     const atual = () => g === this.geracaoSessao && c === this.geracaoConsulta;
     // Novo recorte A: a comparação em curso é descartada e refeita depois da leitura (T7).
     this.cancelarComparacao();
+    this.fecharReproducao(false);
     this.resultado = null;
     this.pontos = 'carregando';
     this.selecionado = null;
@@ -799,6 +1237,8 @@ class Controlador {
     this.mostrarEstadoPontos();
     this.mostrarListaFocos();
     this.mostrarMunicipios();
+    // Pergunte ao mapa (ciclo 012): a pergunta pediu animação deste recorte.
+    if (this.animarAoCarregar) { this.animarAoCarregar = false; this.abrirReproducao(true); }
   }
 
   private mostrarEstadoPontos(): void {
@@ -830,6 +1270,8 @@ class Controlador {
       this.limparAreas();
     }
     this.cancelarComparacao();
+    this.animarAoCarregar = false;
+    this.fecharReproducao(false);
     if (modoComparacao() !== 'nenhuma') this.estadoComparacao({ tipo: 'incompleta', texto: 'A consulta do recorte A falhou; a comparação espera o recorte A.' });
     this.resultado = null;
     this.pontos = 'erro';
@@ -2305,6 +2747,7 @@ class Controlador {
   private mostrarLadoNoMapa(lado: Lado): void {
     const c = this.comparacao;
     if (!c || !this.mapa) return;
+    this.fecharReproducao(false);
     c.mapa = lado;
     if (lado === 'A') this.restaurarMapaA();
     else {

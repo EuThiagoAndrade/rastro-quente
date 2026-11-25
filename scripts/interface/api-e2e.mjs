@@ -9,9 +9,12 @@
 //   - `desligada`: a função fica desligada (503 `ia_desabilitada`, sem ler corpo nem sessão);
 //   - `atrasoMs`: espera antes de cada resposta do provedor (cancelamento e respostas tardias).
 // `GET /__e2e/provedor` devolve `{ chamadas }`, o número de chamadas recebidas pelo provedor simulado.
+// Ciclo 012 (issue #113): `/api/interpretar` usa o mesmo provedor simulado; a interpretação simulada é fixa (Município
+// Beta, 01 a 10/10/2026, com animação) e só é usada pelo E2E que liga a IA; com `desligada`, vale o interpretador local.
 import http from 'node:http';
 import { criarCliente } from '../../api/explicar.ts';
 import { tratarExplicar } from '../../servidor/explicar.ts';
+import { tratarInterpretar } from '../../servidor/interpretar.ts';
 import { criarGemini } from '../../servidor/gemini.ts';
 import { MODELO_FIXADO } from '../../servidor/config.ts';
 import { respostaSimulada } from '../agentes/simulado.mjs';
@@ -31,6 +34,14 @@ export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
       });
     }
     const sis = String(corpo.system_instruction ?? '');
+    if (sis.includes('interpretador de perguntas')) {
+      const interpretacao = {
+        tipo: 'consulta', inicio: '2026-10-01', fim: '2026-10-10', municipio_codigo: 9900002, lente: 'nenhuma', classe_area: 'nenhuma',
+        lentes_combinacao: [], operador: 'nenhum', animar: true, comparar_modo: 'nenhuma', b_inicio: '', b_fim: '', municipio_b: 0, motivo: 'Interpretação simulada do E2E.',
+      };
+      const r = { status: 'completed', usage: { total_input_tokens: 10, total_output_tokens: 5, total_thought_tokens: 0, total_tokens: 15 }, steps: [{ type: 'model_output', content: [{ type: 'text', text: JSON.stringify(interpretacao) }] }] };
+      return new Response(JSON.stringify(r), { status: 200, headers: { 'content-type': 'application/json' } });
+    }
     const analiseDeLentes = sis.includes('analista de lentes') && (corpo.generation_config?.tool_choice ?? 'none') === 'none';
     const resposta = estado.modo === 'falha_lentes' && analiseDeLentes
       ? { status: 'completed', usage: { total_input_tokens: 10, total_output_tokens: 5, total_thought_tokens: 0, total_tokens: 15 }, steps: [{ type: 'model_output', content: [{ type: 'text', text: 'isto não é JSON' }] }] }
@@ -65,7 +76,7 @@ export function iniciarApiE2e({ porta, supabaseUrl, chavePublica, origem }) {
       method: req.method, headers: req.headers, signal: controle.signal,
       body: ['GET', 'HEAD'].includes(req.method) ? undefined : corpo,
     });
-    const r = await tratarExplicar(request, deps());
+    const r = req.url?.startsWith('/api/interpretar') ? await tratarInterpretar(request, deps()) : await tratarExplicar(request, deps());
     res.writeHead(r.status, Object.fromEntries(r.headers));
     if (!r.body) { res.end(); return; }
     const leitor = r.body.getReader();

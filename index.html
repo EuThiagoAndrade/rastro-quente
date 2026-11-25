@@ -58,11 +58,34 @@
       <div id="conteudo" class="grade" data-estado-painel="carregando" hidden>
         <!-- Esquerda: a pergunta (filtros e lentes). -->
         <section id="filtros" class="coluna coluna--lentes" aria-labelledby="t-filtros">
-          <div class="cabeca-coluna">
-            <h2 id="t-filtros" class="rotulo-secao">Filtros</h2>
-            <button id="botao-limpar" type="button" class="botao-limpar" title="Volta período, município e lente ao padrão" disabled>
+          <!-- Ciclo 012 (issue #113): a pergunta em linguagem natural vira os filtros abaixo, que continuam editáveis. -->
+          <!-- "Limpar tudo" no topo: vale para a pergunta, a consulta, as lentes e a comparação. -->
+          <div class="topo-coluna">
+            <button id="botao-limpar" type="button" class="botao-limpar" title="Apaga a pergunta e volta período, município, lentes e comparação ao padrão" disabled>
               <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
             </button>
+          </div>
+
+          <details id="secao-pergunte" class="secao secao--topo" open>
+            <summary><h2 id="t-pergunte" class="rotulo-secao">Pergunte ao mapa</h2><span id="p-ia" class="selo-ia" role="img" data-ia="ligada" aria-label="Com IA: a IA interpreta a pergunta e preenche os filtros; os resultados vêm dos dados." title="Com IA: a IA interpreta a pergunta e preenche os filtros; os resultados vêm dos dados."><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.2" /><path d="M12 4.4V7" /><rect x="5" y="7" width="14" height="11" rx="3" /><path d="M9.5 11.8h.01M14.5 11.8h.01" stroke-width="2.8" /><path d="M10 15h4" /><path d="M3 11v3M21 11v3" /></svg></span></summary>
+            <form id="form-pergunte" class="pergunte" novalidate>
+              <label class="so-leitor" for="p-pergunta">Pergunta sobre as detecções de calor</label>
+              <div class="pergunte__caixa">
+                <textarea id="p-pergunta" class="campo-periodo pergunte__campo" rows="3" maxlength="300" placeholder="Ex.: Como as detecções evoluíram em Nova Nazaré em agosto de 2026?" aria-describedby="p-ajuda"></textarea>
+                <button id="p-apagar" type="button" class="pergunte__apagar" aria-label="Apagar o texto da pergunta" title="Apagar o texto (os filtros continuam)" hidden>×</button>
+              </div>
+              <div class="pergunte__acoes">
+                <span id="p-ajuda" class="nota">Enter envia; Shift+Enter quebra a linha.</span>
+                <button id="p-enviar" type="submit" class="botao botao--primario botao--compacto">Perguntar</button>
+              </div>
+            </form>
+            <p id="p-estado" class="nota" role="status"></p>
+            <div id="p-aviso" class="pergunte__aviso" hidden></div>
+            <div id="p-entendi" class="entendi" hidden></div>
+          </details>
+
+          <div class="cabeca-coluna">
+            <h2 id="t-filtros" class="rotulo-secao">Filtro</h2>
           </div>
 
           <details id="secao-consulta" class="secao" open>
@@ -192,6 +215,7 @@
                 <button id="botao-lista-focos" type="button" class="opcao-mapa opcao-mapa--caixa" aria-expanded="false" aria-controls="lista-focos">Lista de focos</button>
                 <button id="botao-arrastar" type="button" class="opcao-mapa opcao-mapa--caixa" aria-pressed="false" hidden>Mover o mapa com um dedo</button>
                 <button id="botao-enquadrar" type="button" class="opcao-mapa opcao-mapa--acao">Enquadrar os dados</button>
+                <button id="botao-animar" type="button" class="opcao-mapa opcao-mapa--animar" aria-expanded="false" aria-controls="reproducao">Animar no tempo</button>
               </div>
             </details>
             <details id="camadas" class="flutuante flutuante--painel flutuante--camadas">
@@ -210,6 +234,25 @@
               <svg class="ic-ampliar" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7" /></svg>
               <svg class="ic-reduzir" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 14h6v6M20 10h-6V4M14 10l7-7M3 21l7-7" /></svg>
             </button>
+          </div>
+          <!-- Mapa vivo (ciclo 012): reprodução dia a dia das detecções do recorte, na base do mapa. -->
+          <div id="reproducao" class="flutuante reproducao" role="group" aria-label="Mapa vivo: detecções de calor dia a dia" hidden>
+            <div class="reproducao__linha">
+              <button id="rep-tocar" type="button" class="botao botao--primario botao--compacto reproducao__tocar" aria-label="Tocar">▶ Tocar</button>
+              <div class="reproducao__trilho">
+                <input id="rep-dia" type="range" min="0" max="0" step="1" value="0" aria-label="Dia GMT da reprodução" />
+                <div id="rep-marcas" class="reproducao__marcas" aria-hidden="true"></div>
+              </div>
+              <span class="reproducao__velocidades" role="group" aria-label="Velocidade">
+                <button type="button" class="reproducao__vel" data-vel="1" aria-pressed="true">1×</button>
+                <button type="button" class="reproducao__vel" data-vel="2" aria-pressed="false">2×</button>
+                <button type="button" class="reproducao__vel" data-vel="4" aria-pressed="false">4×</button>
+              </span>
+              <button id="rep-fechar" type="button" class="botao botao--secundario botao--compacto">Fechar</button>
+            </div>
+            <p id="rep-rotulo" class="reproducao__rotulo"></p>
+            <p id="rep-aviso" class="reproducao__aviso" role="status" hidden></p>
+            <p id="rep-nota" class="nota reproducao__nota" hidden></p>
           </div>
           <details class="flutuante flutuante--legenda legenda-v13">
             <summary><strong>Legenda</strong></summary>
@@ -282,6 +325,7 @@
               <button type="button" class="botao-voltar" id="botao-voltar"><span aria-hidden="true">←</span> Voltar aos destaques</button>
               <h2 id="t-explicacao">Por que este destaque?</h2>
               <div id="lente-explicacao"></div>
+              <button id="botao-ficha-destaque" type="button" class="botao botao--secundario botao-ficha">Gerar ficha para averiguação</button>
             </div>
           </section>
           <section id="painel-municipios" class="painel-aba" role="tabpanel" aria-labelledby="aba-municipios">
@@ -341,9 +385,22 @@
       <div class="passo"><b>2</b><div><strong>Onde estão as detecções.</strong> Cada ponto laranja é uma detecção de calor do satélite AQUA_M-T (INPE). Toque num ponto para ver o registro. Em "Mapa", escolha o fundo ("Satélite", quando disponível, ou "Sem fundo"), abra a "Lista de focos" ou enquadre os dados; com o satélite ligado, a Esri recebe só a região vista. Em "Camadas", ligue ou desligue os limites municipais, as áreas protegidas, as detecções e a densidade por célula (contagem, não gravidade); o botão do canto amplia o mapa.</div></div>
       <div class="passo"><b>3</b><div><strong>Por que algo foi destacado.</strong> Escolha uma lente: ela é calculada na hora e os destaques aparecem na aba Lentes e no mapa, com contorno amarelo. Selecione um para abrir a explicação com motivo, evidência e ressalvas.</div></div>
       <div class="passo"><b>4</b><div><strong>Os detalhes.</strong> A explicação abre as detecções que sustentam o destaque; a "Lista de focos", no mapa, mostra cada detecção do recorte em texto; a proveniência completa fica no ícone de dados do topo.</div></div>
-      <div class="passo"><b>5</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as cinco perguntas fechadas usam o período, município e lente aplicados ou a comparação de períodos configurada e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
+      <div class="passo"><b>5</b><div><strong>Pergunte ao mapa.</strong> No alto da coluna esquerda, escreva uma pergunta sobre as detecções de calor. O sistema a converte nos filtros desta tela e mostra "Entendi assim", com um ✎ para corrigir cada item; com a IA desligada, um interpretador local, sem IA, faz o mesmo. Perguntas sobre autoria e previsão são recusadas. "Animar no tempo", no painel "Mapa", amplia o mapa e reproduz as detecções dia a dia (os dias de cobertura não comprovada ficam marcados); Esc ou "Fechar" voltam o mapa ao tamanho anterior, e "Gerar ficha para averiguação" prepara um documento imprimível com evidências, roteiro, ressalvas e o espaço para a conclusão do técnico.</div></div>
+      <div class="passo"><b>6</b><div><strong>Perguntar.</strong> No fim da coluna de resultado, as cinco perguntas fechadas usam o período, município e lente aplicados ou a comparação de períodos configurada e não mudam os filtros. Um agente principal e dois subagentes respondem com as evidências das ferramentas desta aplicação; as etapas mostradas são as da execução real. A resposta é gerada por IA e pode conter erros: confira as evidências. Mudar a seleção cancela a pergunta. Sem IA, tudo o mais continua funcionando.</div></div>
       <p class="nota">Detecções e sobreposições <strong>não comprovam incêndio, dano, autoria ou infração</strong>; a concentração ordena por contagem, não por prioridade, gravidade ou risco. A série usa <strong>dia GMT</strong>. Disponibilidade é separada da presença de detecção: nenhuma classe comprova cobertura.</p>
       <div class="acoes"><button type="button" class="botao botao--primario" data-fechar>Entendi</button></div>
+    </dialog>
+
+    <dialog id="dialogo-ficha" class="dialogo dialogo--ficha" aria-labelledby="t-ficha">
+      <div class="dialogo__cabeca ficha__acoes">
+        <h2 id="t-ficha" class="dialogo__titulo">Ficha para averiguação</h2>
+        <div class="ficha__botoes">
+          <button id="ficha-imprimir" type="button" class="botao botao--primario">Salvar como PDF</button>
+          <button type="button" class="botao" data-fechar>Fechar</button>
+        </div>
+      </div>
+      <p id="ficha-estado" class="nota ficha__estado" role="status"></p>
+      <div id="ficha-corpo" class="ficha-averiguacao"></div>
     </dialog>
 
     <script type="module" src="/src/main.ts"></script>

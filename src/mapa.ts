@@ -9,6 +9,7 @@ import {
 import type { ClasseArea } from './lentes/carregar-areas.ts';
 import type { RegistroLente } from './lentes/contrato.ts';
 import type { Limite } from './tipos.ts';
+import { faixaIdade } from './replay.ts';
 
 /** Zoom máximo do mapa: abaixo do último nível dos dois serviços da Esri (imagem até 23; nomes até 22 em 512 px). */
 export const MAX_ZOOM = 14;
@@ -29,6 +30,17 @@ export const ESTILO_AREA: Record<ClasseArea, { cor: string; traco: string | unde
   terra_indigena: { cor: '#f9a8d4', traco: '2 5', angulo: 0 },
 };
 const COR_CONTORNO_REAL = '#ffffff';
+
+/**
+ * Mapa vivo (ciclo 012): mesma cor das detecções; o dia atual tem borda clara e raio maior, os anteriores só
+ * esmaecem com a idade (faixas 1–2, 3–6 e 7+ dias). Não representa intensidade, área queimada nem gravidade.
+ */
+const ESTILO_REPRODUCAO: Record<0 | 1 | 2 | 3, L.CircleMarkerOptions> = {
+  0: { radius: 6, color: '#fff7ed', weight: 1.6, opacity: 1, fillColor: COR_DETECCAO, fillOpacity: 1 },
+  1: { radius: 4, color: COR_BORDA_PONTO, weight: 0.6, opacity: 0.7, fillColor: COR_DETECCAO, fillOpacity: 0.7 },
+  2: { radius: 3.5, color: COR_BORDA_PONTO, weight: 0.4, opacity: 0.45, fillColor: COR_DETECCAO, fillOpacity: 0.45 },
+  3: { radius: 3, color: COR_BORDA_PONTO, weight: 0, opacity: 0, fillColor: COR_DETECCAO, fillOpacity: 0.25 },
+};
 
 /** Densidade (plano 007, T8): uma cor por classe fixa (1 · 2–3 · 4–9 · 10–24 · 25+); mesmos valores de `--densidade-*`. */
 export const CORES_DENSIDADE = ['#fed7aa', '#fdba74', '#f97316', '#c2410c', '#7c2d12'] as const;
@@ -71,6 +83,11 @@ export interface Mapa {
   limparTudo(): void;
   selecionarRegistro(id: string | null): boolean;
   enquadrar(): void;
+  /**
+   * Mapa vivo (ciclo 012): enquadra depois de uma animação de zoom em curso. Chamado durante a animação, o
+   * enquadramento comum é desfeito quando ela termina.
+   */
+  enquadrarAposZoom(): void;
   permitirArrastar(ativo: boolean): void;
   arrastoAtivo(): boolean;
   aoSelecionar(f: (id: string) => void): void;
@@ -86,6 +103,14 @@ export interface Mapa {
   mostrarDensidade(ativo: boolean): void;
   /** Camada "Detecções individuais" (pontos e anel de seleção). */
   mostrarPontos(ativo: boolean): void;
+  /**
+   * Mapa vivo (ciclo 012): camada irmã dos pontos, no mesmo renderizador, com as detecções agrupadas por dia GMT. A
+   * camada estática sai do mapa enquanto a reprodução estiver aberta e volta, intacta, em `encerrarReproducao`.
+   */
+  iniciarReproducao(dias: readonly string[], porDia: ReadonlyMap<string, readonly RegistroLente[]>): void;
+  /** Desenha até o dia de índice `i`: o dia atual em destaque e os anteriores esmaecendo com a idade. */
+  mostrarQuadro(i: number): void;
+  encerrarReproducao(pontosVisiveis: boolean): void;
   /**
    * Mapa-base (T12): "satelite" liga imagem e nomes com a chave; "nenhum" remove as duas camadas (os tiles em voo
    * são cancelados pelo Leaflet) e nenhum pedido novo vai à Esri. `aoFalhar` é chamado uma vez por camada quando
@@ -177,6 +202,11 @@ export function criarMapa(elemento: HTMLElement): Mapa {
   let aoSelecionarF: (id: string) => void = () => {};
   let limitesBounds: L.LatLngBounds | null = null;
   let pontosBounds: L.LatLngBounds | null = null;
+
+  // Mapa vivo (ciclo 012): um grupo por dia GMT e a faixa de idade já aplicada a cada grupo (-1: fora do mapa).
+  const camadaReproducao = L.layerGroup();
+  const gruposDia: L.FeatureGroup[] = [];
+  const faixasDia: number[] = [];
 
   const estiloPonto = (selecionado: boolean): L.CircleMarkerOptions => selecionado
     ? { radius: 10, color: COR_SELECAO, weight: 4, fillColor: COR_DETECCAO, fillOpacity: 1 }
@@ -356,6 +386,9 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       camadaSelecao.clearLayers();
       marcadores.clear();
       camadaDensidade.clearLayers();
+      camadaReproducao.clearLayers();
+      gruposDia.length = 0;
+      faixasDia.length = 0;
       selecionadoId = null;
       limitesBounds = null;
       pontosBounds = null;
@@ -366,6 +399,11 @@ export function criarMapa(elemento: HTMLElement): Mapa {
       mapa.invalidateSize();
       const alvo = limitesBounds && pontosBounds ? limitesBounds.extend(pontosBounds) : (limitesBounds ?? pontosBounds);
       if (alvo?.isValid()) mapa.fitBounds(alvo, { padding: [24, 24], maxZoom: 11, animate: false });
+    },
+    enquadrarAposZoom() {
+      const ajustar = () => { this.redimensionar(); this.enquadrar(); };
+      if ((mapa as unknown as { _animatingZoom?: boolean })._animatingZoom) mapa.once('zoomend', ajustar);
+      else ajustar();
     },
     permitirArrastar(ativo) {
       if (ativo) mapa.dragging.enable();
@@ -439,6 +477,44 @@ export function criarMapa(elemento: HTMLElement): Mapa {
         if (ativo) c.addTo(mapa);
         else c.remove();
       }
+    },
+    iniciarReproducao(dias, porDia) {
+      camadaReproducao.clearLayers();
+      gruposDia.length = 0;
+      faixasDia.length = 0;
+      for (const c of [camadaPontos, camadaSelecao]) c.remove();
+      for (const d of dias) {
+        const grupo = L.featureGroup();
+        for (const r of porDia.get(d) ?? []) {
+          const m = L.circleMarker([r.latitude, r.longitude], ESTILO_REPRODUCAO[0]);
+          m.on('click', () => aoSelecionarF(r.id_tecnico));
+          m.addTo(grupo);
+        }
+        gruposDia.push(grupo);
+        faixasDia.push(-1);
+      }
+      camadaReproducao.addTo(mapa);
+    },
+    mostrarQuadro(i) {
+      for (let k = 0; k < gruposDia.length; k += 1) {
+        const grupo = gruposDia[k]!;
+        const visivel = k <= i;
+        if (!visivel) {
+          if (faixasDia[k] !== -1) { camadaReproducao.removeLayer(grupo); faixasDia[k] = -1; }
+          continue;
+        }
+        const faixa = faixaIdade(i - k);
+        if (faixasDia[k] === -1) camadaReproducao.addLayer(grupo);
+        if (faixasDia[k] !== faixa) { grupo.setStyle(ESTILO_REPRODUCAO[faixa]); faixasDia[k] = faixa; }
+        if (faixa === 0) grupo.bringToFront();
+      }
+    },
+    encerrarReproducao(pontosVisiveis) {
+      camadaReproducao.clearLayers();
+      camadaReproducao.remove();
+      gruposDia.length = 0;
+      faixasDia.length = 0;
+      if (pontosVisiveis) for (const c of [camadaPontos, camadaSelecao]) c.addTo(mapa);
     },
     redimensionar() {
       mapa.invalidateSize({ pan: false });
