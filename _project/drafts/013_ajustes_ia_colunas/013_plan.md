@@ -35,6 +35,7 @@ Depois da final da banca, o responsável trouxe quatro problemas. A análise pr�
 - **D3. Rolagem: as duas colunas, sem esconder o transbordo.** A varredura cobre a coluna esquerda (`#filtros`) e a direita (`#resultado`), porque a regra de CSS é a mesma. A correção atua nos elementos que transbordam. Não se usa `overflow-x: hidden` na coluna, que poderia cortar o contorno de foco e esconder conteúdo.
 - **D4. Retirada só da tela.** Sai o painel `#painel-perguntas` e o que só ele usa no navegador. A rota `/api/explicar`, `servidor/explicar.ts`, `servidor/agentes.ts`, `servidor/pedido.ts` e `src/perguntas.ts`, `src/agentes.ts` (usados pelo servidor) ficam. `servidor/interpretar.ts` importa `autorizar` e `origemPermitida` de `servidor/explicar.ts`, e o pedido 4 diz que o `/api/explicar` fica como está.
 - **D5. A ficha perde a síntese de IA.** A ficha para averiguação incluía, quando havia, a resposta do painel de perguntas como "Gerado por IA" (`src/ficha.ts`, `src/app.ts`). Sem o painel, a ficha fica só com a síntese determinística, que não muda.
+- **D7. Resultado da implementação (2026-11-25).** A medição achou a causa da rolagem: a regra genérica `.pergunta { width: 100% }`, criada para os botões do painel de perguntas, também valia para o texto da pergunta de cada lente (`span.pergunta`), que tem margem à esquerda. Largura cheia mais margem passava da coluna. Com o painel retirado, a regra saiu inteira, e nada mais transbordava. A prova real (D6) com o `gemini-3.5-flash` acertou as 9 perguntas distintas que ele respondeu; as outras 5 ficaram sem resposta por 503, tempo esgotado e, na segunda rodada, 429 de cota.
 - **D6. Prova real da interpretação.** Não existe hoje um catálogo de perguntas de teste para a "Pergunte ao mapa" (a prova real atual cobre só o `/api/explicar`). Será criado um script pequeno com as perguntas do roteiro do ciclo 012 e as de recusa, rodado localmente com a chave do `.env` ignorado, contra o `gemini-3.5-flash`. Faz chamadas reais ao Gemini, no nível gratuito.
 
 ## Objetivo
@@ -182,6 +183,7 @@ Sem dependência nova em `package.json`.
 ## Riscos, suposições e rollback
 
 - **Cota do nível gratuito do `gemini-3.5-flash`.** A reserva só entra depois de 503 persistente, numa chamada por pergunta. Suposição: a mesma chave atende os dois modelos, como observado em 2026-11-25.
+- **Disponibilidade da reserva.** Na prova real de 2026-11-25, o `gemini-3.5-flash` também respondeu 503 e passou dos 20 s algumas vezes, e a cota gratuita dele acabou depois de cerca de 20 chamadas em poucos minutos. A reserva aumenta a chance de interpretação por IA, mas não a garante; quando tudo falha, vale a nota de sobrecarga e o interpretador local.
 - **Prazo.** A espera de 2 s e a chamada extra consomem o mesmo prazo de 20 s. Num 503 lento, a reserva pode não caber, e a tela mostra a nota de sobrecarga.
 - **Retirada parcial do painel.** O código do servidor do `/api/explicar` fica sem chamada na tela (D4). Pode ser removido num ciclo próprio, se o responsável decidir.
 - **Rollback:** reverter o squash da PR. Não há migração nem dado envolvido.
@@ -207,18 +209,18 @@ Uma PR, na ordem sugerida:
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando autorização de implementação — ciclo 013 (leve)
+Situação: Aguardando merge — ciclo 013 (leve)
 Quem: Responsável
-Conferir: Issue #115 e escopo
-Diga: "autorizo a implementação da issue #115"
+Conferir: Checks e diff da PR [#116](https://github.com/EuThiagoAndrade/rastro-quente/pull/116)
+Diga: "aprovo o merge da PR #116"
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 013 + planejar + 013_plan + v1`
-- `effect_class`: `remote_mutation` (issue #115) e `local_mutation` (plano e linha do ciclo em `cycles.md`)
-- `state_before` / `state_after`: ciclo 013 inexistente / plano `Rascunho` v1, issue #115 aberta e branch `feature/issue-115` local; implementação não iniciada
+- `logical_key`: `rastro-quente + 013 + implementar + issue-115 + v1`
+- `effect_class`: `remote_mutation` (push da branch e PR da issue #115)
+- `state_before` / `state_after`: plano `Rascunho` v1 com implementação autorizada / três frentes implementadas na branch `feature/issue-115`, gates locais verdes e PR #116 aberta aguardando merge
 - `result`: `executed`
-- `evidence`: este arquivo, a linha do ciclo `013` em `_project/cycles.md` e a issue #115
+- `evidence`: commits da branch `feature/issue-115`; typecheck e build sem erro; `test:interface` 240/240; `test:agentes` 62/62; `test:e2e` 134/134; `check:governance` 0 erro; prova real (D7)
 - `blockers`: nenhum
