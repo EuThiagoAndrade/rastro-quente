@@ -432,13 +432,6 @@
   font-size: 10px;
 }
 
-.ficha__ia {
-  margin-top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  border-left: 3px solid var(--escolha);
-  background: var(--superficie-suave);
-}
-
 .ficha__conclusao {
   margin: 0 0 0.5rem;
   padding: 0.25rem 0.75rem;

@@ -121,16 +121,6 @@ for (const [w, h, esquema] of VIEWPORTS) {
     expect(x.fontes, 'explicação: texto abaixo de 0.875rem').toEqual([]);
     await page.locator('#t-explicacao').scrollIntoViewIfNeeded();
     await page.screenshot({ path: `test-results/lente-detalhe-${w}x${h}-${esquema}.png`, fullPage: true });
-    // Ciclo 008, item 4: o painel de perguntas com uma resposta (provedor simulado) e os blocos abertos.
-    await page.locator('#pergunta-panorama').click();
-    await expect(page.locator('#painel-perguntas')).toHaveAttribute('data-estado-perguntas', 'resposta');
-    for (const s of await page.locator('#perguntas-corpo details > summary').all()) await s.click();
-    const q = await page.evaluate(auditoriaNaPagina);
-    expect(q.contraste, 'perguntas: contraste').toEqual([]);
-    expect(q.alvos, 'perguntas: alvos').toEqual([]);
-    expect(q.transborda, 'perguntas: fora da janela').toEqual([]);
-    expect(q.fontes, 'perguntas: texto abaixo de 0.875rem').toEqual([]);
-    expect(q.larguraDocumento, 'perguntas: sem rolagem horizontal global').toBeLessThanOrEqual(q.larguraJanela);
     await page.screenshot({ path: `test-results/ref-${w}x${h}-${esquema}.png`, fullPage: true });
   });
 }

@@ -13,7 +13,7 @@
 > **Revisão formal:** `Dispensada pelo responsável (D1)`
 > **Veredito da revisão:** `—`
 > **Aprovação humana pós-revisão:** `—` (revisão dispensada, D1)
-> **Autorização de implementação:** `—`
+> **Autorização de implementação:** "Autorizo a implementação" em 2026-11-25, em resposta ao pedido de autorização da issue #115
 > **Issue:** [#115](https://github.com/EuThiagoAndrade/rastro-quente/issues/115)
 > **Branch:** `feature/issue-115`
 > **handoff_schema_version:** `2`

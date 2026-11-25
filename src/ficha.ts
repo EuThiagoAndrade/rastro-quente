@@ -114,7 +114,6 @@ export interface Ficha {
   areas: AreasFicha;
   roteiro: string[];
   sintese: string;
-  sinteseIa: string[] | null;
 }
 
 const SVG = 'http://www.w3.org/2000/svg';
@@ -216,11 +215,7 @@ export function renderFicha(corpo: HTMLElement, f: Ficha): void {
         ...par('Dias de cobertura não comprovada', r.semCobertura.length ? `${fmtNumero(r.semCobertura.length)} (${r.semCobertura.map((d) => br(d).slice(0, 5)).join(', ')})` : 'nenhum no recorte do município ou recorte estadual')),
       h('div', { class: 'ficha__figuras' }, miniMapa(f.registros), miniSerie(r)),
       h('p', { class: 'nota' }, 'Mini mapa só com os pontos, sem imagem de fundo. Na série, as faixas claras marcam dias de cobertura não comprovada.')),
-    secao('4. Síntese',
-      h('p', {}, f.sintese),
-      f.sinteseIa?.length
-        ? h('div', { class: 'ficha__ia' }, h('p', { class: 'marca-ia' }, h('span', { class: 'marca-ia__etiqueta' }, 'Gerado por IA'), ' a partir das evidências do painel de perguntas; pode conter erros.'), lista(f.sinteseIa))
-        : null),
+    secao('4. Síntese', h('p', {}, f.sintese)),
     secao('5. Roteiro de averiguação sugerido', lista(f.roteiro, true)),
     secao('6. Ressalvas', lista([
       'Detecções e sobreposições não comprovam incêndio, dano, autoria ou infração.',
