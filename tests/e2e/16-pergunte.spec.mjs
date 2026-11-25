@@ -46,7 +46,9 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
 
   await perguntar(page, 'Como as detecções evoluíram no Município Beta entre 01/10 e 10/10?');
   const entendi = page.locator('#p-entendi');
-  await expect(entendi).toBeVisible();
+  // A pergunta pede animação: o mapa vivo abre ampliado assim que os pontos chegam e esconde a coluna. Aqui só se
+  // confere que o bloco foi preenchido; a visibilidade é conferida depois do Esc, sem corrida com a abertura.
+  await expect(entendi).not.toHaveAttribute('hidden', '');
   await expect(entendi).toHaveAttribute('data-origem', 'local');
   await expect(entendi).toContainText('Interpretado sem IA');
   // IA desligada (503): o robozinho fica apagado.
@@ -88,8 +90,9 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(page.locator('[data-vel="4"]')).toHaveAttribute('aria-pressed', 'true');
   await page.keyboard.press('Escape');
   await expect(barra).toBeHidden();
-  // Um Esc fecha a reprodução e devolve o mapa ao tamanho normal.
+  // Um Esc fecha a reprodução e devolve o mapa ao tamanho normal; a coluna e o "Entendi assim" voltam à vista.
   await expect(page.locator('body')).not.toHaveClass(/mapa-ampliado/);
+  await expect(entendi).toBeVisible();
   await expect(page.locator('#botao-animar')).toHaveAttribute('aria-expanded', 'false');
   await expect(page.locator('#mapa-contagem')).toContainText('18');
   // Pelo botão "Animar no tempo": o menu fecha, o mapa amplia e a barra abre completa; "Fechar" desfaz.
