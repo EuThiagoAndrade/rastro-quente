@@ -1585,12 +1585,6 @@ tr.selecionada td {
   }
 }
 
-/* Texto da pergunta de cada lente na coluna esquerda. */
-.pergunta {
-  width: 100%;
-  text-align: left;
-}
-
 /* Ciclo 010, issue 97. Composição do painel de lentes aprovada no esboço. */
 #cartao-lentes {
   font-family: 'Segoe UI', Arial, sans-serif;
