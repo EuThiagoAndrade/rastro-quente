@@ -34,6 +34,62 @@
   margin-top: 0.25rem;
 }
 
+/* "Limpar tudo" no topo da coluna: vale para a pergunta, a consulta, as lentes e a comparação. */
+.topo-coluna {
+  display: flex;
+  justify-content: flex-end;
+  margin: -0.35rem 0 0.25rem;
+}
+
+/* Robozinho: indica que a pergunta é interpretada por IA; apagado quando ela está indisponível. */
+.selo-ia {
+  display: inline-flex;
+  align-items: center;
+  color: var(--link);
+  cursor: help;
+}
+
+.selo-ia[data-ia="desligada"] {
+  color: var(--texto-suave);
+  opacity: 0.55;
+}
+
+/* "×" dentro do campo: apaga só o texto da pergunta. */
+.pergunte__caixa {
+  position: relative;
+}
+
+.pergunte__caixa .pergunte__campo {
+  padding-right: 2.2rem;
+}
+
+.pergunte__apagar {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  min-width: 1.75rem;
+  min-height: 1.75rem;
+  padding: 0;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--texto-suave);
+  font: inherit;
+  font-size: 1.15rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.pergunte__apagar:hover,
+.pergunte__apagar:focus-visible {
+  background: var(--escolha-suave);
+  color: var(--texto);
+}
+
+.pergunte__apagar[hidden] {
+  display: none;
+}
+
 #p-estado:empty {
   display: none;
 }

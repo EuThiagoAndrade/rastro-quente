@@ -76,7 +76,7 @@ import {
   interpretarLocal, pedirInterpretacao, TEMPO_LIMITE_IA_MS, validarInterpretacao, type Interpretacao,
 } from './pergunte.ts';
 import {
-  estadoPergunte, itensEntendi, limparPergunte, marcarSerie, renderAvisoPergunta, renderEntendi, renderMarcas, renderQuadro,
+  estadoPergunte, itensEntendi, limparPergunte, marcarIa, marcarSerie, renderAvisoPergunta, renderEntendi, renderMarcas, renderQuadro,
   renderTocando, renderVelocidade, type Alvo, type ManipuladoresEntendi,
 } from './apresentacao-pergunte.ts';
 import { diasSemCobertura, montarReproducao, PASSO_MS, type Reproducao, type Velocidade } from './replay.ts';
@@ -420,6 +420,10 @@ class Controlador {
   private ligarPergunte(): void {
     const campo = $<HTMLTextAreaElement>('p-pergunta');
     $('form-pergunte').addEventListener('submit', (ev) => { ev.preventDefault(); void this.perguntarMapa(campo.value); });
+    // "×" no campo: apaga só o texto; os filtros aplicados continuam.
+    const apagar = $<HTMLButtonElement>('p-apagar');
+    campo.addEventListener('input', () => { apagar.hidden = campo.value === ''; this.atualizarLimpar(); });
+    apagar.addEventListener('click', () => { campo.value = ''; apagar.hidden = true; campo.focus(); this.atualizarLimpar(); });
     campo.addEventListener('keydown', (ev) => {
       if (ev.key === 'Enter' && !ev.shiftKey && !ev.isComposing) { ev.preventDefault(); void this.perguntarMapa(campo.value); }
     });
@@ -502,7 +506,7 @@ class Controlador {
         const d = await pedirInterpretacao(texto, { id: dados.carga.id, identidade: dados.carga.identidade }, token, AbortSignal.timeout(TEMPO_LIMITE_IA_MS));
         if (!atual()) return;
         if (d.tipo === 'ok') { bruto = d.bruto; origem = 'ia'; }
-        else if (d.tipo === 'desligada') this.iaInterpretacaoDesligada = true;
+        else if (d.tipo === 'desligada') { this.iaInterpretacaoDesligada = true; marcarIa(false); }
         else notaOrigem = d.codigo === 'tempo_esgotado' ? 'A IA não respondeu a tempo; o interpretador local assumiu.' : 'A IA não respondeu como esperado; o interpretador local assumiu.';
       }
     }
@@ -518,6 +522,7 @@ class Controlador {
     if (interpretacao.tipo !== 'consulta') {
       this.perguntaMapa = null;
       renderAvisoPergunta(interpretacao.tipo, dados.janela, origem, m);
+      this.atualizarLimpar();
       return;
     }
     const itens = itensEntendi(interpretacao, this.aplicado, (c) => (c === null ? 'Todo Mato Grosso' : this.nomeMunicipio(c) ?? String(c)));
@@ -1033,12 +1038,13 @@ class Controlador {
     this.atualizarLimpar();
   }
 
-  /** "Limpar tudo" só fica ativo fora do padrão (janela inteira, todo o estado, nenhuma lente), como na V13. */
+  /** "Limpar tudo" só fica ativo fora do padrão (janela inteira, todo o estado, nenhuma lente, nenhuma pergunta), como na V13. */
   private atualizarLimpar(): void {
     const a = this.aplicado;
     const j = this.dados?.janela;
     const padrao = !a || !j || (a.inicio === j.inicio && a.fim === j.fim && a.municipio === null
-      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma' && modoComparacao() === 'nenhuma');
+      && $<HTMLSelectElement>('f-periodo').value === 'ano' && lenteEscolhida() === 'nenhuma' && modoComparacao() === 'nenhuma'
+      && this.perguntaMapa === null && $<HTMLTextAreaElement>('p-pergunta').value === '' && $('p-aviso').hidden === true);
     $<HTMLButtonElement>('botao-limpar').disabled = padrao;
   }
 
@@ -1121,6 +1127,8 @@ class Controlador {
     abrirAba('municipios');
     this.perguntaMapa = null;
     limparPergunte();
+    $<HTMLTextAreaElement>('p-pergunta').value = '';
+    $('p-apagar').hidden = true;
     this.aplicarFormulario();
     this.mostrarMunicipios();
   }

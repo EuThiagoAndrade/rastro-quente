@@ -59,11 +59,21 @@
         <!-- Esquerda: a pergunta (filtros e lentes). -->
         <section id="filtros" class="coluna coluna--lentes" aria-labelledby="t-filtros">
           <!-- Ciclo 012 (issue #113): a pergunta em linguagem natural vira os filtros abaixo, que continuam editáveis. -->
+          <!-- "Limpar tudo" no topo: vale para a pergunta, a consulta, as lentes e a comparação. -->
+          <div class="topo-coluna">
+            <button id="botao-limpar" type="button" class="botao-limpar" title="Apaga a pergunta e volta período, município, lentes e comparação ao padrão" disabled>
+              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
+            </button>
+          </div>
+
           <details id="secao-pergunte" class="secao secao--topo" open>
-            <summary><h2 id="t-pergunte" class="rotulo-secao">Pergunte ao mapa</h2></summary>
+            <summary><h2 id="t-pergunte" class="rotulo-secao">Pergunte ao mapa</h2><span id="p-ia" class="selo-ia" role="img" data-ia="ligada" aria-label="Com IA: a IA interpreta a pergunta e preenche os filtros; os resultados vêm dos dados." title="Com IA: a IA interpreta a pergunta e preenche os filtros; os resultados vêm dos dados."><svg viewBox="0 0 24 24" width="16" height="16" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="3.2" r="1.2" /><path d="M12 4.4V7" /><rect x="5" y="7" width="14" height="11" rx="3" /><path d="M9.5 11.8h.01M14.5 11.8h.01" stroke-width="2.8" /><path d="M10 15h4" /><path d="M3 11v3M21 11v3" /></svg></span></summary>
             <form id="form-pergunte" class="pergunte" novalidate>
               <label class="so-leitor" for="p-pergunta">Pergunta sobre as detecções de calor</label>
-              <textarea id="p-pergunta" class="campo-periodo pergunte__campo" rows="3" maxlength="300" placeholder="Ex.: Como as detecções evoluíram em Nova Nazaré em agosto de 2026?" aria-describedby="p-ajuda"></textarea>
+              <div class="pergunte__caixa">
+                <textarea id="p-pergunta" class="campo-periodo pergunte__campo" rows="3" maxlength="300" placeholder="Ex.: Como as detecções evoluíram em Nova Nazaré em agosto de 2026?" aria-describedby="p-ajuda"></textarea>
+                <button id="p-apagar" type="button" class="pergunte__apagar" aria-label="Apagar o texto da pergunta" title="Apagar o texto (os filtros continuam)" hidden>×</button>
+              </div>
               <div class="pergunte__acoes">
                 <span id="p-ajuda" class="nota">Enter envia; Shift+Enter quebra a linha.</span>
                 <button id="p-enviar" type="submit" class="botao botao--primario botao--compacto">Perguntar</button>
@@ -76,9 +86,6 @@
 
           <div class="cabeca-coluna">
             <h2 id="t-filtros" class="rotulo-secao">Filtro</h2>
-            <button id="botao-limpar" type="button" class="botao-limpar" title="Volta período, município e lente ao padrão" disabled>
-              <svg viewBox="0 0 24 24" width="15" height="15" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>Limpar tudo
-            </button>
           </div>
 
           <details id="secao-consulta" class="secao" open>

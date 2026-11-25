@@ -47,7 +47,8 @@ A fórmula escolhida é **pergunta → mapa vivo → ficha para averiguação**.
   - a pergunta também aplica a combinação de lentes (duas ou mais entre concentração, recorrência e persistência, com o operador "e" ou "ou"), nos controles existentes de "Cruzar critérios"; a sobreposição continua fora da combinação;
   - o mapa vivo sempre abre com o mapa ampliado e a barra completa; Esc ou "Fechar" fecham a barra e devolvem o mapa ao tamanho anterior (a barra minimizada da primeira rodada de ajustes saiu, a pedido do responsável);
   - a coluna esquerda passa a ser "Pergunte ao mapa", "Filtro" (Consulta), "Lentes" (Seleção, Contexto territorial, Cruzar critérios) e Comparar;
-  - as perguntas de exemplo saem; fica o exemplo dentro do campo.
+  - as perguntas de exemplo saem; fica o exemplo dentro do campo;
+  - (2026-11-25, pedido do responsável) "Limpar tudo" sobe para o topo da coluna e passa a limpar também a pergunta; o campo ganha um "×" que apaga só o texto; um robozinho ao lado de "Pergunte ao mapa" indica a IA e fica apagado quando ela está indisponível.
 
 ## Objetivo
 

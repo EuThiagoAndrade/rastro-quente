@@ -30,12 +30,27 @@ test('sem IA: pergunta → filtros aplicados → reprodução com lacunas → fi
   await expect(page.locator('.pergunte__sugestao')).toHaveCount(0);
   await expect(page.locator('#p-pergunta')).toHaveAttribute('placeholder', /^Ex\.: /);
   await expect(page.locator('#reproducao')).toBeHidden();
+  // Robozinho ao lado do título indica a IA; "Limpar tudo" fica no topo da coluna, antes da pergunta.
+  await expect(page.locator('#p-ia')).toHaveAttribute('aria-label', /IA/);
+  expect(await page.locator('#botao-limpar').evaluate((b) => !!(b.compareDocumentPosition(document.getElementById('t-pergunte')) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  // "×" no campo apaga só o texto; texto digitado já ativa "Limpar tudo".
+  const limpar = page.getByRole('button', { name: 'Limpar tudo' });
+  await expect(limpar).toBeDisabled();
+  await expect(page.locator('#p-apagar')).toBeHidden();
+  await page.locator('#p-pergunta').fill('rascunho');
+  await expect(limpar).toBeEnabled();
+  await page.locator('#p-apagar').click();
+  await expect(page.locator('#p-pergunta')).toHaveValue('');
+  await expect(page.locator('#p-apagar')).toBeHidden();
+  await expect(limpar).toBeDisabled();
 
   await perguntar(page, 'Como as detecções evoluíram no Município Beta entre 01/10 e 10/10?');
   const entendi = page.locator('#p-entendi');
   await expect(entendi).toBeVisible();
   await expect(entendi).toHaveAttribute('data-origem', 'local');
   await expect(entendi).toContainText('Interpretado sem IA');
+  // IA desligada (503): o robozinho fica apagado.
+  await expect(page.locator('#p-ia')).toHaveAttribute('data-ia', 'desligada');
   await expect(entendi.locator('[data-item="municipio"]')).toContainText('Município Beta');
   await expect(entendi.locator('[data-item="animar"]')).toContainText('Animação dia a dia');
   // Os controles existentes recebem a interpretação; a consulta é a mesma dos filtros.
@@ -167,4 +182,5 @@ test('com IA (provedor simulado): uma chamada à rota, JWT no cabeçalho, "Inter
   // "Limpar tudo" tira a interpretação junto com os filtros.
   await page.getByRole('button', { name: 'Limpar tudo' }).click();
   await expect(page.locator('#p-entendi')).toBeHidden();
+  await expect(page.locator('#p-pergunta')).toHaveValue('');
 });

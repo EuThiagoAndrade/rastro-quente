@@ -54,6 +54,17 @@ export interface ManipuladoresEntendi {
   mostrarDeteccoes(): void;
 }
 
+/** Selo do robozinho ao lado do título: apagado quando a IA está indisponível e as regras locais interpretam. */
+export function marcarIa(ligada: boolean): void {
+  const selo = $('p-ia');
+  const texto = ligada
+    ? 'Com IA: a IA interpreta a pergunta e preenche os filtros; os resultados vêm dos dados.'
+    : 'IA indisponível: interpretação simplificada pelas regras locais; os resultados vêm dos dados.';
+  selo.dataset['ia'] = ligada ? 'ligada' : 'desligada';
+  selo.setAttribute('aria-label', texto);
+  selo.title = texto;
+}
+
 export function limparPergunte(): void {
   for (const id of ['p-entendi', 'p-aviso']) {
     const e = $(id);
