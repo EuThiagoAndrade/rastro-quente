@@ -16,6 +16,7 @@ export type CodigoErro =
   | 'fonte_indisponivel'
   | 'leitura_inconsistente'
   | 'provedor_indisponivel'
+  | 'provedor_sobrecarregado'
   | 'cota_provedor'
   | 'saida_invalida'
   | 'limite_envio';
@@ -35,6 +36,7 @@ const STATUS: Record<CodigoErro, number> = {
   fonte_indisponivel: 502,
   leitura_inconsistente: 502,
   provedor_indisponivel: 502,
+  provedor_sobrecarregado: 503,
   cota_provedor: 429,
   saida_invalida: 502,
   limite_envio: 502,
@@ -55,6 +57,7 @@ const TEXTO: Record<CodigoErro, string> = {
   fonte_indisponivel: 'Fonte de dados indisponível.',
   leitura_inconsistente: 'Leitura inconsistente dos dados; nada parcial foi usado.',
   provedor_indisponivel: 'O provedor de IA não respondeu; as evidências continuam disponíveis na aplicação.',
+  provedor_sobrecarregado: 'O provedor de IA está sobrecarregado no momento; tente de novo em alguns minutos.',
   cota_provedor: 'A cota do provedor de IA se esgotou; nada foi repetido automaticamente. Uma nova tentativa consome nova cota.',
   saida_invalida: 'O provedor de IA devolveu uma resposta fora do formato; nada dela foi usado.',
   limite_envio: 'As evidências passam do limite de envio ao provedor; nenhuma síntese foi gerada a partir de amostra.',

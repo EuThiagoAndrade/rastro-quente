@@ -368,7 +368,23 @@ export function validarInterpretacao(bruto: unknown, ctx: ContextoPergunta): { i
 
 // --- Chamada à rota ---------------------------------------------------------------------------------------------
 
-export type DesfechoIa = { tipo: 'ok'; bruto: unknown } | { tipo: 'desligada' } | { tipo: 'falha'; codigo: string };
+export type DesfechoIa = { tipo: 'ok'; bruto: unknown; reserva: boolean } | { tipo: 'desligada' } | { tipo: 'falha'; codigo: string };
+
+/** Quem interpretou: o modelo principal, o modelo reserva (ciclo 013) ou o interpretador local, sem IA. */
+export type OrigemInterpretacao = 'ia' | 'ia_reserva' | 'local';
+
+export const ROTULO_ORIGEM: Record<OrigemInterpretacao, string> = {
+  ia: 'Interpretado por IA',
+  ia_reserva: 'Interpretado por IA (modelo reserva)',
+  local: 'Interpretado sem IA',
+};
+
+/** Nota quando a IA falha e o interpretador local assume; a sobrecarga do provedor tem nota própria (ciclo 013). */
+export function notaFalhaIa(codigo: string): string {
+  if (codigo === 'provedor_sobrecarregado') return 'A IA está sobrecarregada no momento; o interpretador local assumiu. Tente de novo em alguns minutos.';
+  if (codigo === 'tempo_esgotado') return 'A IA não respondeu a tempo; o interpretador local assumiu.';
+  return 'A IA não respondeu como esperado; o interpretador local assumiu.';
+}
 
 /**
  * Pede a interpretação à rota `/api/interpretar` na própria origem, com o JWT só no cabeçalho. Qualquer falha (IA
@@ -396,7 +412,7 @@ export async function pedirInterpretacao(
   const o = (typeof corpo === 'object' && corpo !== null ? corpo : {}) as Record<string, unknown>;
   if (r.status === 503 && o['erro'] === 'ia_desabilitada') return { tipo: 'desligada' };
   if (!r.ok || !('interpretacao' in o)) return { tipo: 'falha', codigo: typeof o['erro'] === 'string' ? o['erro'] : `http_${r.status}` };
-  return { tipo: 'ok', bruto: o['interpretacao'] };
+  return { tipo: 'ok', bruto: o['interpretacao'], reserva: o['reserva'] === true };
 }
 
 /** Texto do aviso para os tipos que não aplicam filtros. */

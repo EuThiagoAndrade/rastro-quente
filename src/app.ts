@@ -69,7 +69,7 @@ import { criarMapa, type AreaMapa, type DestaqueMapa, type Mapa } from './mapa.t
 import { densidadePorCelula } from './densidade.ts';
 import { criarSessao, type EventoSessao, type Sessao } from './sessao.ts';
 import {
-  interpretarLocal, pedirInterpretacao, TEMPO_LIMITE_IA_MS, validarInterpretacao, type Interpretacao,
+  interpretarLocal, notaFalhaIa, pedirInterpretacao, TEMPO_LIMITE_IA_MS, validarInterpretacao, type Interpretacao, type OrigemInterpretacao,
 } from './pergunte.ts';
 import {
   estadoPergunte, itensEntendi, limparPergunte, marcarIa, marcarSerie, renderAvisoPergunta, renderEntendi, renderMarcas, renderQuadro,
@@ -308,7 +308,7 @@ class Controlador {
   private erroCallback: string | undefined;
   // Pergunte ao mapa (ciclo 012): geração própria, última pergunta interpretada e IA desligada (503) nesta sessão.
   private geracaoPergunte = 0;
-  private perguntaMapa: { texto: string; interpretacao: Interpretacao; origem: 'ia' | 'local'; linhas: string[] } | null = null;
+  private perguntaMapa: { texto: string; interpretacao: Interpretacao; origem: OrigemInterpretacao; linhas: string[] } | null = null;
   private iaInterpretacaoDesligada = false;
   /** A pergunta pediu animação: abre a reprodução quando os pontos do novo recorte chegarem. */
   private animarAoCarregar = false;
@@ -482,7 +482,7 @@ class Controlador {
     estadoPergunte('Interpretando a pergunta…', true);
     const ctx = { janela: dados.janela, municipios: dados.municipios };
     let bruto: unknown = null;
-    let origem: 'ia' | 'local' = 'local';
+    let origem: OrigemInterpretacao = 'local';
     let notaOrigem: string | null = null;
     if (!this.iaInterpretacaoDesligada) {
       const { data } = await this.sessao.cliente.auth.getSession();
@@ -491,15 +491,15 @@ class Controlador {
       if (token) {
         const d = await pedirInterpretacao(texto, { id: dados.carga.id, identidade: dados.carga.identidade }, token, AbortSignal.timeout(TEMPO_LIMITE_IA_MS));
         if (!atual()) return;
-        if (d.tipo === 'ok') { bruto = d.bruto; origem = 'ia'; }
+        if (d.tipo === 'ok') { bruto = d.bruto; origem = d.reserva ? 'ia_reserva' : 'ia'; }
         else if (d.tipo === 'desligada') { this.iaInterpretacaoDesligada = true; marcarIa(false); }
-        else notaOrigem = d.codigo === 'tempo_esgotado' ? 'A IA não respondeu a tempo; o interpretador local assumiu.' : 'A IA não respondeu como esperado; o interpretador local assumiu.';
+        else notaOrigem = notaFalhaIa(d.codigo);
       }
     }
     if (bruto === null) bruto = interpretarLocal(texto, ctx);
     let { interpretacao, descartados } = validarInterpretacao(bruto, ctx);
     // Saída da IA sem nada aproveitável: as regras locais tentam antes de dizer "não entendi".
-    if (origem === 'ia' && interpretacao.tipo === 'nao_entendi') {
+    if (origem !== 'local' && interpretacao.tipo === 'nao_entendi') {
       const local = validarInterpretacao(interpretarLocal(texto, ctx), ctx);
       if (local.interpretacao.tipo !== 'nao_entendi') { ({ interpretacao, descartados } = local); origem = 'local'; notaOrigem = 'A IA não reconheceu filtros; o interpretador local assumiu.'; }
     }

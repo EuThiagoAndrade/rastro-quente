@@ -3,7 +3,7 @@
 import { $, h } from './apresentacao.ts';
 import { fmtNumero } from './formato.ts';
 import type { ClasseArea } from './lentes/carregar-areas.ts';
-import { AVISO_TIPO, type Interpretacao, type TipoInterpretacao } from './pergunte.ts';
+import { AVISO_TIPO, ROTULO_ORIGEM, type Interpretacao, type OrigemInterpretacao, type TipoInterpretacao } from './pergunte.ts';
 import { resumoPeriodo, type Janela } from './recorte.ts';
 import { diaCurto, LIMITE_FLUIDEZ, type Reproducao } from './replay.ts';
 import type { ClasseDisponibilidade } from './tipos.ts';
@@ -74,14 +74,14 @@ export function limparPergunte(): void {
 }
 
 /** "Entendi assim": itens com ✎, a origem (IA ou regras locais), o que foi descartado e a ficha. */
-export function renderEntendi(itens: ItemEntendi[], origem: 'ia' | 'local', notaOrigem: string | null, descartados: string[], m: ManipuladoresEntendi): void {
+export function renderEntendi(itens: ItemEntendi[], origem: OrigemInterpretacao, notaOrigem: string | null, descartados: string[], m: ManipuladoresEntendi): void {
   const caixa = $('p-entendi');
   caixa.hidden = false;
   caixa.dataset['origem'] = origem;
   const filhos: (HTMLElement | null)[] = [
     h('div', { class: 'entendi__cabeca' },
       h('h3', { id: 't-entendi', class: 'rotulo-secao', tabindex: '-1' }, 'Entendi assim'),
-      h('span', { class: 'entendi__origem', 'data-origem': origem }, origem === 'ia' ? 'Interpretado por IA' : 'Interpretado sem IA')),
+      h('span', { class: 'entendi__origem', 'data-origem': origem }, ROTULO_ORIGEM[origem])),
     notaOrigem ? h('p', { class: 'nota' }, notaOrigem) : null,
     h('ul', { class: 'entendi__itens' }, ...itens.map((x) => {
       const editar = h('button', { type: 'button', class: 'entendi__editar', 'aria-label': `Editar ${x.rotulo.toLowerCase()}`, title: `Editar ${x.rotulo.toLowerCase()}`, 'data-alvo': x.alvo }, '✎');
@@ -98,13 +98,13 @@ export function renderEntendi(itens: ItemEntendi[], origem: 'ia' | 'local', nota
 }
 
 /** Aviso de recusa, dado ausente, janela ou "não entendi"; a autoria oferece mostrar as detecções. */
-export function renderAvisoPergunta(tipo: Exclude<TipoInterpretacao, 'consulta'>, janela: Janela, origem: 'ia' | 'local', m: ManipuladoresEntendi): void {
+export function renderAvisoPergunta(tipo: Exclude<TipoInterpretacao, 'consulta'>, janela: Janela, origem: OrigemInterpretacao, m: ManipuladoresEntendi): void {
   const caixa = $('p-aviso');
   caixa.hidden = false;
   caixa.dataset['tipo'] = tipo;
   const texto = tipo === 'fora_da_janela' ? `${AVISO_TIPO[tipo]}: a janela disponível vai de ${resumoPeriodo(janela)}.` : AVISO_TIPO[tipo];
   caixa.replaceChildren(h('p', { class: 'aviso-estado', role: 'alert' }, texto),
-    h('p', { class: 'nota' }, origem === 'ia' ? 'Interpretado por IA.' : 'Interpretado sem IA.'));
+    h('p', { class: 'nota' }, `${ROTULO_ORIGEM[origem]}.`));
   if (tipo === 'recusa_autoria') {
     const b = h('button', { type: 'button', class: 'botao botao--secundario botao--compacto' }, 'Mostrar as detecções');
     b.addEventListener('click', () => m.mostrarDeteccoes());

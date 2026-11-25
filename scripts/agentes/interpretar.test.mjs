@@ -122,3 +122,115 @@ test('saída fora do esquema e falha do provedor não chegam à tela', async () 
   assert.equal(r3.status, 429);
   assert.equal((await r3.json()).erro, 'cota_provedor');
 });
+
+// --- Ciclo 013 (issue #115): nova tentativa na sobrecarga, modelo reserva e prazo único ---------------------------
+
+const PRINCIPAL = 'gemini-3.1-flash-lite';
+const RESERVA = 'gemini-3.5-flash';
+const COM_RESERVA = { ...CONFIG, gemini: { ...CONFIG.gemini, modeloReserva: RESERVA } };
+const SOBRE = () => new ErroHttp('provedor_indisponivel', 'sobrecarga');
+
+/**
+ * Provedores roteirizados por modelo: cada item da fila é `'ok'` ou um erro a lançar. Relógio simulado: cada chamada
+ * consome `msPorChamada` e a espera consome o que pedir, sem tempo real.
+ */
+function roteiro({ config = COM_RESERVA, principal = [], reserva = [], msPorChamada = 1_000 } = {}) {
+  const r = { chamadas: [], esperas: [], logs: [] };
+  let relogio = 0;
+  const filas = { [PRINCIPAL]: [...principal], [RESERVA]: [...reserva] };
+  const deps = {
+    config,
+    criarCliente: () => clienteFalso(),
+    provedor: (_config, modelo) => {
+      const m = modelo ?? PRINCIPAL;
+      return {
+        modelo: m,
+        async interagir() {
+          r.chamadas.push(m);
+          relogio += msPorChamada;
+          const passo = filas[m].shift() ?? 'ok';
+          if (passo !== 'ok') throw passo();
+          return { passos: [], chamadas: [], texto: JSON.stringify(BOA), uso: { entrada: 100, saida: 20, raciocinio: 0 } };
+        },
+      };
+    },
+    registrar: (e) => r.logs.push(e),
+    agora: () => relogio,
+    esperar: async (ms) => { r.esperas.push(ms); relogio += ms; },
+  };
+  return { r, deps };
+}
+
+test('503 e depois 200 no principal: a nova tentativa interpreta, depois de cerca de 2 s', async () => {
+  const { r, deps } = roteiro({ principal: [SOBRE] });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal(resp.status, 200);
+  const corpo = await resp.json();
+  assert.equal(corpo.modelo, PRINCIPAL);
+  assert.equal(corpo.reserva, false);
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL]);
+  assert.deepEqual(r.esperas, [2_000]);
+  assert.deepEqual(r.logs.at(-1), { ...r.logs.at(-1), etapa: 'concluida', modelo: PRINCIPAL, tentativas: 2 });
+});
+
+test('503 duas vezes no principal e 200 na reserva: a reserva interpreta e o modelo usado é informado', async () => {
+  const { r, deps } = roteiro({ principal: [SOBRE, SOBRE] });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal(resp.status, 200);
+  const corpo = await resp.json();
+  assert.deepEqual(corpo.interpretacao, BOA);
+  assert.equal(corpo.modelo, RESERVA);
+  assert.equal(corpo.reserva, true);
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL, RESERVA]);
+  assert.deepEqual(r.logs.at(-1), { ...r.logs.at(-1), etapa: 'concluida', codigo: '200', modelo: RESERVA, tentativas: 3 });
+  assert.ok(!JSON.stringify(r.logs).includes('Município Beta em agosto'));
+});
+
+test('503 em todas: provedor_sobrecarregado', async () => {
+  const { r, deps } = roteiro({ principal: [SOBRE, SOBRE], reserva: [SOBRE] });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal(resp.status, 503);
+  assert.equal((await resp.json()).erro, 'provedor_sobrecarregado');
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL, RESERVA]);
+});
+
+test('reserva desligada (variável ausente): 503 duas vezes no principal responde provedor_sobrecarregado', async () => {
+  const { r, deps } = roteiro({ config: CONFIG, principal: [SOBRE, SOBRE] });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal(resp.status, 503);
+  assert.equal((await resp.json()).erro, 'provedor_sobrecarregado');
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL]);
+});
+
+test('429, saída inválida e outros erros não repetem nem acionam a reserva', async () => {
+  const cota = roteiro({ principal: [() => new ErroHttp('cota_provedor')] });
+  const r1 = await tratarInterpretar(pedido(valido), cota.deps);
+  assert.equal(r1.status, 429);
+  assert.deepEqual(cota.r.chamadas, [PRINCIPAL]);
+  assert.deepEqual(cota.r.esperas, []);
+  const outro = roteiro({ principal: [() => new ErroHttp('provedor_indisponivel')] });
+  const r2 = await tratarInterpretar(pedido(valido), outro.deps);
+  assert.equal((await r2.json()).erro, 'provedor_indisponivel');
+  assert.deepEqual(outro.r.chamadas, [PRINCIPAL]);
+  const tempo = roteiro({ principal: [() => new DOMException('tempo', 'TimeoutError')] });
+  const r3 = await tratarInterpretar(pedido(valido), tempo.deps);
+  assert.equal((await r3.json()).erro, 'tempo_esgotado');
+  assert.deepEqual(tempo.r.chamadas, [PRINCIPAL]);
+  // Reserva que devolve 429 não vira sobrecarga.
+  const cotaReserva = roteiro({ principal: [SOBRE, SOBRE], reserva: [() => new ErroHttp('cota_provedor')] });
+  assert.equal((await tratarInterpretar(pedido(valido), cotaReserva.deps)).status, 429);
+});
+
+test('prazo único de 20 s: sem tempo útil, nenhuma chamada nova começa', async () => {
+  // Cada chamada leva 9 s: principal (9 s) + espera (2 s) + nova tentativa (9 s) = 20 s; a reserva não cabe.
+  const { r, deps } = roteiro({ principal: [SOBRE, SOBRE], msPorChamada: 9_000 });
+  const resp = await tratarInterpretar(pedido(valido), deps);
+  assert.equal((await resp.json()).erro, 'provedor_sobrecarregado');
+  assert.deepEqual(r.chamadas, [PRINCIPAL, PRINCIPAL]);
+  // Principal lento (16 s): não sobra tempo para a espera e a nova tentativa, mas a reserva ainda cabe.
+  const lento = roteiro({ principal: [SOBRE], msPorChamada: 16_000 });
+  const r2 = await tratarInterpretar(pedido(valido), lento.deps);
+  assert.equal((await r2.json()).modelo, RESERVA);
+  assert.deepEqual(lento.r.esperas, []);
+  assert.deepEqual(lento.r.chamadas, [PRINCIPAL, RESERVA]);
+});

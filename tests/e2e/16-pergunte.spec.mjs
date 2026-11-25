@@ -184,3 +184,26 @@ test('com IA (provedor simulado): uma chamada à rota, JWT no cabeçalho, "Inter
   await expect(page.locator('#p-entendi')).toBeHidden();
   await expect(page.locator('#p-pergunta')).toHaveValue('');
 });
+
+// Ciclo 013 (issue #115): sobrecarga do Gemini. Com o principal e a reserva em 503, a rota responde
+// `provedor_sobrecarregado` e a tela explica o motivo; com a reserva respondendo, a pergunta segue interpretada por IA.
+test('sobrecarga: nota própria e "Interpretado sem IA"; reserva respondendo: "Interpretado por IA (modelo reserva)"', async ({ page, request }) => {
+  await request.post(CONTROLE, { data: { modo: 'sobrecarregada' } });
+  await entrar(page, 'rp');
+  await perguntar(page, 'Mostre o Município Beta no começo de outubro');
+  await expect(page.locator('#p-entendi')).toHaveAttribute('data-origem', 'local');
+  await expect(page.locator('#p-entendi')).toContainText('Interpretado sem IA');
+  await expect(page.locator('#p-entendi')).toContainText('A IA está sobrecarregada no momento; o interpretador local assumiu. Tente de novo em alguns minutos.');
+  await expect(page.locator('#p-entendi')).not.toContainText('não respondeu como esperado');
+  // Principal, nova tentativa e reserva: três chamadas ao provedor simulado.
+  expect((await (await request.get(CONTROLE)).json()).chamadas).toBe(3);
+
+  await request.post(CONTROLE, { data: { modo: 'reserva' } });
+  if (await page.locator('#reproducao').isVisible()) await page.keyboard.press('Escape');
+  await perguntar(page, 'Mostre o Município Beta no começo de outubro');
+  await expect(page.locator('#p-entendi')).toHaveAttribute('data-origem', 'ia_reserva');
+  await expect(page.locator('#p-entendi')).toContainText('Interpretado por IA (modelo reserva)');
+  await expect(page.locator('#p-entendi')).not.toContainText('sobrecarregada');
+  await expect(page.locator('#f-municipio')).toHaveValue(BETA);
+  expect((await (await request.get(CONTROLE)).json()).chamadas).toBe(3);
+});

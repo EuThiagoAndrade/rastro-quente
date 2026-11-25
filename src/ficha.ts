@@ -104,7 +104,7 @@ export interface Ficha {
   geradaEm: Date;
   carga: { id: number; identidade: string };
   pergunta: string | null;
-  interpretacao: { linhas: string[]; origem: 'ia' | 'local' } | null;
+  interpretacao: { linhas: string[]; origem: 'ia' | 'ia_reserva' | 'local' } | null;
   filtros: string[];
   alvo: string;
   local: string;
@@ -197,7 +197,7 @@ export function renderFicha(corpo: HTMLElement, f: Ficha): void {
       h('p', { class: 'nota' }, `Gerada em ${quando} · versão de dados ${f.carga.id} (${f.carga.identidade.slice(0, 12)}…)`)),
     secao('1. Origem do pedido',
       f.pergunta ? h('p', {}, h('strong', {}, 'Pergunta: '), `“${f.pergunta}”`) : h('p', {}, 'Gerada a partir dos filtros da tela.'),
-      f.interpretacao ? h('p', { class: 'nota' }, `Interpretação (${f.interpretacao.origem === 'ia' ? 'por IA' : 'sem IA'}): ${f.interpretacao.linhas.join(' · ')}`) : null,
+      f.interpretacao ? h('p', { class: 'nota' }, `Interpretação (${{ ia: 'por IA', ia_reserva: 'por IA, modelo reserva', local: 'sem IA' }[f.interpretacao.origem]}): ${f.interpretacao.linhas.join(' · ')}`) : null,
       h('p', {}, h('strong', {}, 'Filtros aplicados: '), f.filtros.join(' · ')),
       h('p', {}, h('strong', {}, 'Alvo: '), f.alvo)),
     secao('2. Local',

@@ -9,7 +9,7 @@ import { criarCliente } from './explicar.ts';
 const dependencias = (): DependenciasInterpretar => ({
   config: lerConfigServidor(process.env),
   criarCliente,
-  provedor: (config) => criarGemini(config.gemini),
+  provedor: (config, modelo) => criarGemini({ chave: config.gemini.chave, modelo: modelo ?? config.gemini.modelo }),
   registrar: (e) => console.info(JSON.stringify({ funcao: 'interpretar', ...e })),
 });
 
