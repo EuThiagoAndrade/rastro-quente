@@ -1,7 +1,7 @@
 # Plano de Implementação — Colunas sem rolagem horizontal, sobrecarga da IA e retirada de "Perguntar sobre a tela"
 
 > **Ciclo:** `013`
-> **Status:** `Rascunho`
+> **Status:** `Concluído`
 > **Versão:** `v1`
 > **Data de criação:** 2026-11-25
 > **Última atualização:** 2026-11-25
@@ -205,25 +205,33 @@ Uma PR, na ordem sugerida:
 
 ## Referências
 
-- Plano do ciclo 012 (`_project/drafts/012_pergunte_ao_mapa/012_plan.md`), formato leve de referência.
+- Plano do ciclo 012 (`_project/executed/012_pergunte_ao_mapa/012_plan.md`), formato leve de referência.
 - ADR-011 (`_project/decisions/ADR-011_funcao_explicacao_servidor.md`).
+
+## Encerramento
+
+- **Encerramento prospectivo:** Sim. Encerramento curto, autorizado pelo responsável em 2026-11-25 ("Posso fazer o encerramento curto dos ciclos 012 e 013"), numa PR documental conjunta, porque a PR de entrega deste ciclo leve (D1) foi integrada sem o encerramento.
+- **Entrega:** PR [#116](https://github.com/EuThiagoAndrade/rastro-quente/pull/116), integrada por squash em `main` (`734d99a`), com os checks verdes. Fechou a issue [#115](https://github.com/EuThiagoAndrade/rastro-quente/issues/115).
+- **O que entrou:** colunas sem rolagem horizontal e sem espaço abaixo do rodapé, nova tentativa e modelo reserva na "Pergunte ao mapa", retirada de "Perguntar sobre a tela" e mini mapa da ficha com limites, áreas protegidas e densidade (D7 a D10).
+- Ação externa do responsável, fora deste encerramento: cadastrar `RQ_GEMINI_MODELO_RESERVA=gemini-3.5-flash` na Vercel. Sem ela, a produção tem a nova tentativa e a nota de sobrecarga, sem a reserva.
+- **Integração deste encerramento:** `Pendente` até o merge da PR documental.
 
 ## Próximo passo
 
 ```text
 PRÓXIMO PASSO
-Situação: Aguardando merge — ciclo 013 (leve)
-Quem: Responsável
-Conferir: Checks e diff da PR [#116](https://github.com/EuThiagoAndrade/rastro-quente/pull/116)
-Diga: "aprovo o merge da PR #116"
+Situação: Concluído — ciclo 013 (leve)
+Quem: —
+Conferir: —
+Diga: —
 ```
 
 ## Handoff de saída
 
 - `handoff_schema_version: 2`
-- `logical_key`: `rastro-quente + 013 + implementar + issue-115 + v1`
-- `effect_class`: `remote_mutation` (push da branch e PR da issue #115)
-- `state_before` / `state_after`: plano `Rascunho` v1 com implementação autorizada / três frentes implementadas na branch `feature/issue-115`, gates locais verdes e PR #116 aberta aguardando merge
+- `logical_key`: `rastro-quente + 013 + encerrar + 013_plan + pr-116`
+- `effect_class`: `remote_mutation` (PR documental de encerramento)
+- `state_before` / `state_after`: ciclo em `drafts/`, `Planejamento`, com a PR #116 integrada / ciclo em `executed/`, `Concluído`
 - `result`: `executed`
-- `evidence`: commits da branch `feature/issue-115`; typecheck e build sem erro; `test:interface` 240/240; `test:agentes` 62/62; `test:e2e` 134/134; `check:governance` 0 erro; prova real (D7)
+- `evidence`: PR #116 integrada (`734d99a`) com os checks verdes; issue #115 fechada; linha do ciclo em `_project/cycles.md`
 - `blockers`: nenhum
